@@ -31,6 +31,10 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "sch.apps.SchConfig",
+    "computedfields",
+    "multiselectfield",
+    "compressor",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -49,7 +53,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-ROOT_URLCONF = "hello_world.urls"
+ROOT_URLCONF = "techn_i_cal.urls"
 
 TEMPLATES = [
     {
@@ -67,7 +71,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "hello_world.wsgi.application"
+WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 
 
 # Database

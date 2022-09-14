@@ -1,7 +1,7 @@
-"""hello_world URL Configuration
+"""pkpr URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.1/topics/http/urls/
+    https://docs.djangoproject.com/en/4.0/topics/http/urls/
 Examples:
 Function views
     1. Add an import:  from my_app import views
@@ -14,9 +14,20 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import include, path
+from django.template import loader
+from django.shortcuts import render
+from django.http import HttpResponse
+
+def index(request=0):
+    template = loader.get_template('index.html')
+    context = {
+    }
+    return HttpResponse(template.render(context, request))
+
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path('', include("ping.urls")),
+    path('' , index,  name='index'),
+    path('admin/',  admin.site.urls ),
+    path('sch/',    include('sch.urls'),    name='sch'),
 ]
