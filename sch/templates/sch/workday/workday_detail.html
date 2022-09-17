@@ -1,0 +1,63 @@
+{# --- WORKDAY_DETAIL.HTML --- #}
+{% extends 'base.html' %}
+{% load render_table from django_tables2 %}
+
+{% with workday as wd %}
+
+{% block content %}
+
+  <a href="/">HOME</a>
+
+  <section>
+      <div class="panel">
+          {% include 'sch/workday/dayChanger.html' %}  
+      </div>
+      <div class="panel">
+          <table>
+            <tr>
+              <th>WEEKDAY:<br> {{ wd }}</th>
+              <td>{{ wd.weekday }}</td>
+            </tr>
+            <tr>
+              <th>WEEK</th>
+              <td> 
+                <a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/"> {{ wd.iweek }} </a>
+              </td>
+            </tr>
+            <tr>
+              <th>PAY PERIOD DAY</th>
+              <td>{{ wd.ppd_id }}</td>
+            </tr>
+            <tr>
+              <th>PAY PERIOD</th>
+              <td>{{ wd.iperiod }}</td>
+            </tr>
+            <tr>
+              <th>SHIFTS</th>
+              <td>{% for shift in shifts %} {{ shift }} {% endfor %} </td>
+            </tr>
+          </table>
+      </div>
+
+      <div class="panel">
+        <h3>To Fill</h3>
+        <a href="fill-template/">Fill Templated Slots</a>
+          {% for shift in shifts %}
+            {% if shift.filledBy %}
+              <div class="green">{{shift}}: {{shift.filledBy}}</div>
+            {% else %} 
+              <div> {{shift}} : Not Filled </div>
+            {% endif %}
+          {% endfor %}
+        
+      </div>
+      <div class="pane">
+        {% for shift in shifts %}
+          <div>{{shift.name}}:{{shift.employee}}</div>
+        {% endfor %}
+        {% render_table slots %}
+      </div>
+  </section>
+
+{% endblock %}
+{% endwith %}

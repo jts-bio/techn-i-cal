@@ -1,4 +1,4 @@
-{% load compress %}
+
 {% load static %}
 
 <!DOCTYPE html>
@@ -20,14 +20,14 @@
             http-equiv="X-UA-Compatible" 
 			content= "ie=edge">
 
-		{% compress css %}
-			<link rel="stylesheet" href="{% static 'src/output.css' %}">
-		{% endcompress %}
+		
+		<style>
+			{% static 'sch/css/_base.min.css' %}
+		</style>
 	</head>
 
 	<body>
-			{% block content %}
-			{% endblock %}
+		{% block content %} {% endblock %}
 	</body>
 
 </html>

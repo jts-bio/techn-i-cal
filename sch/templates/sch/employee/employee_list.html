@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <a href="/">HOME</a>
+    <h1>Employees</h1>
+
+    <div>
+        <a href="/sch/employees/new/">Create New</a>
+    </div>
+
+    <table>
+        <tr>
+            <th>First Name</th>
+            <th>FTE</th>
+            <th>Actions</th>
+        </tr>
+        {% for employee in employees %}
+            <tr>
+                <td>
+                    <a href="/sch/employee/{{employee.name}}/">
+                        {{ employee.name }}
+                    </a>
+                </td>
+                <td>{{ employee.fte }} ({{ employee.fte_14_day }} hrs / 2wks)</td>
+                <td>{{ employee.department }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}

@@ -2,7 +2,7 @@
 
 from django.db import models
 from django.urls import reverse
-from django.db.models import Q, F, Count, Sum, Max, Min, Avg, StdDev, Variance
+from django.db.models import Q, F, Count, Sum, Max, Min, Avg, StdDev, Variance, QuerySet
 from computedfields.models import ComputedFieldsModel, computed
 from multiselectfield import MultiSelectField
 import datetime as dt
@@ -24,11 +24,20 @@ WEEKABCHOICES = (
 # ============================================================================
 class ShiftManager (models.QuerySet):
 
-    def on_weekday (self, weekday):
+    def on_weekday (self, weekday) -> QuerySet:
         return self.filter(occur_days__contains=weekday)
 
     def on_workday (self, workday):
-        return self.filter(occur_days=Workday.iweekday)
+        return self.filter(occur_days=workday.iweekday)
+
+    def to_fill (self,workday):
+        slot_exits = Slot.objects.filter(workday=workday).values_list('shift',flat=True)
+        return self.exclude(name__in=slot_exits)
+
+    def empl_is_trained (self, employee):
+        empl = Employee.objects.get(name=employee)
+        return self.filter(name__in=empl.shifts_trained.all())
+
 
 # ============================================================================
 class SlotManager (models.QuerySet):
@@ -39,11 +48,11 @@ class SlotManager (models.QuerySet):
     def ShiftDetail (self, workday, shift):
         if self.filter(workday=workday, shift=shift).exists():
             return self.filter(workday=workday, shift=shift).annotate(
-                employee=f('employee__name'),workday=f('workday__date')
+                employee= F('employee__name'),workday= F('workday__date')
                 )
         else:
             return self.filter(workday=workday, shift=shift).annotate(
-                employee=None,workday=f('workday__date')
+                employee= None, workday= F('workday__date')
                 )
 
 # ============================================================================
@@ -77,11 +86,14 @@ class Shift (models.Model) :
     def __str__(self) :
         return self.name
 
-    def get_absolute_url(self):
-        return reverse("shift", kwargs={"shift": self.name})
+    def url(self):
+        return reverse("shift", kwargs={"name": self.name})
 
     @property
     def ppd_ids(self):
+        """
+        Returns a list of the ids of the PPDs (0-13) that this shift occurs on.
+        """
         ids = list(self.occur_days)
         for i in self.occur_days:
             ids.append(str(int(i)+7))
@@ -90,6 +102,10 @@ class Shift (models.Model) :
     @property
     def end (self):
         return (dt.datetime(2022,1,1,self.start.hour,self.start.minute) + self.duration).time()
+
+
+    def trained_employees (self):
+        return Employee.objects.filter(shifts_trained=self)
 
     objects = ShiftManager.as_manager()
 
@@ -106,12 +122,18 @@ class Employee (ComputedFieldsModel) :
         return self.name
     # computed fields:
 
-    @computed(models.IntegerField(), depends=[('self',['fte_14_day'])])
+    @computed(models.FloatField(), depends=[('self',['fte_14_day'])])
     def fte (self):
         return self.fte_14_day / 80
 
-    def get_absolute_url(self):
+    def url(self):
         return reverse("employee", kwargs={"name": self.name})
+
+    def trained_for (self, shift):
+        return Shift.objects.filter(name__in=self.shifts_trained.all())
+
+    def available_for (self, shift):
+        return Shift.objects.filter(name__in=self.shifts_available.all())
 
     objects = EmployeeManager.as_manager()
 
@@ -121,7 +143,7 @@ class Workday (ComputedFieldsModel) :
     date = models.DateField()
 
     @computed(models.SlugField(max_length=20), depends=[('self',['date'])])
-    def slug (self):
+    def slug (self) -> str: 
         return self.date.strftime('%Y-%m-%d')
 
     @computed(models.IntegerField(), depends=[('self',['date'])])
@@ -139,29 +161,50 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 27
         return int (self.date.strftime('%U')) // 2
 
-    @property
-    def ppd_id (self):
+    @computed(models.IntegerField(), depends=[('self',['date'])])
+    def ppd_id (self) -> int:
         # range 0 -> 13
         return (self.date - dt.date(2022,9,4)).days % 14
     
     def weekday (self) -> str :
+        # Sun -> Sat
         return self.date.strftime('%a')
     
     @computed(models.ManyToManyField(Shift), depends=[('self',['date'])])
-    def shifts (self) :
-        return Shift.objects.on_weekday(self.iweekday)
+    def shifts (self) -> ShiftManager:
+        print (Shift.objects.all().first().values('occur_days')) # type: ignore
+        return Shift.objects.filter(occur_days__contains= self.iweekday)  # type: ignore
+
+    def siblings_iweek (self) -> "WorkdayManager":
+        return Workday.objects.same_week(self) # type: ignore
 
     def __str__(self) :
-        return str(self.date.strftime('%Y-%m-%d(%a)'))
+        return str(self.date.strftime('%Y %m %d'))
 
-    def get_absolute_url(self):
+    def url(self) -> str:
         return reverse("workday", kwargs={"slug": self.slug})
+    
+    def prevWD(self) -> "Workday":
+        try:
+            return Workday.objects.get(date=self.date - dt.timedelta(days=1))
+        except Workday.DoesNotExist:
+            return self
 
-    def prevURL (self):
+    def nextWD(self) -> "Workday":
+        try:
+            return Workday.objects.get(date=self.date + dt.timedelta(days=1))
+        except Workday.DoesNotExist:
+            return self
+    
+    def prevURL (self) -> str:
         return reverse("workday", kwargs={"slug": (self.date - dt.timedelta(days=1)).strftime('%Y-%m-%d')})
 
-    def nextURL (self):
+    def nextURL (self) -> str:
         return reverse("workday", kwargs={"slug": (self.date + dt.timedelta(days=1)).strftime('%Y-%m-%d')})
+
+    @property
+    def daysAway (self) -> int:
+        return (self.date - dt.date.today()).days
     
     objects = WorkdayManager.as_manager()
 
@@ -175,9 +218,11 @@ class Slot (ComputedFieldsModel) :
     @computed(models.SlugField(max_length=20), depends=[('self',['workday','shift'])])
     def slug (self):
         return self.workday.slug + '-' + self.shift.name
+
     @computed(models.DateTimeField(), depends=[('self',['workday','shift'])])
     def start (self):
         return dt.datetime.combine(self.workday.date, self.shift.start)
+
     @computed(models.DateTimeField(), depends=[('self',['workday','shift'])])
     def end (self):
         return dt.datetime.combine(self.workday.date, self.shift.start) + self.shift.duration
@@ -214,6 +259,10 @@ class ShiftTemplate (models.Model) :
 
     def get_absolute_url(self):
         return reverse("shifttemplate", kwargs={"pk": self.pk})
+    
+    @property
+    def nickname (self):
+        return f'{self.weekday(text=True)}-{self.weekAB()}'
 
     class Meta:
         unique_together = ['shift', 'ppd_id']

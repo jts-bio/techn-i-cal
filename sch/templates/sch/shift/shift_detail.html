@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+    <div>
+        <a href="/sch/shifts/all">
+            Back to Shifts
+        </a>
+    </div>
+
+    <div>
+        <h1>{{ shift }}</h1>
+    </div>
+
+
+    <div class="panel w-fc">
+        <h2>Shift Details</h2>
+        <div class="vstack align-r w-fc">
+            <div>
+                <a href="/sch/shift/{{shift}}/update/">Edit Shift</a>
+            </div>
+            <table>
+                <tr>
+                    <th>START TIME</th>
+                    <td>{{ shift.start }}</td>
+                </tr>
+                <tr>
+                    <th>END TIME</th>
+                    <td>{{ shift.end }}</td>
+                </tr>
+                <tr>
+                    <th>DURATION</th>
+                    <td>{{ shift.duration }}</td>
+                </tr>
+                <tr>
+                    <th>ON DAYS</th>
+                    <td>{{ shift.occur_days }}</td>
+                </tr>
+                <tr>
+                    <th>TRAINED EMPLOYEES</th>
+                    <td>
+                        {% for emp in shift.trained_employees %}
+                            {{ emp }} <br>
+                        {% endfor %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="panel">
+        <a href="template">Edit Templating</a>
+        <div class="hstack">
+            <div>
+                {% for sst in sstsA %}
+                <div>{{sst.0}} : {{sst.1.0.employee}} </div>
+                {% endfor %}
+            </div>
+            <div>
+                {% for sst in sstsB %}
+                <div>{{sst.0}} : {{sst.1.0.employee}} </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+    

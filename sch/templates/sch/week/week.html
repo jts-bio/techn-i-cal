@@ -1,0 +1,42 @@
+
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+<h1> Week {{week_num}} </h1>
+
+<div class="hstack">
+    {% for day in workdays %}
+        <div class="panel">
+            <h3>
+                <a href="/sch/day/{{day.slug}}"> {{day}} </a>
+            </h3>
+            {% if day.slots %}
+                <table>
+                {% for slot in day.slots %}
+                    <th>{{slot.shift}}</th>
+                    <td>{{slot.employee}}</td>
+                {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+
+<div class="panel w-fc mt-10">
+    <h3>Weekly Hours</h3>
+    <table>
+        {% for empl in employees %}
+            <tr>
+                <th>{{empl}}</th>
+                <td>{{empl.weekly_hours}} hrs</td>
+            </tr>
+        {% endfor %}
+    </table>   
+</div>
+
+{% endblock content %}
+
+    

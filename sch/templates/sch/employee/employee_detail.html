@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+    <a href="/sch/employees/all/">Back to All Employees</a>
+
+    <h1> {{ employee.name }} </h1>
+
+    <a href="update">Edit Employee</a>
+
+    <table>
+        <tr>
+            <th>Employee ID</th>
+            <td>{{ employee.id }}</td>
+        </tr>
+        <tr>
+            <th>Employee Name</th>
+            <td>{{ employee.name }}</td>
+        </tr>
+        <tr>
+            <th>Trained Shifts</th>
+            <td>{% for shift in sfts_trained %}
+                    {% if shift in sfts_avail %} <span class="green"> {{ shift.name }} <br></span>
+                    {% else %} {{shift.name}} <br> {% endif %}
+                {% endfor %}
+            </td>
+        </tr>
+        <tr>
+            <th>Avaliable</th>
+            <td>{{ employee.shifts_avaliable }}</td>
+        </tr>
+    </table>
+
+    <div class="panel w-fc">
+        <h2>Templating</h2>
+        <a href="ssts/">Edit Employee Templates</a>
+        <div class="hstack">
+            {% for i in ppdays %} {% for sst in ssts %} 
+                {% if sst.ppd_id == i %}
+                <div class="panel">
+                    <div class="small">{{sst.nickname}}</div>
+                    <div class="green">{{sst.shift}}</div>
+                </div>
+                {% else %}
+
+            {% endif %} {% endfor %} {% endfor %}
+        </div>
+    </div>
+
+{% endblock %}
+
