@@ -9,6 +9,7 @@ from django.forms import formset_factory
 from .models import Shift, Employee, Workday, Slot, ShiftManager, ShiftTemplate, WorkdayManager
 from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm
 from .actions import WorkdayActions
+from .tables import EmployeeTable
 from django.db.models import Q, F, Sum, Subquery
 
 from django_tables2 import tables
@@ -18,7 +19,7 @@ import datetime as dt
 
 # Create your views here.
 
-def index(request):
+def index(request) -> HttpResponse:
     today = dt.date.today()
     wd = Workday.objects.get(date=today)
     shifts = wd.shifts()
@@ -29,7 +30,7 @@ def index(request):
     return render(request, 'static/index.html', context)
 
 
-def day_changer (request, date):
+def day_changer (request, date) -> HttpResponse:
     workday = Workday.objects.get(slug=date)
     template_html = 'sch/workday/dayChanger.html'
     return render(request, template_html, {'workday': workday})
@@ -184,7 +185,7 @@ def slotAdd (request, date, shift):
         'employees': employees,
     }
     return render(request, 'sch2/slot/slotAdd.html', context)
-    
+  
 def slotAdd_post (request, workday, shift):
     if request.method == 'POST':
         form = SlotForm(request.POST)
@@ -232,6 +233,8 @@ class SHIFT :
             context['sstsA'] = sstsA
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] # type: ignore
             context['sstsB'] = sstsB
+
+            context['empTable'] = EmployeeTable(self.object)
             return context
 
         def get_object(self):
@@ -284,9 +287,7 @@ class SHIFT :
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
 
-       
-
-        
+    
 
 class EMPLOYEE:
 
@@ -342,6 +343,7 @@ class EMPLOYEE:
         
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
+
             context['template_slots'] = ShiftTemplate.objects.filter(employee__name=self.kwargs['name'])
             employee = Employee.objects.get(name=self.kwargs['name'])
             context['employee'] = employee
@@ -459,6 +461,3 @@ def shiftTemplate (request, shift):
 
     }
     return render(request, 'sch/shift/shift_sst_form.html', context)
-
-
-    

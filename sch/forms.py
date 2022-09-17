@@ -66,13 +66,13 @@ class EmployeeEditForm (forms.ModelForm) :
 class BulkWorkdayForm (forms.Form) :
     
     date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
-    date_to = forms.DateField(label='To', widget=forms.SelectDateWidget())
+    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
 
 class SlotForm (forms.Form):
 
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), required=False)
-    workday = forms.HiddenInput()
-    shift   = forms.HiddenInput()
+    workday  = forms.HiddenInput()
+    shift    = forms.HiddenInput()
 
     def __init__(self, *args, **kwargs):
         super(SlotForm, self).__init__(*args, **kwargs)
