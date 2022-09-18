@@ -9,8 +9,9 @@ from django.forms import formset_factory
 from .models import Shift, Employee, Workday, Slot, ShiftManager, ShiftTemplate, WorkdayManager
 from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm
 from .actions import WorkdayActions
-from .tables import EmployeeTable
-from django.db.models import Q, F, Sum, Subquery
+from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, WorkdayListTable
+
+from django.db.models import Q, F, Sum, Subquery, OuterRef
 
 from django_tables2 import tables
 
@@ -45,12 +46,11 @@ class WORKDAY :
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['title'] = 'Workdays'
-            print(context)
+            context['table'] = WorkdayListTable(self.get_queryset())
             return context
 
         def get_queryset(self):
             return Workday.objects.filter(date__gte=dt.date.today()).order_by('date')
-
 
     class WorkDayDetailView (DetailView):
 
@@ -61,14 +61,12 @@ class WORKDAY :
             context             = super().get_context_data(**kwargs)
             context['wd']       = self.object  # type: ignore
             context['today']    = dt.date.today()
-            context['shifts']   = Shift.objects.on_weekday(weekday=self.object.iweekday)   # type: ignore
-            shifts = context['shifts']
-            for shift in shifts:
-                shift.slots = Slot.objects.filter(workday=self.object, shift=shift) # type: ignore
-            context['shifts'] = shifts
+            shifts              = Shift.objects.on_weekday(weekday=self.object.iweekday)   # type: ignore
+            slots               = Slot.objects.filter(workday=self.object)
+            sftAnnot            = shifts.annotate(employee=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            context['table']    = ShiftsWorkdayTable(sftAnnot, order_by="start")
             context['sameWeek'] = Workday.objects.same_week(self.object)  # type: ignore
-            context['slots']    = Slot.objects.filter(workday=self.object)  # type: ignore
-            context['slotdeet'] = Slot.objects.on_workday(self.object)  # type: ignore 
+            
             # Context = wd, shifts, sameWeek, slots, slotdeet
             return context
         
@@ -92,31 +90,38 @@ def workdayFillTemplate(request, date):
     WorkdayActions.fillDailySST(workday)
     return HttpResponseRedirect(f'/sch/day/{date}/')
 
-def weekView (request, year, week):
-    week_num = week
-    week_yr  = year
-    week = Workday.objects.in_week(year, week)  # type: ignore
-    slots = Slot.objects.filter(workday__in=week)
-    shifts = Shift.objects.all()
-    # annotate each day in week, so that it has a list of shifts that occur on that workday, and the slot employee if one is assigned
-    for day in week:
-        day.getshifts = Shift.objects.on_weekday(day.iweekday)  # type: ignore
-        day.slots     = slots.filter(workday=day)
+class WEEK:
+    def weekView (request, year, week):
+        week_num = week
+        week_yr  = year
+        week     = Workday.objects.in_week(year, week)  # type: ignore
+        slots    = Slot.objects.filter(workday__in=week)
+        shifts   = Shift.objects.all()
+        # annotate each day in week, so that it has a list of shifts that occur on that workday, and the slot employee if one is assigned
+        for day in week:
+            day.getshifts = Shift.objects.on_weekday(day.iweekday)  # type: ignore
+            day.slots     = slots.filter(workday=day)
 
-    employees = Employee.objects.all()
-    employees = employees.annotate(
-        weekly_hours=Sum(F('slot__shift__duration')-dt.timedelta(minutes=30), filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr)))
-  # type: ignore
-    
-    context = {
-        'workdays': week,
-        'slots': slots,
-        'shifts': shifts,
-        'week_num': week_num,
-        'week_yr': week_yr,
-        'employees': employees,
-    }
-    return render(request, 'sch/week/week.html', context)
+        employees = Employee.objects.all()
+        employees = employees.annotate(
+            weekly_hours=Sum(F('slot__shift__duration')-dt.timedelta(minutes=30), filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr)))
+    # type: ignore
+        
+        context = {
+            'workdays'  : week,
+            'slots'     : slots,
+            'shifts'    : shifts,
+            'week_num'  : week_num,
+            'week_yr'   : week_yr,
+            'employees' : employees,
+        }
+        return render(request, 'sch/week/week.html', context)
+
+    def weekFillTemplates(request,year, week):
+        days = Workday.objects.filter(date__year=year, iweek=week)
+        for day in days:
+            WorkdayActions.fillDailySST(days)
+        return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
 class EmployeeDetailView (DetailView):
 
@@ -221,9 +226,9 @@ def slotDelete(request, date, shift):
 
 class SHIFT :
     class ShiftDetailView (DetailView):
-        model               = Shift
-        template_name       = 'sch/shift/shift_detail.html'
-        context_object_name = 'shifts'
+        model                = Shift
+        template_name        = 'sch/shift/shift_detail.html'
+        context_object_name  = 'shifts'
 
         def get_context_data(self, **kwargs):
             context                 = super().get_context_data(**kwargs)
@@ -234,7 +239,9 @@ class SHIFT :
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] # type: ignore
             context['sstsB'] = sstsB
 
-            context['empTable'] = EmployeeTable(self.object)
+            ssts = {day: ShiftTemplate.objects.filter(shift=self.object, ppd_id=day) for day in range(14)} # type: ignore
+            
+            #context['empTable'] = EmployeeTable(self.object)
             return context
 
         def get_object(self):
@@ -245,8 +252,11 @@ class SHIFT :
         template_name   = 'sch/shift/shift_list.html'
 
         def get_context_data(self, **kwargs):
-            context             = super().get_context_data(**kwargs)
-            context['shifts']   = Shift.objects.all()
+            context               = super().get_context_data(**kwargs)
+            context['shifts']     = Shift.objects.all()
+            shiftTable            = ShiftListTable(Shift.objects.all())
+            context['shiftTable'] = shiftTable
+
             return context
 
     class ShiftCreateView (FormView):

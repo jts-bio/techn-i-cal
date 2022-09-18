@@ -6,12 +6,12 @@
 
 {% block content %}
 <section>
-
-    <div class="panel">
+        <a href="/">HOME</a>
         <h1>Workdays</h1>
-        <div>
-            <a href="/sch/days/new/">Add Workdays</a>
-        </div>
+        <div class="panel">
+            <div>
+                <a href="/sch/days/new/">Add Workdays</a>
+            </div>
         {% comment %} <table>
             <thead>
                 <tr>
@@ -35,12 +35,8 @@
             </tr>
             {% endfor %}
         </table> {% endcomment %}
-        {% render_table object_list %}
-        
+        {% render_table table %}       
     </div>
-
-    
-
 </section>
 {% endblock content %}
     
