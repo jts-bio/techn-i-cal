@@ -5,7 +5,11 @@
 
 {% block content %}
 
+<a href="/sch/day/all/">Back to Days</a>
+
 <h1> Week {{week_num}} </h1>
+
+<a href="fill-template/">Fill Templated Slots for Week</a>
 
 <div class="hstack">
     {% for day in workdays %}
@@ -16,8 +20,10 @@
             {% if day.slots %}
                 <table>
                 {% for slot in day.slots %}
+                <tr>
                     <th>{{slot.shift}}</th>
                     <td>{{slot.employee}}</td>
+                </tr>
                 {% endfor %}
                 </table>
             {% endif %}

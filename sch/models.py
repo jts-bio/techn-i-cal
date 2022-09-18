@@ -38,7 +38,6 @@ class ShiftManager (models.QuerySet):
         empl = Employee.objects.get(name=employee)
         return self.filter(name__in=empl.shifts_trained.all())
 
-
 # ============================================================================
 class SlotManager (models.QuerySet):
 
@@ -267,4 +266,13 @@ class ShiftTemplate (models.Model) :
     class Meta:
         unique_together = ['shift', 'ppd_id']
 
+# ============================================================================
+class PtoRequest (models.Model): 
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    workday   = models.ForeignKey(Workday, on_delete=models.CASCADE)
+    manager_approval = models.BooleanField(default=False)
+    stands_respected = models.BooleanField(default=False)
 
+    def __str__(self) :
+        # ex: "<JOSH PTOReq: Sep5>"
+        return f'<{self.employee} PTOReq: {self.workday.date.strfmt("%m%d")}>'

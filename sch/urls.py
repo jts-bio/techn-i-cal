@@ -13,7 +13,8 @@ urlpatterns = [
     path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
 
     #? ==== Week ==== ?#
-    path('week/<int:year>/<int:week>/', views.weekView, name='week'),
+    path('week/<int:year>/<int:week>/', views.WEEK.weekView, name='week'),
+    path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/', views.slot, name='slot'),

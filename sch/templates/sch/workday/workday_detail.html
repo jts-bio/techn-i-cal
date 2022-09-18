@@ -9,9 +9,11 @@
   <a href="/">HOME</a>
 
   <section>
+
       <div class="panel">
           {% include 'sch/workday/dayChanger.html' %}  
       </div>
+
       <div class="panel">
           <table>
             <tr>
@@ -40,23 +42,14 @@
       </div>
 
       <div class="panel">
-        <h3>To Fill</h3>
+        <h3>SHIFTS</h3>
         <a href="fill-template/">Fill Templated Slots</a>
-          {% for shift in shifts %}
-            {% if shift.filledBy %}
-              <div class="green">{{shift}}: {{shift.filledBy}}</div>
-            {% else %} 
-              <div> {{shift}} : Not Filled </div>
-            {% endif %}
-          {% endfor %}
-        
+        <div>
+          {% render_table table %}
+        </div>
       </div>
-      <div class="pane">
-        {% for shift in shifts %}
-          <div>{{shift.name}}:{{shift.employee}}</div>
-        {% endfor %}
-        {% render_table slots %}
-      </div>
+
+
   </section>
 
 {% endblock %}

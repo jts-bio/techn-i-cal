@@ -1,48 +1,20 @@
 {% extends 'base.html' %}
+{% load render_table from django_tables2 %}
 
 {% block content %}
 
     <a href="/">HOME</a>
 
     <h1>MANAGE SHIFTS</h1>
-    
+
     <div class="panel">
-        <div class="panel-heading">
-            <h3 class="panel-title">Shifts</h3>
+        <div>
+            <a href="/sch/shifts/new/" class="btn btn-primary"> Create Shift </a>
         </div>
-        <div class="panel-body">
-            <div>
-                <a href="/sch/shifts/new/" class="btn btn-primary">
-                    Create Shift
-                </a>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Shift</th>
-                        <th>Start Time</th>
-                        <th>Duration</th>
-                        <th>Occurs On Days</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for shift in shifts %}
-                        <tr>
-                            <td> <a href="{{shift.url}}">{{ shift.name }}</span></td>
-                            <td>{{ shift.start }}</td>
-                            <td>{{ shift.duration }}</td>
-                            <td> {% for d in shift.occur_days %}
-                                    {{d.0}} {% endfor %} </td>
-                            <td>
-                                <a href="/sch/shift/{{shift}}/update/" class="btn btn-primary">Edit</a>
-                                <a href="" class="btn btn-danger">Delete</a>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div>
+            {% render_table shiftTable %}
         </div>
     </div>
+
 {% endblock content %}
     
