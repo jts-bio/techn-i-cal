@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Shift, Employee, Workday, Slot, ShiftTemplate
+from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest
 
 @admin.register(Shift)
 class ShiftAdmin(admin.ModelAdmin):
@@ -29,3 +29,8 @@ class SlotAdmin(admin.ModelAdmin):
 class ShiftTemplateAdmin(admin.ModelAdmin):
     fields = ['shift','employee','ppd_id',]
     list_display = ['shift','employee','ppd_id',]
+
+@admin.register(PtoRequest)
+class PtoRequestAdmin(admin.ModelAdmin):
+    fields = ['workday','employee','status','stands_respected',]
+    list_display = ['workday','employee','status','stands_respected',]

@@ -35,7 +35,7 @@
                 </tr>
                 <tr>
                     <th>ON DAYS</th>
-                    <td>{{ shift.occur_days }}</td>
+                    <td>{{ shift.on_days_display }}</td>
                 </tr>
                 <tr>
                     <th>TRAINED EMPLOYEES</th>
@@ -53,16 +53,25 @@
         <div class="hstack">
             <div>
                 {% for sst in sstsA %}
-                <div>{{sst.0}} : {{sst.1.0.employee}} </div>
+                <div>
+                    <span class="emph">{{sst.0}}</span> 
+                    {{sst.1.0.employee}} 
+                </div>
                 {% endfor %}
             </div>
             <div>
                 {% for sst in sstsB %}
-                <div>{{sst.0}} : {{sst.1.0.employee}} </div>
+                <div>
+                    <span class="emph">{{sst.0}}</span> 
+                    {{sst.1.0.employee}}
+                </div>
                 {% endfor %}
             </div>
         </div>
     </div>
+
+
+
 {% endblock content %}
 
     

@@ -17,7 +17,7 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
 
     #? ==== Slots ==== ?#
-    path('day/<slug:date>/<str:shift>/', views.slot, name='slot'),
+    path('day/<slug:date>/slot/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
     path('day/<slug:date>/<str:shift>/add/', views.slotAdd, name='slot-add'),
     path('day/<slug:date>/<str:shift>/add/post', views.slotAdd_post, name='slot-add-post'),  # type: ignore
     path('day/<slug:date>/<str:shift>/delete/', views.slotDelete, name='slot-delete'),
@@ -35,4 +35,7 @@ urlpatterns = [
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
+    path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
+    path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
+
 ]

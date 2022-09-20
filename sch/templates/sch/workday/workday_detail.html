@@ -10,11 +10,11 @@
 
   <section>
 
-      <div class="panel">
+      <div>
           {% include 'sch/workday/dayChanger.html' %}  
       </div>
-
-      <div class="panel">
+      <div class="hstack">
+      <div>
           <table>
             <tr>
               <th>WEEKDAY:<br> {{ wd }}</th>
@@ -43,12 +43,19 @@
 
       <div class="panel">
         <h3>SHIFTS</h3>
+        <div class="hstack">
+          {% for sft in unfilled %} 
+            <a href="slot/{{sft}}/new/"><div class="y-circle f-sb"> 
+              {{ sft }} 
+            </div></a>
+          {% endfor %} 
+        </div>
         <a href="fill-template/">Fill Templated Slots</a>
         <div>
           {% render_table table %}
         </div>
       </div>
-
+    </div>
 
   </section>
 

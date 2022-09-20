@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "sch.apps.SchConfig",
+    "sch.templatetags.tags",
     "computedfields",
     "multiselectfield",
     "compressor",

@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
 from django.db.models import query
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
@@ -6,12 +6,15 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.forms import formset_factory
 
-from .models import Shift, Employee, Workday, Slot, ShiftManager, ShiftTemplate, WorkdayManager
-from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm
-from .actions import WorkdayActions
-from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, WorkdayListTable
+from .models import PtoRequest, Shift, Employee, Workday, Slot, PtoRequest, ShiftManager, ShiftTemplate, WorkdayManager
 
-from django.db.models import Q, F, Sum, Subquery, OuterRef
+from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm, PTOForm, PTORangeForm
+
+from .actions import WorkdayActions
+
+from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, WorkdayListTable, PtoListTable
+
+from django.db.models import Q, F, Sum, Subquery, OuterRef, DurationField, ExpressionWrapper, Count
 
 from django_tables2 import tables
 
@@ -66,6 +69,9 @@ class WORKDAY :
             sftAnnot            = shifts.annotate(employee=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
             context['table']    = ShiftsWorkdayTable(sftAnnot, order_by="start")
             context['sameWeek'] = Workday.objects.same_week(self.object)  # type: ignore
+
+            unfilled            = Shift.objects.filter(occur_days__contains=self.object.iweekday).exclude(pk__in=slots.values('shift')) # type: ignore
+            context['unfilled'] = unfilled
             
             # Context = wd, shifts, sameWeek, slots, slotdeet
             return context
@@ -103,10 +109,12 @@ class WEEK:
             day.slots     = slots.filter(workday=day)
 
         employees = Employee.objects.all()
-        employees = employees.annotate(
-            weekly_hours=Sum(F('slot__shift__duration')-dt.timedelta(minutes=30), filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr)))
+        wk_hrs    = employees.annotate(
+            weekly_hours=Sum(
+                (ExpressionWrapper(F('slot__shift__duration'), output_field=DurationField())-dt.timedelta(minutes=30)),
+                filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr))).values('name','weekly_hours')
     # type: ignore
-        
+        print(wk_hrs)
         context = {
             'workdays'  : week,
             'slots'     : slots,
@@ -114,13 +122,14 @@ class WEEK:
             'week_num'  : week_num,
             'week_yr'   : week_yr,
             'employees' : employees,
+            'wk_hrs'    : wk_hrs,
         }
         return render(request, 'sch/week/week.html', context)
 
     def weekFillTemplates(request,year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
         for day in days:
-            WorkdayActions.fillDailySST(days)
+            WorkdayActions.fillDailySST(day)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
 class EmployeeDetailView (DetailView):
@@ -137,6 +146,7 @@ class EmployeeDetailView (DetailView):
         context['slots']    = Slot.objects.filter(employee=self.object)   # type: ignore
         context['shifts']   = self.object.shifts_trained.all()  # type: ignore
         context['next7']    = Workday.objects.filter(date__gte=dt.date.today())[:7]
+        context['ptoTable'] = PtoListTable(PtoRequest.objects.filter(employee=self.object))
         # use templateTags to get the next 7 days : 
         #                     EMPL_GETSHIFT(wd,empl)
         return context
@@ -240,8 +250,6 @@ class SHIFT :
             context['sstsB'] = sstsB
 
             ssts = {day: ShiftTemplate.objects.filter(shift=self.object, ppd_id=day) for day in range(14)} # type: ignore
-            
-            #context['empTable'] = EmployeeTable(self.object)
             return context
 
         def get_object(self):
@@ -297,10 +305,8 @@ class SHIFT :
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
 
-    
 
 class EMPLOYEE:
-
     class EmployeeListView (ListView):
         model           = Employee
         template_name   = 'sch/employee/employee_list.html'
@@ -332,6 +338,7 @@ class EMPLOYEE:
             context['sfts_avail']   = self.object.shifts_available.all() # type: ignore
             context['ppdays']       = range(14)
             context['ssts']         = ShiftTemplate.objects.filter(employee=self.object) # type: ignore
+            context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
             return context
 
         def get_object(self):
@@ -355,13 +362,123 @@ class EMPLOYEE:
             context = super().get_context_data(**kwargs)
 
             context['template_slots'] = ShiftTemplate.objects.filter(employee__name=self.kwargs['name'])
+            formset = formset_factory(SstEmployeeForm, extra=0)
+            formset = formset(initial=[{'ppd_id': i,'employee':employee} for i in range(14)])
             employee = Employee.objects.get(name=self.kwargs['name'])
             context['employee'] = employee
             empl_ssts = ShiftTemplate.objects.filter(employee=employee)
-            formset = formset_factory(SstEmployeeForm, extra=0)
-            formset = formset(initial=[{'ppd_id': i,'employee':employee} for i in range(14)])
             context['formset'] = formset
             return context
+
+    class EmployeeAddPtoView (FormView):
+
+        template_name = 'sch/employee/employee_add_pto.html'
+        form_class = PTOForm
+        fields      = ['employee', 'workday','dateCreated', 'status']
+        success_url = '/sch/employees/all/'
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employee'] = Employee.objects.get(name=self.kwargs['name'])
+            context['form'].fields['employee'].initial = Employee.objects.get(name=self.kwargs['name'])
+            return context
+
+        def form_valid(self, form):
+            form.save()
+            return super().form_valid(form)
+
+    class EmployeeAddPtoRangeView (FormView):
+
+        template_name = 'sch/employee/employee_add_pto.html'
+        form_class    = PTORangeForm
+        success_url   = '/sch/employees/all/'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employee'] = Employee.objects.get(name=self.kwargs['name'])
+            context['form'].fields['employee'].initial = Employee.objects.get(name=self.kwargs['name'])
+            return context
+
+        def form_valid(self, form):
+            return super().form_valid(form)
+
+        def post (self, request, *args, **kwargs):
+            form = self.get_form()
+            if form.is_valid():
+                date = form.cleaned_data['date_from']
+                end = form.cleaned_data['date_to']
+                employee = form.cleaned_data['employee']
+                while date <= end:
+                    obj = PtoRequest.objects.create(employee=employee, workday=date, dateCreated=date, status='P')
+                    obj.save()
+                    date += dt.timedelta(days=1)                
+                return self.form_valid(form)
+            else:
+                return self.form_invalid(form)
+
+  
+
+class SLOT:
+
+    def create_slot (request, date, shift):
+
+        if request.method == 'POST':
+            form = SlotForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('/sch/slots/all/')
+        else:
+            initial = {'workday': date, 'shift': shift}
+            form    = SlotForm(initial=initial)
+
+        return render(
+            request, 'sch/slot/slot_form.html', {
+                'form': form, 
+                'date': date, 
+                'shift': shift
+                })  
+
+    class SlotCreateView (FormView):
+
+        template_name   = 'sch/slot/slot_form.html'
+        form_class      = SlotForm
+        success_url     = '/sch/day/all/'
+
+        def form_valid(self, form):
+            form.save()
+            return super().form_valid(form)
+
+        def get_context_data(self, **kwargs):
+            context          = super().get_context_data(**kwargs)
+            context['date']  = self.kwargs['date']
+            context['shift'] = self.kwargs['shift']
+            return context
+
+        def get_initial(self):
+            return {'workday': self.kwargs['date'], 'shift': self.kwargs['shift']}
+
+    class SlotDetailView (DetailView):
+        model               = Slot
+        template_name       = 'sch/slot/slot_detail.html'
+        context_object_name = 'slots'
+
+        def get_context_data(self, **kwargs):
+            context                 = super().get_context_data(**kwargs)
+            context['slot']         = self.object # type: ignore
+            context['shifts']       = self.object.shifts.all() # type: ignore
+            return context
+
+        def get_object(self):
+            return Slot.objects.get(name=self.kwargs['name'])
+
+    # class SlotUpdateView (UpdateView):
+    #     model           = Slot
+    #     template_name   = 'sch/slot/slot_form_edit.html'
+    #     form_class      = SlotEditForm
+    #     success_url     = '/sch/slots/all/'
+
+    #     def get_object(self):
+    #         return Slot.objects.get(name=self.kwargs['name'])
 
 def EmpSSTView (request, name):
     context                  = {}
@@ -378,6 +495,7 @@ def EmpSSTView (request, name):
         formset = TmpSlotFormSet(request.POST)
         for form in formset:
             if form.is_valid():
+                # Only create new SSTs on non empty forms
                 if form.cleaned_data['shift'] != None:
                     shift = form.cleaned_data['shift']
                     ppd_id  = form.cleaned_data['ppd_id']
@@ -389,6 +507,12 @@ def EmpSSTView (request, name):
                     else:
                         sst = ShiftTemplate.objects.create(ppd_id=ppd_id,shift=shift, employee=employee)
                         sst.save()
+                # Delete SSTs on empty forms (if they changed)
+                else:
+                    ppd_id  = form.cleaned_data['ppd_id']
+                    if ShiftTemplate.objects.filter(employee=employee, ppd_id=ppd_id).exists():
+                        sst = ShiftTemplate.objects.get(employee=employee, ppd_id=ppd_id)
+                        sst.delete()
             else:
                 print(form.errors)
                     
@@ -412,7 +536,6 @@ def EmpSSTView (request, name):
 
 
 class SST:
-
     class sstUpdateView (UpdateView):
         model           = ShiftTemplate
         template_name   = 'sch/sst/sst_form_edit.html'

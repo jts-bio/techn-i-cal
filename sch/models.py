@@ -32,7 +32,7 @@ class ShiftManager (models.QuerySet):
 
     def to_fill (self,workday):
         slot_exits = Slot.objects.filter(workday=workday).values_list('shift',flat=True)
-        return self.exclude(name__in=slot_exits)
+        return self.exclude(name=slot_exits)
 
     def empl_is_trained (self, employee):
         empl = Employee.objects.get(name=employee)
@@ -63,6 +63,9 @@ class EmployeeManager (models.QuerySet):
     def in_slot (self, shift, workday):
         return self.filter(slot__shift__name=shift, slot__workday=workday)
 
+    def not_in_other_slot (self, shift, workday):
+        return self.filter(slot__workday=workday).exclude(slot__shift=shift)
+
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
     def in_week(self, year, iweek):
@@ -87,6 +90,13 @@ class Shift (models.Model) :
 
     def url(self):
         return reverse("shift", kwargs={"name": self.name})
+
+    def hours (self):
+        return self.duration.total_seconds()/3600 
+
+    @property
+    def on_days_display (self):
+        return " ".join(["Sun Mon Tue Wed Thu Fri Sat".split(" ")[int(i)] for i in self.occur_days])
 
     @property
     def ppd_ids(self):
@@ -171,8 +181,11 @@ class Workday (ComputedFieldsModel) :
     
     @computed(models.ManyToManyField(Shift), depends=[('self',['date'])])
     def shifts (self) -> ShiftManager:
-        print (Shift.objects.all().first().values('occur_days')) # type: ignore
-        return Shift.objects.filter(occur_days__contains= self.iweekday)  # type: ignore
+        return Shift.objects.filter(occur_days__contains= self.iweekday) 
+
+    @property
+    def n_shifts (self) -> ShiftManager:
+        return Shift.objects.filter(occur_days__contains= self.iweekday).count()
 
     def siblings_iweek (self) -> "WorkdayManager":
         return Workday.objects.same_week(self) # type: ignore
@@ -202,8 +215,15 @@ class Workday (ComputedFieldsModel) :
         return reverse("workday", kwargs={"slug": (self.date + dt.timedelta(days=1)).strftime('%Y-%m-%d')})
 
     @property
-    def daysAway (self) -> int:
-        return (self.date - dt.date.today()).days
+    def daysAway (self):
+        return self.date
+
+    def related_slots (self) -> "SlotManager":
+        return Slot.objects.filter(workday=self)
+
+    @property
+    def n_unfilled (self) -> int:
+        return  self.n_shifts - self.related_slots().count()
     
     objects = WorkdayManager.as_manager()
 
@@ -267,12 +287,27 @@ class ShiftTemplate (models.Model) :
         unique_together = ['shift', 'ppd_id']
 
 # ============================================================================
+PTO_STATUS_CHOICES = (
+    ('P', 'Pending'),
+    ('A', 'Approved'),
+    ('D', 'Denied'),
+)
+
 class PtoRequest (models.Model): 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    workday   = models.ForeignKey(Workday, on_delete=models.CASCADE)
+    workday   = models.DateField(null=True, blank=True)
+    dateCreated = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=PTO_STATUS_CHOICES, default='P')
     manager_approval = models.BooleanField(default=False)
-    stands_respected = models.BooleanField(default=False)
+    stands_respected = models.BooleanField(default=True)
 
     def __str__(self) :
         # ex: "<JOSH PTOReq: Sep5>"
-        return f'<{self.employee} PTOReq: {self.workday.date.strfmt("%m%d")}>'
+        return f'<{self.employee} PTOReq: {self.workday.date.strftime("%m%d")}>'
+    @property
+    def headsUpLength (self):
+        return (self.workday.date - self.dateCreated).days
+    
+    @property
+    def daysAway (self):
+        return (self.workday.date - dt.date.today()).days

@@ -1,6 +1,6 @@
-
 {% extends 'base.html' %}
-
+{% load render_table from django_tables2 %}
+{% load tags %}
 
 
 {% block content %}
@@ -34,14 +34,17 @@
 <div class="panel w-fc mt-10">
     <h3>Weekly Hours</h3>
     <table>
-        {% for empl in employees %}
+        {% for employee in wk_hrs %}
             <tr>
-                <th>{{empl}}</th>
-                <td>{{empl.weekly_hours}} hrs</td>
+                <th>{{employee.name}}</th>
+                <td>{{ employee.weekly_hours }} hrs.</td>
+               
             </tr>
         {% endfor %}
     </table>   
 </div>
+
+
 
 {% endblock content %}
 

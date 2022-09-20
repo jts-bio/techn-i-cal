@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<a href="/sch/day/{{date}}/">Cancel & Go Back</a>
+
+<h1> {{date}}
+    <span class="emph-2">
+        {{shift}}
+    </span>
+</h1>
+
+<form method="post"> {% csrf_token %}
+
+    {{ form.as_table }}
+    <input type="submit" value="Submit">
+
+</form>
+    
+{% endblock content %}
+
+    

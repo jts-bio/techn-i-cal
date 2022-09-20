@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 
+
 {% block content %}
     <a href="/">HOME</a>
+
     <h1>Employees</h1>
 
     <div>
@@ -22,7 +24,6 @@
                     </a>
                 </td>
                 <td>{{ employee.fte }} ({{ employee.fte_14_day }} hrs / 2wks)</td>
-                <td>{{ employee.department }}</td>
             </tr>
         {% endfor %}
     </table>
