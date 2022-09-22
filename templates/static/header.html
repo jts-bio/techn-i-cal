@@ -1,11 +1,15 @@
 {% load static %}
+{% load tags %}
 
-<div class="hstack">
-    <img src="static/img/logo.png" alt="LOGO: TECHN-I-CAL"/>
+<div class="hstack sp-btw">
+    <img src="https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/logo.png?raw=true" alt="LOGO: TECHN-I-CAL" style="width:70px;height:70px;"/>
 
     <div class="hstack">
         <h5><a href="/sch/day/all"> WORKDAYS </a></h5>
         <h5><a href="/sch/shifts/all"> SHIFTS </a> </h5>
         <h5><a href="/sch/employees/all/"> EMPLOYEES </a> </h5>
+    </div>
+    <div>
+        {% goToThisWeek %}
     </div>
 </div>

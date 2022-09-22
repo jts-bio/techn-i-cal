@@ -10,24 +10,6 @@
         <a href="/sch/employees/new/">Create New</a>
     </div>
 
-    <table>
-        <tr>
-            <th>First Name</th>
-            <th>FTE</th>
-            <th>Actions</th>
-        </tr>
-        {% for employee in employees %}
-            <tr>
-                <td>
-                    <a href="/sch/employee/{{employee.name}}/">
-                        {{ employee.name }}
-                    </a>
-                </td>
-                <td>{{ employee.fte }} ({{ employee.fte_14_day }} hrs / 2wks)</td>
-            </tr>
-        {% endfor %}
-    </table>
-
     {% render_table employeeTable %}
 
 {% endblock %}

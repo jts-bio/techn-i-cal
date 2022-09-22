@@ -1,3 +1,4 @@
+from xml.sax.handler import DTDHandler
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
 from django.db.models import query
 from django.urls import reverse_lazy
@@ -8,7 +9,7 @@ from django.forms import formset_factory
 
 from .models import PtoRequest, Shift, Employee, Workday, Slot, PtoRequest, ShiftManager, ShiftTemplate, WorkdayManager
 
-from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm, PTOForm, PTORangeForm
+from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm, BulkWorkdayForm, SSTForm, SstEmployeeForm, PTOForm, PTORangeForm, EmployeeScheduleForm
 
 from .actions import WorkdayActions
 
@@ -389,6 +390,7 @@ class EMPLOYEE:
             context['sstHours']     = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
             context['SSTGrid']      = [(day, ShiftTemplate.objects.filter(employee=self.object, ppd_id=day)) for day in range(14)] # type: ignore    
             context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
+
             return context
 
         def get_object(self):
@@ -408,6 +410,31 @@ class EMPLOYEE:
 
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
+
+    class EmployeeScheduleFormView (FormView):
+        template_name   = 'sch/employee/schedule_form.html'
+        form_class      = EmployeeScheduleForm
+        fields          = ['employee', 'date_from', 'date_to']
+        success_url     = '/sch/employees/all/'
+
+        def form_valid(self, form):
+            form.save()
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employee'] = Employee.objects.get(name=self.kwargs['name'])
+            context['date_from'] = dt.date.today() - dt.timedelta(days=dt.date.today().weekday())
+            context['date_to']   = context['date_from'] + dt.timedelta(days=6)
+            return context
+
+    class EmployeeScheduleView (ListView):
+        model           = Slot 
+        template_name   = 'sch/employee/schedule.html'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['ssts'] = ShiftTemplate.objects.all()
+            return context
 
     class EmployeeSstsView (FormView):
         template_name = 'sch/employee/employee_ssts_form.html'

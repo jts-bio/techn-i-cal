@@ -37,5 +37,7 @@ urlpatterns = [
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
+    path('employee/<str:name>/generate-schedule', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
+    path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),  # type: ignore
 
 ]
