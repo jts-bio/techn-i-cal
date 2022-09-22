@@ -1,15 +1,75 @@
+* {
+  font-family: "Dosis", sans-serif;
+  color: #ddd;
+}
+
+aside {
+  background-color: #333;
+  padding: 10px;
+  margin: 0px;
+  height: 100%;
+  width: 15%;
+}
+aside h1 {
+  font-family: "Nanum Gothic", monospace;
+  font-size: 30px;
+  color: #ddd;
+  background-color: #777;
+}
+
+.nav-top {
+  background-color: #354F8C;
+  color: #fff9;
+  padding: 10px;
+  margin: 0px;
+  height: 30px;
+  width: 100%;
+  position: fixed;
+}
+.nav-top .hstack {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-top .hstack .logo {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff9;
+}
+.nav-top .hstack .nav {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.nav-top .hstack .nav .nav-item {
+  font-size: 15px;
+  font-weight: bold;
+  color: #fff9;
+  margin: 0px 10px;
+}
+.nav-top .hstack .nav .nav-item:hover {
+  color: #C2CEF2;
+}
+.nav-top h1 {
+  font-family: "Nanum Gothic", monospace;
+  font-size: 30px;
+  color: #ddd;
+  background-color: #777;
+}
+
 .employee h1 {
   color: #e2e2e2;
   font-size: 2.5em;
   font-weight: 800;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
-
 .employee .contr {
   color: #b4bbb0;
   font-size: 0.8em;
   font-weight: 200;
-  font-family: 'Open Sans', sans-serif;
+  font-family: "Open Sans", sans-serif;
 }
 
 .panel {
@@ -21,22 +81,19 @@
   margin: 10px;
   box-shadow: 0 0 5px #787f90;
 }
-
-.panel-header {
+.panel .header {
   font-size: 1.5em;
   font-weight: bold;
   margin-bottom: 10px;
 }
-
-.panel-body {
+.panel .body {
   font-size: 0.9em;
   color: #C2CEF2;
   font-weight: 300;
   line-height: 1.5em;
   margin-bottom: 10px;
 }
-
-.panel-frw {
+.panel .frw {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -47,6 +104,7 @@
 
 .sidebar {
   background-color: #1E222F;
+  background-color-opacity: 0.9;
   color: #79A2F2;
   border: 1px solid #C2CEF2;
   border-radius: 5px;
@@ -79,14 +137,14 @@ h2 {
 select {
   background-color: #1E222F;
   color: #79A2F2;
-  border: 1px solid #C2CEF2;
+  border: 1px solid 5px #C2CEF2;
   border-radius: 5px;
   padding: 10px;
   box-shadow: 0 0 5px #787f90;
   width: 65%;
 }
 
-select::disabled {
+select:disabled {
   background-color: #1E222F;
   color: #3B4252;
   border: 1px solid #3B4252;
@@ -94,4 +152,179 @@ select::disabled {
   padding: 10px;
   width: 65%;
   box-shadow: 0 0 5px #787f90;
+}
+
+.outline {
+  border: 1px solid #636363;
+  padding: 1px 2px 1px 3px;
+  margin: 0px 6px 2px 0px;
+  font-size: 0.9rem;
+  background-color: #ada2;
+  border-radius: 3px;
+}
+
+.outline2 {
+  border: 1px solid #636363;
+  padding: 1px 2px 1px 3px;
+  margin: 1px 6px 2px 3px;
+  font-size: 0.9rem;
+  background-color: #d882;
+  border-radius: 3px;
+}
+
+.panel {
+  @apply text-base text-center text-gray-200 bg-gray-800 rounded-lg shadow-lg;
+  background-color: #f8f8f810;
+  border: 1px solid #f8f8f830;
+  border-radius: 3px;
+  padding: 5px;
+  margin: 5px;
+  width: 200px;
+  justify-content: center;
+}
+
+table {
+  width: 100%;
+}
+
+h3 {
+  margin: 0px;
+  padding: 3px 0px 6px 2px;
+}
+
+.panel h1 {
+  justify: center;
+}
+
+.small {
+  font-size: 0.5rem;
+  color: #ddd6;
+  font-style: italic;
+}
+
+h1 {
+  font-family: "Nanum Gothic Coding", monospace;
+  font-size: 2.5rem;
+  color: #f6ad55;
+}
+
+h2 {
+  @apply text-2xl font-bold text-center text-gray-200;
+}
+
+h3 {
+  @apply text-xl font-bold text-center text-gray-200;
+}
+
+h4 {
+  @apply text-lg font-bold text-center text-gray-200;
+}
+
+h5 {
+  @apply text-base font-bold text-center text-gray-200;
+}
+
+p {
+  @apply text-base text-center text-gray-200;
+}
+
+body {
+  background-color: #0f172a;
+}
+
+label {
+  @apply text-base text-center text-gray-200;
+}
+
+.activeDay {
+  border-radius: 5px;
+  color: #fff6;
+  background-color: #aaa1;
+  border: 1px solid #aaa1;
+}
+
+.inactiveDay {
+  border-radius: 5px;
+  color: #fff4;
+  border: 1px solid #fff0;
+}
+
+.activeDay:hover {
+  color: #2228;
+  background-color: #aaa9;
+}
+
+.inactiveDay:hover {
+  color: #fff4;
+  border: 1px solid #fff6;
+}
+
+.week-hstack {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-gap: 1rem;
+}
+
+.submit {
+  @apply text-center text-gray-400 bg-pink-700 rounded-lg shadow-lg;
+  padding: 0.5rem;
+}
+
+.submit:hover {
+  @apply text-gray-100 bg-pink-500;
+}
+
+table {
+  border: 1px solid #fff2;
+  width: fit-content;
+}
+
+td {
+  font-family: "Nanum Gothic Coding", monospace;
+  font-size: 0.8rem;
+  margin-right: 1rem;
+  padding: 1px;
+  text-align: center;
+  color: #fff7;
+  border: 1px solid #fff2 !important;
+  height: 0.8rem;
+}
+
+th {
+  font-family: "Nanum Gothic Coding", monospace;
+  font-weight: 800;
+  font-size: 0.9rem;
+  margin-right: 1rem;
+  padding: 1px;
+  padding-left: 4px;
+  padding-right: 4px;
+  text-align: center;
+  color: #fff8;
+  border: 1px solid #fff2 !important;
+  background-color: #aaa3;
+}
+
+.panel > ul > li {
+  font-size: 0.8rem;
+  color: #fff6;
+}
+
+.badge-pr {
+  background-color: #da67fd;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 1 1 1 #000 !important;
+  border-radius: 20px;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+}
+
+.nav-top {
+  background-color: #0f172a;
+  color: #fff;
+  border: 1px solid #fff2;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px;
+  box-shadow: 0 0 5px #fff2;
 }

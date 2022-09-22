@@ -9,6 +9,7 @@
     <h1> {{ employee.name }} </h1>
 
     <a href="update">Edit Employee</a>
+    <div class="hstack">
     <div class="flex flex-row">
         <table>
             <tr>
@@ -35,19 +36,26 @@
 
         <div class="panel w-fc">
             <h2>Templating</h2>
+            <p>Employee templated for {{sstHours}} hours / pay period.</p>
+            
             <a href="ssts/">Edit Employee Templates</a>
             <div class="hstack">
-                {% for i in ppdays %} {% for sst in ssts %} 
-                    {% if sst.ppd_id == i %}
-                    <div class="panel">
-                        <div class="small">{{sst.nickname}}</div>
-                        <div class="green">{{sst.shift}}</div>
+            {% for sst in SSTGrid %}
+                    <div class="panel w-70 h-50">
+                        <span>Day {{sst.0}}</span><br>
+                        {% if sst.1 %}
+                            <span class="green lg">{{sst.1.0.shift}}</span>
+                        {% else %}
+                            <span class="small">N/A</span>
+                        {% endif %}
                     </div>
-                    {% else %}
-
-                {% endif %} {% endfor %} {% endfor %}
-            </div>
+                
+                {% if sst.0 == 6 %} 
+                    </div> <div class="hstack"> 
+                {% endif %}
+            {% endfor %}
         </div>
+    </div>        </div>
     </div>
     <div class="panel">
         <h2>PTO REQUESTS</h2>

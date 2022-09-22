@@ -11,22 +11,21 @@
 
 <a href="fill-template/">Fill Templated Slots for Week</a>
 
+{% if total_unfilled != 0 %}
+<p>
+    {{total_unfilled}} unfilled slots for this week
+</p>
+{% endif %}
+
 <div class="hstack">
     {% for day in workdays %}
         <div class="panel">
             <h3>
                 <a href="/sch/day/{{day.slug}}"> {{day}} </a>
             </h3>
-            {% if day.slots %}
-                <table>
-                {% for slot in day.slots %}
-                <tr>
-                    <th>{{slot.shift}}</th>
-                    <td>{{slot.employee}}</td>
-                </tr>
-                {% endfor %}
-                </table>
-            {% endif %}
+            
+            {{ day.table }}
+            
         </div>
     {% endfor %}
 </div>
@@ -42,6 +41,12 @@
             </tr>
         {% endfor %}
     </table>   
+    {% for empl in hrsTable %}
+    <div>
+        <span class="green">{{empl.0 }}</span>
+        <span>{{ empl.1.hours }} hrs.</span>
+    </div>
+    {% endfor %}
 </div>
 
 

@@ -8,6 +8,7 @@
 	<head>
 
     <title> Tech Schedules </title>
+
 		<meta charset="UTF-8">
 		<meta name="viewport" 
 			  content="width=device-width, initial-scale=1.0">
@@ -44,6 +45,16 @@
 					text-align: center;
 					width: 100%;s
 				}
+				grid-7-by-2 {
+					display: grid;
+					grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+					grid-template-rows: 1fr 1fr;
+					grid-gap: 10px;
+					padding: 10px;
+					margin: 0px;
+					height: 100%;
+					width: 85%;
+				}
 				.emph {
 					color: #fff;
 					font-family: "JetBrains Mono", monospace;
@@ -51,6 +62,10 @@
 					background-color: #a5e2;
 					padding: 5px;
 					border-radius: 15px;
+				}
+				.small {
+					font-size: 10px;
+					font-style: italic;
 				}
 				.content {
 					width: 90%;
@@ -131,6 +146,10 @@
 					border-radius: 10px;
 					border: 1px solid #ddd4;
 					padding: 10px;
+					margin-bottom: 10px;
+				}
+				a {
+					color: #fdd;
 				}
 				body {
 					background-color: #0f172a;
@@ -181,7 +200,7 @@
 					width: fit-content;
 				}
 				td {
-					font-family: 'Nanum Gothic Coding', monospace;
+					font-family: 'JetBrains Mono', monospace;
 					font-size: 0.8rem;
 					margin-right: 1rem;
 					padding: 1px;
@@ -191,7 +210,7 @@
 					height: 0.8rem;
 				}
 				th {
-					font-family: 'Nanum Gothic Coding', monospace;
+					font-family: 'JetBrains Mono', monospace;
 					font-weight: 800;
 					font-size: 0.9rem;
 					margin-right: 1rem;
@@ -218,7 +237,13 @@
 					padding-right: 0.3rem;
 				}
 				input {
-					color: #0007;
+					color: #fff6;
+					font-weight: 900;
+					font-size: 0.9rem;
+					border-radius: 15px;
+					background-color: #fff2;
+					padding-left: 0.5rem; 
+					padding-right: 0.3rem;
 				}
 				.green {
 					color: #8fa;
@@ -235,6 +260,35 @@
 				.mt-10 {
 					margin-top: 10px;
 				}
+				.badge-pr {
+					background-color: #da67fd;
+					color: #fff;
+					font-weight: 800;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 20px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+				  }
+				  
+				  .nav-top {
+					background-color: #0f172a;
+					color: #fff;
+					border: 1px solid #fff2;
+					border-radius: 5px;
+					padding: 10px;
+					margin: 10px;
+					box-shadow: 0 0 5px #fff2;
+				  }
+				  .w-70 {
+					width: 70px;
+				  }
+				  .lg {
+					font-size: 1.6rem;
+					font-weight: 800;
+				  }
+				  .h-50 {
+					height: 50px;
+				  }
 			</style>
 			<link href="{% static 'sch/css/_base.min.css' %}" rel="stylesheet">
 			{% block style %} {% endblock %}
@@ -244,9 +298,9 @@
 	</head>
 
 	<body class="content">
-		<div class="nav-top">
+		
 
-		</div>
+		<div class="nav-top">{% include 'header.html' %}</div>
 
 				{% block content %}
 				{% endblock %}

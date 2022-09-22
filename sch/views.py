@@ -12,7 +12,7 @@ from .forms import SlotForm, SstForm, ShiftForm, EmployeeForm, EmployeeEditForm,
 
 from .actions import WorkdayActions
 
-from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, WorkdayListTable, PtoListTable
+from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, PtoListTable
 
 from django.db.models import Q, F, Sum, Subquery, OuterRef, DurationField, ExpressionWrapper, Count
 
@@ -72,6 +72,9 @@ class WORKDAY :
 
             unfilled            = Shift.objects.filter(occur_days__contains=self.object.iweekday).exclude(pk__in=slots.values('shift')) # type: ignore
             context['unfilled'] = unfilled
+
+            ptoReqs             = PtoRequest.objects.filter(workday=self.object.date).values('employee')
+            context['ptoReqs']    = Employee.objects.filter(pk__in=ptoReqs)
             
             # Context = wd, shifts, sameWeek, slots, slotdeet
             return context
@@ -97,6 +100,48 @@ def workdayFillTemplate(request, date):
     return HttpResponseRedirect(f'/sch/day/{date}/')
 
 class WEEK:
+    class WeekView (ListView):
+
+        model = Workday
+        template_name = 'sch/week/week.html'
+        context_object_name = 'workdays'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title']      = 'Week'
+            context['year']       = self.kwargs['year']
+            year                  = self.kwargs['year']
+            context['week_num']   = self.kwargs['week']
+            week                  = self.kwargs['week']
+
+            context['hrsTable']   = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
+            
+            for day in context['workdays']:
+                                    day.table = self.render_day_table(day)
+            total_unfilled = 0
+
+            for day in self.object_list:
+                total_unfilled += day.n_unfilled
+            context['total_unfilled'] = total_unfilled
+            return context
+
+        def get_queryset(self):
+            return Workday.objects.filter(date__year=self.kwargs['year'], iweek=self.kwargs['week']).order_by('date')
+
+        def get_day_table(self, workday):
+            shifts              = Shift.objects.on_weekday(weekday=workday.iweekday)   # type: ignore
+            slots               = Slot.objects.filter(workday=workday)
+            sftAnnot            = shifts.annotate(employee=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            return ShiftsWorkdaySmallTable(sftAnnot, order_by="start")
+
+        def render_day_table(self, workday):
+            return self.get_day_table(workday).as_html(self.request)
+
+        def get_hours_queryset (self, year, week):
+            return Employee.objects.all().annotate(
+                hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
+            )
+
     def weekView (request, year, week):
         week_num = week
         week_yr  = year
@@ -113,6 +158,8 @@ class WEEK:
             weekly_hours=Sum(
                 (ExpressionWrapper(F('slot__shift__duration'), output_field=DurationField())-dt.timedelta(minutes=30)),
                 filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr))).values('name','weekly_hours')
+        
+        table = WeeklyHoursTable(Employee.objects.all())
     # type: ignore
         print(wk_hrs)
         context = {
@@ -123,6 +170,7 @@ class WEEK:
             'week_yr'   : week_yr,
             'employees' : employees,
             'wk_hrs'    : wk_hrs,
+            'table'     : table,
         }
         return render(request, 'sch/week/week.html', context)
 
@@ -305,15 +353,15 @@ class SHIFT :
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
 
-
 class EMPLOYEE:
     class EmployeeListView (ListView):
         model           = Employee
         template_name   = 'sch/employee/employee_list.html'
 
         def get_context_data(self, **kwargs):
-            context                 = super().get_context_data(**kwargs)
-            context['employees']    = Employee.objects.all()
+            context                  = super().get_context_data(**kwargs)
+            context['employees']     = Employee.objects.all()
+            context['employeeTable'] = EmployeeTable(Employee.objects.all())
             return context
 
     class EmployeeCreateView (FormView):
@@ -337,12 +385,20 @@ class EMPLOYEE:
             context['sfts_trained'] = self.object.shifts_trained.all() # type: ignore
             context['sfts_avail']   = self.object.shifts_available.all() # type: ignore
             context['ppdays']       = range(14)
-            context['ssts']         = ShiftTemplate.objects.filter(employee=self.object) # type: ignore
+            context['ssts']         = ShiftTemplate.objects.filter(employee=self.object) 
+            context['sstHours']     = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
+            context['SSTGrid']      = [(day, ShiftTemplate.objects.filter(employee=self.object, ppd_id=day)) for day in range(14)] # type: ignore    
             context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
             return context
 
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
+
+        def employeeSstGrid (employee):
+            ssts = ShiftTemplate.objects.filter(employee=employee)
+            sstsA = [(day, ssts.filter(ppd_id=day)) for day in range(7)]
+            sstsB = [(day, ssts.filter(ppd_id=day)) for day in range(7,14)]
+            return (sstsA, sstsB)
 
     class EmployeeUpdateView (UpdateView):
         model           = Employee
@@ -400,7 +456,14 @@ class EMPLOYEE:
             return context
 
         def form_valid(self, form):
-            return super().form_valid(form)
+            # valid if date_from <= date_to
+            if form.cleaned_data['date_from'] <= form.cleaned_data['date_to']:
+                return super().form_valid(form)
+            else:
+                return self.form_invalid(form)
+        
+        def form_invalid(self, form):
+            return super().form_invalid(form)
 
         def post (self, request, *args, **kwargs):
             form = self.get_form()
@@ -415,8 +478,6 @@ class EMPLOYEE:
                 return self.form_valid(form)
             else:
                 return self.form_invalid(form)
-
-  
 
 class SLOT:
 
@@ -442,7 +503,6 @@ class SLOT:
 
         template_name   = 'sch/slot/slot_form.html'
         form_class      = SlotForm
-        success_url     = '/sch/day/all/'
 
         def form_valid(self, form):
             form.save()
@@ -456,6 +516,9 @@ class SLOT:
 
         def get_initial(self):
             return {'workday': self.kwargs['date'], 'shift': self.kwargs['shift']}
+
+        def get_success_url(self):
+            return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})
 
     class SlotDetailView (DetailView):
         model               = Slot
@@ -471,14 +534,6 @@ class SLOT:
         def get_object(self):
             return Slot.objects.get(name=self.kwargs['name'])
 
-    # class SlotUpdateView (UpdateView):
-    #     model           = Slot
-    #     template_name   = 'sch/slot/slot_form_edit.html'
-    #     form_class      = SlotEditForm
-    #     success_url     = '/sch/slots/all/'
-
-    #     def get_object(self):
-    #         return Slot.objects.get(name=self.kwargs['name'])
 
 def EmpSSTView (request, name):
     context                  = {}
@@ -532,9 +587,6 @@ def EmpSSTView (request, name):
     }
     return render(request, 'sch/employee/employee_ssts_form.html', context)
 
-
-
-
 class SST:
     class sstUpdateView (UpdateView):
         model           = ShiftTemplate
@@ -543,7 +595,7 @@ class SST:
         success_url     = '/sch/shifts/all/'
 
         def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs) # type: ignore
+            context = super().get_context_data(**kwargs) 
 
         def get_queryset(self):
             return ShiftTemplate.objects.filter(shift=self.kwargs['name'])

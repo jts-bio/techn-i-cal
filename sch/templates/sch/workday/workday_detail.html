@@ -54,6 +54,14 @@
         <div>
           {% render_table table %}
         </div>
+        <div style="margin-top: 10px;">
+          <span> PTO: </span>
+          {% if ptoReqs %}
+            {% for req in ptoReqs %} {{ req }} {% endfor %}
+          {% else %}
+            None
+          {% endif %}
+        </div>
       </div>
     </div>
 

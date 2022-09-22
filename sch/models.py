@@ -1,11 +1,13 @@
 "--- MODELS.py ---"
 
-from django.db import models
-from django.urls import reverse
-from django.db.models import Q, F, Count, Sum, Max, Min, Avg, StdDev, Variance, QuerySet
-from computedfields.models import ComputedFieldsModel, computed
-from multiselectfield import MultiSelectField
 import datetime as dt
+
+from computedfields.models import ComputedFieldsModel, computed
+from django.db import models
+from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev,
+                              Sum, Variance)
+from django.urls import reverse
+from multiselectfield import MultiSelectField
 
 DAYCHOICES = (
         (0, 'Sunday'),
@@ -20,7 +22,10 @@ WEEKABCHOICES = (
         (0, 'A'),
         (1, 'B'),)
 
-#* Managers
+TODAY = dt.date.today()
+
+
+#* --- Managers --- *#
 # ============================================================================
 class ShiftManager (models.QuerySet):
 
@@ -28,11 +33,11 @@ class ShiftManager (models.QuerySet):
         return self.filter(occur_days__contains=weekday)
 
     def on_workday (self, workday):
-        return self.filter(occur_days=workday.iweekday)
+        return self.filter(occur_days__contains=workday.iweekday)
 
     def to_fill (self,workday):
-        slot_exits = Slot.objects.filter(workday=workday).values_list('shift',flat=True)
-        return self.exclude(name=slot_exits)
+        slot_exits = Slot.objects.filter(workday=workday).values('shift')
+        return self.all().exclude(pk__in=slot_exits)
 
     def empl_is_trained (self, employee):
         empl = Employee.objects.get(name=employee)
@@ -54,6 +59,13 @@ class SlotManager (models.QuerySet):
                 employee= None, workday= F('workday__date')
                 )
 
+    def empls_weekly_hours (self, year, week, employee):
+        return self.filter(
+            workday__iweek= week,
+            workday__date__year= year,
+            employee= employee
+            ).aggregate(hours=Sum('shift__hours'))
+
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -63,8 +75,16 @@ class EmployeeManager (models.QuerySet):
     def in_slot (self, shift, workday):
         return self.filter(slot__shift__name=shift, slot__workday=workday)
 
-    def not_in_other_slot (self, shift, workday):
-        return self.filter(slot__workday=workday).exclude(slot__shift=shift)
+    def in_other_slot (self, shift, workday):
+        return Slot.objects.filter(workday=workday).exclude(shift=shift).values('employee')
+
+    def can_fill_shift_on_day (self, shift, workday):
+        in_other = self.in_other_slot(shift, workday)
+        return self.trained_for(shift).exclude(pk__in=in_other)
+
+    def weekly_hours (self, year, week):
+        return self.filter(slot__workday__iweek=week, slot__workday__date__year=year).aggregate(hours=Sum('slot__hours'))
+        
 
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
@@ -78,7 +98,7 @@ class WorkdayManager (models.QuerySet):
 
 #* Models
 # ============================================================================
-class Shift (models.Model) :
+class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
     name        = models.CharField(max_length=100)
     start       = models.TimeField()
@@ -91,8 +111,9 @@ class Shift (models.Model) :
     def url(self):
         return reverse("shift", kwargs={"name": self.name})
 
+    @computed(models.FloatField(), depends=[('self', ['duration'])])
     def hours (self):
-        return self.duration.total_seconds()/3600 
+        return self.duration.total_seconds() / 3600 - 0.5
 
     @property
     def on_days_display (self):
@@ -143,6 +164,9 @@ class Employee (ComputedFieldsModel) :
 
     def available_for (self, shift):
         return Shift.objects.filter(name__in=self.shifts_available.all())
+
+    def weekly_hours (self, year, iweek):
+        return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
 
     objects = EmployeeManager.as_manager()
 
@@ -215,8 +239,9 @@ class Workday (ComputedFieldsModel) :
         return reverse("workday", kwargs={"slug": (self.date + dt.timedelta(days=1)).strftime('%Y-%m-%d')})
 
     @property
-    def daysAway (self):
-        return self.date
+    def days_away (self) -> int:
+        td = self.date - TODAY 
+        return td.days
 
     def related_slots (self) -> "SlotManager":
         return Slot.objects.filter(workday=self)
@@ -230,9 +255,9 @@ class Workday (ComputedFieldsModel) :
 # ============================================================================
 class Slot (ComputedFieldsModel) :
     # fields: workday, shift, employee
-    workday  = models.ForeignKey(Workday,  on_delete=models.CASCADE)
+    workday  = models.ForeignKey("Workday",  on_delete=models.CASCADE)
     shift    = models.ForeignKey(Shift,    on_delete=models.CASCADE)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     # computed fields:
     @computed(models.SlugField(max_length=20), depends=[('self',['workday','shift'])])
     def slug (self):
@@ -246,11 +271,17 @@ class Slot (ComputedFieldsModel) :
     def end (self):
         return dt.datetime.combine(self.workday.date, self.shift.start) + self.shift.duration
 
+    @computed(models.FloatField(), depends=[('self',['shift'])])
+    def hours (self) -> float:
+        return (self.shift.duration.total_seconds() - 1800) / 3600 
+
     def __str__(self) :
         return str(self.workday) + ' ' + str(self.shift)
 
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})
+
+    
 
     objects = SlotManager.as_manager()
 
@@ -293,13 +324,19 @@ PTO_STATUS_CHOICES = (
     ('D', 'Denied'),
 )
 
-class PtoRequest (models.Model): 
+class PtoRequest (ComputedFieldsModel): 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     workday   = models.DateField(null=True, blank=True)
     dateCreated = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, choices=PTO_STATUS_CHOICES, default='P')
     manager_approval = models.BooleanField(default=False)
-    stands_respected = models.BooleanField(default=True)
+    #stands_respected = models.BooleanField(default=True)
+
+    @computed (models.BooleanField(), depends=[('self',['status'])])
+    def stands_respected (self) -> bool:
+        if Slot.objects.filter(workday__date=self.workday, employee=self.employee).count() > 0:
+            return False
+        return True
 
     def __str__(self) :
         # ex: "<JOSH PTOReq: Sep5>"
@@ -309,5 +346,5 @@ class PtoRequest (models.Model):
         return (self.workday.date - self.dateCreated).days
     
     @property
-    def daysAway (self):
+    def days_away (self):
         return (self.workday.date - dt.date.today()).days

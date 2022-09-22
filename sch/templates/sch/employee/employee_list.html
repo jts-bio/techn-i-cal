@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load render_table from django_tables2 %}
 
 {% block content %}
     <a href="/">HOME</a>
@@ -27,5 +27,7 @@
             </tr>
         {% endfor %}
     </table>
+
+    {% render_table employeeTable %}
 
 {% endblock %}

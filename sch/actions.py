@@ -23,7 +23,7 @@ class WorkdayActions:
         2. Template exists for the day
         3. Employee Templated is not on PTO.
         
-        #TODO: Dont fill an employee into a turnaround 
+        # TODO: Dont fill an employee into a turnaround 
         
         """
         templs = ShiftTemplate.objects.filter(ppd_id=workday.ppd_id) # type: ignore

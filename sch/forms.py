@@ -82,11 +82,11 @@ class SlotForm (forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(SlotForm, self).__init__(*args, **kwargs)
+        shift = Shift.objects.get(name=self.initial['shift'])
+        workday = Workday.objects.get(slug=self.initial['workday'])
+        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
 
-        trained = Employee.objects.filter(shifts_available__name=self.initial['shift'])
-        alreadyWorking = Slot.objects.filter(workday__slug=self.initial['workday'], shift__name=self.initial['shift']).values('employee')
 
-        self.fields['employee'].queryset = trained.exclude(pk__in=alreadyWorking)
 
 
 
@@ -111,9 +111,21 @@ class SstEmployeeForm (forms.Form):
             self.fields['shift'].label = wds[self.initial.get('ppd_id')]
         except:
             pass
+        if employee:
+            other_empls = Employee.objects.exclude(pk=employee.pk)
+        else:
+            other_empls = Employee.objects.all()
+        occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id'),employee__in=other_empls).values('shift')
+        ppd_id_proxy = self.initial.get('ppd_id')
+        if ppd_id_proxy is None:
+            ppd_id_proxy = 0
+        if ppd_id_proxy > 6:
+            ppd_id_proxy -= 7
+        if employee:
+            shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=ppd_id_proxy)
+        else:
+            shiftList = Shift.objects.none()
 
-        occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id')).values('shift').exclude(employee=employee)
-        shiftList = trained_shifts.exclude(pk__in=occupied_ssts)
         self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]# type: ignore
 
         if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
@@ -181,8 +193,15 @@ class PTORangeForm (forms.Form) :
     def __init__(self, *args, **kwargs):
         super(PTORangeForm, self).__init__(*args, **kwargs)
         self.fields['employee'].initial = self.initial.get('employee')
-        self.fields['date_to'].initial = TODAY + dt.timedelta(days=30)
-        self.fields['date_from'].initial = TODAY + dt.timedelta(days=32)
+        self.fields['date_from'].initial = TODAY + dt.timedelta(days=30)
+        self.fields['date_to'].initial = TODAY + dt.timedelta(days=32)
+
+    def clean(self):
+        cleaned_data = super(PTORangeForm, self).clean()
+        date_from = cleaned_data.get('date_from')
+        date_to = cleaned_data.get('date_to')
+        if date_from and date_to and date_from > date_to:
+            raise forms.ValidationError("Date from must be before date to.")
     
         
 
