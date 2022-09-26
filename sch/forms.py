@@ -1,5 +1,5 @@
 from django import forms
-from .models import PtoRequest, Slot, Workday, Shift, Employee, ShiftTemplate
+from .models import PtoRequest, Slot, Workday, Shift, Employee, ShiftTemplate, SlotPriority
 from django.forms import BaseFormSet, formset_factory
 import datetime as dt
 
@@ -23,8 +23,10 @@ class ShiftForm (forms.ModelForm) :
             'occur_days': forms.CheckboxSelectMultiple(),
         }
 
-
 class SSTForm (forms.ModelForm) :
+    """Form for a single ShiftSlotTemplate, connecting an 
+    employee to a shift on a given day"""
+    
     class Meta:
         model = ShiftTemplate
         fields = ['shift', 'ppd_id', 'employee']
@@ -65,32 +67,6 @@ class EmployeeEditForm (forms.ModelForm) :
             'streak_pref': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
-class BulkWorkdayForm (forms.Form) :
-    
-    date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
-    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
-
-class SlotForm (forms.ModelForm):
-
-    employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), label='Employee', widget=forms.Select(attrs={'class': 'form-control'}))
-    shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), label='Shift', widget=forms.HiddenInput(), to_field_name='name')
-    workday     = forms.ModelChoiceField(queryset=Workday.objects.all(), label='Workday', widget=forms.HiddenInput(), to_field_name='slug')
-
-    class Meta:
-        model = Slot
-        fields = ['employee', 'shift', 'workday']
-        
-    def __init__(self, *args, **kwargs):
-        super(SlotForm, self).__init__(*args, **kwargs)
-        shift = Shift.objects.get(name=self.initial['shift'])
-        workday = Workday.objects.get(slug=self.initial['workday'])
-        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
-
-
-
-
-
-
 class SstEmployeeForm (forms.Form):
     
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), required=False)
@@ -130,8 +106,45 @@ class SstEmployeeForm (forms.Form):
 
         if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('ppd_id')).shift.id
-        
 
+class EmployeeScheduleForm(forms.Form):
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
+    date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
+    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
+
+    def __init__(self, *args, **kwargs):
+        super(EmployeeScheduleForm, self).__init__(*args, **kwargs)
+        self.fields['employee'].initial = self.initial.get('employee')
+        self.fields['date_from'].initial = TODAY 
+        self.fields['date_to'].initial = TODAY + dt.timedelta(days=30)
+
+    def clean(self):
+        cleaned_data = super(EmployeeScheduleForm, self).clean()
+        date_from = cleaned_data.get('date_from')
+        date_to = cleaned_data.get('date_to')
+        if date_from and date_to and date_from > date_to:
+            raise forms.ValidationError("Date from must be before date to.")
+
+class BulkWorkdayForm (forms.Form) :
+    
+    date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
+    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
+
+class SlotForm (forms.ModelForm):
+
+    employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), label='Employee', widget=forms.Select(attrs={'class': 'form-control'}))
+    shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), label='Shift', widget=forms.HiddenInput(), to_field_name='name')
+    workday     = forms.ModelChoiceField(queryset=Workday.objects.all(), label='Workday', widget=forms.HiddenInput(), to_field_name='slug')
+
+    class Meta:
+        model = Slot
+        fields = ['employee', 'shift', 'workday']
+        
+    def __init__(self, *args, **kwargs):
+        super(SlotForm, self).__init__(*args, **kwargs)
+        shift = Shift.objects.get(name=self.initial['shift'])
+        workday = Workday.objects.get(slug=self.initial['workday'])
+        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
 
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
@@ -160,8 +173,6 @@ class SstForm (forms.Form):
         except:
             pass
 
-
-
 class SstFormSet (BaseFormSet):
     def clean(self):
         if any(self.errors):
@@ -173,7 +184,6 @@ class SstFormSet (BaseFormSet):
             if shift in shifts:
                 raise forms.ValidationError("Shifts must be unique.")
             shifts.append(shift)
-
 
 class PTOForm (forms.ModelForm) :
 
@@ -203,9 +213,42 @@ class PTORangeForm (forms.Form) :
         date_to = cleaned_data.get('date_to')
         if date_from and date_to and date_from > date_to:
             raise forms.ValidationError("Date from must be before date to.")
-    
-        
 
+class SlotPriorityForm (forms.ModelForm) :
+    class Meta:
+        model = SlotPriority
+        fields = ['iweekday', 'shift', 'priority']
+        widgets = {
+            'employee': forms.HiddenInput(),
+            'shift': forms.HiddenInput(),
+        }
+
+class SlotPriorityFormSet (BaseFormSet):
+
+    def clean(self):
+        if any(self.errors):
+            return
+        # check that all shift-wd pairs are unique
+        pairs = []
+        for form in self.forms:
+            shift = form.cleaned_data['shift']
+            iweekday = form.cleaned_data['iweekday']
+            if (shift, iweekday) in pairs:
+                raise forms.ValidationError("Shifts must be unique.")
+            pairs.append((shift, iweekday))
+
+    def save(self, commit=True):
+        for form in self.forms:
+            form.save(commit=commit)
+        
+class PtoResolveForm (forms.Form) :
+    slot = forms.ModelChoiceField(queryset=Slot.objects.all(), widget=forms.HiddenInput())
+    ptoreq = forms.ModelChoiceField(queryset=PtoRequest.objects.all(), widget=forms.HiddenInput())
+    action   = forms.ChoiceField(choices=[
+        ('es','Empty Slot'),('rp','Reject PTO Request')
+        ], widget=forms.RadioSelect())
+
+<<<<<<< HEAD
 class EmployeeScheduleForm(forms.Form):
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
     date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
@@ -223,3 +266,15 @@ class EmployeeScheduleForm(forms.Form):
         date_to = cleaned_data.get('date_to')
         if date_from and date_to and date_from > date_to:
             raise forms.ValidationError("Date from must be before date to.")
+=======
+    def __init__(self, *args, **kwargs):
+        super(PtoResolveForm, self).__init__(*args, **kwargs)
+        self.fields['slot'].initial = self.initial.get('slot')
+        self.fields['ptoreq'].initial = self.initial.get('ptoreq')
+        self.fields['action'].initial = 'rp'
+    
+    def clean(self):
+        cleaned_data = super(PtoResolveForm, self).clean()
+        slot = cleaned_data.get('slot')
+        ptoreq = cleaned_data.get('ptoreq')
+>>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)

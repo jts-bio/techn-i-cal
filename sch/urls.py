@@ -17,10 +17,11 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
 
     #? ==== Slots ==== ?#
-    path('day/<slug:date>/slot/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
+    path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
     path('day/<slug:date>/<str:shift>/add/', views.slotAdd, name='slot-add'),
     path('day/<slug:date>/<str:shift>/add/post', views.slotAdd_post, name='slot-add-post'),  # type: ignore
-    path('day/<slug:date>/<str:shift>/delete/', views.slotDelete, name='slot-delete'),
+    path('day/<slug:date>/<str:shift>/delete/', views.SLOT.SlotDeleteView.as_view(), name='slot-delete'),
+    path('day/<slug:date>/<str:employee>/resolve-pto-request/', views.WORKDAY.ResolvePtoRequestFormView.as_view(), name='resolve-pto-request'),
 
     #? ==== Shifts ==== ?#
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
@@ -37,7 +38,14 @@ urlpatterns = [
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
+<<<<<<< HEAD
     path('employee/<str:name>/generate-schedule', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),  # type: ignore
+=======
+    path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
+    path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),  # type: ignore
+>>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)
 
+    #? ==== PTO Requests ==== ?#
+    
 ]

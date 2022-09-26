@@ -1,70 +1,77 @@
-{% extends 'base.html' %}
-{% load render_table from django_tables2 %}
+{% extends 'base.html' %} 
+{% load render_table from django_tables2 %} 
 
 
 {% block content %}
 
     <a href="/sch/employees/all/">Back to All Employees</a>
 
-    <h1> {{ employee.name }} </h1>
+    <h1>{{ employee.name }}</h1>
 
     <a href="update">Edit Employee</a>
     <div class="hstack">
-    <div class="flex flex-row">
-        <table>
-            <tr>
-                <th>Employee ID</th>
-                <td>{{ employee.id }}</td>
-            </tr>
-            <tr>
-                <th>Employee Name</th>
-                <td>{{ employee.name }}</td>
-            </tr>
-            <tr>
-                <th>Trained Shifts</th>
-                <td>{% for shift in sfts_trained %}
-                        {% if shift in sfts_avail %} <span class="green"> {{ shift.name }} <br></span>
-                        {% else %} {{shift.name}} <br> {% endif %}
-                    {% endfor %}
-                </td>
-            </tr>
-            <tr>
-                <th>Avaliable</th>
-                <td>{{ employee.shifts_avaliable }}</td>
-            </tr>
-        </table>
-
+        <div class="flex flex-row">
+            <table stylr="width:flex-grow;">
+                <tr>
+                    <th>Employee ID</th>
+                    <td>{{ employee.id }}</td>
+                </tr>
+                <tr>
+                    <th>Employee Name</th>
+                    <td>{{ employee.name }}</td>
+                </tr>
+                <tr>
+                    <th>Trained Shifts</th>
+                    <td>
+                    {% for shift in sfts_trained %} {% if shift in sfts_avail %}
+                    <span class="green-glow"> {{ shift.name }} <br /></span> {% else %}
+                    {{shift.name}} <br />
+                    {% endif %} {% endfor %}
+                    </td>
+                </tr>
+                <tr>
+                </tr>
+            </table>
+        </div>
         <div class="panel w-fc">
             <h2>Templating</h2>
             <p>Employee templated for {{sstHours}} hours / pay period.</p>
-            
+
             <a href="ssts/">Edit Employee Templates</a>
             <div class="hstack">
-            {% for sst in SSTGrid %}
-                    <div class="panel w-70 h-50">
-                        <span>Day {{sst.0}}</span><br>
-                        {% if sst.1 %}
-                            <span class="green lg">{{sst.1.0.shift}}</span>
-                        {% else %}
-                            <span class="small">N/A</span>
-                        {% endif %}
-                    </div>
-                
-                {% if sst.0 == 6 %} 
-                    </div> <div class="hstack"> 
+                {% for sst in SSTGrid %}
+                <div class="panel w-70 h-50">
+                <span>Day {{sst.0}}</span><br />
+                {% if sst.1 %}
+                <span class="green-glow lg">{{sst.1.0.shift}}</span>
+                {% else %}
+                <span class="small">N/A</span>
                 {% endif %}
-            {% endfor %}
+                </div>
+            {% if sst.0 == 6 %}
+            </div>
+                <div class="hstack">{% endif %} {% endfor %}</div>
+            </div>
+        <div class="panel">
+            <h2>Generate Employee Schedule</h2>
+            <form action="generate-schedule/" method="post"> {% csrf_token %}
+                <table>{{ employeeScheduleForm.as_table }}</table>
+                <input type="submit" value="Generate Schedule"/>
+            </form>
         </div>
-    </div>        </div>
     </div>
-    <div class="panel">
-        <h2>PTO REQUESTS</h2>
-        <a href="pto-request/add/">Add PTO Date</a>
-        <a href="pto-request/add-range/">Add PTO Range</a>
-        {% render_table ptoTable %}
+        <div class="panel w-fc">
+            <h2>PTO REQUESTS</h2>
+            <a href="pto-request/add-range/">Add PTO Range</a>
+            {% render_table ptoTable %}
+        </div>
     </div>
+<<<<<<< HEAD
     <div class="panel">
         
     </div>
+=======
+    
+    <div class="panel"></div>
+>>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)
 {% endblock %}
-

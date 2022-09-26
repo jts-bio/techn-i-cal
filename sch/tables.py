@@ -37,11 +37,17 @@ class ShiftsWorkdayTable (tables.Table):
     View from a WORKDAY
     display ALL SHIFTS for a given day
     """
-
+    
+    del_slot = tables.columns.LinkColumn("slot-delete", args=[A("date"),A("pk")], verbose_name="Delete", attrs={"td": {"class": "small"}})
     class Meta:
         model           = Shift
-        fields          = ['name','start','employee']
+        fields          = ['name','start','employee','del_slot']
         template_name   = 'django_tables2/bootstrap.html'
+
+    def render_del_slot(self, record):
+        return record.pk
+
+    # TODO --- add a column for "delete" slot
 
 class ShiftsWorkdaySmallTable (tables.Table):
 

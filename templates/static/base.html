@@ -116,9 +116,36 @@
 				div {
 					color: #f7fafc;
 				}
+
+				.badge-gray-lg {
+					background-color: #a0aec0;
+					color: #1a202c!important;
+					font-size: 10px;
+					font-weight: 800;
+					padding: 5px;
+					border-radius: 15px;
+				}
+				.badge-gray-lg > span {
+					font-size: 1.2rem;
+					font-weight: 800;
+					color: #1a202c!important;
+				}
 				.p1 {
 					padding: 1rem;
 					margin: 1rem;
+				}
+				.title {
+					font-size: 1.5rem;
+					color: #f6ad55;
+					font-weight: 900;
+					text-drop-shadow: 2px 2px 4px #f6ad5570;
+					font-family: "JetBrains Mono", monospace;
+				}
+				.subtitle {
+					font-size: 0.9rem;
+					color: #fec;
+					font-style: italic;
+					font-family: "JetBrains Mono", monospace;
 				}
 				h1 {
 					font-family: 'Nanum Gothic Coding', monospace;
@@ -245,10 +272,6 @@
 					padding-left: 0.5rem; 
 					padding-right: 0.3rem;
 				}
-				.green {
-					color: #8fa;
-					font-weight: 800;
-				}
 				.y-circle {
 					color: white;
 					background-color: #f6ad5560;
@@ -256,6 +279,19 @@
 					font-weight: 800;
 					border-radius: 50%;
 					padding: 0.2rem;
+				}
+				.y-square {
+					color: white;
+					background-color: #f6ad5560;
+					border: 1px solid #f6ad55;
+					font-weight: 800;
+					border-radius: 5px;
+					padding: 0.2rem;
+					width: fit-content;
+				}
+				.g-panel {
+					background-color: #afb3;
+					border: 1px solid #afb9;
 				}
 				.mt-10 {
 					margin-top: 10px;
@@ -290,10 +326,104 @@
 					height: 50px;
 				  }
 				  .sp-btw {
+<<<<<<< HEAD
 					width: 100%;
 					display: flex;
 					justify-content: space-between;
 				  }
+=======
+					display: flex;
+					justify-content: space-between;
+				  }
+				  .giant-button {
+					background-color: #da67fd70;
+					color: #fff;
+					font-weight: 800;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 7px;
+					font-size: 1.8rem;
+					font-family: 'JetBrains Mono', monospace;
+					margin: 1rem;
+					width: 230px;
+					height: 230px;
+					justify-content: center;
+					align-items: center;
+					text-align: center;
+					padding-top: 40px;
+					border: 2px solid #fff2;
+				  }
+				  .giant-button:hover {
+					background-color: #aaab;
+					border: 2px solid #da67fd70;
+					color: #da67fd30;
+				  }
+				  .giant-button:active {
+					background-color: #da67fd;
+				  }
+				  .giant-button > a {
+					text-decoration: none;
+				  }
+
+				.badge-pr {
+					background-color: #da67fd;
+					color: #fff;
+					font-weight: 800;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 20px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+					float: right;
+				}
+				.badge-pr :hover {
+					transform: scale(1.3);
+					transform: TranslateX(3px);
+					transform: TranslateY(3px);
+					transform: Rotate(15deg);
+					transition: all 0.3s ease-in-out;
+				}
+			
+				.red-glow {
+					color: #d77;
+					text-shadow: 0 0 10px #fff4 !important;
+					font-weight: 800;
+					font-style: italic;
+					text-shadow: 0 0 10px #fbb7 !important;
+				}
+				.green-glow {
+					color: #8fa;
+					text-shadow: 1 1 4 #fff4 !important;
+					font-weight: 800;
+					text-shadow: 0 0 5px #fff8;
+					animation: green-glow 1s ease-in-out infinite alternate;
+				}
+				.badge-green-lg {
+					background-color: #4a1;
+					color: #fff!important;
+					font-weight: 800;
+					font-size: 1.2rem;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 20px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+					float: right;
+				}
+				.badge-gray {
+					background-color: #333333;
+					color: #fff!important;
+					font-weight: 800;
+					font-size: 0.8rem;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 20px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+					float: right;
+				}
+				.grid-7-col {
+					display: grid;
+					grid-template-columns: repeat(7, 1fr);
+					grid-gap: 10px;
+				}
+>>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)
 			</style>
 			<link href="{% static 'sch/css/_base.min.css' %}" rel="stylesheet">
 			{% block style %} {% endblock %}
@@ -305,9 +435,10 @@
 	<body class="content">
 		
 
-		<div class="nav-top">{% include 'header.html' %}</div>
+		{% include 'header.html' %}
 
-				{% block content %}
-				{% endblock %}
+		{% block content %}
+		{% endblock %}
+		
 	</body>
 </html>

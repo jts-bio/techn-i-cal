@@ -1,11 +1,12 @@
 "--- MODELS.py ---"
 
 import datetime as dt
+from re import sub
 
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
-from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev,
-                              Sum, Variance)
+from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev, Subquery,
+                              Sum, Variance, OuterRef, ExpressionWrapper, DurationField)
 from django.urls import reverse
 from multiselectfield import MultiSelectField
 
@@ -78,13 +79,30 @@ class EmployeeManager (models.QuerySet):
     def in_other_slot (self, shift, workday):
         return Slot.objects.filter(workday=workday).exclude(shift=shift).values('employee')
 
+    def weekly_hours(self, year, week):
+        return self.annotate(
+                hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
+            )
+
     def can_fill_shift_on_day (self, shift, workday):
-        in_other = self.in_other_slot(shift, workday)
-        return self.trained_for(shift).exclude(pk__in=in_other)
+        week = workday.iweek
+        year = workday.date.year
+        shift_len = (shift.duration - dt.timedelta(minutes=30)).total_seconds() / 3600
+
+        employees = Employee.objects.all()
+        in_other = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
+        has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
+        employees = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
+        weeklyHours = {empl: Slot.objects.empls_weekly_hours(workday.date.year,workday.iweek,empl) for empl in employees}
+        for empl in weeklyHours:
+            if weeklyHours[empl]['hours'] is None:
+                weeklyHours[empl]['hours'] = 0
+        return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
+        
+        return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
 
     def weekly_hours (self, year, week):
         return self.filter(slot__workday__iweek=week, slot__workday__date__year=year).aggregate(hours=Sum('slot__hours'))
-        
 
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
@@ -281,7 +299,6 @@ class Slot (ComputedFieldsModel) :
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})
 
-    
 
     objects = SlotManager.as_manager()
 
@@ -298,16 +315,20 @@ class ShiftTemplate (models.Model) :
         else:
             return 'B'
     
-    def weekday (self, text=False):
+    @property
+    def weekday (self):
         days = "Sun Mon Tue Wed Thu Fri Sat".split()
-        if text:
-            return days[self.ppd_id % 7]
+        return days[self.ppd_id % 7]
+
+    @property
+    def iweekday (self):
         return self.ppd_id % 7
 
     def __str__(self) :
         return f'{self.shift.name} Template'
 
-    def get_absolute_url(self):
+    @property
+    def url(self):
         return reverse("shifttemplate", kwargs={"pk": self.pk})
     
     @property
@@ -325,10 +346,10 @@ PTO_STATUS_CHOICES = (
 )
 
 class PtoRequest (ComputedFieldsModel): 
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    workday   = models.DateField(null=True, blank=True)
-    dateCreated = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=PTO_STATUS_CHOICES, default='P')
+    employee         = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    workday          = models.DateField(null=True, blank=True)
+    dateCreated      = models.DateTimeField(auto_now_add=True)
+    status           = models.CharField(max_length=20, choices=PTO_STATUS_CHOICES, default='P')
     manager_approval = models.BooleanField(default=False)
     #stands_respected = models.BooleanField(default=True)
 
@@ -340,7 +361,7 @@ class PtoRequest (ComputedFieldsModel):
 
     def __str__(self) :
         # ex: "<JOSH PTOReq: Sep5>"
-        return f'<{self.employee} PTOReq: {self.workday.date.strftime("%m%d")}>'
+        return f'<{self.employee} PTOReq: {self.workday.strftime("%m%d")}>'
     @property
     def headsUpLength (self):
         return (self.workday.date - self.dateCreated).days
@@ -348,3 +369,17 @@ class PtoRequest (ComputedFieldsModel):
     @property
     def days_away (self):
         return (self.workday.date - dt.date.today()).days
+
+PRIORITIES = (
+    ('L', 'Low'),
+    ('M', 'Medium'),
+    ('H', 'High'),
+    ('U', 'Urgent'),
+)
+class SlotPriority (models.Model):
+    iweekday = models.IntegerField()
+    shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
+    priority = models.CharField(max_length=20, choices=PRIORITIES, default='M')
+
+    class Meta:
+        unique_together = ['iweekday', 'shift']

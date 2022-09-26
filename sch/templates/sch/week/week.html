@@ -42,9 +42,9 @@
         {% endfor %}
     </table>   
     {% for empl in hrsTable %}
-    <div>
-        <span class="green">{{empl.0 }}</span>
-        <span>{{ empl.1.hours }} hrs.</span>
+    <div>{% if empl.1.hours <= 40 %} <span class="green-glow">{{empl.0 }}</span> 
+         {% else %} <span class="red-glow">{{empl.0 }}</span> {% endif %}
+         <span>{{ empl.1.hours }} hrs. </span>
     </div>
     {% endfor %}
 </div>

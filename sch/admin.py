@@ -33,4 +33,5 @@ class ShiftTemplateAdmin(admin.ModelAdmin):
 @admin.register(PtoRequest)
 class PtoRequestAdmin(admin.ModelAdmin):
     fields = ['workday','employee','status','stands_respected',]
+    readonly_fields = ['stands_respected',]
     list_display = ['workday','employee','status','stands_respected',]
