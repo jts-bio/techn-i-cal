@@ -1,0 +1,18 @@
+
+
+{# --- BADGE // N DAYS AWAY --- #}
+{% if n == 0 %}
+    <div class="badge-green-lg">
+        <span class="green-glow"> TODAY </span> 
+    </div>
+{% elif n < 0 %}
+    <div class="badge-gray-lg">
+        <span> {{ n }} DAYS AGO </span> 
+    </div>
+{% else %}
+    <div class="badge-gray-lg">
+        <span> IN {{ n }} DAYS </span> 
+    </div>
+{% endif %}
+
+

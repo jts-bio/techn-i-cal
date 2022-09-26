@@ -1,0 +1,24 @@
+
+<table>
+    <thead>
+        <tr>
+            <th>Shift</th>
+            <th>Assignment</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for shift in shifts %}
+        <tr>
+            <td>{{shift}}</td>
+            {% if shift.assignment %}
+                <td>{{shift.assignment}}</td>
+                <td><a href="{{shift}}/delete/">Delete</a></td>
+            {% else %}
+                <td></td>
+                <td><a class="green-glow" href="{{shift}}/new/">Assign</a></td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

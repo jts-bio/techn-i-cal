@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<a href="/sch/employee/{{employee}}/">Back to Employee</a>
+
+<h1> {{employee}} </h1>
+
+<div class="grid-7-col">
+    {% for day in days %}
+    <div class="panel hstack {% if day.slot %}g-panel{% endif %}">
+        <h5> {{day.date}} </h5>
+        {% if day.slot %}
+        <h3 class="green-glow"> {{day.slot.shift}} </h3>
+        {% endif %}
+    </div>
+{% endfor %}
+</div>
+
+
+    
+{% endblock content %}
+    

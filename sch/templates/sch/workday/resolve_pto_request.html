@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>OPTIONS</h2>
+
+<div class="panel">
+    <h3>OPEN SLOT</h3>
+    <p>
+        Please verify you will remove {{slot.employee}} from the
+        slot for {{slot.shift}} on {{slot.date}}. 
+    </p>
+    <h3>DENY PTO REQUEST</h3>
+    <p>
+        Please verify you will deny the PTO request for {{slot.employee}} for
+        {{slot.shift}} on {{slot.date}}.
+    </p>
+</div>
+
+<div class="panel">
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Submit">
+</div>
+
+{% endblock %}
