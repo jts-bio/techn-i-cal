@@ -248,25 +248,6 @@ class PtoResolveForm (forms.Form) :
         ('es','Empty Slot'),('rp','Reject PTO Request')
         ], widget=forms.RadioSelect())
 
-<<<<<<< HEAD
-class EmployeeScheduleForm(forms.Form):
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-    date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
-    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
-
-    def __init__(self, *args, **kwargs):
-        super(EmployeeScheduleForm, self).__init__(*args, **kwargs)
-        self.fields['employee'].initial = self.initial.get('employee')
-        self.fields['date_from'].initial = TODAY 
-        self.fields['date_to'].initial = TODAY + dt.timedelta(days=30)
-
-    def clean(self):
-        cleaned_data = super(EmployeeScheduleForm, self).clean()
-        date_from = cleaned_data.get('date_from')
-        date_to = cleaned_data.get('date_to')
-        if date_from and date_to and date_from > date_to:
-            raise forms.ValidationError("Date from must be before date to.")
-=======
     def __init__(self, *args, **kwargs):
         super(PtoResolveForm, self).__init__(*args, **kwargs)
         self.fields['slot'].initial = self.initial.get('slot')
@@ -277,4 +258,3 @@ class EmployeeScheduleForm(forms.Form):
         cleaned_data = super(PtoResolveForm, self).clean()
         slot = cleaned_data.get('slot')
         ptoreq = cleaned_data.get('ptoreq')
->>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)

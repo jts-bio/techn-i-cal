@@ -67,6 +67,13 @@ class SlotManager (models.QuerySet):
             employee= employee
             ).aggregate(hours=Sum('shift__hours'))
 
+    def turnarounds (self):
+        turnarounds = []
+        for i in self.all():
+            if i.is_turnaround:
+                turnarounds.append(i.pk)
+        return self.filter(pk__in=turnarounds)
+
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -84,12 +91,15 @@ class EmployeeManager (models.QuerySet):
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
 
-    def can_fill_shift_on_day (self, shift, workday):
+    def can_fill_shift_on_day (self, shift, workday, method="available"):
         week = workday.iweek
         year = workday.date.year
         shift_len = (shift.duration - dt.timedelta(minutes=30)).total_seconds() / 3600
 
-        employees = Employee.objects.all()
+        if method == "available":
+            employees = Employee.objects.filter(shifts_available=shift)
+        elif method == "trained":
+            employees = Employee.objects.filter(shifts_trained=shift)
         in_other = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
         has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
         employees = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
@@ -299,6 +309,26 @@ class Slot (ComputedFieldsModel) :
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})
 
+    @property
+    def is_turnaround (self) -> bool:
+        if self.shift.start > dt.time(12,0):
+            return False
+        elif self.shift.start < dt.time(12,0) :
+            if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+                return True
+            else:
+                return False
+
+    @property
+    def is_preturnaround (self) -> bool:
+        if self.shift.start < dt.time(12,0):
+            return False
+        elif self.shift.start > dt.time(12,0) :
+            if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+                return False
+            else:
+                return True
+            
 
     objects = SlotManager.as_manager()
 
