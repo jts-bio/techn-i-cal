@@ -34,20 +34,23 @@
             </table>
         </div>
         <div class="panel w-fc">
+            <div style="float:right;"><a href="ssts/" style="font-style:italic;">Edit</a><br></div>
             <h2>Templating</h2>
             <p>Employee templated for {{sstHours}} hours / pay period.</p>
-
-            <a href="ssts/">Edit Employee Templates</a>
+            
             <div class="hstack">
                 {% for sst in SSTGrid %}
-                <div class="panel w-70 h-50">
-                <span>Day {{sst.0}}</span><br />
                 {% if sst.1 %}
-                <span class="green-glow lg">{{sst.1.0.shift}}</span>
+                    <div class="panel w-70 h-50" style="background-color:#5af7;border-color:#7bf;">
+                        <span>Day {{sst.0}}</span><br />
+                        <span class="lg" style="font-size:22px;">{{sst.1.0.shift}}</span>
+                    </div>
                 {% else %}
-                <span class="small">N/A</span>
+                    <div class="panel w-70 h-50">
+                        <span class="small">N/A</span>
+                    </div>
                 {% endif %}
-                </div>
+                
             {% if sst.0 == 6 %}
             </div>
                 <div class="hstack">{% endif %} {% endfor %}</div>
@@ -66,12 +69,4 @@
             {% render_table ptoTable %}
         </div>
     </div>
-<<<<<<< HEAD
-    <div class="panel">
-        
-    </div>
-=======
-    
-    <div class="panel"></div>
->>>>>>> 9d70c33 (edit - Who Can Fill Filters working well)
 {% endblock %}

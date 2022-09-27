@@ -5,8 +5,7 @@
 
 {% block content %}
 
-<a href="/">HOME</a>
-
+<a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">< WEEK</a>
 <section>
 
   <div class="hstack">
@@ -19,8 +18,7 @@
         <table>
           <tr>
             <th>
-              WEEKDAY:<br />
-              {{ wd }}
+              WEEKDAY
             </th>
             <td>{{ wd.weekday }}</td>
           </tr>

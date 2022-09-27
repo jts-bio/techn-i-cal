@@ -16,17 +16,15 @@
 
 <a href="fill-template/">Fill Templated Slots for Week</a>
 
-{% if total_unfilled != 0 %}
-<p>
-    {{total_unfilled}} unfilled slots for this week
-</p>
-{% endif %}
+
 
 <div class="hstack">
     {% for day in workdays %}
         <div class="panel">
+            <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
+            
             <h3>
-                <a href="/sch/day/{{day.slug}}"> {{day}} </a>
+                <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
             </h3>
             
             {{ day.table }}
@@ -36,7 +34,12 @@
 </div>
 
 <div class="panel w-fc mt-10">
-    <h3>Weekly Hours</h3>
+    <div class="hstack">
+        <h3>Weekly Hours</h3>
+        {% if total_unfilled != 0 %}
+            <p>{{total_unfilled}} unfilled slots for this week</p>
+        {% endif %}
+    </div>
     <div class="grid-3-row">
         {% for empl in hrsTable %}
         <div>{% if empl.1.hours <= 40 %} <span class="green-glow">{{empl.0 }}</span> 

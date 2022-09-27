@@ -24,3 +24,12 @@ def nDaysAway (date):
     return {
         'n': (date - today).days
     }
+
+@register.inclusion_tag("n_days_away_small.html")
+def nDaysAwaySmall (date):
+    today = dt.date.today()
+    return {
+        'n': (date - today).days
+    }
+
+    

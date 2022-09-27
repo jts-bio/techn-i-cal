@@ -330,16 +330,17 @@
 					justify-content: space-between;
 				  }
 				  .giant-button {
-					background-color: #da67fd70;
+					background-color: #f6ad55cc;
 					color: #fff;
 					font-weight: 800;
 					text-shadow: 1 1 1 #000 !important;
 					border-radius: 7px;
 					font-size: 1.8rem;
 					font-family: 'JetBrains Mono', monospace;
+					text-decoration: none !important;
 					margin: 1rem;
 					width: 230px;
-					height: 230px;
+					height: 90px;
 					justify-content: center;
 					align-items: center;
 					text-align: center;
@@ -347,12 +348,12 @@
 					border: 2px solid #fff2;
 				  }
 				  .giant-button:hover {
-					background-color: #aaab;
-					border: 2px solid #da67fd70;
-					color: #da67fd30;
+					background-color: #aaa;
+					border: 2px solid #f6ad5544;
+					color: #fff;
 				  }
 				  .giant-button:active {
-					background-color: #da67fd;
+					background-color: #f6ad55cc;
 				  }
 				  .giant-button > a {
 					text-decoration: none;
@@ -422,6 +423,36 @@
 					grid-auto-flow: row;
 					grid-template-columns: repeat(8, 1fr);
 					grid-gap: 10px;
+				}
+				.active-tab {
+					background-color: #f6ad55;
+					color: #fff;
+					font-weight: 800;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 4px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+					padding-bottom: 1rem;
+					width: 100%;
+					text-align: center;
+					justify-content: center;
+				}
+				.inactive-tab {
+					background-color: #333333;
+					color: #fff;
+					font-weight: 800;
+					text-shadow: 1 1 1 #000 !important;
+					border-radius: 4px;
+					padding-left: 0.3rem;
+					padding-right: 0.3rem;
+					padding-bottom: 1rem;
+					width: 100%;
+					justify-content: center;
+					text-align: center;
+				}
+				.inactive-tab :hover {
+					background-color: #aaa;
+					color: #f6ad5590;
 				}
 			</style>
 			<link href="{% static 'sch/css/_base.min.css' %}" rel="stylesheet">
