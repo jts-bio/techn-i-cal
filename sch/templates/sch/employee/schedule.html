@@ -9,15 +9,16 @@
 
 <div class="grid-7-col">
     {% for day in days %}
-    <div class="panel hstack {% if day.slot %}g-panel{% endif %}">
+    <div class="panel hstack {% if day.slot %}g-panel{% endif %} {% if day.ptoReq %}b-panel{% endif %}">
         <h5> 
             <a href="/sch/day/{{day.date}}/">{{day.date}} </a>
         </h5>
         {% if day.slot %}
-        <h3 class="green-glow"> {{day.slot.shift}} </h3>
+            <h3 class="green-glow"> {{day.slot.shift}} </h3>
         {% endif %}
     </div>
-{% endfor %}
+    {% endfor %}
+
 </div>
 
 

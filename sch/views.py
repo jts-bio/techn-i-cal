@@ -40,7 +40,6 @@ def index(request) -> HttpResponse:
     }
     return render(request, 'static/index.html', context)
 
-
 def day_changer (request, date) -> HttpResponse:
     workday = Workday.objects.get(slug=date)
     template_html = 'sch/workday/dayChanger.html'
@@ -236,6 +235,43 @@ class WEEK:
             'weeks': weeks,
         }
         return render(request, 'sch/week/all_weeks.html', context)
+
+    class WeeklyUnfilledSlotsView (ListView):
+        model = Workday
+        template_name = 'sch/week/unfilled_slots.html'
+        context_object_name = 'workdays'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title']      = 'Week'
+            context['year_num']   = self.kwargs['year']
+            year                  = self.kwargs['year']
+            context['week_num']   = self.kwargs['week']
+            week                  = self.kwargs['week']
+
+            # for each day in the week, get the list of shifts that occur on that day, and no slot exists for that shift and day.
+            for day in context['workdays']:
+                day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+                day.slots     = Slot.objects.filter(workday=day)
+            # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+            context['unfilled_slots'] = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in context['workdays'] for shift in day.getshifts]
+            # sort this list by the number of employees who could fill the slot
+            context['unfilled_slots'].sort(key=lambda x: x[2])
+            if week != 0: 
+                context['nextWeek'] = week + 1
+                context['prevWeek'] = week - 1
+            context['hrsTable']   = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
+            total_unfilled = 0
+            for day in self.object_list:
+                total_unfilled += day.n_unfilled
+            context['total_unfilled'] = total_unfilled
+            return context
+
+        def get_queryset(self):
+            return Workday.objects.filter(date__year=self.kwargs['year'], iweek=self.kwargs['week']).order_by('date')
+
+        def get_day_table(self, workday):
+            shifts              = Shift.objects.on_weekday(weekday=workday.iweekday)
 
 class EmployeeDetailView (DetailView):
 
@@ -510,7 +546,13 @@ class EMPLOYEE:
             context['date_from'] = date_from
             context['date_to'] = date_to
             slots = Slot.objects.filter(employee=employee, workday__date__gte=date_from, workday__date__lte=date_to)
-            days = [{'date':i.strftime("%Y-%m-%d"),'slot':slots.filter(workday__date=i).first()} for i in (date_from + dt.timedelta(n) for n in range((date_to-date_from).days))]
+            ptoReqs = PtoRequest.objects.filter(employee=employee)
+            
+            days = [{
+                'date':i.strftime("%Y-%m-%d"),
+                'slot':slots.filter(workday__date=i).first(),
+                'ptoReq':ptoReqs.filter(workday=i).first()
+                } for i in (date_from + dt.timedelta(n) for n in range((date_to-date_from).days))]
             context['days'] = days
             return context
 
@@ -717,9 +759,11 @@ class SST:
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs) 
+            context['employee'] = self.object.employee
+            return context
 
         def get_queryset(self):
-            return ShiftTemplate.objects.filter(shift=self.kwargs['name'])
+            return ShiftTemplate.objects.filter(shift__name=self.kwargs['shift'])
 
 class PTO:
 
@@ -787,5 +831,5 @@ def shiftTemplate (request, shift):
         'formset': formset}
     context = {}
     
-    return render(request, 'sch/workday/resolve_pto_request.html', context)
+    return render(request, 'sch/shift/shift_sst_form.html', context)
     

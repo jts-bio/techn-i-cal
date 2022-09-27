@@ -175,6 +175,14 @@
 					padding: 10px;
 					margin-bottom: 10px;
 				}
+				.panel-red {
+					@apply text-base text-center text-gray-200 bg-gray-800 rounded-lg shadow-lg; 
+					background-color: #f56565;
+					border-radius: 10px;
+					border: 1px solid #ddd4;
+					padding: 10px;
+					margin-bottom: 10px;
+				}
 				a {
 					color: #fdd;
 				}
@@ -292,6 +300,10 @@
 				.g-panel {
 					background-color: #afb3;
 					border: 1px solid #afb9;
+				}
+				.b-panel {
+					background-color:#5af7;
+					border-color:#7bf;
 				}
 				.mt-10 {
 					margin-top: 10px;
@@ -422,6 +434,11 @@
 					display: grid;
 					grid-auto-flow: row;
 					grid-template-columns: repeat(8, 1fr);
+					grid-gap: 10px;
+				}
+				.grid-4-col {
+					display: grid;
+					grid-template-columns: repeat(4, 1fr);
 					grid-gap: 10px;
 				}
 				.active-tab {
