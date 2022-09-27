@@ -38,5 +38,16 @@ class WorkdayActions:
                         slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
                         slot.save()
 
+class WeekActions:
+    def getAllWeekNumbers ():
+        """
+        Returns a list of all week numbers in the database
+        """
+        workdays = Workday.objects.all()
+        week_numbers = []
+        for workday in workdays:
+            if (workday.date.year, workday.iweek) not in week_numbers:
+                week_numbers.append(workday.week_number)
+        return week_numbers
             
         

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<h1>All Weeks</h1>
+
+<div class="panel">
+{% for week in weeks %}
+    <div class="week">
+        <h2><a href="/sch/week/{{week.date__year}}/{{week.iweek}}/">Week {{week.date__year }}-{{week.iweek}}</a></h2>
+    </div>
+{% endfor %}
+</div>
+
+    
+{% endblock content %}
+    

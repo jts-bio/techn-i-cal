@@ -15,6 +15,7 @@ urlpatterns = [
     #? ==== Week ==== ?#
     path('week/<int:year>/<int:week>/', views.WEEK.WeekView.as_view(), name='week'),
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
+    path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),

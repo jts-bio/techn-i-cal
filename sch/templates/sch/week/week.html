@@ -37,21 +37,14 @@
 
 <div class="panel w-fc mt-10">
     <h3>Weekly Hours</h3>
-    <table>
-        {% for employee in wk_hrs %}
-            <tr>
-                <th>{{employee.name}}</th>
-                <td>{{ employee.weekly_hours }} hrs.</td>
-               
-            </tr>
+    <div class="grid-3-row">
+        {% for empl in hrsTable %}
+        <div>{% if empl.1.hours <= 40 %} <span class="green-glow">{{empl.0 }}</span> 
+            {% else %} <span class="red-glow">{{empl.0 }}</span> {% endif %}
+            <span>{{ empl.1.hours }} hrs. </span>
+        </div>
         {% endfor %}
-    </table>   
-    {% for empl in hrsTable %}
-    <div>{% if empl.1.hours <= 40 %} <span class="green-glow">{{empl.0 }}</span> 
-         {% else %} <span class="red-glow">{{empl.0 }}</span> {% endif %}
-         <span>{{ empl.1.hours }} hrs. </span>
     </div>
-    {% endfor %}
 </div>
 
 

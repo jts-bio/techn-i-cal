@@ -230,6 +230,13 @@ class WEEK:
             WorkdayActions.fillDailySST(day)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
+    def all_weeks_view(request):
+        weeks = Workday.objects.all().values('date__year','iweek').distinct()
+        context = {
+            'weeks': weeks,
+        }
+        return render(request, 'sch/week/all_weeks.html', context)
+
 class EmployeeDetailView (DetailView):
 
     model           = Employee

@@ -417,6 +417,12 @@
 					grid-template-columns: repeat(7, 1fr);
 					grid-gap: 10px;
 				}
+				.grid-3-row {
+					display: grid;
+					grid-auto-flow: row;
+					grid-template-columns: repeat(8, 1fr);
+					grid-gap: 10px;
+				}
 			</style>
 			<link href="{% static 'sch/css/_base.min.css' %}" rel="stylesheet">
 			{% block style %} {% endblock %}
