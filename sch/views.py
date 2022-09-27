@@ -774,7 +774,7 @@ class PTO:
             form = PtoResolveForm(request.POST)
             if form.is_valid():
                 form.save()
-                return reverse('workday', kwargs={'slug': date})
+                return reverse_lazy('workday', kwargs={'slug': date})
         else:
             initial = {'workday': date, 'shift': shift, 'employee': employee}
             form    = PtoResolveForm(initial=initial)
@@ -825,11 +825,11 @@ def shiftTemplate (request, shift):
 
     formset = TmpSlotFormSet(initial=initData)
 
-    context = {
+    context.update({
         'shift': Shift.objects.get(name=shift),
         'employees': Employee.objects.trained_for(shift), # type: ignore
-        'formset': formset}
-    context = {}
+        'formset': formset})
+    
     
     return render(request, 'sch/shift/shift_sst_form.html', context)
     
