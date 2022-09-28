@@ -4,12 +4,25 @@
     {{ title }}
 {% endblock %}
 
+{% block style %}
+<style>
+    body {
+        background-image: url('https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/bkgd.png?raw=true');
+        background-repeat: round;
+        background-size: 30%;
+        background-blend-mode: multiply;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+</style>
+{% endblock style %}
+
 {% include 'header.html' %}
 
 {% block content %}
 <div class="hstack">
     <div class="panel">
-        <div class="hstack" style="justify-content:space-around;">
+        <div class="vstack" style="justify-content:space-around;">
         <a href="/sch/day/all" style="text-decoration:none;"> 
                 <div class="giant-button"> WORKDAYS </div>
             </a>
