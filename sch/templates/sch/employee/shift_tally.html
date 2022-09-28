@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block content %}
+    <a href="{{employee.url}}">{% backArrow %}</a>
+    <h1>{{employee}}</h1>
+    
+    <table>
+        {% for shift in shifts %}
+        <tr>
+            <th>
+                {{shift.name}}
+            </th>
+            <td style="width:45px;">
+                {{shift.slot_count}}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+{% endblock content %}

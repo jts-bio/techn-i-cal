@@ -387,6 +387,7 @@ class SHIFT :
             context['sstsA'] = sstsA
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] # type: ignore
             context['sstsB'] = sstsB
+            context ['ssts'] = sstsA + sstsB
 
             ssts = {day: ShiftTemplate.objects.filter(shift=self.object, ppd_id=day) for day in range(14)} # type: ignore
             return context
@@ -629,6 +630,20 @@ class EMPLOYEE:
             else:
                 return self.form_invalid(form)
 
+    class EmployeeShiftTallyView (DetailView):
+        model = Employee
+        template_name = 'sch/employee/shift_tally.html'
+
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employee'] = self.object
+            # annotate Shifts with the count of slots the employee has worked with that shift
+            context['shifts'] = Shift.objects.annotate(slot_count=Count('slot__employee', filter=Q(slot__employee=context['employee'])))
+            return context
+        
+        def get_object(self):
+            return Employee.objects.get(name=self.kwargs['name'])
+
 class SLOT:
 
     def create_slot (request, date, shift):
@@ -662,10 +677,14 @@ class SLOT:
             context          = super().get_context_data(**kwargs)
             context['date']  = self.kwargs['date']
             context['shift'] = self.kwargs['shift']
+            context['slots'] = Slot.objects.filter(workday__slug=self.kwargs['date'])
             return context
 
         def get_initial(self):
-            return {'workday': self.kwargs['date'], 'shift': self.kwargs['shift']}
+            return {
+                'workday': self.kwargs['date'], 
+                'shift':   self.kwargs['shift']
+                }
 
         def get_success_url(self):
             return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})

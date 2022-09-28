@@ -111,6 +111,11 @@ class EmployeeManager (models.QuerySet):
         
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
 
+    def who_worked_evening_day_before (self, workday):
+        dateBefore = workday.date - dt.timedelta(days=1)
+        slots = Slot.objects.filter(workday__date=dateBefore, shift__start__gte=dt.time(12,0,0))
+        return slots.values('employee')
+
     def weekly_hours (self, year, week):
         return self.filter(slot__workday__iweek=week, slot__workday__date__year=year).aggregate(hours=Sum('slot__hours'))
 
@@ -185,7 +190,7 @@ class Employee (ComputedFieldsModel) :
         return self.fte_14_day / 80
 
     def url(self):
-        return reverse("employee", kwargs={"name": self.name})
+        return reverse("employee-detail", kwargs={"name": self.name})
 
     def trained_for (self, shift):
         return Shift.objects.filter(name__in=self.shifts_trained.all())
@@ -413,3 +418,23 @@ class SlotPriority (models.Model):
 
     class Meta:
         unique_together = ['iweekday', 'shift']
+        
+# ============================================================================
+PREF_SCORES = (
+    ('SP', 'Strongly Prefer'),
+    ('P', 'Prefer'),
+    ('N', 'Neutral'),
+    ('D', 'Dislike'),
+    ('SD', 'Strongly Dislike'),
+)
+
+class ShiftPreference (models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
+    priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')
+
+    class Meta:
+        unique_together = ['employee', 'shift']
+        
+    def __str__ (self):
+        return f'<{self.employee} {self.shift}: {self.priority}>'

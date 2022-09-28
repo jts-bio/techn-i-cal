@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}
     {{ title }}
@@ -7,10 +8,10 @@
 {% block style %}
 <style>
     body {
-        background-image: url('https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/bkgd.png?raw=true');
+        background-image: url('https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/ChemistBackground.png?raw=true');
         background-repeat: round;
-        background-size: 30%;
-        background-blend-mode: multiply;
+        background-size: 60%;
+        background-blend-mode: color-dodge;
         padding-left: 1rem;
         padding-right: 1rem;
     }
@@ -20,7 +21,7 @@
 {% include 'header.html' %}
 
 {% block content %}
-<div class="hstack">
+<div class="hstack" style="background-image:url('/workspaces/techn-i-cal/static/img/FlowRate Logo.png')">
     <div class="panel">
         <div class="vstack" style="justify-content:space-around;">
         <a href="/sch/day/all" style="text-decoration:none;"> 
@@ -28,11 +29,11 @@
             </a>
 
             <a href="/sch/shifts/all" style="text-decoration:none;">
-                <div class="giant-button">SHIFTS </div>
+                <div class="giant-button"> SHIFTS </div>
             </a> 
 
             <a href="/sch/employees/all/" style="text-decoration:none;">
-                <div class="giant-button">EMPLOYEES </div>
+                <div class="giant-button"> EMPLOYEES </div>
             </a> 
         </div>
     </div>

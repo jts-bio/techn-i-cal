@@ -144,7 +144,8 @@ class SlotForm (forms.ModelForm):
         super(SlotForm, self).__init__(*args, **kwargs)
         shift = Shift.objects.get(name=self.initial['shift'])
         workday = Workday.objects.get(slug=self.initial['workday'])
-        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
+        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday, method="available")
+        self.fields['employee'].label = shift.name
 
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())

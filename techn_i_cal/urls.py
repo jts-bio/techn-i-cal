@@ -18,6 +18,8 @@ from django.urls import include, path
 from django.template import loader
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.conf import settings
+from django.conf.urls.static import static
 
 def index(request=0):
     template = loader.get_template('index.html')
@@ -30,4 +32,4 @@ urlpatterns = [
     path('' , index,  name='index'),
     path('admin/',  admin.site.urls ),
     path('sch/',    include('sch.urls'),    name='sch'),
-]
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

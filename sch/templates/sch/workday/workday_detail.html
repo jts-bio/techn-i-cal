@@ -1,11 +1,14 @@
 {# --- WORKDAY_DETAIL.HTML --- #} 
 {% extends 'base.html' %} 
-{% load render_table from django_tables2 %} {% load tags %} {% with workday as wd %} 
+
+{% load render_table from django_tables2 %} 
+{% load tags %} 
+{% with workday as wd %} 
 
 
 {% block content %}
 
-<a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">< WEEK</a>
+<a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">{% backArrow %} WEEK</a>
 <section>
 
   <div class="hstack">
@@ -47,13 +50,18 @@
     </div>
     <div class="panel">
       <h3>SHIFTS</h3>
+
       <div class="hstack">
         {% for sft in unfilled %} <a href="{{sft}}/new/">
           <div class="y-circle f-sb">
             {{ sft }}<sup>{{ sft.n_can_fill }}</sup>
           </div></a>{% endfor %}
       </div>
-      <a href="fill-template/">Fill Templated Slots</a>
+
+      <a style="float:right;" href="fill-template/">
+        {% fillTemplateIcon %} 
+      </a>
+      
       {% comment %} <div>{% render_table table %}</div> {% endcomment %}
         {% include 'sch/workday/shiftTable.html' %}
       <div style="margin-top: 10px">

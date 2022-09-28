@@ -21,11 +21,14 @@
                     <td>{{ employee.name }}</td>
                 </tr>
                 <tr>
-                    <th>Trained Shifts</th>
+                    <th>
+                        Trained Shifts <br>
+                        <a href="shift-tallies/" class="small">View Tallies</a>
+                    </th>
                     <td>
                     {% for shift in sfts_trained %} {% if shift in sfts_avail %}
-                    <span class="green-glow"> {{ shift.name }} <br /></span> {% else %}
-                    {{shift.name}} <br />
+                        <span class="green-glow"> {{ shift.name }} <br /></span> {% else %}
+                        {{shift.name}} <br />
                     {% endif %} {% endfor %}
                     </td>
                 </tr>
@@ -51,10 +54,13 @@
                     </div>
                 {% endif %}
                 
-            {% if sst.0 == 6 %}
+                {% if sst.0 == 6 %}
+                    </div>
+                    <div class="hstack">
+                    {% endif %} 
+                {% endfor %}
             </div>
-                <div class="hstack">{% endif %} {% endfor %}</div>
-            </div>
+        </div>
         <div class="panel">
             <h2>Generate Employee Schedule</h2>
             <form action="generate-schedule/" method="post"> {% csrf_token %}

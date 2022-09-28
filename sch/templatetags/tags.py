@@ -1,6 +1,7 @@
 from django import template
 import datetime as dt
 
+
 register = template.Library()
 
 
@@ -32,4 +33,22 @@ def nDaysAwaySmall (date):
         'n': (date - today).days
     }
 
-    
+@register.inclusion_tag("LeftArrow.svg")
+def backArrow (width="20px", height="20px", fill="#e1e1e1",fillB="#acffde"):
+    return {'width': width,'height': height,'fill': fill, 'fillB': fillB}
+
+@register.inclusion_tag("RightArrow.svg")
+def forwardArrow (width="20px", height="20px", fill="#e1e1e1",fillB="#acffde"):
+    return {'width': width,'height': height,'fill': fill, 'fillB': fillB}
+
+@register.inclusion_tag("Lock.svg")
+def lockIcon (width="20px", height="20px", fill="#e1e1e1"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("SupportStaff.svg")
+def fillTemplateIcon (width="30px", height="30px", fill="#e1e1e1"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("FlowRate Logo.svg")
+def logoIcon (width="90px", height="90px"):
+    return {'width': width,'height': height}

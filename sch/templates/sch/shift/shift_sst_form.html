@@ -9,11 +9,11 @@
 
 <h4>Shift Templating</h4>
 
-<form method="post">
-    {% csrf_token %}
+<form method="post"> {% csrf_token %}
+
     {{ formset.management_form }}
 
-    <div class="panel flex-col-7">
+    <div class="panel grid-7-by-2">
 
     {% for form in formset %}
         {{ form.as_div }}

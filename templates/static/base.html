@@ -21,7 +21,7 @@
 		<link rel="stylesheet"
 			  href="https://fonts.googleapis.com/css?family=Dosis">
 		<link rel="stylesheet"
-			  href="https://fonts.googleapis.com/css?family=JetBrains+Mono&display=swap">
+			  href="https://fonts.googleapis.com/css?family=JetBrains+Mono">
 			  
 		
 		{% compress css %}
@@ -100,12 +100,13 @@
 				}
 				.flex-col-7 {
 					display: flex;
-					flex-direction: column;
-					align-items: center;
-					height: 150px;
+					flex-direction: row;
+					gap: 10px;
+					width: 100%;
 					flex-wrap: wrap;
-					justify-content: center;
-					width: 33%;
+				}
+				.flex-col-7 > div {
+					flex: 3;
 				}
 				.flex-col-3 > div {
 					height: 20px;
@@ -343,7 +344,7 @@
 					justify-content: space-between;
 				  }
 				  .giant-button {
-					background-color: #f6ad55cc;
+					background-color: #f6ad55;
 					color: #fff;
 					font-weight: 800;
 					text-shadow: 1 1 1 #000 !important;

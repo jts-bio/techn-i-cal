@@ -8,13 +8,15 @@
 <a href="/sch/day/all/">Back to Days</a>
 
 <div class="hstack">
-    <a href="/sch/week/{{year}}/{{prevWeek}}/"><</a>
+    <a href="/sch/week/{{year}}/{{prevWeek}}/">{% backArrow %}</a>
     <h1> Week {{week_num}} </h1>
-    <a href="/sch/week/{{year}}/{{nextWeek}}/">></a>
+    <a href="/sch/week/{{year}}/{{nextWeek}}/">{% forwardArrow %}</a>
 </div>
 
 
-<a href="fill-template/">Fill Templated Slots for Week</a>
+<a style="float:left;" href="fill-template/" title="Fill Templated Slots">
+    {% fillTemplateIcon %} 
+</a>
 
 
 

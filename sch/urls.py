@@ -36,6 +36,7 @@ urlpatterns = [
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
     path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
+    path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),

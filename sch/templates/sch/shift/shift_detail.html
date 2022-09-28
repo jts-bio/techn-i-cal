@@ -13,7 +13,7 @@
         <h1>{{ shift }}</h1>
     </div>
 
-
+    <div class="hstack">
     <div class="panel w-fc">
         <h2>Shift Details</h2>
         <div class="vstack align-r w-fc">
@@ -35,7 +35,7 @@
                 </tr>
                 <tr>
                     <th>ON DAYS</th>
-                    <td>{{ shift.on_days_display }}</td>
+                    <td style="font-size:8px;">{{ shift.on_days_display }}</td>
                 </tr>
                 <tr>
                     <th>TRAINED EMPLOYEES</th>
@@ -48,25 +48,27 @@
             </table>
         </div>
     </div>
-    <div class="panel">
-        <a href="template">Edit Templating</a>
+    <div class="panel w-fc">
+        <div style="float:right;"><a href="template/" style="font-style:italic;">Edit</a><br></div>
+        <h2>Templating</h2> 
         <div class="hstack">
-            <div>
-                {% for sst in sstsA %}
-                <div>
-                    <span class="emph">{{sst.0}}</span> 
-                    {{sst.1.0.employee}} 
+            {% for sst in ssts %}
+            {% if sst.1 %}
+                <div class="panel w-70 h-50" style="background-color:#5af7;border-color:#7bf;">
+                    <span>Day {{sst.0}}</span><br />
+                    <span class="lg" style="font-size:15px;color:#fff7">{{sst.1.0.employee}}</span>
                 </div>
-                {% endfor %}
-            </div>
-            <div>
-                {% for sst in sstsB %}
-                <div>
-                    <span class="emph">{{sst.0}}</span> 
-                    {{sst.1.0.employee}}
+            {% else %}
+                <div class="panel w-70 h-50">
+                    <span class="small">N/A</span>
                 </div>
-                {% endfor %}
-            </div>
+            {% endif %}
+            
+            {% if sst.0 == 6 %}
+                </div>
+                <div class="hstack">
+                {% endif %} 
+            {% endfor %}
         </div>
     </div>
 
