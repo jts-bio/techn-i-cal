@@ -7,14 +7,18 @@ from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.forms import formset_factory
 
-from .models import PtoRequest, Shift, Employee, Workday, Slot, PtoRequest, ShiftManager, ShiftTemplate, WorkdayManager
+from .models import (
+    PtoRequest, Shift, Employee, Workday, Slot, 
+    PtoRequest, ShiftManager, ShiftTemplate, 
+    WorkdayManager
+)
 
 from .forms import (
     SlotForm, SlotPriorityForm, SstForm, 
     ShiftForm, EmployeeForm, EmployeeEditForm, 
     BulkWorkdayForm, SSTForm, SstEmployeeForm, 
     PTOForm, PTORangeForm, EmployeeScheduleForm,
-    PtoResolveForm
+    PtoResolveForm, PTODayForm
 )
 
 from .actions import WorkdayActions
@@ -87,12 +91,33 @@ class WORKDAY :
             slottedEmployees    = Employee.objects.filter(pk__in=slots.values('employee'))
             badPtoReqs          = slottedEmployees & ptoReqs
             context['badPtoReqs'] = badPtoReqs
+            context['ptoForm']  = PTODayForm()
             
             # Context = wd, shifts, sameWeek, slots, slotdeet
             return context
         
         def get_object(self):
             return Workday.objects.get(slug=self.kwargs['slug'])
+
+    class WorkdayPtoRequest (FormView):
+        form_class = PTODayForm
+        template_name = 'sch/workday/ptoRequest.html'
+        
+        def get_success_url (self):
+            return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['date'] = Workday.objects.get(slug=self.kwargs['date']).date
+            context['form'] = PTODayForm(initial={'workday': context['date']})
+            return context
+
+        def form_valid(self, form):
+            workday = form.cleaned_data['workday']
+            employee = form.cleaned_data['employee']
+            req = PtoRequest.objects.create( workday=workday,employee=employee,status='P')
+            req.save()
+            return super().form_valid(form)
 
     class WorkdayBulkCreateView (FormView):
         template_name = 'sch/workday/bulk_create.html'
@@ -143,6 +168,19 @@ def workdayFillTemplate(request, date):
     workday = Workday.objects.get(date=date)
     WorkdayActions.fillDailySST(workday)
     return HttpResponseRedirect(f'/sch/day/{date}/')
+
+class PERIOD :
+    class PayPeriodView (ListView):
+        model = Workday
+        template_name = 'sch/pay-period/period.html'
+        context_object_name = 'workdays'
+        
+    def get_context_data (self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['period'] = self.kwargs['period']
+        context['year'] = self.kwargs['year']
+        context['workdays'] = Workday.objects.filter(date__year=self.kwargs['year'], iperiod=self.kwargs['period'])
+        return context
 
 class WEEK:
     class WeekView (ListView):
@@ -805,6 +843,10 @@ class PTO:
                 'shift': shift,
                 'employee': employee
                 })
+    
+    def CreatePtoRequestOnDayView (FormView):
+        form_class = PTODayForm
+        template_name = 'sch/pto/pto_day_form.html'
 
 
 

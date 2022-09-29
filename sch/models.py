@@ -396,7 +396,7 @@ class PtoRequest (ComputedFieldsModel):
 
     def __str__(self) :
         # ex: "<JOSH PTOReq: Sep5>"
-        return f'<{self.employee} PTOReq: {self.workday.strftime("%m%d")}>'
+        return f'<{self.employee} PTOReq>'
     @property
     def headsUpLength (self):
         return (self.workday.date - self.dateCreated).days
@@ -438,3 +438,8 @@ class ShiftPreference (models.Model):
         
     def __str__ (self):
         return f'<{self.employee} {self.shift}: {self.priority}>'
+
+# ============================================================================
+
+class Photo (models.Model):
+    photo = models.FileField(upload_to='photos')

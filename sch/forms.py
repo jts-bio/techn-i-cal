@@ -195,6 +195,16 @@ class PTOForm (forms.ModelForm) :
             'employee': forms.HiddenInput(),
             'workday': forms.DateField(widget=forms.SelectDateWidget()),
         }
+        
+class PTODayForm (forms.ModelForm):
+    
+    class Meta:
+        model = PtoRequest
+        fields = ['employee', 'workday']
+        widgets = {
+            'employee': forms.Select(attrs={'class': 'form-control'}),
+            'workday': forms.HiddenInput()
+        }
 
 class PTORangeForm (forms.Form) :
 

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{# --- PTO Request for Day Form ---#}
+<div class="panel" style="width:fit-content;">
+    <h2>Add PTO Request</h2>
+    <div class="emph">{{date}}</div>
+    <form method="post"> {% csrf_token %}
+      {{ form.as_div }}
+      <input type="submit" value="Submit">
+    </form>
+  </div>
+
+  {% endblock content %}

@@ -62,19 +62,20 @@
         {% fillTemplateIcon %} 
       </a>
       
-      {% comment %} <div>{% render_table table %}</div> {% endcomment %}
+      {# --- WORKDAY SHIFT TABLE --- #}
         {% include 'sch/workday/shiftTable.html' %}
       <div style="margin-top: 10px">
         <span> PTO: </span>
         {% if ptoReqs %} {% for req in ptoReqs %}
            {{ req.employee__name }} 
         {% endfor %} {% endif %}
+        <br>
+        <a href="add-pto/">{% addNewIcon %}</a>
         {% if badPtoReqs %}<br> Conflicting PTO Requests: {% for req in badPtoReqs %}
             <a href="{{req.name}}/resolve-pto-request/"> 
               <div class="vstack y-square">
                 <span style="height:10px;">{{ req.name }}</span><span style="height:10px;font-size:8px;">CLICK TO RESOLVE</span>
               </div>
-              
             </a>
          {% endfor %} {% endif %}
       </div>

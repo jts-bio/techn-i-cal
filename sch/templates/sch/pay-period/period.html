@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block content %}
+    <h1>Pay Period {{year}} #{{period}}</h1>
+    <div class="panel">
+        
+    </div>
+    <div class="hstack">
+        {% for day in weekA %}
+            <div class="panel">
+                <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
+                <h3>
+                    <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
+                </h3>
+                {% for employee in day.employees %} {{employee}} {% endfor %}
+            </div>
+        {% endfor %}
+        {% for day in weekB %}
+            <div class="panel">
+                <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
+                <h3>
+                    <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
+                </h3>
+                {% for employee in day.employees %} {{employee}} {% endfor %}
+            </div>
+    {% endfor %}
+    </div>
+{% endblock content %}

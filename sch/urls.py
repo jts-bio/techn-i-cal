@@ -10,6 +10,7 @@ urlpatterns = [
     path('day/all/', views.WORKDAY.WorkdayListView.as_view(), name='workday-list'),
     path('day/<slug:slug>/', views.WORKDAY.WorkDayDetailView.as_view(), name='workday'),
     path('day/<slug:date>/fill-template/', views.workdayFillTemplate, name='workdayFillTemplate'),
+    path('day/<slug:date>/add-pto/', views.WORKDAY.WorkdayPtoRequest.as_view(), name='workdayAddPTO'),
     path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
 
     #? ==== Week ==== ?#
@@ -17,6 +18,9 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/unfilled-slots/', views.WEEK.WeeklyUnfilledSlotsView.as_view(), name='week-unfilled-slots'),
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
+    
+    #? ==== Pay Period ==== ?#
+    path('pay-period/<int:year>/<int:period>/', views.PERIOD.PayPeriodView.as_view(), name='pay-period'),
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),

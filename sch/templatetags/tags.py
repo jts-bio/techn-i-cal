@@ -52,3 +52,7 @@ def fillTemplateIcon (width="30px", height="30px", fill="#e1e1e1"):
 @register.inclusion_tag("FlowRate Logo.svg")
 def logoIcon (width="90px", height="90px"):
     return {'width': width,'height': height}
+
+@register.inclusion_tag("AddNew.svg")
+def addNewIcon (width="20px", height="20px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}

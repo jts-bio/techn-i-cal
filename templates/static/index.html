@@ -6,16 +6,7 @@
 {% endblock %}
 
 {% block style %}
-<style>
-    body {
-        background-image: url('https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/ChemistBackground.png?raw=true');
-        background-repeat: round;
-        background-size: 60%;
-        background-blend-mode: color-dodge;
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-</style>
+
 {% endblock style %}
 
 {% include 'header.html' %}
@@ -37,7 +28,7 @@
             </a> 
         </div>
     </div>
-    <img src="https://github.com/jts-bio/techn-i-cal/blob/main/templates/static/img/FlowRate%20Logo.png?raw=true" alt="LOGO: DripRate" style="width:400px;height:400px;"/>
+    <img src="{% static '/img/FlowRate Logo.png' %}" alt="LOGO: DripRate" style="width:400px;height:400px;"/>
 </div>
     
 
