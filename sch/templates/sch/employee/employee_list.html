@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
+{% load tags %}
 
 {% block content %}
     <a href="/">HOME</a>
 
     <h1>Employees</h1>
-
-    <div>
-        <a href="/sch/employees/new/">Create New</a>
+    <div class="panel w-fc">
+        <div>
+            <a href="/sch/employees/new/">{% newEmployee %}</a>
+        </div>
+        {% render_table employeeTable %}
     </div>
-
-    {% render_table employeeTable %}
-
 {% endblock %}

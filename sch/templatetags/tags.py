@@ -56,3 +56,15 @@ def logoIcon (width="90px", height="90px"):
 @register.inclusion_tag("AddNew.svg")
 def addNewIcon (width="20px", height="20px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("AddPerson.svg")
+def newEmployee (width="20px", height="20px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Add.svg")
+def plusIcon (width="20px", height="20px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Solve.svg")
+def solveIcon (width="20px", height="20px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}

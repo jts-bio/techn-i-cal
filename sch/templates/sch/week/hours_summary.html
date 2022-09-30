@@ -1,0 +1,14 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="panel">
+    {% for week in weeks %}
+
+    <div>{{week}}</div>
+
+    {% endfor %}
+</div>
+
+{% endblock content %}

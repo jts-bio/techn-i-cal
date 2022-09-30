@@ -1,18 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-    <h2>Edit Employee</h2>
+    {# ---EMPLOYEE FORM EDIT--- #}
     <h1>{{employee}}</h1>
+    <h2>Edit Employee</h2>
+   
 
     <form method="post"> {% csrf_token %}
-        
         <table>
             {{ form.as_table }}
         </table>
-        
         <input type="submit" value="Update">
-
     </form>
 
 {% endblock %}

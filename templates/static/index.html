@@ -1,18 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}
-    {{ title }}
-{% endblock %}
+{% block title %} {{ title }} {% endblock %}
 
-{% block style %}
-
-{% endblock style %}
+{% block style %} {% endblock style %}
 
 {% include 'header.html' %}
 
 {% block content %}
-<div class="hstack" style="background-image:url('/workspaces/techn-i-cal/static/img/FlowRate Logo.png')">
+<div class="hstack">
     <div class="panel">
         <div class="vstack" style="justify-content:space-around;">
         <a href="/sch/day/all" style="text-decoration:none;"> 

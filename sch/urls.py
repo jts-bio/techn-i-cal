@@ -17,10 +17,12 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/', views.WEEK.WeekView.as_view(), name='week'),
     path('week/<int:year>/<int:week>/unfilled-slots/', views.WEEK.WeeklyUnfilledSlotsView.as_view(), name='week-unfilled-slots'),
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
+    path('week/<int:year>/<int:week>/solve/', views.WEEK.solve_week_slots, name='solve-week'),
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
     
     #? ==== Pay Period ==== ?#
-    path('pay-period/<int:year>/<int:period>/', views.PERIOD.PayPeriodView.as_view(), name='pay-period'),
+    path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),
+    path('pay-period/<int:year>/<int:period>/fill-template/', views.PERIOD.periodFillTemplates, name='periodFillTemplate'),
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),

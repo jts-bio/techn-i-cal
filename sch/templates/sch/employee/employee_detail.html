@@ -1,5 +1,6 @@
 {% extends 'base.html' %} 
 {% load render_table from django_tables2 %} 
+{% load tags %}
 
 
 {% block content %}
@@ -9,7 +10,7 @@
     <h1>{{ employee.name }}</h1>
 
     <a href="update">Edit Employee</a>
-    <div class="hstack">
+    <div class="hstack" style="align-items:flex-start;">
         <div class="flex flex-row">
             <table stylr="width:flex-grow;">
                 <tr>
@@ -38,18 +39,20 @@
         </div>
         <div class="panel w-fc">
             <div style="float:right;"><a href="ssts/" style="font-style:italic;">Edit</a><br></div>
-            <h2>Templating</h2>
+            <h2 style="color:orange;font-size:18px;">Templating</h2>
             <p>Employee templated for {{sstHours}} hours / pay period.</p>
-            
+            <div class="hstack" style="justify-content:space-around;">
+                <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+            </div>
             <div class="hstack">
                 {% for sst in SSTGrid %}
                 {% if sst.1 %}
-                    <div class="panel w-70 h-50" style="background-color:#5af7;border-color:#7bf;">
-                        <span>Day {{sst.0}}</span><br />
-                        <span class="lg" style="font-size:22px;">{{sst.1.0.shift}}</span>
+                    <div class="panel w-70" style="background-color:#5af7;border-color:#7bf;height:90px;">
+                        <span style="font-size:9px;margin-bottom:2px;padding:3px;">Day {{sst.0}}</span><br />
+                        <span class="lg" style="font-size:22px;padding:3px;">{{sst.1.0.shift}}</span>
                     </div>
                 {% else %}
-                    <div class="panel w-70 h-50">
+                    <div class="panel w-70" style="height:90px;">
                         <span class="small">N/A</span>
                     </div>
                 {% endif %}
@@ -61,18 +64,19 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="panel">
-            <h2>Generate Employee Schedule</h2>
-            <form action="generate-schedule/" method="post"> {% csrf_token %}
-                <table>{{ employeeScheduleForm.as_table }}</table>
-                <input type="submit" value="Generate Schedule"/>
-            </form>
+        <div class="vstack">
+            <div class="panel">
+                <h2 style="font-size:22px;color:orange;">Documents</h2>
+                <a href="generate-schedule/"><div class="hstack">{% plusIcon %}<span> Generate Schedule</span></div></a>
+                </a>
+            </div>
+            <div class="panel w-fc">
+                <h2>PTO REQUESTS</h2>
+                <a href="pto-request/add-range/">{% addNewIcon %}</a>
+                {% render_table ptoTable %}
+            </div>
         </div>
     </div>
-        <div class="panel w-fc">
-            <h2>PTO REQUESTS</h2>
-            <a href="pto-request/add-range/">Add PTO Range</a>
-            {% render_table ptoTable %}
-        </div>
+        
     </div>
 {% endblock %}

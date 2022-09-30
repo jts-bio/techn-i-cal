@@ -87,7 +87,7 @@ class EmployeeManager (models.QuerySet):
         return Slot.objects.filter(workday=workday).exclude(shift=shift).values('employee')
 
     def weekly_hours(self, year, week):
-        return self.annotate(
+        return Employee.objects.annotate(
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
 
@@ -232,20 +232,51 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 13
         return (self.date - dt.date(2022,9,4)).days % 14
     
+    @property
     def weekday (self) -> str :
         # Sun -> Sat
         return self.date.strftime('%a')
     
-    @computed(models.ManyToManyField(Shift), depends=[('self',['date'])])
+    @property
     def shifts (self) -> ShiftManager:
         return Shift.objects.filter(occur_days__contains= self.iweekday) 
+    
+    @property
+    def filledSlots (self) -> SlotManager:
+        return Slot.objects.filter(workday=self)
+    
+    @property
+    def n_slots (self) -> SlotManager:
+        return Slot.objects.filter(workday=self).count()
+    
+    @property
+    def n_emptySlots (self) -> int:
+        return self.slots.filter(employee=None).count()
 
     @property
     def n_shifts (self) -> ShiftManager:
         return Shift.objects.filter(occur_days__contains= self.iweekday).count()
+    
+    @property
+    def percFilled (self) -> float:
+        slots = Slot.objects.filter(workday=self)
+        return slots.count() / self.n_shifts
 
+    @property
     def siblings_iweek (self) -> "WorkdayManager":
         return Workday.objects.same_week(self) # type: ignore
+
+    @property
+    def iweek_of (self) -> "WorkdayManager":
+        return self.siblings_iweek.first()
+
+    @property
+    def siblings_iperiod (self) -> "WorkdayManager":
+        return Workday.objects.filter(date__year=self.date.year, iperiod=self.iperiod)
+
+    @property
+    def iperiod_of (self) -> "WorkdayManager":
+        return self.siblings_iperiod.first()
 
     def __str__(self) :
         return str(self.date.strftime('%Y %m %d'))
@@ -289,18 +320,22 @@ class Workday (ComputedFieldsModel) :
 class Slot (ComputedFieldsModel) :
     # fields: workday, shift, employee
     workday  = models.ForeignKey("Workday",  on_delete=models.CASCADE)
-    shift    = models.ForeignKey(Shift,    on_delete=models.CASCADE)
-    employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
+    shift    = models.ForeignKey( Shift,     on_delete=models.CASCADE)
+    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
+    
+    class Meta:
+        unique_together = ('workday', 'shift')
+        
     # computed fields:
     @computed(models.SlugField(max_length=20), depends=[('self',['workday','shift'])])
     def slug (self):
         return self.workday.slug + '-' + self.shift.name
 
-    @computed(models.DateTimeField(), depends=[('self',['workday','shift'])])
+    
     def start (self):
         return dt.datetime.combine(self.workday.date, self.shift.start)
 
-    @computed(models.DateTimeField(), depends=[('self',['workday','shift'])])
+   
     def end (self):
         return dt.datetime.combine(self.workday.date, self.shift.start) + self.shift.duration
 
@@ -441,5 +476,29 @@ class ShiftPreference (models.Model):
 
 # ============================================================================
 
-class Photo (models.Model):
-    photo = models.FileField(upload_to='photos')
+
+def tally (lst):
+    """ TALLY A LIST OF VALUES 
+    Tallys each occurence of a particular value"""
+    tally = {}
+    for item in lst:
+        if item in tally:
+            tally[item] += 1
+        else:
+            tally[item] = 1
+    return tally
+
+def sortDict (d):
+    """ SORT DICT BY VALUE """
+    return {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
+
+def createSlots():
+    """CREATE SLOTS :
+    for each workday, create blank slots for each shift occuring on that day if one does not already exist:"""
+    tally = 0
+    while tally < 150:
+        for workday in Workday.objects.all():
+            for shift in Shift.objects.all():
+                if Slot.objects.filter(workday=workday, shift=shift).count() == 0:
+                    Slot.objects.create(workday=workday, shift=shift, employee=None).save()
+                    tally += 1

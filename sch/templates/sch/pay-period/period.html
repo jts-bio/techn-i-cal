@@ -4,26 +4,48 @@
 {% block content %}
     <h1>Pay Period {{year}} #{{period}}</h1>
     <div class="panel">
-        
+        <a href="fill-template/">{% fillTemplateIcon %}</a>
     </div>
-    <div class="hstack">
-        {% for day in weekA %}
-            <div class="panel">
-                <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
-                <h3>
-                    <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
-                </h3>
-                {% for employee in day.employees %} {{employee}} {% endfor %}
-            </div>
+    <div class="panel" style="text-align:center;font-size:10px;">
+        <a href="{{ weekA_url }}">
+             WEEK A 
+        </a> 
+        <div class="hstack" style="width:100%;">
+            {% for day in weekA %}
+                <div class="panel" style="flex-grow:2;background-color:#aaa4;">
+                    <h5 style="font-size:16px;">
+                        <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
+                    </h5>
+                    <div style="font-size:10px;">{{day.percent_coverage}}%</div>
+                    <progress value="{{day.percent_coverage}}" max="100" style="width:130px;"></progress>
+                    
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="panel" style="text-align:center;font-size:10px;">
+        <a href="{{ weekB_url }}"> WEEK B </a> 
+        <div class="hstack" style="width:100%;">
+            {% for day in weekB %}
+                <div class="panel" style="flex-grow:2;background-color:#aaa4;">
+                    <h5 style="font-size:16px;">
+                        <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
+                    </h5>
+                    <div style="font-size:10px">{{day.percent_coverage}}%</div>
+                    <progress value="{{day.percent_coverage}}" max="100" style="width:130px;"></progress>
+                    
+                </div>
         {% endfor %}
-        {% for day in weekB %}
-            <div class="panel">
-                <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
-                <h3>
-                    <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
-                </h3>
-                {% for employee in day.employees %} {{employee}} {% endfor %}
-            </div>
+        </div>
+    </div>
+
+    <div class="hstack" style="width:100%;justify-content:space-around;">
+    {% for emp in employees %}
+        <div style="font-size:13px;font-weight:light;" class="jbm">{{emp}}:
+            {% if emp.period_fte_percent > 100 %} <span class="jbm" style="color:#a55c;background-color:#3115;font-size:10px;">{{emp.period_fte_percent}}% </span>{% else %}
+            {{emp.period_fte_percent}}%</div>{% endif %}
     {% endfor %}
     </div>
+
+
 {% endblock content %}

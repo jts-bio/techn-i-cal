@@ -12,6 +12,10 @@
             "args": [
                 "runserver"
             ],
+            "env": {"DISPLAY":":1",
+                    "PYTHONPATH": "${workspaceRoot}",
+                    "PYDEVD_WARN_EVALUATION_TIMEOUT": "500"
+                },
             "django": true,
             "justMyCode": true
         }

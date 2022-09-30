@@ -22,13 +22,23 @@
 			  href="https://fonts.googleapis.com/css?family=Dosis">
 		<link rel="stylesheet"
 			  href="https://fonts.googleapis.com/css?family=JetBrains+Mono">
-			  
+		  
+			  <link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
 		
 		{% compress css %}
+			
 			<style>
+				
+				@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:ital,wght@0,300;0,700;1,100;1,800&family=Kreon:wght@300;400&display=swap');
+								
 				* {
-					font-family: 'Dosis', sans-serif;
+					font-family: 'Raleway', sans-serif;
 					color: #ddd;
+					letter-spacing: -1px;
+				}
+				input {
+					color: #267a!important;
+					border-radius: 5px;
 				}
 				
 				aside {
@@ -46,7 +56,10 @@
 					text-align: center;
 					width: 100%;
 				}
-				grid-7-by-2 {
+				.jbm {
+					font-family: 'JetBrains Mono', monospace;
+				}
+				.grid-7-by-2 {
 					display: grid;
 					grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
 					grid-template-rows: 1fr 1fr;
@@ -241,19 +254,20 @@
 					font-size: 0.8rem;
 					margin-right: 1rem;
 					padding: 1px;
+					border: 0px;
 					text-align: center;
 					color: #fff7;
 					border: 1px solid #fff2 !important;
 					height: 0.8rem;
 				}
 				th {
-					font-family: 'JetBrains Mono', monospace;
+					font-family: 'Kreon', serif;
 					font-weight: 800;
 					font-size: 0.9rem;
 					margin-right: 1rem;
 					padding: 1px;
-					padding-left: 4px;
-					padding-right: 4px;
+					padding-left: 10px;
+					padding-right: 10px;
 					text-align: center;
 					color: #fff8;
 					border: 1px solid #fff2 !important;
@@ -333,8 +347,16 @@
 					width: 70px;
 				  }
 				  .lg {
-					font-size: 1.6rem;
-					font-weight: 800;
+					font-size: 20px!important;
+					font-weight: 100;
+					font-family: "EB Garamound", serif;
+					font-style: italic;
+					float:right;
+					opacity: 75%;
+					margin: 0px;
+				  }
+				  .flt-lft {
+					float: left;
 				  }
 				  .h-50 {
 					height: 50px;
@@ -491,5 +513,8 @@
 		{% block content %}
 		{% endblock %}
 		
+
+
+		<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js">
 	</body>
 </html>

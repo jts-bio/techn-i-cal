@@ -6,26 +6,29 @@
 {% block content %}
 
 <a href="/sch/day/all/">Back to Days</a>
+<div class="panel hstack">
+    <div class="hstack">
+        <a href="/sch/week/{{year}}/{{prevWeek}}/">{% backArrow %}</a>
+        <h1> Week {{week_num}} </h1>
+        <a href="/sch/week/{{year}}/{{nextWeek}}/">{% forwardArrow %}</a>
+    </div>
 
-<div class="hstack">
-    <a href="/sch/week/{{year}}/{{prevWeek}}/">{% backArrow %}</a>
-    <h1> Week {{week_num}} </h1>
-    <a href="/sch/week/{{year}}/{{nextWeek}}/">{% forwardArrow %}</a>
+
+    <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
+        {% fillTemplateIcon %} 
+    </a>
+    <a href="solve/" title="Run Assignment Solver">
+        {% solveIcon %}
+    </a>
 </div>
-
-
-<a style="float:left;" href="fill-template/" title="Fill Templated Slots">
-    {% fillTemplateIcon %} 
-</a>
 
 
 
 <div class="hstack">
     {% for day in workdays %}
-        <div class="panel">
+        <div class="panel" style="height:320px;">
             <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
-            
-            <h3>
+            <h3 style="color:orange;font-family:Raleway;font-size:24px;">
                 <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
             </h3>
             

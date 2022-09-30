@@ -29,17 +29,23 @@
             <th>WEEK</th>
             <td>
               <a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">
-                {{ wd.iweek }}
+                WK-{{ wd.iweek }}
               </a>
             </td>
           </tr>
           <tr>
             <th>PAY PERIOD DAY</th>
-            <td>{{ wd.ppd_id }}</td>
+            <td>
+              {{ wd.ppd_id }} / 13
+            </td>
           </tr>
           <tr>
             <th>PAY PERIOD</th>
-            <td>{{ wd.iperiod }}</td>
+            <td>
+              <a href="/sch/pay-period/{{wd.date.year}}/{{wd.iperiod}}">
+                PP-{{ wd.iperiod }}
+              </a>
+            </td>
           </tr>
           <tr>
             <th>SHIFTS</th>
@@ -51,13 +57,7 @@
     <div class="panel">
       <h3>SHIFTS</h3>
 
-      <div class="hstack">
-        {% for sft in unfilled %} <a href="{{sft}}/new/">
-          <div class="y-circle f-sb">
-            {{ sft }}<sup>{{ sft.n_can_fill }}</sup>
-          </div></a>{% endfor %}
-      </div>
-
+      
       <a style="float:right;" href="fill-template/">
         {% fillTemplateIcon %} 
       </a>

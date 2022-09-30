@@ -3,28 +3,19 @@ from .models import Workday, Shift, Employee, PtoRequest
 import datetime as dt
 # Create your tests here.
 
-class DateCalcTests(TestCase):
-
-    def test_iweekday (self):
-        """
-        Test the iweekday property of the Workday model
-        """
-        init = dt.date(2023,12,25)
-        print("Testing iweekday")
-        days = [init + dt.timedelta(days=i) for i in range(14)]
-        for day in days:
-            wd = Workday.objects.create(date=day)
-            print("WD-",wd.iweekday, "// ",wd.date.strftime("%w %a %d %m"))
-            self.assertEqual(wd.iweekday, int(day.strftime("%w")))
-
-    def test_iperiod(self):
-        """
-        Test the iperiod property of the Workday model
-        """
-        init = dt.date(2023,12,1)
-        print("Testing iperiod")
-        days = [init + dt.timedelta(days=i) for i in range(62)]
-        for day in days:
-            wd = Workday.objects.create(date=day)
-            print("PP-",wd.iperiod, "// ", wd.date.strftime("%w %a %d-%b"))
+class TestSlots (TestCase):
+    
+    def setUp(self):
+        self.workdays = [Workday.objects.create(2022,10,i) for i in range(1,4)]
+        self.shift    = Shift.objects.create(name='XAM', start=dt.time(8), duration=dt.timedelta(hours=8), occur_days='MTWRF')
+        self.employee = Employee.objects.create(name='MARTHA', fte_14_day=80)
+        
+    def testTurnaroundDetection (self):
+        self.assertEqual(self.shift.is_turnaround, False)
+        self.shift.is_turnaround = True
+        self.assertEqual(self.shift.is_turnaround, True)
+        self.shift.is_turnaround = False
+        self.assertEqual(self.shift.is_turnaround, False)
+        
+        
             

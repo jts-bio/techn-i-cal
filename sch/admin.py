@@ -3,7 +3,7 @@ from django.contrib import admin
 # Register your models here.
 from .models import (
     Shift, Employee, Workday, Slot, 
-    ShiftTemplate, PtoRequest, Photo
+    ShiftTemplate, PtoRequest
 )
 
 @admin.register(Shift)
@@ -39,6 +39,3 @@ class PtoRequestAdmin(admin.ModelAdmin):
     readonly_fields = ['stands_respected',]
     list_display    = ['workday','employee','status','stands_respected',]
 
-@admin.register(Photo)
-class PhotoRequestAdmin(admin.ModelAdmin):
-    fields          = ['photo']

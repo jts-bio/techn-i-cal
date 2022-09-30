@@ -21,7 +21,7 @@ from .forms import (
     PtoResolveForm, PTODayForm
 )
 
-from .actions import WorkdayActions
+from .actions import PayPeriodActions, WorkdayActions
 
 from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, PtoListTable
 
@@ -169,18 +169,40 @@ def workdayFillTemplate(request, date):
     WorkdayActions.fillDailySST(workday)
     return HttpResponseRedirect(f'/sch/day/{date}/')
 
+
+
 class PERIOD :
-    class PayPeriodView (ListView):
-        model = Workday
-        template_name = 'sch/pay-period/period.html'
-        context_object_name = 'workdays'
+    def period_view (request, year, period):
+        # URL : /sch2/period/<year>/<week>/
+        workdays = Workday.objects.filter(date__year=year, iperiod=period)
+        slots = Slot.objects.filter(workday__in=workdays)
+        employees = PayPeriodActions.getPeriodFtePercents(year, period)
+        weekA = workdays.filter(ppd_id__lte=6)
+        for day in weekA:
+            day.percent_coverage = PayPeriodActions.getWorkdayPercentCoverage(day)
+        weekB = workdays.filter(ppd_id__gt=6)
+        for day in weekB:
+            day.percent_coverage = PayPeriodActions.getWorkdayPercentCoverage(day)
+        context = {
+            'year': year,
+            'period': period,
+            'workdays': workdays,
+            'slots': slots,
+            'employees': employees,
+            'weekA': weekA,
+            'weekB': weekB,
+            'weekA_url': f'/sch/week/{year}/{period*2}',
+            'weekB_url': f'/sch/week/{year}/{period*2+1}',
+            }
         
-    def get_context_data (self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['period'] = self.kwargs['period']
-        context['year'] = self.kwargs['year']
-        context['workdays'] = Workday.objects.filter(date__year=self.kwargs['year'], iperiod=self.kwargs['period'])
-        return context
+        return render(request,'sch/pay-period/period.html', context)
+    
+    def periodFillTemplates (request, year, period):
+        # URL : /sch2/period/<year>/<week>/fill/
+        workdays = Workday.objects.filter(date__year=year, iperiod=period)
+        for workday in workdays:
+            WorkdayActions.fillDailySST(workday)
+        return HttpResponseRedirect(f'/sch/pay-period/{year}/{period}/')
 
 class WEEK:
     class WeekView (ListView):
@@ -268,11 +290,28 @@ class WEEK:
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     def all_weeks_view(request):
-        weeks = Workday.objects.all().values('date__year','iweek').distinct()
+        weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
         context = {
             'weeks': weeks,
         }
         return render(request, 'sch/week/all_weeks.html', context)
+    
+    def solve_week_slots (request, year, week):
+        wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        for day in wds:
+            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+            day.slots     = Slot.objects.filter(workday=day)
+        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        # sort this list by the number of employees who could fill the slot
+        unfilledSlots.sort(key=lambda x: x[2])
+        slot = unfilledSlots[0]
+        # for each slot, assign the employee who has the least number of other slots they could fill
+        day = slot[0]
+        shift = slot[1]
+        empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')[0]
+        Slot.objects.create(workday=day, shift=shift, employee=empl)
+        return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     class WeeklyUnfilledSlotsView (ListView):
         model = Workday

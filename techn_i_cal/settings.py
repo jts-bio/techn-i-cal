@@ -109,7 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
+PYDEVD_UNBLOCK_THREADS_TIMEOUT = 240
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 

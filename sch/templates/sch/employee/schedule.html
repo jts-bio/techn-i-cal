@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load tags %}
 
 {% block content %}
 
@@ -7,6 +7,9 @@
 
 <h1> {{employee}} </h1>
 
+<div class="hstack" style="justify-content:space-around;">
+    <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+</div>
 <div class="grid-7-col">
     {% for day in days %}
     <div class="panel hstack {% if day.slot %}g-panel{% endif %} {% if day.ptoReq %}b-panel{% endif %}">
@@ -15,6 +18,9 @@
         </h5>
         {% if day.slot %}
             <h3 class="green-glow"> {{day.slot.shift}} </h3>
+        {% endif %}
+        {% if day.ptoReq %}
+            <h3 class="blue-glow">{% lockIcon %} </h3>
         {% endif %}
     </div>
     {% endfor %}

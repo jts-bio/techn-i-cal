@@ -51,3 +51,41 @@ class WeekActions:
         return week_numbers
             
         
+class PayPeriodActions:
+    def getPeriodFtePercents (year,pp):
+        employees = Employee.objects.filter(fte__gt=0)
+        slots = Slot.objects.filter(workday__date__year=year,workday__iperiod=pp)
+        for emp in employees:
+            emp.period_fte_percent = int((sum(list(slots.filter(employee=emp).values_list('shift__hours',flat=True))) / emp.fte_14_day) * 100)
+
+        return employees
+    
+    def getWorkdayPercentCoverage (workday):
+        """
+        Returns the percent coverage of a workday.
+        """
+        slots = Slot.objects.filter(workday=workday).count()
+        shifts = Shift.objects.filter(occur_days__contains=workday.iweekday).count()
+        return int((slots/shifts)*100)
+    
+    
+class ScheduleBot:
+    
+    def getWhoCanFillShiftOnWorkday (shift, workday):
+        """
+        Returns a list of employees who can fill a shift on a workday.
+        """
+        return Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
+    
+    def getMinSolutionsSlot (year,week=0,period=0):
+        """
+        Returns the slot with the most problems.
+        """
+        if week != 0:
+            slots = Slot.objects.filter(year=year,iweek=week)
+        elif period != 0:
+            slots = Slot.objects.filter(year=year,iperiod=period)
+        # get shift list by day of week
+        shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
+        
+        

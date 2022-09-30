@@ -29,7 +29,9 @@ def index(request=0):
 
 
 urlpatterns = [
+    
     path('' , index,  name='index'),
     path('admin/',  admin.site.urls ),
     path('sch/',    include('sch.urls'),    name='sch'),
+    
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
