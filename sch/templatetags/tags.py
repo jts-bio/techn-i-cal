@@ -46,7 +46,7 @@ def lockIcon (width="20px", height="20px", fill="#e1e1e1"):
     return {'width': width,'height': height,'fill': fill}
 
 @register.inclusion_tag("SupportStaff.svg")
-def fillTemplateIcon (width="30px", height="30px", fill="#e1e1e1"):
+def fillTemplateIcon (width="40px", height="40px", fill="#e1e1e1"):
     return {'width': width,'height': height,'fill': fill}
 
 @register.inclusion_tag("FlowRate Logo.svg")
@@ -66,5 +66,17 @@ def plusIcon (width="20px", height="20px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}
 
 @register.inclusion_tag("Solve.svg")
-def solveIcon (width="20px", height="20px", fill="#bbbbbb"):
+def solveIcon (width="30px", height="30px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Clear.svg")
+def clearIcon (width="30px", height="30px", fill="#eebbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.simple_tag("Edit.svg")
+def editIcon (width="20px", height="20px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Robot.svg")
+def robotIcon (width="20px", height="20px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}

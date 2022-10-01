@@ -71,9 +71,13 @@
                 </a>
             </div>
             <div class="panel w-fc">
-                <h2>PTO REQUESTS</h2>
+                <h2 style="font-size:22px;color:orange;">PTO Requests</h2>
                 <a href="pto-request/add-range/">{% addNewIcon %}</a>
-                {% render_table ptoTable %}
+                {% if ptoReqsExist %}
+                    {% render_table ptoTable %}
+                {% else %}
+                    <p class="small" style="font-family:'JetBrains Mono'">No PTO Requests are associated with this employee.</p>
+                {% endif %}
             </div>
         </div>
     </div>

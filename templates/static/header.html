@@ -4,16 +4,13 @@
     <div class="hstack sp-btw nav-top">
         <a href="/" style="text-decoration:none;">
             <div class="hstack">
-                <img src="{% static '/img/FlowRate Logo.png' %}" alt="LOGO: DripRate" style="width:90px;height:90px;"/>
-                <div>
-                    <div class="subtitle">PHARMACY SCHEDULING</div>
-                </div>
+                <img src="{% static '/img/FlowRate Logo.svg' %}" alt="LOGO: DripRate" style="width:90px;height:90px;"/>
             </div>
         </a>
         <div class="hstack">
-            <h5><a href="/sch/day/all"> WORKDAYS </a></h5>
-            <h5><a href="/sch/shifts/all"> SHIFTS </a> </h5>
-            <h5><a href="/sch/employees/all/"> EMPLOYEES </a> </h5>
+            <h5><a href="/sch/day/all" class="header-link"> WORKDAYS </a></h5>
+            <h5><a href="/sch/shifts/all" class="header-link"> SHIFTS </a> </h5>
+            <h5><a href="/sch/employees/all/" class="header-link"> EMPLOYEES </a> </h5>
         </div>
         <div>
             {% goToThisWeek %}

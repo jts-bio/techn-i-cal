@@ -4,7 +4,10 @@ import datetime as dt
 
 class WorkdayActions:
 
-    def bulk_create (date_from: dt.date, date_to:dt.date) : # type: ignore
+    def bulk_create (date_from: dt.date, date_to:dt.date) : 
+        """
+        Bulk create workdays for a range of dates.
+        """
         date = date_from
         while date <= date_to:
             if Workday.objects.filter(date=date).exists()==False:
@@ -22,9 +25,8 @@ class WorkdayActions:
         1. No existing slot 
         2. Template exists for the day
         3. Employee Templated is not on PTO.
-        
-        # TODO: Dont fill an employee into a turnaround 
-        
+        4. Dont fill an employee into a turnaround 
+        #TODO Dont fill if employee is working a different shift that day
         """
         templs = ShiftTemplate.objects.filter(ppd_id=workday.ppd_id) # type: ignore
 
@@ -35,8 +37,16 @@ class WorkdayActions:
                 if templs.filter(shift=shift).exists():
                     # dont fill if templated employee has a PTO request for day
                     if PtoRequest.objects.filter(employee=templs.get(shift=shift).employee, workday=workday.date).exists()==False:
-                        slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
-                        slot.save()
+                        # avoid creating a turnaround
+                        if shift.start < dt.time(12):
+                            if Slot.objects.filter(workday=workday.prevWD(), employee=templs.get(shift=shift).employee, shift__start__gt=dt.time(12)).exists()==False:
+                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
+                                slot.save()
+                        # avoid creating a preturnaround
+                        elif shift.start > dt.time(12):
+                            if Slot.objects.filter(workday=workday.nextWD(), employee=templs.get(shift=shift).employee, shift__start__lt=dt.time(12)).exists()==False:
+                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
+                                slot.save()
 
 class WeekActions:
     def getAllWeekNumbers ():

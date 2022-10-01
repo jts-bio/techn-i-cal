@@ -5,14 +5,16 @@
 {% block content %}
 
     <h2>{{employee}}</h2>
-
+ 
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
-
+            
+        <div class="panel grid-7-by-2">
             {% for form in formset %}
-            {{ form.as_p }}
+            {{ form.as_div }}
             {% endfor %}
+        </div>
 
         <input type="submit" value="Submit" />
     </form>    

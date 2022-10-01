@@ -73,6 +73,13 @@ class SlotManager (models.QuerySet):
             if i.is_turnaround:
                 turnarounds.append(i.pk)
         return self.filter(pk__in=turnarounds)
+    
+    def preturnarounds (self):
+        preturnarounds = []
+        for i in self.all():
+            if i.is_preturnaround:
+                preturnarounds.append(i.pk)
+        return self.filter(pk__in=preturnarounds)
 
 # ============================================================================
 class EmployeeManager (models.QuerySet):
@@ -364,10 +371,10 @@ class Slot (ComputedFieldsModel) :
         if self.shift.start < dt.time(12,0):
             return False
         elif self.shift.start > dt.time(12,0) :
-            if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
-                return False
-            else:
+            if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__lt=dt.time(12,0), employee=self.employee).count() > 0 :
                 return True
+            else:
+                return False
             
 
     objects = SlotManager.as_manager()
@@ -492,13 +499,3 @@ def sortDict (d):
     """ SORT DICT BY VALUE """
     return {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
 
-def createSlots():
-    """CREATE SLOTS :
-    for each workday, create blank slots for each shift occuring on that day if one does not already exist:"""
-    tally = 0
-    while tally < 150:
-        for workday in Workday.objects.all():
-            for shift in Shift.objects.all():
-                if Slot.objects.filter(workday=workday, shift=shift).count() == 0:
-                    Slot.objects.create(workday=workday, shift=shift, employee=None).save()
-                    tally += 1

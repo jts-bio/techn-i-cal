@@ -41,9 +41,11 @@
 
     <div class="hstack" style="width:100%;justify-content:space-around;">
     {% for emp in employees %}
-        <div style="font-size:13px;font-weight:light;" class="jbm">{{emp}}:
-            {% if emp.period_fte_percent > 100 %} <span class="jbm" style="color:#a55c;background-color:#3115;font-size:10px;">{{emp.period_fte_percent}}% </span>{% else %}
-            {{emp.period_fte_percent}}%</div>{% endif %}
+        <div style="font-size:13px;font-weight:light;" class="jbm">
+            {{emp}}:
+            {% if emp.period_fte_percent > 100 %} <span class="jbm" style="color:#a55c;background-color:#3115;font-size:15px;">{{emp.period_fte_percent}}% </span>{% else %}
+            {{emp.period_fte_percent}}%{% endif %}
+        </div>
     {% endfor %}
     </div>
 

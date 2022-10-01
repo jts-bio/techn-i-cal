@@ -147,6 +147,14 @@ class SlotForm (forms.ModelForm):
         self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday, method="available")
         self.fields['employee'].label = shift.name
 
+class ClearWeekSlotsForm (forms.Form) :
+    
+    confirm = forms.BooleanField(label='Confirm', required=True)
+    
+    class Meta:
+        fields = ['confirm']
+        widgets = {'confirm': forms.CheckboxInput(attrs={'class': 'form-control'})}
+
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
     ppd_id   = forms.IntegerField(widget=forms.HiddenInput())
@@ -269,3 +277,4 @@ class PtoResolveForm (forms.Form) :
         cleaned_data = super(PtoResolveForm, self).clean()
         slot = cleaned_data.get('slot')
         ptoreq = cleaned_data.get('ptoreq')
+

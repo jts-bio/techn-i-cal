@@ -18,7 +18,7 @@ from .forms import (
     ShiftForm, EmployeeForm, EmployeeEditForm, 
     BulkWorkdayForm, SSTForm, SstEmployeeForm, 
     PTOForm, PTORangeForm, EmployeeScheduleForm,
-    PtoResolveForm, PTODayForm
+    PtoResolveForm, PTODayForm, ClearWeekSlotsForm
 )
 
 from .actions import PayPeriodActions, WorkdayActions
@@ -298,6 +298,8 @@ class WEEK:
     
     def solve_week_slots (request, year, week):
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        if len(wds) == 0:
+            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
         for day in wds:
             day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
             day.slots     = Slot.objects.filter(workday=day)
@@ -305,6 +307,8 @@ class WEEK:
         unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
         # sort this list by the number of employees who could fill the slot
         unfilledSlots.sort(key=lambda x: x[2])
+        if len(unfilledSlots) == 0:
+            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
         slot = unfilledSlots[0]
         # for each slot, assign the employee who has the least number of other slots they could fill
         day = slot[0]
@@ -312,6 +316,27 @@ class WEEK:
         empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')[0]
         Slot.objects.create(workday=day, shift=shift, employee=empl)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+
+    class ClearWeekSlotsView (FormView):
+        template_name = 'sch/week/clear_slots_form.html'
+        form_class    = ClearWeekSlotsForm
+        
+        def get_context_data (self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['title'] = 'Clear Slots'
+            context['year']  = self.kwargs['year']
+            context['week']  = self.kwargs['week']
+            return context
+    
+        def form_valid(self, form):
+            if form.cleaned_data['confirm']:
+                Slot.objects.filter(workday__date__year=self.kwargs['year'], workday__iweek=self.kwargs['week']).delete()
+            return super().form_valid(form)
+        
+        def get_success_url (self):
+            # return to the WeekView
+            return reverse_lazy('week', kwargs={'year': self.kwargs['year'], 'week': self.kwargs['week']})
+        
 
     class WeeklyUnfilledSlotsView (ListView):
         model = Workday
@@ -558,6 +583,7 @@ class EMPLOYEE:
             context['sstHours']     = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
             context['SSTGrid']      = [(day, ShiftTemplate.objects.filter(employee=self.object, ppd_id=day)) for day in range(14)] # type: ignore    
             context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
+            context['ptoReqsExist'] = PtoRequest.objects.filter(employee=self.object).exists()
             initial = {
                 'employee': self.object,
                 'date_from': dt.date.today() - dt.timedelta(days=int(dt.date.today().strftime("%w"))),
@@ -609,6 +635,7 @@ class EMPLOYEE:
             date_from = dt.date.today() - dt.timedelta(days=int(dt.date.today().strftime("%w")))
             date_to   = date_from + dt.timedelta(days=42)
             context['form'] = EmployeeScheduleForm(initial={'employee': employee, 'date_from': date_from, 'date_to': date_to})
+            context['employee'] = employee
             return context
 
     class EmployeeScheduleView (ListView):
@@ -790,6 +817,9 @@ class SLOT:
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['workday'] = self.object.workday
+            context ['shift']  = self.object.shift
+            context ['employee'] = self.object.employee
+            return context
         
         def get_success_url(self):
             return reverse_lazy('workday', kwargs={'slug': self.object.workday.slug})

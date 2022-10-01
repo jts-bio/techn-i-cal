@@ -49,7 +49,7 @@
           </tr>
           <tr>
             <th>SHIFTS</th>
-            <td>{% for shift in shifts %} {{ shift }} {% endfor %}</td>
+            <td>{{shifts|length}}</td>
           </tr>
         </table>
       </div>
@@ -74,7 +74,7 @@
         {% if badPtoReqs %}<br> Conflicting PTO Requests: {% for req in badPtoReqs %}
             <a href="{{req.name}}/resolve-pto-request/"> 
               <div class="vstack y-square">
-                <span style="height:10px;">{{ req.name }}</span><span style="height:10px;font-size:8px;">CLICK TO RESOLVE</span>
+                <span style="height:10px;">{{ req.name }}</span><span style="height:10px;font-size:8px;letter-spacing:1px;">CLICK TO RESOLVE</span>
               </div>
             </a>
          {% endfor %} {% endif %}

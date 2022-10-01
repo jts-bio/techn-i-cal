@@ -6,25 +6,37 @@
 {% block content %}
 
 <a href="/sch/day/all/">Back to Days</a>
-<div class="panel hstack">
+<div class="panel hstack" style="justify-content:space-between;">
     <div class="hstack">
         <a href="/sch/week/{{year}}/{{prevWeek}}/">{% backArrow %}</a>
         <h1> Week {{week_num}} </h1>
         <a href="/sch/week/{{year}}/{{nextWeek}}/">{% forwardArrow %}</a>
     </div>
-
-
-    <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
-        {% fillTemplateIcon %} 
+    {% if total_unfilled != 0 %}
+    <a href="unfilled-slots/">
+        <div class="vstack light-button" style="align-items:center;border: 1px solid #aaa3;padding:10px 20px 10px 20px;border-radius:6px;gap:1px;">
+            <span style="padding:0px;margin:0px;">{{total_unfilled}} unfilled slots for this week</span>
+            <span style="font-size:9px;letter-spacing:1.5px;">CLICK TO MANAGE</span>
+        </div>
     </a>
-    <a href="solve/" title="Run Assignment Solver">
-        {% solveIcon %}
-    </a>
+    {% endif %}
+    <div class="hstack">
+        <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
+            {% fillTemplateIcon %} 
+        </a>
+        <a href="solve/" title="Run Assignment Solver">
+            {% solveIcon %}
+        </a>
+        <a href="clear-slots-form/" title="Clear All Slots This Week">
+            {% clearIcon %}
+        </a>
+    </div>
+
 </div>
 
 
 
-<div class="hstack">
+<div class="hstack" style="justify-content:space-between;">
     {% for day in workdays %}
         <div class="panel" style="height:320px;">
             <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
@@ -38,12 +50,9 @@
     {% endfor %}
 </div>
 
-<div class="panel w-fc mt-10">
+<div class="panel w-fc mt-10" style="width:100%;background-color:#abf2;">
     <div class="hstack">
         <h3>Weekly Hours</h3>
-        {% if total_unfilled != 0 %}
-            <a href="unfilled-slots/">{{total_unfilled}} unfilled slots for this week</a>
-        {% endif %}
     </div>
     <div class="grid-3-row">
         {% for empl in hrsTable %}

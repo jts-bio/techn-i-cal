@@ -2,7 +2,7 @@
 
 [ ] New Column on Slots Table-- Streak
 
-[ ] New ViewSet: Pay Periods
+[x] New ViewSet: Pay Periods
 
 [ ] New Filtering: Hours in PayPrd don't exceed FTE
 

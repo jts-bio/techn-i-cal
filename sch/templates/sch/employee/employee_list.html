@@ -7,8 +7,9 @@
 
     <h1>Employees</h1>
     <div class="panel w-fc">
-        <div>
+        <div class="hstack" style="justify-content:space-between;">
             <a href="/sch/employees/new/">{% newEmployee %}</a>
+            <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> {{employees|length}} Active </div>
         </div>
         {% render_table employeeTable %}
     </div>
