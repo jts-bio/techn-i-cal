@@ -5,27 +5,46 @@
 
 {% block content %}
 
-<a href="/sch/day/all/">Back to Days</a>
-<div class="panel hstack" style="justify-content:space-between;">
+<a href="/sch/day/all/">
+    Back to Days</a>
+
+<div class="panel hstack" 
+     style="justify-content:space-between;">
+
     <div class="hstack">
-        <a href="/sch/week/{{year}}/{{prevWeek}}/">{% backArrow %}</a>
+
+        <a href="/sch/week/{{year}}/{{prevWeek}}/">
+            {% backArrow %}</a>
+
         <h1> Week {{week_num}} </h1>
-        <a href="/sch/week/{{year}}/{{nextWeek}}/">{% forwardArrow %}</a>
+
+        <a href="/sch/week/{{year}}/{{nextWeek}}/">
+            {% forwardArrow %}</a>
+
     </div>
+
     {% if total_unfilled != 0 %}
+    
     <a href="unfilled-slots/">
-        <div class="vstack light-button" style="align-items:center;border: 1px solid #aaa3;padding:10px 20px 10px 20px;border-radius:6px;gap:1px;">
-            <span style="padding:0px;margin:0px;">{{total_unfilled}} unfilled slots for this week</span>
-            <span style="font-size:9px;letter-spacing:1.5px;">CLICK TO MANAGE</span>
+        <div class="vstack light-button" 
+            style="align-items:center;
+                   border:1px solid #aaa3;
+                   padding:10px 20px 10px 20px;
+                   border-radius:6px;gap:1px;">
+            <span style="padding:0px;margin:0px;">
+                {{total_unfilled}} unfilled slots for this week</span>
+            <span style="font-size:9px;letter-spacing:1.5px;">
+                CLICK TO MANAGE</span>
         </div>
     </a>
+
     {% endif %}
     <div class="hstack">
         <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
             {% fillTemplateIcon %} 
         </a>
         <a href="solve/" title="Run Assignment Solver">
-            {% solveIcon %}
+            {% robotIcon %}
         </a>
         <a href="clear-slots-form/" title="Clear All Slots This Week">
             {% clearIcon %}

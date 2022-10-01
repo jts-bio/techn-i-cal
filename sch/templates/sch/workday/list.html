@@ -7,18 +7,31 @@
 
 {% block content %}
     <section style="vstack" style="align-content:center;">
+
         <a href="/"> HOME </a>
         <h1> Workdays </h1>
+
         <div class="hstack">
-            <div class="active-tab">BY WORKDAY</div>
-            <a href="/sch/week/all-weeks/" class="inactive-tab">BY WEEK</a>
+
+            <div class="active-tab">
+                BY WORKDAY</div>
+
+            <a href="/sch/week/all-weeks/" 
+               class="inactive-tab">
+               BY WEEK</a>
         </div>
+
+
         <div class="panel w-fc">
+
             <div>
-                <a href="/sch/days/new/"> Add Workdays </a>
-            </div>
-        {% render_table table %}       
+                <a href="/sch/days/new/"> 
+                   Add Workdays </a></div>
+
+            {% render_table table %}       
+
         </div>
+
     </section>
 {% endblock content %}
     

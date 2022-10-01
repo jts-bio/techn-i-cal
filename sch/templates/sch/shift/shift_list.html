@@ -8,12 +8,15 @@
     <h1>MANAGE SHIFTS</h1>
 
     <div class="panel w-fc">
+
         <div>
-            <a href="/sch/shifts/new/" class="btn btn-primary"> Create Shift </a>
+            <a href="/sch/shifts/new/" 
+               class="btn btn-primary"> 
+               Create Shift </a>
         </div>
-        <div>
-            {% render_table shiftTable %}
-        </div>
+
+        <div>{% render_table shiftTable %}</div>
+    
     </div>
 
 {% endblock content %}

@@ -73,10 +73,18 @@ def solveIcon (width="30px", height="30px", fill="#bbbbbb"):
 def clearIcon (width="30px", height="30px", fill="#eebbbb"):
     return {'width': width,'height': height,'fill': fill}
 
-@register.simple_tag("Edit.svg")
+@register.inclusion_tag("Edit.svg")
 def editIcon (width="20px", height="20px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}
 
 @register.inclusion_tag("Robot.svg")
-def robotIcon (width="20px", height="20px", fill="#bbbbbb"):
+def robotIcon (width="30px", height="30px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Syringe.svg")
+def syringeIcon (width="30px", height="30px", fill="#bbbbbb"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("Date.svg")
+def dateIcon (width="30px", height="30px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}

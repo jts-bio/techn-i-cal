@@ -8,9 +8,9 @@
             </div>
         </a>
         <div class="hstack">
-            <h5><a href="/sch/day/all" class="header-link"> WORKDAYS </a></h5>
-            <h5><a href="/sch/shifts/all" class="header-link"> SHIFTS </a> </h5>
-            <h5><a href="/sch/employees/all/" class="header-link"> EMPLOYEES </a> </h5>
+            <a href="/sch/day/all" class="header-link"><div class="vstack aic"><div>{% include 'Date.svg' %}</div><div> WORKDAYS</div></div></a>
+            <a href="/sch/shifts/all" class="header-link"><div class="vstack aic"><div>{% include 'Shift.svg' %}</div><div> SHIFTS</div></div></a>
+            <a href="/sch/employees/all" class="header-link"><div class="vstack aic"><div>{% include 'Profile.svg' %}</div><div> WORKDAYS</div></div></a>
         </div>
         <div>
             {% goToThisWeek %}
