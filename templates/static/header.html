@@ -1,7 +1,7 @@
 {% load static %}
 {% load tags %}
 
-    <div class="hstack sp-btw nav-top">
+    <div class="hstack sp-btw nav-top" style="height:120px;">
         <a href="/" style="text-decoration:none;">
             <div class="hstack">
                 <img src="{% static '/img/FlowRate Logo.svg' %}" alt="LOGO: DripRate" style="width:90px;height:90px;"/>
@@ -10,7 +10,7 @@
         <div class="hstack">
             <a href="/sch/day/all" class="header-link"><div class="vstack aic"><div>{% include 'Date.svg' %}</div><div> WORKDAYS</div></div></a>
             <a href="/sch/shifts/all" class="header-link"><div class="vstack aic"><div>{% include 'Shift.svg' %}</div><div> SHIFTS</div></div></a>
-            <a href="/sch/employees/all" class="header-link"><div class="vstack aic"><div>{% include 'Profile.svg' %}</div><div> WORKDAYS</div></div></a>
+            <a href="/sch/employees/all" class="header-link"><div class="vstack aic"><div>{% include 'Profile.svg' %}</div><div> EMPLOYEES</div></div></a>
         </div>
         <div>
             {% goToThisWeek %}

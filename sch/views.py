@@ -18,7 +18,8 @@ from .forms import (
     ShiftForm, EmployeeForm, EmployeeEditForm, 
     BulkWorkdayForm, SSTForm, SstEmployeeForm, 
     PTOForm, PTORangeForm, EmployeeScheduleForm,
-    PtoResolveForm, PTODayForm, ClearWeekSlotsForm
+    PtoResolveForm, PTODayForm, ClearWeekSlotsForm,
+    EmployeeShiftPreferencesForm, EmployeeShiftPreferencesFormset
 )
 
 from .actions import PayPeriodActions, WorkdayActions
@@ -174,25 +175,27 @@ def workdayFillTemplate(request, date):
 class PERIOD :
     def period_view (request, year, period):
         # URL : /sch2/period/<year>/<week>/
-        workdays = Workday.objects.filter(date__year=year, iperiod=period)
-        slots = Slot.objects.filter(workday__in=workdays)
+        workdays  = Workday.objects.filter(date__year=year, iperiod=period)
+        slots     = Slot.objects.filter(workday__in=workdays)
         employees = PayPeriodActions.getPeriodFtePercents(year, period)
-        weekA = workdays.filter(ppd_id__lte=6)
+        
+        weekA     = workdays.filter(ppd_id__lte=6)
         for day in weekA:
             day.percent_coverage = PayPeriodActions.getWorkdayPercentCoverage(day)
-        weekB = workdays.filter(ppd_id__gt=6)
+        weekB     = workdays.filter(ppd_id__gt=6)
         for day in weekB:
             day.percent_coverage = PayPeriodActions.getWorkdayPercentCoverage(day)
-        context = {
-            'year': year,
-            'period': period,
-            'workdays': workdays,
-            'slots': slots,
-            'employees': employees,
-            'weekA': weekA,
-            'weekB': weekB,
-            'weekA_url': f'/sch/week/{year}/{period*2}',
-            'weekB_url': f'/sch/week/{year}/{period*2+1}',
+            
+        context  = {
+            'year'      : year,
+            'period'    : period,
+            'workdays'  : workdays,
+            'slots'     : slots,
+            'employees' : employees,
+            'weekA'     : weekA,
+            'weekB'     : weekB,
+            'weekA_url' : f'/sch/week/{year}/{period*2}',
+            'weekB_url' : f'/sch/week/{year}/{period*2+1}',
             }
         
         return render(request,'sch/pay-period/period.html', context)
@@ -660,6 +663,26 @@ class EMPLOYEE:
                 } for i in (date_from + dt.timedelta(n) for n in range((date_to-date_from).days))]
             context['days'] = days
             return context
+        
+    class EmployeeShiftPreferencesFormView (FormView):
+        
+        form_class = EmployeeShiftPreferencesForm
+        template_name = 'sch/employee/shift_preferences_form.html'
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            employee = Employee.objects.get(name=self.kwargs['name'])
+            shifts = employee.shifts_trained
+            formset = formset_factory(EmployeeShiftPreferencesForm, extra=0)
+            formset = formset(initial=enumerate(shifts)) # type: ignore
+            context['formset'] = formset()
+            return context
+        
+        def form_valid(self, form):
+            return HttpResponseRedirect(reverse_lazy('home'))
+        
+        
+        
 
     class EmployeeSstsView (FormView):
         """Display the 2 week template for a single employee,
@@ -733,6 +756,16 @@ class EMPLOYEE:
                 return self.form_valid(form)
             else:
                 return self.form_invalid(form)
+            
+    def employeeCoworkerView (request, name):
+        employee    = Employee.objects.get(name=name)
+        workdays    = Slot.objects.filter(employee=employee).values('workday')
+        
+        other_employees = Employee.objects.all().exclude(
+            name=employee).annotate(
+                count=Count('slot__workday', filter=Q(slot__workday__in=workdays))).order_by('-count')
+        
+        return render(request, 'sch/employee/coworkers.html', {'coworkers':other_employees, 'employee':employee})
 
     class EmployeeShiftTallyView (DetailView):
         model = Employee

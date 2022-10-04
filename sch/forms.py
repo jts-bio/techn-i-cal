@@ -1,6 +1,6 @@
 from django import forms
-from .models import PtoRequest, Slot, Workday, Shift, Employee, ShiftTemplate, SlotPriority
-from django.forms import BaseFormSet, formset_factory
+from .models import PtoRequest, Slot, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference
+from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
 
 TODAY = dt.date.today()
@@ -278,3 +278,41 @@ class PtoResolveForm (forms.Form) :
         slot = cleaned_data.get('slot')
         ptoreq = cleaned_data.get('ptoreq')
 
+
+PREF_SCORES = (
+        ('SP', 'Strongly Prefer'),
+        ('P', 'Prefer'),
+        ('N', 'Neutral'),
+        ('D', 'Dislike'),
+        ('SD', 'Strongly Dislike'),
+    )
+
+class EmployeeShiftPreferencesForm (forms.ModelForm):
+    
+    class Meta:
+        model = ShiftPreference
+        fields = ['employee','shift','priority']
+        widgets = {
+            'employee': forms.HiddenInput(),
+            'shift': forms.HiddenInput(),
+            'priority': forms.RadioSelect(choices=PREF_SCORES),
+        }
+    
+class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
+    
+    def clean(self):
+        if any(self.errors):
+            return
+        # check that all shifts are unique
+        shifts = []
+        for form in self.forms:
+            shift = form.cleaned_data['shift']
+            if shift in shifts:
+                raise forms.ValidationError("Shifts must be unique.")
+            shifts.append(shift)
+    
+    def save(self, commit=True):
+        for form in self.forms:
+            form.save(commit=commit)
+    
+    

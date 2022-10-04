@@ -12,7 +12,6 @@ class EmployeeTable (tables.Table):
     Base Table for All Employees
     Displays basic details about each employee
     """
-
     name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
 
     class Meta:
@@ -24,9 +23,9 @@ class ShiftListTable (tables.Table) :
     """
     Summary for ALL SHIFTS
     """
-
     name = tables.columns.LinkColumn("shift", args=[A("name")])
     hours = tables.columns.Column(verbose_name="Hours", attrs={"td": {"class": "small"}})
+    
     class Meta:
         model           = Shift
         fields          = ['name','start','hours', 'on_days_display']
@@ -63,12 +62,16 @@ class WorkdayListTable (tables.Table):
 
     date = tables.columns.LinkColumn("workday", args=[A("date")])
     n_unfilled = tables.columns.Column(verbose_name="Unfilled Shifts")
-    days_away = tables.columns.Column(verbose_name="Days Away") 
+    days_away = tables.columns.Column(verbose_name="Days Away")  
 
 
     class Meta:
         model           = Workday
-        fields          = ['date', 'iweek', 'iperiod', 'iweekday', 'n_unfilled', 'days_away']
+        fields          = [
+                            'date', 'iweek', 'iperiod', 
+                            'iweekday', 'n_unfilled', 'days_away',
+                            'percFilled'
+                           ]
         template_name   = 'django_tables2/bootstrap.html'
 
     def render_n_unfilled(self, record):
@@ -76,6 +79,18 @@ class WorkdayListTable (tables.Table):
 
     def render_days_away(self, record):
         return record.days_away
+    
+    def render_iweek(self, record):
+        return f"W-{record.iweek}"
+    
+    def render_iperiod(self, record):
+        return f"P-{record.iperiod}"
+    
+    def render_date(self, record):
+        return record.date.strftime("%d %b %Y")
+    
+    def render_percFilled(self, record):
+        return f"{round(record.percFilled*100, 2)}%"
     
 class PtoListTable (tables.Table):
 

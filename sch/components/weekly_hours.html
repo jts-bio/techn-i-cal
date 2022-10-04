@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+
+<div class="panel">
+    <div class="vstack">
+        <div>WEEKLY HOURS</div>
+        <div class="hstack">
+            <div class="vstack">
+                <div class="header-green">Meeting Expected Weekly Hours</div>
+                <div>{%for emp in empGreen%} {{emp}} {%endfor%}</div>
+            </div>
+            <div class="vstack">
+                <div class="header-yellow"></div>
+                <div>{%for emp in empYellow%} {{emp}} {%endfor%}</div>
+            </div>
+            <div class="vstack">
+                <div class="header-red"></div>
+                <div>{%for emp in empGreen%} {{emp}} {%endfor%}</div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+{% endblock content %}
+    

@@ -1,5 +1,3 @@
-"--- MODELS.py ---"
-
 import datetime as dt
 from re import sub
 
@@ -9,6 +7,22 @@ from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev, Subq
                               Sum, Variance, OuterRef, ExpressionWrapper, DurationField)
 from django.urls import reverse
 from multiselectfield import MultiSelectField
+
+"""
+DJANGO PROJECT:     TECHNICAL
+APPLICATION:        FLOW-RATE SCHEDULING (SCH)
+
+AUTHOR:             JOSH STEINBECKER        
+========================================================
+
+Models: 
+    - Shift
+    - Employee
+    - Workday
+    - Slot
+    - PtoRequest
+    -
+"""
 
 DAYCHOICES = (
         (0, 'Sunday'),
