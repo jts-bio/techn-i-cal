@@ -16,7 +16,10 @@
         <a href="/sch/week/{{year}}/{{prevWeek}}/">
             {% backArrow %}</a>
 
-        <h1> Week {{week_num}} </h1>
+        <div class="vstack" style="align-items:center;">
+            <h1 style="font-size:20px;"> Week {{week_num}} </h1>
+            <a href="/sch/pay-period/{{year}}/{{pay_period}}/"><h2 style="font-size:11px;letter-spacing:2px;color:indianred;">PAY PERIOD {{pay_period}}</h2></a>
+        </div>
 
         <a href="/sch/week/{{year}}/{{nextWeek}}/">
             {% forwardArrow %}</a>

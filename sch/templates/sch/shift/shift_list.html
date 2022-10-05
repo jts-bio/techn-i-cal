@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
+{% load tags %}
 
 {% block content %}
 
@@ -9,10 +10,14 @@
 
     <div class="panel w-fc">
 
-        <div>
+        <div style="background-color:#fff2;padding:2px 8px;border-radius:6px;width:fit-content;margin-bottom:10px;float:right; ">
             <a href="/sch/shifts/new/" 
                class="btn btn-primary"> 
-               Create Shift </a>
+                <div class="hstack">
+                    <div>{% plusIcon %}</div>
+                    <div> NEW</div>
+                </div>
+                </a>
         </div>
 
         <div>{% render_table shiftTable %}</div>

@@ -7,7 +7,7 @@
         <a href="fill-template/">{% fillTemplateIcon %}</a>
     </div>
     <div class="panel" style="text-align:center;font-size:10px;">
-        <a href="{{ weekA_url }}">
+        <a href="{{ weekA_url }}" style="letter-spacing:4px;">
              WEEK A 
         </a> 
         <div class="hstack" style="width:100%;">
@@ -23,8 +23,9 @@
             {% endfor %}
         </div>
     </div>
-    <div class="panel" style="text-align:center;font-size:10px;">
-        <a href="{{ weekB_url }}"> WEEK B </a> 
+    <div class="panel" style="text-align:center;font-size:10px;letter-spacing:4px;">
+        <a href="{{ weekB_url }}" style="letter-spacing:4px;">
+            WEEK B </a> 
         <div class="hstack" style="width:100%;">
             {% for day in weekB %}
                 <div class="panel" style="flex-grow:2;background-color:#aaa4;">

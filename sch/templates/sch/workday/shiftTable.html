@@ -1,3 +1,5 @@
+{% load tags %}
+
 
 <table>
     <thead>
@@ -13,10 +15,10 @@
             <td>{{shift}}</td>
             {% if shift.assignment %}
                 <td>{{shift.assignment}}</td>
-                <td><a href="{{shift}}/delete/">Delete</a></td>
+                <td><div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div></td>
             {% else %}
                 <td></td>
-                <td><a class="green-glow" href="{{shift}}/new/">Assign</a></td>
+                <td><div><a class="green-glow" href="{{shift}}/new/">Assign</a></div></td>
             {% endif %}
         </tr>
         {% endfor %}

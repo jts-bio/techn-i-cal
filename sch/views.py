@@ -61,6 +61,11 @@ class WORKDAY :
             context = super().get_context_data(**kwargs)
             context['title'] = 'Workdays'
             context['table'] = WorkdayListTable(self.get_queryset())
+            for obj in context['workdays']:
+                if obj.percFilled != 1:
+                    context['firstUnfilledShift'] = obj
+                    context['firstUnfillednDays'] = (obj.date - dt.date.today()).days
+                    break
             return context
 
         def get_queryset(self):
@@ -234,6 +239,8 @@ class WEEK:
             for day in self.object_list:
                 total_unfilled += day.n_unfilled
             context['total_unfilled'] = total_unfilled
+            
+            context['pay_period'] = context['workdays'].first().iperiod
 
             return context
 
@@ -673,12 +680,19 @@ class EMPLOYEE:
             context = super().get_context_data(**kwargs)
             employee = Employee.objects.get(name=self.kwargs['name'])
             shifts = employee.shifts_trained
+            shifts = Shift.objects.filter(pk__in=shifts.all().values_list('id'))
+            print(shifts)
             formset = formset_factory(EmployeeShiftPreferencesForm, extra=0)
-            formset = formset(initial=enumerate(shifts)) # type: ignore
-            context['formset'] = formset()
+            formset = formset(initial=[{'shift':shift} for shift in shifts]) # type: ignore
+            context['formset'] = formset
+            context['employee'] = employee
             return context
         
         def form_valid(self, form):
+            return HttpResponseRedirect(reverse_lazy('home'))
+        
+        def post (self, request, *args, **kwargs):
+            print(request.POST)
             return HttpResponseRedirect(reverse_lazy('home'))
         
         

@@ -293,10 +293,22 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
         model = ShiftPreference
         fields = ['employee','shift','priority']
         widgets = {
-            'employee': forms.HiddenInput(),
-            'shift': forms.HiddenInput(),
-            'priority': forms.RadioSelect(choices=PREF_SCORES),
+            'employee' : forms.HiddenInput(),
+            'shift'    : forms.HiddenInput(),
+            'priority' : forms.RadioSelect(choices=PREF_SCORES),
         }
+        labels = {
+            'priority' : 'Preference',
+        }
+        # display the shift name as a label
+        def __init__(self, *args, **kwargs):
+            super(EmployeeShiftPreferencesForm, self).__init__(*args, **kwargs)
+            self.fields['shift'].label = Shift.objects.get(pk=self.instance.shift) # type: ignore
+            
+        def label_from_instance(self, obj):
+            return obj.name
+            
+            
     
 class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
     

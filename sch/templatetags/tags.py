@@ -88,3 +88,11 @@ def syringeIcon (width="30px", height="30px", fill="#bbbbbb"):
 @register.inclusion_tag("Date.svg")
 def dateIcon (width="30px", height="30px", fill="#bbbbbb"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("favorite.svg")
+def favoriteIcon (width="20px", height="20px", fill="#bbbbffaa"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("vacation.svg")
+def vacationIcon (width="20px", height="20px", fill="#ffbbbb88"):
+    return {'width': width,'height': height,'fill': fill}

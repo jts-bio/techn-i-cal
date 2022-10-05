@@ -3,14 +3,25 @@
 
 
 {% block content %}
+
+<h1 style="font-size: 36px;">{{employee}}</h1>
+<h3 style="font-size: 18px;font-family:'JetBrains Mono';opacity:85%;">SHIFT PREFERENCE FORM</h3>
+
 <form method="post"> {% csrf_token %}
+
 {{ formset.management_form }}
 
-{% for form in formset %}
-{{form}}
-{% endfor %}
+<div class="hstack" style="flex-wrap: wrap;">
+    {% for form in formset %}
+    <div class="hstack panel" style="width: 220px;">
+        <div class="green-glow" style="font-size:22px;">{{form.shift.initial}}</div>
+        <div>{{form.as_div}}</div>
+    </div>
+    {% endfor %}
+</div>
 
 <input type="submit" text="Submit">
+
 </form>
 {% endblock content %}
     

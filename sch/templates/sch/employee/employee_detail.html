@@ -69,10 +69,19 @@
                 <h2 style="font-size:22px;color:orange;">Documents</h2>
                 <a href="generate-schedule/"><div class="hstack">{% plusIcon %}<span> Generate Schedule</span></div></a>
                 </a>
+                <a href="shift-preferences/"><div class="hstack">{% favoriteIcon %}<span>Shift Preferences</span></div></a>
             </div>
             <div class="panel w-fc">
-                <h2 style="font-size:22px;color:orange;">PTO Requests</h2>
-                <a href="pto-request/add-range/">{% addNewIcon %}</a>
+                <div class="hstack"><span> {% vacationIcon %}</span><h2 style="font-size:22px;color:orange;">PTO Requests</h2></div>
+                <div style="background-color:#fff2;padding:2px 8px;border-radius:6px;width:fit-content;margin-bottom:10px;float:right; ">
+                    <a href="pto-request/add-range/" 
+                       class="btn btn-primary"> 
+                        <div class="hstack">
+                            <div>{% plusIcon %}</div>
+                            <div> NEW</div>
+                        </div>
+                        </a>
+                </div>
                 {% if ptoReqsExist %}
                     {% render_table ptoTable %}
                 {% else %}

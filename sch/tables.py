@@ -78,13 +78,17 @@ class WorkdayListTable (tables.Table):
         return record.n_unfilled
 
     def render_days_away(self, record):
-        return record.days_away
+        return f"in {record.days_away} days"
     
     def render_iweek(self, record):
         return f"W-{record.iweek}"
     
     def render_iperiod(self, record):
         return f"P-{record.iperiod}"
+    
+    def render_iweekday(self, record):
+        WEEKDAY_CHOICES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+        return WEEKDAY_CHOICES[record.iweekday]
     
     def render_date(self, record):
         return record.date.strftime("%d %b %Y")

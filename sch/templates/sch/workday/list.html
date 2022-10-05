@@ -8,10 +8,12 @@
 {% block content %}
     <section style="vstack" style="align-content:center;">
 
-        <a href="/"> HOME </a>
-        <h1> Workdays </h1>
 
-        <div class="hstack">
+        <h1 style="font-size:32px;"> Workdays </h1>
+    <div class="hstack" style="align-items: flex-start;">
+        
+
+        <div class="vstack">
 
             <div class="active-tab">
                 BY WORKDAY</div>
@@ -31,6 +33,17 @@
             {% render_table table %}       
 
         </div>
+        <div>
+            <h3>Summary Data</h3>
+            <div class="panel hstack">
+                <div class="green-glow" style="font-size:28px;">{{firstUnfillednDays}}</div>
+                <div>
+                    <div style="opacity:65%;font-size:12px;letter-spacing:3px;">FIRST UNFILLED SLOT OCCURS IN</div>
+                    <div style="font-size:16px;">days</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     </section>
 {% endblock content %}
