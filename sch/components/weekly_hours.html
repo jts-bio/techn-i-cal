@@ -10,7 +10,7 @@
         <div class="hstack">
             <div class="vstack">
                 <div class="header-green">Meeting Expected Weekly Hours</div>
-                <div>{%for emp in empGreen%} {{emp}} {%endfor%}</div>
+                <div>{%for emp in empGreen%} <a href="/sch/employee/{{emp}}/">{{emp}}</a> {%endfor%}</div>
             </div>
             <div class="vstack">
                 <div class="header-yellow"></div>

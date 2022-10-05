@@ -17,9 +17,9 @@ class ShiftForm (forms.ModelForm) :
             'occur_days': 'Days of the week',
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'start': forms.TimeInput(attrs={'class': 'form-control'}),
-            'duration': forms.TimeInput(attrs={'class': 'form-control'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Shift name'}),
+            'start': forms.TimeInput(attrs={'class': 'form-control', 'placeholder': 'ex. 15:00'}),
+            'duration': forms.TimeInput(attrs={'class': 'form-control', 'placeholder': 'ex. 08:30:00'}),
             'occur_days': forms.CheckboxSelectMultiple(),
         }
 
