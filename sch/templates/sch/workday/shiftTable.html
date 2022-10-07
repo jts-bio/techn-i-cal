@@ -21,7 +21,7 @@
                         </span></td>
                 {% else %}
                     <td><span>{{shift.assignment}}</span>
-                        <span>{{shift.prefScore}}</span>
+                        <div class="btn btn-xs"><div class="hstack">{%favoriteIcon%}{{shift.prefScore}}</div></div>
                     </td>
                 {% endif %}
                 <td><div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div></td>

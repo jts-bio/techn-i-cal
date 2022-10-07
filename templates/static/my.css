@@ -5,6 +5,9 @@
 			color: #ddd;
 			letter-spacing: -1px;
 		}
+		html {
+			background-color: #0f172a!important;
+		}
 		
 		input[type="submit"] {
 			background-color: #267a;

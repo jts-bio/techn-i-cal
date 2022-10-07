@@ -2,7 +2,7 @@ from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, S
 from django.db.models import Count
 import datetime as dt
 import random 
-
+import pandas as pd 
 
 class WorkdayActions:
 
@@ -172,7 +172,8 @@ class ScheduleBot:
             slots = Slot.objects.filter(workday__year=year,workday__iperiod=period)
         # get shift list by day of week
         shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
-        
+    
+    # ==== SWAP FUNCTIONS ==== 
     def is_agreeable_swap (slotA, slotB):
         employeeA = slotA.employee
         if ShiftPreference.objects.filter(employee=employeeA, shift=slotA.shift).exists():
@@ -225,3 +226,36 @@ class ScheduleBot:
         slotB.employee = empA
         slotB.save()
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
+        
+    # ==== SWAP FUNCTIONS AGGREGATED ====
+    def swaps_for_week (year, week):
+        wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        for day in wds:
+            day.
+            ScheduleBot.swaps_for_day(day)
+              
+class ExportBot :
+    
+    def exportWeek (year,week):
+        workdays = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        employees = Employee.objects.all()
+        # Workdays will be Columns, Employees will be rows. Cell Values are shift names.
+        # Create pandas DataFrame:
+        df = pd.DataFrame(columns=workdays.values_list('date', flat=True))
+        for emp in employees:
+            df.loc[emp.name] = ''
+        for i, workday in enumerate(workdays):
+            for sl in Slot.objects.filter(workday=workday):
+                df.loc[sl.employee.name][i] = sl.shift.name
+        print(df)
+        
+    def exportPeriod(year,payperiod):
+        workdays = Workday.objects.filter(date__year=year,iperiod=payperiod).order_by('date')
+        employees = Employee.objects.all()
+        df = pd.DataFrame(columns=workdays.values_list('date', flat=True))
+        for emp in employees:
+            df.loc[emp.name] = ''
+        for i, workday in enumerate(workdays):
+            for sl in Slot.objects.filter(workday=workday):
+                df.loc[sl.employee.name][i] = sl.shift.name
+        print(df)

@@ -18,6 +18,7 @@ class EmployeeTable (tables.Table):
         model           = Employee
         fields          = ['name', 'fte', 'streak_pref']
         template_name   = 'django_tables2/bootstrap.html'
+        attrs           = {"class":"table table-compact table-xs"}
 
 class ShiftListTable (tables.Table) :
     """

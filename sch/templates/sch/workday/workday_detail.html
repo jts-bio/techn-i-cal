@@ -10,13 +10,13 @@
 
 <a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">{% backArrow %} WEEK</a>
 <section>
-
-  <div class="hstack">
+  <div class="center text-center">{% include 'sch/workday/dayChanger.html' %}</div>
+  <div class="hstack" style="justify-items:space-between;">
     <div class="vstack" style="align-items:center;">
       <div style="justify-content:center;">
         {% nDaysAway wd.date %}
       </div>
-      <div>{% include 'sch/workday/dayChanger.html' %}</div>
+      
       <div>
         <table>
           <tr>

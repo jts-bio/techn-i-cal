@@ -1,3 +1,4 @@
+from ast import Sub
 from xml.sax.handler import DTDHandler
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect, render
 from django.db.models import query, IntegerField, Count
@@ -287,6 +288,10 @@ class WEEK:
             
             for day in context['workdays']:
                                     day.table = self.render_day_table(day)
+                                    day.nPTO = PtoRequest.objects.filter(workday=day.date,status__in=['A','P']).count()
+            
+            
+            
             total_unfilled = 0
             for day in self.object_list:
                 total_unfilled += day.n_unfilled
@@ -324,37 +329,6 @@ class WEEK:
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
 
-    def weekView (request, year, week):
-        week_num = week
-        week_yr  = year
-        week     = Workday.objects.in_week(year, week)  # type: ignore
-        slots    = Slot.objects.filter(workday__in=week)
-        shifts   = Shift.objects.all()
-        # annotate each day in week, so that it has a list of shifts that occur on that workday, and the slot employee if one is assigned
-        for day in week:
-            day.getshifts = Shift.objects.on_weekday(day.iweekday)  # type: ignore
-            day.slots     = slots.filter(workday=day)
-
-        employees = Employee.objects.all()
-        wk_hrs    = employees.annotate(
-            weekly_hours=Sum(
-                (ExpressionWrapper(F('slot__shift__duration'), output_field=DurationField())-dt.timedelta(minutes=30)),
-                filter=Q(slot__workday__iweek=week_num, slot__workday__date__year=week_yr))).values('name','weekly_hours')
-        
-        table = WeeklyHoursTable(Employee.objects.all())
-    # type: ignore
-        print(wk_hrs)
-        context = {
-            'workdays'  : week,
-            'slots'     : slots,
-            'shifts'    : shifts,
-            'week_num'  : week_num,
-            'week_yr'   : week_yr,
-            'employees' : employees,
-            'wk_hrs'    : wk_hrs,
-            'table'     : table,
-        }
-        return render(request, 'sch/week/week.html', context)
 
     def weekFillTemplates(request,year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
