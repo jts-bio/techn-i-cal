@@ -96,3 +96,7 @@ def favoriteIcon (width="20px", height="20px", fill="#bbbbffaa"):
 @register.inclusion_tag("vacation.svg")
 def vacationIcon (width="20px", height="20px", fill="#ffbbbb88"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("shuffle.svg")
+def shuffleIcon (width="20px", height="20px", fill="#ff77eeaa"):
+    return {'width': width,'height': height,'fill': fill}

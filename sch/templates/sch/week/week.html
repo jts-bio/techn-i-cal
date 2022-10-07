@@ -18,7 +18,7 @@
 
         <div class="vstack" style="align-items:center;">
             <h1 style="font-size:20px;"> Week {{week_num}} </h1>
-            <a href="/sch/pay-period/{{year}}/{{pay_period}}/"><h2 style="font-size:11px;letter-spacing:2px;color:indianred;">PAY PERIOD {{pay_period}}</h2></a>
+            <a href="/sch/pay-period/{{year}}/{{pay_period}}/"><h2 class="btn btn-sm" style="background-color:coral padding:2px 4px;">PAY PERIOD {{pay_period}}</h2></a>
         </div>
 
         <a href="/sch/week/{{year}}/{{nextWeek}}/">
@@ -56,15 +56,16 @@
 
 
     <div class="hstack">
-        <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
-            {% fillTemplateIcon %} 
-        </a>
-        <a href="solve/" title="Run Assignment Solver">
-            {% robotIcon %}
-        </a>
-        <a href="clear-slots-form/" title="Clear All Slots This Week">
-            {% clearIcon %}
-        </a>
+        <div class="tooltip" data-tip="FILL Templated Slots">
+            <a style="float:left;" href="fill-template/">{% fillTemplateIcon %} </a>
+        </div>
+
+        <div class="tooltip" data-tip="RUN Assignment Solver">
+            <a href="solve/">{% robotIcon %} </a>
+        </div>
+        <div class="tooltip" data-tip="CLEAR All Slots This Week">
+            <a href="clear-slots-form/">{% clearIcon %}</a>
+        </div>
     </div>
 
 </div>
@@ -78,9 +79,9 @@
             <h3 style="color:orange;font-family:Raleway;font-size:24px;">
                 <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
             </h3>
-            
+            <div class="overflow-x-auto">
             {{ day.table }}
-            
+            </div>
         </div>
     {% endfor %}
 </div>
@@ -91,13 +92,25 @@
     </div>
     <div class="grid-3-row">
         {% for empl in hrsTable %}
-        <div>
-             {% if empl.1.hours <= 40 %} <a href="/sch/employee/{{empl.0}}/generate-schedule/{{dateFrom}}/{{dateTo}}/" 
-                                            class="green-glow">{{empl.0 }}</a> 
-             {% else %}                  <span class=  "red-glow">{{empl.0 }}</span>  {% endif %}
-                                         <span>                   {{ empl.1.hours }} hrs. </span>
-        </div>
-        {% endfor %}
+        <div class="form-control">
+            
+            <label class="label">
+              <span class="label-text"><a href="/sch/employee/{{empl.0}}/generate-schedule/{{dateFrom}}/{{dateTo}}/"></span>
+            </label>
+            <label class="input-group">
+                {% if empl.1.hours <= 40 %} 
+              <div class="btn btn-neutral"> {{ empl.1.hours }} hr</div>
+            {% else %}
+                <div class="btn bg-orange-600" style="color:white;">0 hr</div>
+              {% endif %}
+              <span style="font-size:10px;">{{empl.0 }}</span>
+            </label>
+        </a>
+       
+          </div>
+          {% endfor %}
+    
+            
     </div>
 </div>
 

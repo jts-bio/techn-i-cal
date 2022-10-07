@@ -25,10 +25,11 @@ class ShiftListTable (tables.Table) :
     """
     name = tables.columns.LinkColumn("shift", args=[A("name")])
     hours = tables.columns.Column(verbose_name="Hours", attrs={"td": {"class": "small"}})
+    is_iv = tables.columns.BooleanColumn(verbose_name="IV Room?")
     
     class Meta:
         model           = Shift
-        fields          = ['name','start','hours', 'on_days_display']
+        fields          = ['name','start','hours', 'is_iv','on_days_display']
         template_name   = 'django_tables2/bootstrap.html'
         
 class ShiftsWorkdayTable (tables.Table):
@@ -54,6 +55,7 @@ class ShiftsWorkdaySmallTable (tables.Table):
         model           = Shift
         fields          = ['name','employee']
         template_name   = 'django_tables2/bootstrap.html'
+        attrs           = {"class":"table table-compact table-xs"}
 
 class WorkdayListTable (tables.Table):
     """

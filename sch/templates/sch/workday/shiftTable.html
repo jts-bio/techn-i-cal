@@ -20,7 +20,9 @@
                               {{shift.assignment}}
                         </span></td>
                 {% else %}
-                    <td>{{shift.assignment}}</td>
+                    <td><span>{{shift.assignment}}</span>
+                        <span>{{shift.prefScore}}</span>
+                    </td>
                 {% endif %}
                 <td><div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div></td>
             {% else %}

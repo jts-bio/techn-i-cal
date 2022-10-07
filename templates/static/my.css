@@ -116,6 +116,12 @@
 			background-color: #0f172a;
 			@apply leading-normal tracking-normal;
 		}
+		.table-xs :where(td,th) {
+			font-size: 68%!important;
+			line-height: 0.63!important;
+			padding: 0.4px;
+		}
+		
 		.badge {
 			background-color: #bbb!important;
 			color: #000!important;

@@ -1,5 +1,7 @@
 from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, ShiftPreference
+from django.db.models import Count
 import datetime as dt
+import random 
 
 
 class WorkdayActions:
@@ -122,6 +124,38 @@ class PayPeriodActions:
     
 class ScheduleBot:
     
+    def performSolvingFunctionOnce (year, week):
+        wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        if len(wds) == 0:
+            return False
+        for day in wds:
+            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+            day.slots     = Slot.objects.filter(workday=day)
+        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        # sort this list by the number of employees who could fill the slot
+        unfilledSlots.sort(key=lambda x: x[2])
+        if len(unfilledSlots) == 0:
+            return False
+        
+        slot = unfilledSlots[0]
+        # for each slot, assign the employee who has the least number of other slots they could fill
+        day = slot[0]
+        shift = slot[1]
+        # pull out employees with no guaranteed hours
+        prn_empls = Employee.objects.filter(fte=0)
+        empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
+        incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
+        empl = empl.exclude(pk__in=incompat_empl)
+        empl = empl.exclude(pk__in=prn_empls)
+        if empl.count() == 0:
+            return False
+        rand = random.randint(0,int(empl.count()/2))
+        empl = empl[rand]
+        newslot = Slot.objects.create(workday=day, shift=shift, employee=empl)
+        newslot.save()
+        return True
+    
     def getWhoCanFillShiftOnWorkday (shift, workday):
         """
         Returns a list of employees who can fill a shift on a workday.
@@ -148,7 +182,9 @@ class ScheduleBot:
         if ShiftPreference.objects.filter(employee=employeeA, shift=slotB.shift).exists():
             scoreA_trade = ShiftPreference.objects.get(employee=employeeA, shift=slotB.shift).score  
         else:
-            scoreA_trade = 0
+            return None
+        if Slot.objects.incompatible_slots(shift=slotB.shift, workday=slotB.workday).filter(employee=employeeA).exists():
+            return None 
         employeeB = slotB.employee
         if employeeB.available_for(shift=slotA.shift) == False:
             print(employeeB.available_for(shift=slotA.shift))
@@ -161,7 +197,9 @@ class ScheduleBot:
             scoreB_trade = ShiftPreference.objects.get(employee=employeeB, shift=slotA.shift).score 
         else:
             return None
-        if scoreA_trade >= scoreA and scoreB_trade >= scoreB:
+        if Slot.objects.incompatible_slots(shift=slotA.shift, workday=slotA.workday).filter(employee=employeeB).exists():
+            return None 
+        if scoreA_trade >= scoreA and scoreB_trade > scoreB:
             return {(slotA, slotB) : (scoreA_trade - scoreA) + (scoreB_trade - scoreB)}
         else:
             return None

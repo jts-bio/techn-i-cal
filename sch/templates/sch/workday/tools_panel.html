@@ -1,0 +1,19 @@
+{% load tags %}
+
+<a style="float:right;" href="fill-template/">
+    {% fillTemplateIcon %} <span>FILL TEMPLATE SLOTS</span>
+</a>
+  <div>
+    <a href="run-swaps/">
+      {% shuffleIcon %} </a> FIND TRADES {{swapped}} <span title="Overall Shift Preference, (max= 100%)">{{overallSftPref}}%</span> 
+  </div>
+
+  <div class="form-control">
+    <label class="label">
+      <span class="label-text">Enter amount</span>
+    </label>
+    <label class="input-group">
+      <input type="text" placeholder="0.01" class="input input-bordered" />
+      <span>BTC</span>
+    </label>
+  </div>

@@ -101,6 +101,11 @@ class SlotManager (models.QuerySet):
             incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(12,0,0))
             incompat_slots = self.filter(workday=dayBefore,shift__in=incompat_shifts)
             return incompat_slots
+        elif shift.start >= dt.time(20,0,0):
+            dayAfter = workday.nextWD()
+            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(20,0,0))
+            incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
+            return incompat_slots
         elif shift.start >= dt.time(12,0,0):
             dayAfter = workday.nextWD()
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(12,0,0))
@@ -170,6 +175,7 @@ class Shift (ComputedFieldsModel) :
     start       = models.TimeField()
     duration    = models.DurationField()
     occur_days  = MultiSelectField(choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
+    is_iv       = models.BooleanField(default=False)
 
     def __str__(self) :
         return self.name

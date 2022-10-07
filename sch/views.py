@@ -91,15 +91,25 @@ class WORKDAY :
             slots               = Slot.objects.filter(workday=self.object)
             for slot in slots:
                 slot.save()
+            shifts              = shifts.annotate(assign=Subquery(slots.filter(shift=OuterRef('pk')).values('employee')))
             shifts              = shifts.annotate(assignment=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
             # annotate shifts with whether that slot is a turnaround
-            context['shifts']   = shifts.annotate(is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround')))
+            shifts              = shifts.annotate(
+                is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround'))).annotate(
+                    prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
+                )
+            context['shifts']   = shifts
+            try: 
+                context['overallSftPref'] = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+            except:
+                context['overallSftPref'] = 0
+            
             context['sameWeek'] = Workday.objects.same_week(self.object)  # type: ignore
-            #weeklyHours         = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
+            #weeklyHours        = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
             unfilled            = Shift.objects.filter(occur_days__contains=self.object.iweekday).exclude(pk__in=slots.values('shift'))
             # ANNOTATION FOR # OF TECHS WHO COULD FILL SHIFTS SLOT 
             for sft in unfilled:
-                sft.n_can_fill = Employee.objects.can_fill_shift_on_day(shift=sft, workday=self.object).values('pk').count()
+                sft.n_can_fill  = Employee.objects.can_fill_shift_on_day(shift=sft, workday=self.object).values('pk').count()
             context['unfilled'] = unfilled
 
             context['ptoReqs']  = PtoRequest.objects.filter(workday=self.object.date, status__in=['P','A']).values('employee__name')
@@ -360,33 +370,38 @@ class WEEK:
         return render(request, 'sch/week/all_weeks.html', context)
     
     def solve_week_slots (request, year, week):
-        wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
-        if len(wds) == 0:
-            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        for day in wds:
-            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
-            day.slots     = Slot.objects.filter(workday=day)
-        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
-        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
-        # sort this list by the number of employees who could fill the slot
-        unfilledSlots.sort(key=lambda x: x[2])
-        if len(unfilledSlots) == 0:
-            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        slot = unfilledSlots[0]
-        # for each slot, assign the employee who has the least number of other slots they could fill
-        day = slot[0]
-        shift = slot[1]
-        # pull out employees with no guaranteed hours
-        prn_empls = Employee.objects.filter(fte=0)
-        empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
-        incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
-        empl = empl.exclude(pk__in=incompat_empl)
-        empl = empl.exclude(pk__in=prn_empls)
-        if empl.count() == 0:
-            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        rand = random.randint(0,int(empl.count()/2))
-        empl = empl[rand]
-        Slot.objects.create(workday=day, shift=shift, employee=empl)
+        fx = True
+        while fx == True:
+            fx = ScheduleBot.performSolvingFunctionOnce(year,week)
+        
+        # wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+        # if len(wds) == 0:
+        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+        # for day in wds:
+        #     day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+        #     day.slots     = Slot.objects.filter(workday=day)
+        # # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+        # unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        # # sort this list by the number of employees who could fill the slot
+        # unfilledSlots.sort(key=lambda x: x[2])
+        # if len(unfilledSlots) == 0:
+        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+        
+        # slot = unfilledSlots[0]
+        # # for each slot, assign the employee who has the least number of other slots they could fill
+        # day = slot[0]
+        # shift = slot[1]
+        # # pull out employees with no guaranteed hours
+        # prn_empls = Employee.objects.filter(fte=0)
+        # empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
+        # incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
+        # empl = empl.exclude(pk__in=incompat_empl)
+        # empl = empl.exclude(pk__in=prn_empls)
+        # if empl.count() == 0:
+        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+        # rand = random.randint(0,int(empl.count()/2))
+        # empl = empl[rand]
+        # Slot.objects.create(workday=day, shift=shift, employee=empl)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     class ClearWeekSlotsView (FormView):
@@ -595,8 +610,9 @@ class SHIFT :
     class ShiftUpdateView (UpdateView):
         model           = Shift
         template_name   = 'sch/shift/shift_form_edit.html'
-        fields          = ['start','duration','occur_days']
+        fields          = ['start','duration','occur_days','is_iv']
         success_url     = '/sch/shifts/all/'
+        
 
         def get_object(self):
             return Shift.objects.get(name=self.kwargs['name'])
