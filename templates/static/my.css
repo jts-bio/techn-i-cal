@@ -116,6 +116,15 @@
 			background-color: #0f172a;
 			@apply leading-normal tracking-normal;
 		}
+		.badge {
+			background-color: #bbb!important;
+			color: #000!important;
+			padding: 0 10px 0 10px;
+			justify-content: center;
+			align-items: center;
+			border: none;
+			border-radius: 3px;
+		}
 		.hstack {
 			display: flex;
 			flex-direction: row;

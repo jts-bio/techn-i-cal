@@ -87,7 +87,7 @@ class WorkdayListTable (tables.Table):
         return f"P-{record.iperiod}"
     
     def render_iweekday(self, record):
-        WEEKDAY_CHOICES = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+        WEEKDAY_CHOICES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]
         return WEEKDAY_CHOICES[record.iweekday]
     
     def render_date(self, record):

@@ -348,6 +348,12 @@ class Workday (ComputedFieldsModel) :
         return  self.n_shifts - self.related_slots().count()
     
     @property
+    def list_unpref_slots (self):
+        return self.filledSlots.annotate(
+                score=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'),shift=OuterRef('shift')).values('score'))
+            )
+    
+    @property
     def printSchedule (self):
         slots = Slot.objects.filter(workday=self)
         for slot in slots :
@@ -361,6 +367,8 @@ class Slot (ComputedFieldsModel) :
     workday  = models.ForeignKey("Workday",  on_delete=models.CASCADE)
     shift    = models.ForeignKey( Shift,     on_delete=models.CASCADE)
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
+    
+    
     
     class Meta:
         unique_together = ('workday', 'shift')
@@ -395,7 +403,7 @@ class Slot (ComputedFieldsModel) :
         else:
             return 0
 
-    @property
+    @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_turnaround (self) -> bool:
         if self.shift.start > dt.time(12,0):
             return False
@@ -414,6 +422,23 @@ class Slot (ComputedFieldsModel) :
                 return True
             else:
                 return False
+    
+         
+    @property   
+    def siblings_day (self) -> SlotManager:
+        return Slot.objects.filter(workday=self.workday).exclude(shift=self.shift)
+    
+    @property
+    def tenable_trades (self):
+        primaryScore = self.prefScore
+        primaryShift = self.shift
+        otherShifts = self.siblings_day.values('shift')
+        otherEmployees = self.siblings_day.values('employee')
+        
+        
+        return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)
+                
+        
             
 
     objects = SlotManager.as_manager()

@@ -30,7 +30,7 @@
     
     <a href="unfilled-slots/">
         <div class="vstack light-button" 
-            style="align-items:center;
+             style="align-items:center;
                    border:1px solid #aaa3;
                    padding:10px 20px 10px 20px;
                    border-radius:6px;gap:1px;">
@@ -40,8 +40,21 @@
                 CLICK TO MANAGE</span>
         </div>
     </a>
-
     {% endif %}
+    {% if pto_requests %}
+    <div class="vstack light-button"
+         style="align-items:center;
+                   border:1px solid #aaa3;
+                   padding:10px 20px 10px 20px;
+                   border-radius:6px;gap:1px;">
+        <span style="padding:0px;margin:0px;">
+            {{pto_requests|length}} PTO requests</span>
+        <span style="font-size:9px;letter-spacing:1.5px;">
+            CLICK TO MANANGE</span>
+    </div>
+    {% endif %}
+
+
     <div class="hstack">
         <a style="float:left;" href="fill-template/" title="Fill Templated Slots">
             {% fillTemplateIcon %} 

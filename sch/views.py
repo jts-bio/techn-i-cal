@@ -22,7 +22,7 @@ from .forms import (
     EmployeeShiftPreferencesForm, EmployeeShiftPreferencesFormset
 )
 
-from .actions import PayPeriodActions, WorkdayActions
+from .actions import PayPeriodActions, ScheduleBot, WorkdayActions
 
 from .tables import (
     EmployeeTable, PtoRequestTable, ShiftListTable, ShiftsWorkdayTable, 
@@ -66,6 +66,7 @@ class WORKDAY :
             context = super().get_context_data(**kwargs)
             context['title'] = 'Workdays'
             context['table'] = WorkdayListTable(self.get_queryset())
+            context['n_turnarounds'] = Slot.objects.turnarounds().count()
             for obj in context['workdays']:
                 if obj.percFilled != 1:
                     context['firstUnfilledShift'] = obj
@@ -88,7 +89,11 @@ class WORKDAY :
             context['today']    = dt.date.today()
             shifts              = Shift.objects.on_weekday(weekday=self.object.iweekday)   # type: ignore
             slots               = Slot.objects.filter(workday=self.object)
-            context['shifts']   = shifts.annotate(assignment=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            for slot in slots:
+                slot.save()
+            shifts              = shifts.annotate(assignment=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            # annotate shifts with whether that slot is a turnaround
+            context['shifts']   = shifts.annotate(is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround')))
             context['sameWeek'] = Workday.objects.same_week(self.object)  # type: ignore
             #weeklyHours         = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
             unfilled            = Shift.objects.filter(occur_days__contains=self.object.iweekday).exclude(pk__in=slots.values('shift'))
@@ -176,7 +181,9 @@ class WORKDAY :
 
     def runSwaps (request, date):
         workday = Workday.objects.get(slug=date)
-        WorkdayActions.identifySwaps(workday)
+        bestswap = ScheduleBot.best_swap(workday)
+        if bestswap != None:
+            ScheduleBot.perform_swap(*bestswap)
         return HttpResponseRedirect(reverse_lazy('workday', kwargs={'slug': date}))
     
 def workdayFillTemplate(request, date):
@@ -277,6 +284,8 @@ class WEEK:
             
             context['pay_period'] = context['workdays'].first().iperiod
             
+            context['pto_requests'] = PtoRequest.objects.filter( workday__week=week, status__in=['A','P'])
+            
             context['dateFrom'] = context['workdays'].first().slug
             context['dateTo'] = context['workdays'].last().nextWD().slug
 
@@ -289,6 +298,12 @@ class WEEK:
             shifts              = Shift.objects.on_weekday(weekday=workday.iweekday)   # type: ignore
             slots               = Slot.objects.filter(workday=workday)
             sftAnnot            = shifts.annotate(employee=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            # annotate if employee slot is turnaround
+            sftAnnot            = sftAnnot.annotate(
+                                    is_turnaround=Subquery(
+                                        slots.filter(shift=OuterRef('pk'), 
+                                        employee__name=OuterRef('employee')).values('is_turnaround')))
+            sftAnnot            = sftAnnot.order_by('start','name','employee')
             return ShiftsWorkdaySmallTable(sftAnnot, order_by="start")
 
         def render_day_table(self, workday):
@@ -968,6 +983,16 @@ class SLOT:
         
         def get_success_url(self):
             return reverse_lazy('workday', kwargs={'slug': self.object.workday.slug})
+
+    class SlotTurnaroundsListView (ListView):
+        template_name = 'sch/slot/turnarounds.html'
+        context_object_name = 'slots'
+
+        def get_queryset(self):
+            for slot in Slot.objects.turnarounds():
+                slot.save()
+            return Slot.objects.turnarounds()
+
 
 def EmpSSTView (request, name):
     context                  = {}

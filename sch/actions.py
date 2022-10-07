@@ -139,4 +139,51 @@ class ScheduleBot:
         # get shift list by day of week
         shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
         
+    def is_agreeable_swap (slotA, slotB):
+        employeeA = slotA.employee
+        if ShiftPreference.objects.filter(employee=employeeA, shift=slotA.shift).exists():
+            scoreA = ShiftPreference.objects.get(employee=employeeA, shift=slotA.shift).score 
+        else:
+            return None 
+        if ShiftPreference.objects.filter(employee=employeeA, shift=slotB.shift).exists():
+            scoreA_trade = ShiftPreference.objects.get(employee=employeeA, shift=slotB.shift).score  
+        else:
+            scoreA_trade = 0
+        employeeB = slotB.employee
+        if employeeB.available_for(shift=slotA.shift) == False:
+            print(employeeB.available_for(shift=slotA.shift))
+            return None
+        if ShiftPreference.objects.filter(employee=employeeB, shift=slotB.shift).exists():
+            scoreB = ShiftPreference.objects.get(employee=employeeB, shift=slotB.shift).score 
+        else:
+            return None
+        if ShiftPreference.objects.filter(employee=employeeB, shift=slotA.shift).exists():
+            scoreB_trade = ShiftPreference.objects.get(employee=employeeB, shift=slotA.shift).score 
+        else:
+            return None
+        if scoreA_trade >= scoreA and scoreB_trade >= scoreB:
+            return {(slotA, slotB) : (scoreA_trade - scoreA) + (scoreB_trade - scoreB)}
+        else:
+            return None
         
+    def best_swap (workday):
+        slots = Slot.objects.filter(workday=workday)
+        swaps = {}
+        for slota in slots:
+            for slotb in slots:
+                if slota != slotb:
+                    swap = ScheduleBot.is_agreeable_swap(slota,slotb)
+                    if swap != None:
+                        swaps.update(swap)
+        if swaps == {}:
+            return None
+        best_swap = max(swaps, key=swaps.get)
+        return best_swap
+
+    def perform_swap (slotA, slotB):
+        empA = slotA.employee
+        slotA.employee = slotB.employee
+        slotA.save()
+        slotB.employee = empA
+        slotB.save()
+        print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))

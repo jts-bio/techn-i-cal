@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+{% for slot in slots %}
+    <div>
+        {{slot.employee}} --- {{slot.shift}} on <a href="/sch/day/{{slot.workday.slug}}/">{{slot.workday.date}}</a>
+    </div>
+{% endfor %}
+    
+{% endblock content %}
+    

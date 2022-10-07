@@ -14,7 +14,14 @@
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
-                <td>{{shift.assignment}}</td>
+                {% if shift.is_turnaround %}
+                    <td><span style="color:yellow;border:1px yellow solid;border-radius:4px;padding:0px 3px;" 
+                              title="TURNAROUND (From Late Shift Day Prior)">
+                              {{shift.assignment}}
+                        </span></td>
+                {% else %}
+                    <td>{{shift.assignment}}</td>
+                {% endif %}
                 <td><div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div></td>
             {% else %}
                 <td></td>
