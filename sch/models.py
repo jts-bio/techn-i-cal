@@ -95,6 +95,18 @@ class SlotManager (models.QuerySet):
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
 
+    def incompatible_slots (self, workday, shift):
+        if shift.start <= dt.time(12,0,0):
+            dayBefore = workday.prevWD()
+            incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(12,0,0))
+            incompat_slots = self.filter(workday=dayBefore,shift__in=incompat_shifts)
+            return incompat_slots
+        elif shift.start >= dt.time(12,0,0):
+            dayAfter = workday.nextWD()
+            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(12,0,0))
+            incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
+            return incompat_slots
+
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -335,6 +347,12 @@ class Workday (ComputedFieldsModel) :
     def n_unfilled (self) -> int:
         return  self.n_shifts - self.related_slots().count()
     
+    @property
+    def printSchedule (self):
+        slots = Slot.objects.filter(workday=self)
+        for slot in slots :
+            print(slot.shift.name, slot.employee)
+    
     objects = WorkdayManager.as_manager()
 
 # ============================================================================
@@ -369,6 +387,13 @@ class Slot (ComputedFieldsModel) :
 
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})
+    
+    @property
+    def prefScore (self) -> int:
+        if ShiftPreference.objects.filter(shift=self.shift, employee=self.employee).exists() :
+            return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
+        else:
+            return 0
 
     @property
     def is_turnaround (self) -> bool:
@@ -484,10 +509,15 @@ PREF_SCORES = (
     ('SD', 'Strongly Dislike'),
 )
 
-class ShiftPreference (models.Model):
+class ShiftPreference (ComputedFieldsModel):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
     priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')
+
+    @computed (models.IntegerField(), depends=[('self',['priority'])])
+    def score (self):
+        scoremap = { 'SP':2, 'P':1, 'N':0, 'D':-1, 'SD':-2 }
+        return scoremap[self.priority]
 
     class Meta:
         unique_together = ['employee', 'shift']
@@ -496,7 +526,14 @@ class ShiftPreference (models.Model):
         return f'<{self.employee} {self.shift}: {self.priority}>'
 
 # ============================================================================
-
+class SchedulingMax (models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    year = models.IntegerField()
+    pay_period = models.IntegerField(null=True, blank=True)
+    max_hours = models.IntegerField()
+    
+    class Meta:
+        unique_together = ('employee', 'year', 'pay_period')
 
 def tally (lst):
     """ TALLY A LIST OF VALUES 

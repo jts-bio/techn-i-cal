@@ -8,7 +8,7 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormVi
 from django.forms import formset_factory
 
 from .models import (
-    PtoRequest, Shift, Employee, Workday, Slot, 
+    PtoRequest, Shift, Employee, ShiftPreference, Workday, Slot, 
     PtoRequest, ShiftManager, ShiftTemplate, 
     WorkdayManager
 )
@@ -24,13 +24,18 @@ from .forms import (
 
 from .actions import PayPeriodActions, WorkdayActions
 
-from .tables import EmployeeTable, ShiftListTable, ShiftsWorkdayTable, ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, PtoListTable
+from .tables import (
+    EmployeeTable, PtoRequestTable, ShiftListTable, ShiftsWorkdayTable, 
+    ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, 
+    PtoRequestTable, PtoListTable
+)
 
 from django.db.models import Q, F, Sum, Subquery, OuterRef, DurationField, ExpressionWrapper, Count
 
 from django_tables2 import tables
 
 import datetime as dt
+import random
 
 
 # Create your views here.
@@ -169,6 +174,11 @@ class WORKDAY :
         def get_success_url(self):
             return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})
 
+    def runSwaps (request, date):
+        workday = Workday.objects.get(slug=date)
+        WorkdayActions.identifySwaps(workday)
+        return HttpResponseRedirect(reverse_lazy('workday', kwargs={'slug': date}))
+    
 def workdayFillTemplate(request, date):
     # URL : /sch2/day/<date>/fill/
     workday = Workday.objects.get(date=date)
@@ -201,9 +211,34 @@ class PERIOD :
             'weekB'     : weekB,
             'weekA_url' : f'/sch/week/{year}/{period*2}',
             'weekB_url' : f'/sch/week/{year}/{period*2+1}',
+            'firstDay'  : workdays.first().slug,
+            'lastDayPlusOne': workdays.last().nextWD().slug,
             }
         
         return render(request,'sch/pay-period/period.html', context)
+    
+    def periodPrefBreakdown (request, year, period):
+        # URL : /sch2/period/<year>/<week>/prefs/
+        workdays  = Workday.objects.filter(date__year=year, iperiod=period)
+        slots     = Slot.objects.filter(workday__in=workdays)
+        employees = Employee.objects.all()
+        for employee in employees:
+            scores = []
+            emp_slots = slots.filter(employee=employee)
+            for s in emp_slots:
+                scores.append(s.prefScore)
+            if len(scores) == 0:
+                employee.score = "No Shifts..."
+            else:
+                employee.score = sum(scores) / len(scores)
+        context  = {
+            'year'      : year,
+            'period'    : period,
+            'workdays'  : workdays,
+            'slots'     : slots,
+            'employees' : employees,
+            }
+        return render(request,'sch/pay-period/prefs.html', context)
     
     def periodFillTemplates (request, year, period):
         # URL : /sch2/period/<year>/<week>/fill/
@@ -241,6 +276,9 @@ class WEEK:
             context['total_unfilled'] = total_unfilled
             
             context['pay_period'] = context['workdays'].first().iperiod
+            
+            context['dateFrom'] = context['workdays'].first().slug
+            context['dateTo'] = context['workdays'].last().nextWD().slug
 
             return context
 
@@ -323,7 +361,16 @@ class WEEK:
         # for each slot, assign the employee who has the least number of other slots they could fill
         day = slot[0]
         shift = slot[1]
-        empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')[0]
+        # pull out employees with no guaranteed hours
+        prn_empls = Employee.objects.filter(fte=0)
+        empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
+        incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
+        empl = empl.exclude(pk__in=incompat_empl)
+        empl = empl.exclude(pk__in=prn_empls)
+        if empl.count() == 0:
+            return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+        rand = random.randint(0,int(empl.count()/2))
+        empl = empl[rand]
         Slot.objects.create(workday=day, shift=shift, employee=empl)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
@@ -500,8 +547,9 @@ class SHIFT :
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] # type: ignore
             context['sstsB'] = sstsB
             context ['ssts'] = sstsA + sstsB
-
             ssts = {day: ShiftTemplate.objects.filter(shift=self.object, ppd_id=day) for day in range(14)} # type: ignore
+            
+            context['prefs'] = ShiftPreference.objects.filter(shift=self.object).order_by('score') # type: ignore
             return context
 
         def get_object(self):
@@ -681,23 +729,73 @@ class EMPLOYEE:
             employee = Employee.objects.get(name=self.kwargs['name'])
             shifts = employee.shifts_trained
             shifts = Shift.objects.filter(pk__in=shifts.all().values_list('id'))
-            print(shifts)
             formset = formset_factory(EmployeeShiftPreferencesForm, extra=0)
-            formset = formset(initial=[{'shift':shift} for shift in shifts]) # type: ignore
+            formset = formset(initial=[{'shift':shift,'employee':employee} for shift in shifts]) # type: ignore
             context['formset'] = formset
             context['employee'] = employee
             return context
         
         def form_valid(self, form):
-            return HttpResponseRedirect(reverse_lazy('home'))
+            employee = form.cleaned_data['employee']
+            shift = form.cleaned_data['shift']
+            priority = form.cleaned_data['priority']
+            if ShiftPreference.objects.filter(employee=employee, shift=shift).exists():
+                shiftPreference = ShiftPreference.objects.get(employee=employee, shift=shift)
+                shiftPreference.priority = priority
+                shiftPreference.save()
+            else:
+                shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
+                shiftPreference.save()
+            form.save()
+            return super().form_valid(form)
         
         def post (self, request, *args, **kwargs):
+            form = self.get_form()
+            if form.is_valid():
+                return self.form_valid(form)
             print(request.POST)
-            return HttpResponseRedirect(reverse_lazy('home'))
+            return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': self.kwargs['name']}))
+    
+    def shift_preference_form_view (request, name):
+        context = {}
+        employee = Employee.objects.get(name=name)
+        context['employee'] = employee
+        prefFormset = formset_factory(EmployeeShiftPreferencesForm, extra=0)
+        trainedFor = employee.shifts_trained.all()
         
+        if request.method == "POST":
+            print(request.POST)
+            formset = prefFormset(request.POST)
+            for form in formset:
+                print(form)
+                shift = form.cleaned_data['shift']
+                priority = form.cleaned_data['priority']
+                if ShiftPreference.objects.filter(employee=employee, shift=shift).exists():
+                    shiftPreference = ShiftPreference.objects.get(employee=employee, shift=shift)
+                    print(shiftPreference,"test")
+                    shiftPreference.delete()
+                    shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
+                    shiftPreference.save()
+                else:
+                    shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
+                    shiftPreference.save()
+                    print(shiftPreference,'didntexist')
+            return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
         
+        initData = [
+            {'employee':employee, 'shift': s} for s in trainedFor
+        ]
+        for i in initData:
+            if ShiftPreference.objects.filter(employee=employee, shift=i['shift']).exists():
+                i['priority'] = ShiftPreference.objects.get(employee=employee, shift=i['shift']).priority
         
-
+        formset = prefFormset(initial=initData) # type: ignore
+        
+        context['formset'] = formset
+        context['emplPrefs'] = ShiftPreference.objects.filter(employee=employee)
+        
+        return render(request, 'sch/employee/shift_preferences_form.html', context)
+        
     class EmployeeSstsView (FormView):
         """Display the 2 week template for a single employee,
         and allow new/del SSTs"""
@@ -963,6 +1061,21 @@ class PTO:
     def CreatePtoRequestOnDayView (FormView):
         form_class = PTODayForm
         template_name = 'sch/pto/pto_day_form.html'
+        
+    class PtoManagerView (ListView):
+        
+        model               = PtoRequest
+        template_name       = 'sch/pto/list.html'
+        context_object_name = 'ptos'
+        queryset            = PtoRequest.objects.all()
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs) 
+            context['table'] = PtoRequestTable(self.object_list)
+            return context
+        
+
+        
 
 
 

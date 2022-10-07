@@ -4,7 +4,7 @@ from django.db.models import (Avg, Case, CharField, Count, F, FloatField,
 from django_tables2 import tables
 from django_tables2.utils import A
 
-from .models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday
+from .models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday, PtoRequest
 
 
 class EmployeeTable (tables.Table):
@@ -115,4 +115,11 @@ class WeeklyHoursTable (tables.Table):
         fields          = ['name', 'hours']
         template_name   = 'django_tables2/bootstrap.html'
 
+class PtoRequestTable (tables.Table):
 
+    workday = tables.columns.LinkColumn("workday", args=[A("workday")])
+
+    class Meta:
+        model           = PtoRequest
+        fields          = ['workday', 'status', 'stands_respected', 'employee', 'dateCreated', 'manager_approval' ]
+        template_name   = 'django_tables2/bootstrap.html'

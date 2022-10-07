@@ -1,4 +1,4 @@
-from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest
+from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, ShiftPreference
 import datetime as dt
 
 
@@ -48,6 +48,47 @@ class WorkdayActions:
                                 slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
                                 slot.save()
 
+    def identifySwaps (workday) :
+        slots = Slot.objects.filter(workday=workday)
+        for slot in slots:
+            empl = slot.employee
+            print(empl)
+            if ShiftPreference.objects.filter(employee=empl, shift=slot.shift).exists() == False:
+                break
+            currentScore = ShiftPreference.objects.get(employee=empl, shift=slot.shift).score
+            print("currentScore",currentScore)
+            moreFavorables = ShiftPreference.objects.filter(employee=empl,score__gt=currentScore)
+            # exclude moreFavorables that don't occur on this weekday:
+            moreFavorables = moreFavorables.filter(shift__occur_days__contains=workday.iweekday)
+            print("moreFavorables", [mf.shift for mf in moreFavorables])
+            for mf in moreFavorables:
+                if Slot.objects.filter(workday=workday, shift=mf.shift).exists():
+                    incumbentEmpl = Slot.objects.get(workday=workday, shift=mf.shift).employee
+                    incumbentCurrentScore = ShiftPreference.objects.get(employee=incumbentEmpl, shift=mf.shift).score
+                    incumbentHypoScore = ShiftPreference.objects.get(employee=incumbentEmpl, shift=slot.shift).score
+                    if incumbentHypoScore > incumbentCurrentScore:
+                        # do swap
+                        slot.employee = incumbentEmpl
+                        slot.save()
+                        other_slot = Slot.objects.get(shift=mf.shift, workday=workday)
+                        other_slot.employee = empl
+                        other_slot.save()
+                
+            # if ShiftPreference.objects.filter(employee=empl, shift=slot.shift).exists():
+            #     currentScore = ShiftPreference.objects.get(employee=empl, shift=slot.shift).score
+            #     moreFavorables = ShiftPreference.objects.filter(employee=empl, score__gt=currentScore)
+            #     if moreFavorables.exists():
+            #         for mf in moreFavorables:
+            #             currentOccupant = Slot.objects.get(workday=workday, shift=mf.shift).employee
+            #             if ShiftPreference.objects.filter(employee=currentOccupant, shift=mf.shift).exists():
+            #                 currentOccScore = ShiftPreference.objects.get(employee=currentOccupant, shift=mf.shift).score
+            #                 if ShiftPreference.objects.filter(employee=currentOccupant, shift=slot.shift).exists():
+            #                     currentOccSwapScore = ShiftPreference.objects.get(employee=currentOccupant, shift=slot.shift).score
+            #                     if currentOccSwapScore > currentOccScore:
+            #                         if Slot.objects.get(workday=workday, shift=mf.shift).employee != empl:
+            #                             Slot.objects.filter(workday=workday, shift=slot.shift).update(employee=Slot.objects.get(workday=workday, shift=mf.shift).employee)
+            #                             Slot.objects.filter(workday=workday, shift=mf.shift).update(employee=empl)
+
 class WeekActions:
     def getAllWeekNumbers ():
         """
@@ -92,9 +133,9 @@ class ScheduleBot:
         Returns the slot with the most problems.
         """
         if week != 0:
-            slots = Slot.objects.filter(year=year,iweek=week)
+            slots = Slot.objects.filter(workday__year=year,workday__iweek=week)
         elif period != 0:
-            slots = Slot.objects.filter(year=year,iperiod=period)
+            slots = Slot.objects.filter(workday__year=year,workday__iperiod=period)
         # get shift list by day of week
         shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
         

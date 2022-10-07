@@ -81,7 +81,6 @@ class SstEmployeeForm (forms.Form):
             trained_shifts = employee.shifts_trained # type: ignore
         except:
             trained_shifts = Shift.objects.none()
-
         try:
             wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
             self.fields['shift'].label = wds[self.initial.get('ppd_id')]
@@ -295,18 +294,26 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
         widgets = {
             'employee' : forms.HiddenInput(),
             'shift'    : forms.HiddenInput(),
-            'priority' : forms.RadioSelect(choices=PREF_SCORES),
+            'priority' : forms.Select(choices=PREF_SCORES),
         }
         labels = {
             'priority' : 'Preference',
         }
-        # display the shift name as a label
+        
         def __init__(self, *args, **kwargs):
             super(EmployeeShiftPreferencesForm, self).__init__(*args, **kwargs)
-            self.fields['shift'].label = Shift.objects.get(pk=self.instance.shift) # type: ignore
+            employee = self.initial.get('employee')
+            if ShiftPreference.objects.filter(employee=employee, shift=self.initial.get('shift')).exists():
+                self.fields['priority'].initial = ShiftPreference.objects.get(employee=employee, shift=self.initial.get('shift')).priority
+            else:
+                self.fields['priority'].initial = "N"
+                
+        def clean(self):
+            cleaned_data = super(EmployeeShiftPreferencesForm, self).clean()
+            employee_id = cleaned_data.get('employee_id')
+            shift = cleaned_data.get('shift')
             
-        def label_from_instance(self, obj):
-            return obj.name
+        
             
             
     

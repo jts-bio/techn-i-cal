@@ -12,6 +12,7 @@ urlpatterns = [
     path('day/<slug:date>/fill-template/', views.workdayFillTemplate, name='workdayFillTemplate'),
     path('day/<slug:date>/add-pto/', views.WORKDAY.WorkdayPtoRequest.as_view(), name='workdayAddPTO'),
     path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
+    path('day/<slug:date>/run-swaps/', views.WORKDAY.runSwaps, name='run-swaps'),
 
     #? ==== Week ==== ?#
     path('week/<int:year>/<int:week>/', views.WEEK.WeekView.as_view(), name='week'),
@@ -24,6 +25,7 @@ urlpatterns = [
     #? ==== Pay Period ==== ?#
     path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),
     path('pay-period/<int:year>/<int:period>/fill-template/', views.PERIOD.periodFillTemplates, name='periodFillTemplate'),
+    path('pay-period/<int:year>/<int:period>/preferences/', views.PERIOD.periodPrefBreakdown, name='prefs-pay-period'),
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
@@ -44,7 +46,7 @@ urlpatterns = [
     path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
-    path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.EmployeeShiftPreferencesFormView.as_view(), name='shift-preferences-form'),
+    path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
     path('employee/<str:name>/ssts/add', views.EMPLOYEE.employeeCoworkerView, name='employee-coworker'),
@@ -54,5 +56,5 @@ urlpatterns = [
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),  # type: ignore
 
     #? ==== PTO Requests ==== ?#
-    
+    path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
 ]
