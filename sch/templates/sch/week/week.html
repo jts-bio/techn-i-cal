@@ -50,7 +50,7 @@
         <span style="padding:0px;margin:0px;">
             {{pto_requests|length}} PTO requests</span>
         <span style="font-size:9px;letter-spacing:1.5px;">
-            CLICK TO MANANGE</span>
+            CLICK TO MANAGE</span>
     </div>
     {% endif %}
 
@@ -99,10 +99,10 @@
             </label>
             <label class="input-group">
                 {% if empl.1.hours <= 40 %} 
-              <div class="btn btn-neutral"> {{ empl.1.hours }} hr</div>
-            {% else %}
-                <div class="btn bg-orange-600" style="color:white;">0 hr</div>
-              {% endif %}
+                    <div class="btn btn-neutral"> {{ empl.1.hours }} hr</div>
+                {% else %}
+                    <div class="btn bg-orange-600" style="color:white;">0 hr</div>
+                {% endif %}
               <span style="font-size:10px;">{{empl.0 }}</span>
             </label>
         </a>

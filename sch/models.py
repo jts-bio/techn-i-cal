@@ -247,6 +247,12 @@ class Workday (ComputedFieldsModel) :
     # fields: date, shifts 
     date = models.DateField()
 
+    __all__ = ['date','slug','iweekday','iweek','iperiod','ppd_id','weekday',
+               'shifts',
+               'filledSlots','n_slots',"n_emptySlots",'n_shifts','percFilled',
+               'siblings_iweek']
+
+
     @computed(models.SlugField(max_length=20), depends=[('self',['date'])])
     def slug (self) -> str: 
         return self.date.strftime('%Y-%m-%d')

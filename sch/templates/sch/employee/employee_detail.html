@@ -5,9 +5,11 @@
 
 {% block content %}
 
-    <a href="/sch/employees/all/">Back to All Employees</a>
 
-    <h1>{{ employee.name }}</h1>
+    <a href="/sch/employees/all/"><div class="hstack">{% backArrow %} All Employees</div></a>
+<div class="flex flex-col flex-grow center flex-center">
+    <h1 class="text-3xl text-center">{{ employee.name }}</h1>
+<div>
 
     <a href="update">Edit Employee</a>
     <div class="hstack" style="align-items:flex-start;">
@@ -73,15 +75,14 @@
             </div>
             <div class="panel w-fc">
                 <div class="hstack"><span> {% vacationIcon %}</span><h2 style="font-size:22px;color:orange;">PTO Requests</h2></div>
-                <div style="background-color:#fff2;padding:2px 8px;border-radius:6px;width:fit-content;margin-bottom:10px;float:right; ">
                     <a href="pto-request/add-range/" 
-                       class="btn btn-primary"> 
+                       class="btn btn-neutral btn-sm" style="float:right;"> 
                         <div class="hstack">
                             <div>{% plusIcon %}</div>
                             <div> NEW</div>
                         </div>
                         </a>
-                </div>
+               
                 {% if ptoReqsExist %}
                     {% render_table ptoTable %}
                 {% else %}
@@ -92,4 +93,5 @@
     </div>
         
     </div>
+</div>
 {% endblock %}
