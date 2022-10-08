@@ -1,4 +1,11 @@
 {
   "onCreateCommand": "pip install -r requirements.txt",
-  "postCreateCommand": ""
+"postCreateCommand": "",
+"customizations": {
+	"vscode": {
+		"extensions": [
+			"GitHub.copilot"
+		]
+	}
+}
 }

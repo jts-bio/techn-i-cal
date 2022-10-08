@@ -23,12 +23,12 @@ from .forms import (
     EmployeeShiftPreferencesForm, EmployeeShiftPreferencesFormset
 )
 
-from .actions import PayPeriodActions, ScheduleBot, WorkdayActions
+from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions
 
 from .tables import (
     EmployeeTable, PtoRequestTable, ShiftListTable, ShiftsWorkdayTable, 
     ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, 
-    PtoRequestTable, PtoListTable
+    PtoRequestTable, PtoListTable, WeekListTable
 )
 
 from django.db.models import Q, F, Sum, Subquery, OuterRef, DurationField, ExpressionWrapper, Count
@@ -340,8 +340,10 @@ class WEEK:
 
     def all_weeks_view(request):
         weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
+        table = WeekListTable(Workday.objects.all())
         context = {
             'weeks': weeks,
+            'weeksTable' : table,
         }
         return render(request, 'sch/week/all_weeks.html', context)
     
@@ -374,8 +376,12 @@ class WEEK:
         def get_success_url (self):
             # return to the WeekView
             return reverse_lazy('week', kwargs={'year': self.kwargs['year'], 'week': self.kwargs['week']})
-        
-
+    
+    def clearWeekSlots_LowPrefScoresOnly (request, year, week):
+        # only switches slots that don't have the preferred employee
+        WeekActions.delSlotsLowPrefScores(year,week)
+        return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+    
     class WeeklyUnfilledSlotsView (ListView):
         model = Workday
         template_name = 'sch/week/unfilled_slots.html'
@@ -1065,11 +1071,6 @@ class PTO:
             context = super().get_context_data(**kwargs) 
             context['table'] = PtoRequestTable(self.object_list)
             return context
-        
-
-        
-
-
 
 def shiftTemplate (request, shift):
     context               = {}

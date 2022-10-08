@@ -1,5 +1,5 @@
 from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, ShiftPreference
-from django.db.models import Count, Sum, Subquery, OuterRef, F
+from django.db.models import Count, Sum, Subquery, OuterRef, F, Avg
 import datetime as dt
 import random 
 import pandas as pd 
@@ -8,7 +8,7 @@ class WorkdayActions:
 
     def bulk_create (date_from: dt.date, date_to:dt.date) : 
         """
-        Bulk create workdays for a range of dates.
+        Bulk create WORKDAYS for a range of dates.
         """
         date = date_from
         while date <= date_to:
@@ -101,8 +101,18 @@ class WeekActions:
         for workday in workdays:
             if (workday.date.year, workday.iweek) not in week_numbers:
                 week_numbers.append(workday.week_number)
-        return week_numbers
-            
+        return week_numbers    
+    
+    def delSlotsLowPrefScores (year,week):
+        """
+        Delete slots from weeks where the assigned employee has a shift preference score below their average. 
+        Purpose is to attempt refill, now with a more complete weekly schedule, and get avg shift pref scores higher.
+        """
+        workdays = Workday.objects.filter(date__year=year, iweek=week)
+        slots = Slot.objects.filter(workday__in=workdays)
+        slots = slots.belowAvg_sftPrefScore()
+        for slot in slots:
+            slot.delete()
         
 class PayPeriodActions:
     def getPeriodFtePercents (year,pp):
@@ -120,8 +130,6 @@ class PayPeriodActions:
         slots = Slot.objects.filter(workday=workday).count()
         shifts = Shift.objects.filter(occur_days__contains=workday.iweekday).count()
         return int((slots/shifts)*100)
-    
-    
 class ScheduleBot:
     
     def performSolvingFunctionOnce (year, week):
@@ -259,10 +267,16 @@ class ScheduleBot:
         
         return overall_pref
         
-        
-    # ==== SWAP FUNCTIONS AGGREGATED ====
     
-
+class ShiftPrefBot:
+    def make_avg_agg ():
+        # annotate on employee -- get avg preference for each all shifts scored by an employee
+        return Employee.objects.annotate(avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(employee=OuterRef('pk')).values('score'),output_field=FloatField())))
+        
+    def slotsBelowEmplAvg ():
+        # annotate on each slot -- get employee's avg and what their assigned shift's pref score is relative to that
+        return Slot.objects.annotate(emplAvgSftPref=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee')).values('score'), output_field=FloatField()))
+        
             
               
 class ExportBot :

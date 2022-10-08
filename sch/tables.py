@@ -48,7 +48,7 @@ class ShiftsWorkdayTable (tables.Table):
     def render_del_slot(self, record):
         return record.pk
 
-    # TODO --- add a column for "delete" slot
+    # DONE! --- add a column for "delete" slot
 
 class ShiftsWorkdaySmallTable (tables.Table):
 
@@ -97,6 +97,23 @@ class WorkdayListTable (tables.Table):
         return record.date.strftime("%d %b %Y")
     
     def render_percFilled(self, record):
+        return f"{round(record.percFilled*100, 2)}%"
+    
+class WeekListTable (tables.Table):
+    
+    date = tables.columns.LinkColumn("workday", args=[A("date")])
+    percentage_filled = tables.columns.Column(verbose_name="Filled")
+    
+    class Meta:
+        model           = Workday
+        fields          = ['week','percentage_filled','coordinator','notes']
+        template_name   = 'django_tables2/bootstrap.html'
+        
+    def render_week(self, record):
+        return f"{record.week_of} - {record.week_of+6}"
+
+    
+    def render_percentage_filled(self, record):
         return f"{round(record.percFilled*100, 2)}%"
     
 class PtoListTable (tables.Table):

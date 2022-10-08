@@ -4,7 +4,7 @@ from re import sub
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
 from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev, Subquery,
-                              Sum, Variance, OuterRef, ExpressionWrapper, DurationField)
+                              Sum, Variance, OuterRef, ExpressionWrapper, DurationField, FloatField)
 from django.urls import reverse
 from multiselectfield import MultiSelectField
 
@@ -111,7 +111,29 @@ class SlotManager (models.QuerySet):
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(12,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
-
+        
+    def belowAvg_sftPrefScore (self):
+        query = self.annotate(
+            score = ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
+        
+        # return Slots whose shift pref score for their associated employee is below that employees average shift pref score.
+        # 1 -- Get employee avg pref score
+        emplAvgs = Employee.objects.avg_shift_pref_score()
+        
+        # 2 -- Subquery on Slots 
+        query = query.annotate(
+            avgScore = Subquery(Employee.objects.avg_shift_pref_score().filter(pk=OuterRef('employee__pk')).values('avgSftPref')))
+        
+        # 3 -- For all slots, ExprWrap their shift pref score - avg score: below avg shift pref score will be negative after this
+        score = ExpressionWrapper((F('score') - F('avgScore')) , output_field=FloatField())
+        query = query.annotate(
+            change = score
+            )
+        
+        # 4 -- return only slots whose shift pref score is less than 0
+        return query.filter(change__lte=0)
+        
+        
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -156,6 +178,17 @@ class EmployeeManager (models.QuerySet):
 
     def weekly_hours (self, year, week):
         return self.filter(slot__workday__iweek=week, slot__workday__date__year=year).aggregate(hours=Sum('slot__hours'))
+
+    def avg_shift_pref_score (self):
+        return self.annotate(
+            avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
+                employee=OuterRef('pk')).values('score'),output_field=FloatField())))
+        
+class ShiftPreferenceManager (models.QuerySet):
+    
+        def below_average(self, employee):
+            average = employee.avg_shift_pref_score 
+            return self.filter(employee=employee, score__lt=average)
 
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
@@ -240,6 +273,13 @@ class Employee (ComputedFieldsModel) :
     def weekly_hours (self, year, iweek):
         return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
 
+    @property
+    def avg_shift_pref_score (self):
+        fx = Employee.objects.filter(pk=self.pk).annotate(
+            avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
+                employee=OuterRef('pk')).values('score'),output_field=FloatField())))
+        return fx.avgSftPref
+        
     objects = EmployeeManager.as_manager()
 
 # ============================================================================
@@ -370,9 +410,52 @@ class Workday (ComputedFieldsModel) :
         slots = Slot.objects.filter(workday=self)
         for slot in slots :
             print(slot.shift.name, slot.employee)
+            
     
     objects = WorkdayManager.as_manager()
 
+class Week (ComputedFieldsModel) :
+    __all__ = [
+        'year','iweek',
+        'workdays',
+        'prevWeek','nextWeek',
+    ]
+
+    iweek = models.IntegerField() 
+    year = models.IntegerField()
+
+    @property
+    def slug (self) -> str: 
+        return f'{self.year}_{self.iweek}'
+
+    @property
+    def name (self) -> str: 
+        return f'{self.year}_{self.iweek}'
+    
+    @computed(models.IntegerField(), depends=[('self',['year','iweek'])])
+    def workdays (self) -> WorkdayManager:
+        return Workday.objects.filter(date__year=self.year, date__week=self.iweek)
+    
+    def prevWeek (self) -> "Week":
+        try:
+            return Week.objects.get(year=self.year, iweek=self.iweek-1)
+        except Week.DoesNotExist:
+            # go back 1 year, and get the max iweek of that year.
+            yearnew = self.year - 1
+            iweeknew = Week.objects.filter(year=yearnew).aggregate(Max('iweek'))['iweek__max']
+            return Week.objects.get(year=yearnew, iweek=iweeknew)
+        
+    def nextWeek (self) -> "Week":
+        try:
+            return Week.objects.get(year=self.year, iweek=self.iweek+1)
+        except Week.DoesNotExist:
+            # go forward 1 year, and get the 0 iweek of that year.
+            yearnew = self.year + 1
+            try:
+                return Week.objects.get(year=yearnew, iweek=0)
+            except:
+                return Week.objects.get(year=yearnew, iweek=1)
+    
 # ============================================================================
 class Slot (ComputedFieldsModel) :
     # fields: workday, shift, employee
@@ -561,6 +644,8 @@ class ShiftPreference (ComputedFieldsModel):
         
     def __str__ (self):
         return f'<{self.employee} {self.shift}: {self.priority}>'
+    
+    objects = ShiftPreferenceManager.as_manager()
 
 # ============================================================================
 class SchedulingMax (models.Model):

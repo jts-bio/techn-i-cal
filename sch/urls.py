@@ -20,6 +20,7 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
     path('week/<int:year>/<int:week>/solve/', views.WEEK.solve_week_slots, name='solve-week'),
     path('week/<int:year>/<int:week>/swap-bot/', views.WEEK.make_preference_swaps, name="make-swaps-week"),
+    path('week/<int:year>/<int:week>/clear-low-score-slots/', views.WEEK.clearWeekSlots_LowPrefScoresOnly, name='week-clear-low-score-slots'),
     path('week/<int:year>/<int:week>/clear-slots-form/', views.WEEK.ClearWeekSlotsView.as_view(), name='clear-week-slots-form'),
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
     

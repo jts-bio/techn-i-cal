@@ -104,3 +104,7 @@ def shuffleIcon (width="20px", height="20px", fill="#ff77eeaa"):
 @register.inclusion_tag("sortingHat.svg")
 def sortingHatIcon (width="20px", height="20px", fill="#bbbbbbaa"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("posion.svg")
+def posionIcon (width="20px", height="20px", fill="#003322dd"):
+    return {'width': width,'height': height,'fill': fill}
