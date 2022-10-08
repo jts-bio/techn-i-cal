@@ -57,14 +57,17 @@
     <div class="vstack" style="align-items:center;float:end;">
     <div class="hstack">
         <div class="tooltip" data-tip="FILL Templated Slots">
-            <a class="btn btn-neutral" style="float:left;" href="fill-template/">{% fillTemplateIcon %} </a>
+            <a class="btn btn-neutral" href="fill-template/">{% fillTemplateIcon %} </a>
         </div>
 
         <div class="tooltip" data-tip="RUN Assignment Solver">
             <a class="btn btn-neutral" href="solve/">{% robotIcon %} </a>
         </div>
+        <div class="tooltip" data-tip="SORT & SWAP To Improve Schedule">
+            <a href="swap-bot/" class="btn btn-neutral" color="text-accent">{% sortingHatIcon %}</a>
+        </div>
         <div class="tooltip" data-tip="CLEAR All Slots This Week">
-            <a class="btn btn-neutral" href="clear-slots-form/">{% clearIcon %}</a>
+            <a class="btn btn-danger" href="clear-slots-form/">{% clearIcon %}</a>
         </div>
     </div>
     <div class="text-2xs">TOOLBOX</div>
@@ -77,13 +80,16 @@
     {% for day in workdays %}
         <div class="panel inline-flex relative vstack p-3 text-sm font-medium text-center text-white" style="height:320px;">
             {%if day.nPTO%}<div class="inline-flex absolute -top-2 -right-2 justify-center items-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full border-2 border-white dark:border-gray-900">{{day.nPTO}}</div>{%endif%}
-            <div style="float:right;">{% nDaysAwaySmall day.date %}</div>
             <h3 style="color:orange;font-family:Raleway;font-size:24px;">
                 <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
             </h3>
             <div class="overflow-x-auto">
             {{ day.table }}
             </div>
+            <div class="tooltip" data-tip="Employee avg Shift Preference">
+                <span class="badge badge-xs" style="background-color:darkslateblue;color:black;">{% favoriteIcon '14px' '14px' '#333333' %}{{day.prefScore}}%</span>
+            </div>
+            
         </div>
     {% endfor %}
 </div>
@@ -92,7 +98,7 @@
     <div class="hstack">
         <h3>Weekly Hours</h3>
     </div>
-    <div class="grid-3-row">
+    <div class="grid-4-row">
         {% for empl in hrsTable %}
         <div class="form-control">
             

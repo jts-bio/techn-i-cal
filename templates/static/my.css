@@ -114,10 +114,14 @@
 			font-style: italic;
 		}
 		.content {
-			width: 90%;
+			width: 82.5%;
 			margin: 0 auto;
+			padding-left: 20px;
+			padding-right: 20px;
 			background-color: #0f172a;
-			@apply leading-normal tracking-normal;
+			border-radius: 15px;
+			border: 2px white solid;
+			
 		}
 		.table-xs :where(td,th) {
 			font-size: 68%!important;
@@ -519,6 +523,12 @@
 			display: grid;
 			grid-auto-flow: row;
 			grid-template-columns: repeat(8, 1fr);
+			grid-gap: 10px;
+		}
+		.grid-4-row {
+			display: grid;
+			grid-auto-flow: row;
+			grid-template-columns: repeat(6, 1fr);
 			grid-gap: 10px;
 		}
 		.grid-4-col {

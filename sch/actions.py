@@ -1,5 +1,5 @@
 from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, ShiftPreference
-from django.db.models import Count
+from django.db.models import Count, Sum, Subquery, OuterRef, F
 import datetime as dt
 import random 
 import pandas as pd 
@@ -227,12 +227,43 @@ class ScheduleBot:
         slotB.save()
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
         
-    # ==== SWAP FUNCTIONS AGGREGATED ====
     def swaps_for_week (year, week):
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
         for day in wds:
-            day.
-            ScheduleBot.swaps_for_day(day)
+            pref_score = ScheduleBot.WdOverallShiftPrefScore(day)
+            keep_trying = True
+            while keep_trying == True:
+                ScheduleBot.best_swap(day)
+                if ScheduleBot.WdOverallShiftPrefScore(day) == pref_score:
+                    keep_trying = False
+        return None
+        
+    def WdOverallShiftPrefScore(workday) -> int:
+        """
+        A Value describing the overall affinity of the shifts employees were assigned for that day. Higher score should
+        mean employees on average are assigned to the shifts they like the most.
+        """
+        shifts              = Shift.objects.on_weekday(weekday=workday.iweekday)   # type: ignore
+        slots               = Slot.objects.filter(workday=workday)
+        for slot in slots:
+            slot.save()
+        shifts              = shifts.annotate(assign=Subquery(slots.filter(shift=OuterRef('pk')).values('employee')))
+        shifts              = shifts.annotate(assignment=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+        # annotate shifts with whether that slot is a turnaround
+        shifts              = shifts.annotate(
+            is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround'))).annotate(
+                prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
+            )
+      
+        overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+        
+        return overall_pref
+        
+        
+    # ==== SWAP FUNCTIONS AGGREGATED ====
+    
+
+            
               
 class ExportBot :
     

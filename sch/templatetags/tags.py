@@ -100,3 +100,7 @@ def vacationIcon (width="20px", height="20px", fill="#ffbbbb88"):
 @register.inclusion_tag("shuffle.svg")
 def shuffleIcon (width="20px", height="20px", fill="#ff77eeaa"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("sortingHat.svg")
+def sortingHatIcon (width="20px", height="20px", fill="#bbbbbbaa"):
+    return {'width': width,'height': height,'fill': fill}

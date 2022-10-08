@@ -17,7 +17,7 @@ class EmployeeTable (tables.Table):
     class Meta:
         model           = Employee
         fields          = ['name', 'fte', 'streak_pref']
-        template_name   = 'django_tables2/bootstrap.html'
+        template_name   = 'django_tables2/bootstrap-responsive.html'
         attrs           = {"class":"table table-compact table-xs"}
 
 class ShiftListTable (tables.Table) :

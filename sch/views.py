@@ -289,6 +289,8 @@ class WEEK:
             for day in context['workdays']:
                                     day.table = self.render_day_table(day)
                                     day.nPTO = PtoRequest.objects.filter(workday=day.date,status__in=['A','P']).count()
+                                    prefScore = ScheduleBot.WdOverallShiftPrefScore(workday=day)
+                                    day.prefScore = prefScore
             
             
             
@@ -347,35 +349,10 @@ class WEEK:
         fx = True
         while fx == True:
             fx = ScheduleBot.performSolvingFunctionOnce(year,week)
-        
-        # wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
-        # if len(wds) == 0:
-        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        # for day in wds:
-        #     day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
-        #     day.slots     = Slot.objects.filter(workday=day)
-        # # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
-        # unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
-        # # sort this list by the number of employees who could fill the slot
-        # unfilledSlots.sort(key=lambda x: x[2])
-        # if len(unfilledSlots) == 0:
-        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        
-        # slot = unfilledSlots[0]
-        # # for each slot, assign the employee who has the least number of other slots they could fill
-        # day = slot[0]
-        # shift = slot[1]
-        # # pull out employees with no guaranteed hours
-        # prn_empls = Employee.objects.filter(fte=0)
-        # empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
-        # incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
-        # empl = empl.exclude(pk__in=incompat_empl)
-        # empl = empl.exclude(pk__in=prn_empls)
-        # if empl.count() == 0:
-        #     return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-        # rand = random.randint(0,int(empl.count()/2))
-        # empl = empl[rand]
-        # Slot.objects.create(workday=day, shift=shift, employee=empl)
+        return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+    
+    def make_preference_swaps (request, year, week):
+        ScheduleBot.swaps_for_week(year,week)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     class ClearWeekSlotsView (FormView):
