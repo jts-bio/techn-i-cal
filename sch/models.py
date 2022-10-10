@@ -171,6 +171,21 @@ class EmployeeManager (models.QuerySet):
         
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
 
+    def can_fill_shift_on_day_ot_overide (self, shift, workday, method="available"):
+        week = workday.iweek
+        year = workday.date.year
+        shift_len = (shift.duration - dt.timedelta(minutes=30)).total_seconds() / 3600
+
+        if method == "available":
+            employees = Employee.objects.filter(shifts_available=shift)
+        elif method == "trained":
+            employees = Employee.objects.filter(shifts_trained=shift)
+        in_other = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
+        has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
+        employees = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
+        return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
+        
+
     def who_worked_evening_day_before (self, workday):
         dateBefore = workday.date - dt.timedelta(days=1)
         slots = Slot.objects.filter(workday__date=dateBefore, shift__start__gte=dt.time(12,0,0))
@@ -275,11 +290,19 @@ class Employee (ComputedFieldsModel) :
 
     @property
     def avg_shift_pref_score (self):
-        fx = Employee.objects.filter(pk=self.pk).annotate(
+        return Employee.objects.filter(pk=self.pk).annotate(
             avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
-                employee=OuterRef('pk')).values('score'),output_field=FloatField())))
-        return fx.avgSftPref
+                employee=OuterRef('pk')).values_list('score',flat=True),output_field=FloatField())))[0].avgSftPref
         
+    
+    @property
+    def templated_days (self): 
+        return ShiftTemplate.objects.filter(employee=self)
+    
+    @property
+    def templated_days_display (self):
+        return " ".join([s.day for s in self.templated_days])
+                
     objects = EmployeeManager.as_manager()
 
 # ============================================================================
@@ -545,11 +568,8 @@ class ShiftTemplate (models.Model) :
     employee    = models.ForeignKey(Employee, on_delete=models.CASCADE, null=True, blank=True)
     ppd_id      = models.IntegerField()
 
-    def weekAB (self):
-        if self.ppd_id < 7:
-            return 'A'
-        else:
-            return 'B'
+    def weekAB(self):
+        return 'A' if self.ppd_id < 7 else 'B'
     
     @property
     def weekday (self):
@@ -567,9 +587,13 @@ class ShiftTemplate (models.Model) :
     def url(self):
         return reverse("shifttemplate", kwargs={"pk": self.pk})
     
+    
+    def __str__(self) :
+        return f'{self.weekday}{self.weekAB()}:{self.shift.name} Template'
+    
     @property
-    def nickname (self):
-        return f'{self.weekday(text=True)}-{self.weekAB()}'
+    def reper (self) :
+        return f'{self.ppd_id}[{self.shift.name}]'
 
     class Meta:
         unique_together = ['shift', 'ppd_id']

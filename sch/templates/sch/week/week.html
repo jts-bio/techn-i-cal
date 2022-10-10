@@ -3,12 +3,26 @@
 {% load tags %}
 
 
+{% block style %}
+
+<style>
+    html {
+        background-image: url("https://media.discordapp.net/attachments/1005308963539144787/1006788342375002112/jsteinbecker_A_perfectly_organized_intricate_Shelf_of_Pharmacy__648fc089-4639-4b07-a6f5-162c5be33e98.png");
+        background-repeat: repeat;
+        background-size: 20%;
+    }
+</style>
+    
+{% endblock style %}
+    
+
 {% block content %}
 
+<div class="badge badge badge-primary" style="float:right;"> <a href="/sch/docs/week/"> Need Help?</a></div>
 
 <div class="hstack" style="width:100%;justify-content:space-evenly;">
 
-    <a href="/sch/week/{{year}}/{{prevWeek}}/">
+    <a href="/sch/week/{{prevYear}}/{{prevWeek}}/">
         {% backArrow %}</a>
 
     <div class="vstack" style="align-items:center;">
@@ -16,15 +30,20 @@
         <a href="/sch/pay-period/{{year}}/{{pay_period}}/"><h2 class="btn btn-sm" style="background-color:coral padding:2px 4px;">PAY PERIOD {{pay_period}}</h2></a>
     </div>
 
-    <a href="/sch/week/{{year}}/{{nextWeek}}/">
+    <a href="/sch/week/{{nextYear}}/{{nextWeek}}/">
         {% forwardArrow %}</a>
 
 </div>
 
+
 <div class="panel hstack" 
      style="justify-content:space-between;">
 
-
+    <div class="tooltip" data-tip="Weekly Shift Preference Score">                    
+        <div class="radial-progress" style="--value:{{weekprefScore}};">
+             {% favoriteIcon %} <span class="text-xs">{{weekprefScore}}%</span> 
+        </div>
+    </div>
 
     {% if total_unfilled != 0 %}
     
@@ -67,22 +86,27 @@
             <a href="swap-bot/" class="btn btn-neutral" color="text-accent">{% sortingHatIcon %}</a>
         </div>
         <div class="tooltip" data-tip="CLEAR & RETRY Low Preference Slots">
-            <a href="clear-low-score-slots/" class="btn btn-neutral" style="background-color:yellow;color:black;">{% posionIcon %}</a>
+            <a href="clear-low-score-slots/" class="btn btn-neutral" style="background-color:rgb(150, 112, 9);color:rgb(255, 255, 255);">{% posionIcon %}</a>
         </div>
         <div class="tooltip" data-tip="CLEAR All Slots This Week">
-            <a class="btn btn-danger" href="clear-slots-form/">{% clearIcon %}</a>
+            <a class="btn btn-danger" href="clear-slots-form/" style="background-color:rgb(69, 10, 11);color:rgb(235, 235, 235);">{% clearIcon %}</a>
         </div>
     </div>
-    <div class="text-2xs">TOOLBOX</div>
+    <div class="text-2xs">TOOLBOX </div>
     </div>
+    
 </div>
 
 
 
 <div class="hstack" style="justify-content:space-between;">
     {% for day in workdays %}
-        <div class="panel inline-flex relative vstack p-3 text-sm font-medium text-center text-white" style="height:320px;">
-            {%if day.nPTO%}<div class="inline-flex absolute -top-2 -right-2 justify-center items-center w-6 h-6 text-xs font-bold text-white bg-blue-500 rounded-full border-2 border-white dark:border-gray-900">{{day.nPTO}}</div>{%endif%}
+        <div class="panel inline-flex relative vstack p-3 text-sm font-medium text-center text-white" style="height:330px;">
+            {%if day.nPTO%}
+                <div class="inline-flex absolute -top-2 -right-2 justify-center items-center w-6 h-6 text-xs text-white bg-blue-500 rounded-full border-2 border-white dark:border-gray-900">
+                    <div class="tooltip" data-tip="PTO: {{day.PTO}}">{{day.nPTO}}</div>
+                </div>
+            {%endif%}
             <h3 style="color:orange;font-family:Raleway;font-size:24px;">
                 <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
             </h3>
@@ -111,8 +135,10 @@
             <label class="input-group">
                 {% if empl.1.hours <= 40 %} 
                     <div class="btn btn-neutral"> {{ empl.1.hours }} hr</div>
+                {% elif empl.1.hours == None %}
+                    <div class="btn bg-gray-600" style="color:white;">0 hr</div>
                 {% else %}
-                    <div class="btn bg-orange-600" style="color:white;">0 hr</div>
+                    <div class="btn bg-red-600" style="color:white;"> {{ empl.1.hours }} hr</div>
                 {% endif %}
               <span style="font-size:10px;">{{empl.0 }}</span>
             </label>

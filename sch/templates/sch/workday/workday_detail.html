@@ -5,10 +5,26 @@
 {% load tags %} 
 {% with workday as wd %} 
 
+{% block style %}
+    <style>
+        html {
+            background-image: url("https://media.discordapp.net/attachments/1022445219704225842/1028422503661584496/jsteinbecker_seamless_pattern_organic_chemistry_vector_fd26bdf0-9756-415c-91ee-8ea7cf61dcc6.png?width=1392&height=1392");
+            background-repeat: repeat;
+            background-size: 25%;
+            background-blend-mode: screen;
+        }
+    </style>
+{% endblock style %}
+
 
 {% block content %}
 
-<a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">{% backArrow %} WEEK</a>
+<a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">
+  <div class="hstack">
+  <span>{% backArrow %}</span> <span>WEEK</span>
+  </div>
+</a>
+
 <section>
   <div class="center text-center">{% include 'sch/workday/dayChanger.html' %}</div>
   <div class="hstack" style="justify-items:space-between;">

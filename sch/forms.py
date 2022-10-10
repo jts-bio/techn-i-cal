@@ -144,8 +144,25 @@ class SlotForm (forms.ModelForm):
         shift = Shift.objects.get(name=self.initial['shift'])
         workday = Workday.objects.get(slug=self.initial['workday'])
         self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday, method="available")
-        self.fields['employee'].label = shift.name
+        self.fields['employee'].label = shift.name 
+        
+        
+class SlotForm_OtOveride (forms.ModelForm):
+    
+    employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), label='Employee', widget=forms.Select(attrs={'class': 'form-control'}))
+    shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), label='Shift', widget=forms.HiddenInput(), to_field_name='name')
+    workday     = forms.ModelChoiceField(queryset=Workday.objects.all(), label='Workday', widget=forms.HiddenInput(), to_field_name='slug')
 
+    class Meta:
+        model = Slot
+        fields = ['employee', 'shift', 'workday']
+
+    def __init__(self, *args, **kwargs):
+        super(SlotForm_OtOveride, self).__init__(*args, **kwargs)
+        shift = Shift.objects.get(name=self.initial['shift'])
+        workday = Workday.objects.get(slug=self.initial['workday'])
+        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day_ot_overide(shift=shift, workday=workday, method="available")
+        self.fields['employee'].label = shift.name
 class ClearWeekSlotsForm (forms.Form) :
     
     confirm = forms.BooleanField(label='Confirm', required=True)

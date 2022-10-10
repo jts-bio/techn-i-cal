@@ -262,8 +262,10 @@ class ScheduleBot:
             is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround'))).annotate(
                 prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
             )
-      
-        overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+        if len(slots) != 0:
+            overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+        else:
+            overall_pref = 0
         
         return overall_pref
         

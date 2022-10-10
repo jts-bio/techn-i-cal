@@ -31,6 +31,7 @@ urlpatterns = [
 
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
+    path('day/<slug:date>/<str:shift>/new/ot-allowed/', views.SLOT.SlotCreateView_OtOveride.as_view(), name='slot-new-ot-override'),
     path('day/<slug:date>/<str:shift>/add/', views.slotAdd, name='slot-add'),
     path('day/<slug:date>/<str:shift>/add/post', views.slotAdd_post, name='slot-add-post'),  # type: ignore
     path('day/<slug:date>/<str:shift>/delete/', views.SLOT.SlotDeleteView.as_view(), name='slot-delete'),
@@ -61,4 +62,7 @@ urlpatterns = [
 
     #? ==== PTO Requests ==== ?#
     path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
+    
+    #? ==== DOCS ==== ?#
+    path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),
 ]

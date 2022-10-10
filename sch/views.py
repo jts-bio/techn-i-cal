@@ -203,7 +203,9 @@ def workdayFillTemplate(request, date):
     WorkdayActions.fillDailySST(workday)
     return HttpResponseRedirect(f'/sch/day/{date}/')
 
-
+class DOCUMENTATION:
+    def weekly (request):
+        return render(request, 'sch/doc/week_functions.html')
 
 class PERIOD :
     def period_view (request, year, period):
@@ -280,19 +282,46 @@ class WEEK:
             context['week_num']   = self.kwargs['week']
             week                  = self.kwargs['week']
 
-            if week != 0: 
+            if week not in [0,1,52,53]:
                 context['nextWeek'] = week + 1
                 context['prevWeek'] = week - 1
+                context['nextYear'] = year
+                context['prevYear'] = year
+            if week in [52,53]:
+                context['nextWeek'] = 1
+                context['prevWeek'] = 52
+                context['nextYear'] = year + 1
+                context['prevYear'] = year
+            if week == 0:
+                context['nextWeek'] = 2
+                context['prevWeek'] = 52
+                context['nextYear'] = year
+                context['prevYear'] = year - 1
+            if week == 1:
+                context['nextWeek'] = 2
+                context['prevWeek'] = 52
+                context['nextYear'] = year
+                context['prevYear'] = year - 1
 
             context['hrsTable']   = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
             
+            weekprefScore = []
+            
             for day in context['workdays']:
                                     day.table = self.render_day_table(day)
-                                    day.nPTO = PtoRequest.objects.filter(workday=day.date,status__in=['A','P']).count()
+                                    pto = PtoRequest.objects.filter(workday=day.date,status__in=['A','P'])
+                                    day.PTO = "-- ".join(pto.values_list('employee__name', flat=True))
+                                    print("PTO:", day.PTO)
+                                    day.nPTO = pto.count()
                                     prefScore = ScheduleBot.WdOverallShiftPrefScore(workday=day)
                                     day.prefScore = prefScore
-            
-            
+                                    weekprefScore.append(prefScore)
+                                    
+            if len(weekprefScore) != 0:
+                weekprefScore = sum(weekprefScore) / len(weekprefScore)
+                context['weekprefScore'] = int(weekprefScore)
+            else:
+                context['weekprefScore'] = 0 
             
             total_unfilled = 0
             for day in self.object_list:
@@ -340,10 +369,8 @@ class WEEK:
 
     def all_weeks_view(request):
         weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
-        table = WeekListTable(Workday.objects.all())
         context = {
             'weeks': weeks,
-            'weeksTable' : table,
         }
         return render(request, 'sch/week/all_weeks.html', context)
     
@@ -354,7 +381,14 @@ class WEEK:
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
     
     def make_preference_swaps (request, year, week):
-        ScheduleBot.swaps_for_week(year,week)
+        workdays = Workday.objects.filter(date__year=year, iweek=week)
+        for workday in workdays:
+            i = 3
+            while i > 0:
+                bestswap = ScheduleBot.best_swap(workday)
+                if bestswap != None:
+                    ScheduleBot.perform_swap(*bestswap)
+                i -= 1
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     class ClearWeekSlotsView (FormView):
@@ -876,10 +910,30 @@ class EMPLOYEE:
             context['employee'] = self.object
             # annotate Shifts with the count of slots the employee has worked with that shift
             context['shifts'] = Shift.objects.annotate(slot_count=Count('slot__employee', filter=Q(slot__employee=context['employee'])))
+            
+            sd = ShiftPreference.objects.filter(employee=context['employee'], score=-2).values_list('shift', flat=True)
+            d = ShiftPreference.objects.filter(employee=context['employee'], score=-1).values_list('shift', flat=True)
+            n = ShiftPreference.objects.filter(employee=context['employee'], score=0).values_list('shift', flat=True)
+            l = ShiftPreference.objects.filter(employee=context['employee'], score=1).values_list('shift', flat=True)
+            sl = ShiftPreference.objects.filter(employee=context['employee'], score=2).values_list('shift', flat=True)
+            context['stronglyDislike'] = Shift.objects.filter(id__in=sd).values('name')
+            context['stronglyDislikeCount'] = Slot.objects.filter(employee=context['employee'], shift__name__in=context['stronglyDislike']).count()
+            context['dislike'] = Shift.objects.filter(id__in=d).values('name')
+            context['dislikeCount'] = Slot.objects.filter(employee=context['employee'], shift__name__in=context['dislike']).count()
+            context['neutral'] = Shift.objects.filter(id__in=n).values('name')
+            context['neutralCount'] = Slot.objects.filter(employee=context['employee'], shift__name__in=context['neutral']).count()
+            context['like'] = Shift.objects.filter(id__in=l).values('name')
+            context['likeCount'] = Slot.objects.filter(employee=context['employee'], shift__name__in=context['like']).count()
+            context['stronglyLike'] = Shift.objects.filter(id__in=sl).values('name')
+            context['stronglyLikeCount'] = Slot.objects.filter(employee=context['employee'], shift__name__in=context['stronglyLike']).count()
+            
             return context
-        
+            
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
+        
+    
+        
 
 class SLOT:
 
@@ -921,6 +975,32 @@ class SLOT:
             return {
                 'workday': self.kwargs['date'], 
                 'shift':   self.kwargs['shift']
+                }
+
+        def get_success_url(self):
+            return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})
+
+    class SlotCreateView_OtOveride (FormView):
+        
+        template_name   = 'sch/slot/slot_form.html'
+        form_class      = SlotForm
+        
+        def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['date']  = self.kwargs['date']
+            context['shift'] = self.kwargs['shift']
+            context['slots'] = Slot.objects.filter(workday__slug=self.kwargs['date'])
+            return context
+            
+
+        def form_valid(self, form):
+            form.save()
+            return super().form_valid(form)
+
+        def get_initial(self):
+            return {
+                'workday': self.kwargs['date'], 
+                'shift':   self.kwargs['shift'],
                 }
 
         def get_success_url(self):
@@ -1111,7 +1191,8 @@ def shiftTemplate (request, shift):
     context.update({
         'shift': Shift.objects.get(name=shift),
         'employees': Employee.objects.trained_for(shift), # type: ignore
-        'formset': formset})
+        'formset': formset
+        })
     
     
     return render(request, 'sch/shift/shift_sst_form.html', context)

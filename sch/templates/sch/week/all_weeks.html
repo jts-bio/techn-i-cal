@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load render_table from django_tables2 %}
+{% load tags %}
 
 
 {% block style %} 
@@ -17,7 +18,7 @@
 {% block content %}
 
 
-    <section style="vstack" style="align-content:center;">
+    <section style="vstack" style="align-content: center;">
         <h1 style="font-size:32px;">All Weeks</h1>
         <div class="hstack" style="align-items:flex-start;">
             <div class="vstack">
@@ -26,15 +27,24 @@
             </div>
         
         <div class="panel" style="width:32%;">
-            {% for week in weeks %}
-            <div>
-                <h4><a href="/sch/week/{{week.date__year}}/{{week.iweek}}/">Week {{week.date__year }}-{{week.iweek}}</a></h4>
-            </div>     
-            {% endfor %}
+            
+            <table class="table">
+                <thead>
+                    <th>Week</th>
+                </thead>
+                <tbody>
+                    {% for week in weeks %}
+                    <tr>
+                        <td><a href="/sch/week/{{week.date__year}}/{{week.iweek}}/">W-{{week.date__year }}-{{week.iweek}}</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>    
+            </table>     
+            
         </div>
     </div>
     </section>
 
-    {% render_table weeksTable %}
+    
     
 {% endblock content %}

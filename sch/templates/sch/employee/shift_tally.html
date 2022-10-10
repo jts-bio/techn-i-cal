@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
 {% load tags %}
 
+
+{% block style %}
+<style>
+    html {
+        background-image: url("https://media.discordapp.net/attachments/1015337046509895791/1018760096379056159/jsteinbecker_Rave_night_at_the_local_hospital_5dc93aed-d565-4db9-940a-46ceae3f8e6d.png?width=1392&height=1392");
+        background-repeat: repeat-x;
+        background-size: 60%;
+    }
+</style>
+    
+{% endblock style %}
+    
+
 {% block content %}
     <a href="{{employee.url}}">{% backArrow %}</a>
-    <h1>{{employee}}</h1>
-    
+    <h1 class="text-3xl text-center">{{employee}}</h1>
+<div class="hstack">
+    <div class="panel">
     <table>
         {% for shift in shifts %}
         <tr>
@@ -17,5 +31,34 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
+  <table class="table">
+    <thead>
+        <tr>
+            <th>Strongly Dislike</th>
+            <th>Dislike</th>
+            <th>Neutral</th>
+            <th>Like</th>
+            <th>Strongly Like</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{%for i in stronglyDislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+            <td>{%for i in dislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+            <td>{%for i in neutral%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+            <td>{%for i in like%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+            <td>{%for i in stronglyLike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+        </tr>
+        <tr>
+            <td>{{stronglyDislikeCount}}</td>
+            <td>{{dislikeCount}}</td>
+            <td>{{neutralCount}}</td>
+            <td>{{likeCount}}</td>
+            <td>{{stronglyLikeCount}}</td>
+        </tr>
+    </tbody>
+  </table>
+</div>
 
 {% endblock content %}

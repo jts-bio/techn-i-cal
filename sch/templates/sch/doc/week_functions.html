@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+
+{% block style %}
+    <style>
+    html {
+        height: 100%;
+        background-image: url("https://media.discordapp.net/attachments/1024277464945537044/1027028637951729665/jsteinbecker_pharmacy_hospital_offical_documentation_State_seal_8d4d6bde-da26-4921-8248-49e99e56e4f6.png?width=1926&height=1391");
+        background-size: 50%;
+        background-repeat: repeat;
+        background-blend-mode: color-dodge;
+        }
+        h3 {
+            color: #75431d;
+            font-size: larger;
+        }
+        .badge-yellow {
+            background-color: #866910!important;
+            color: rgb(16, 16, 16);
+            border-radius:20px;
+            padding: 3px 5px 2px 5px;
+            box-shadow: 3px solid #866910;
+            margin-right: 5px;
+            }
+        
+        .badge-red {
+            background-color: #b3144c!important;
+            color: rgb(24, 24, 24);
+            border-radius:20px;
+            padding: 3px 5px 2px 5px;
+            margin-right: 5px;
+            box-shadow: 3px 1px 1px 0px;
+            
+            }
+        
+    </style>
+{% endblock style %}
+    
+
+{% block content %}
+<h1>DOCUMENTATION</h1>
+<h3>Working from the <span style="font-style:italic;">Week View</span></h3>
+
+<div class="panel">
+    <h3 class="text-2xl text-center">Basics</h3>
+    When Working from the toolbox, work LEFT > TO > RIGHT.<br>
+    Only Used the accented 
+    <span class="badge-yellow">
+        Yellow
+    </span> & 
+    <span class="badge-red">
+        Red
+    </span>  
+    Buttons when neccessary.
+</div>
+
+<div class="panel">
+    <div class="hstack">
+        <div>{% posionIcon '35px' '35px' '#ffffff' %}</div>
+        <div style="width:60%">
+            <h3 class="badge badge-primary">Reslove Posioned Position</h3>
+            <span>
+            All the shift assignments are compared with each other, and the system determines which 
+            slots should be deleted based on these criteria:</span>
+            <div class="panel" style="width:70%!important;">
+                <div class="hstack"><div class="badge badge-accent">1</div><div class="text-xs"> The Shift is among the Currently Assigned Employees 'unfavorable' shifts.</div></div>
+                <hr style="opacity:66%;padding:5px 5px 5px 5px;">
+                <div class="hstack"><div class="badge badge-accent">2</div><div class="text-xs"> Retrying the Solver Bot stands a reasonable chance of finding a new pattern
+                    that will boost the amount of 'favorable' shifts the employee will be assigned to.</div></div>
+            </div>
+            <span> After the operation processes, run the Solver Bot again.</span>
+        </div>
+    </div>
+</div>
+<div class="panel">
+    <div class="hstack">
+        <div>{% sortingHatIcon '35px' '35px' '#ffffff' %}</div>
+        <div style="width:60%">
+            <h3 class="badge badge-primary">Smart Sorts & Swaps</h3>
+            <span>Looking at Employees already assigned to a workday, this function will attempt to maximize the employees assigned to their preferred shifts. 
+                Swaps are made by ensuring neither employee is moved from a shift they enjoy more to a shift they enjoy less.</span>
+            <div class="text-xs" style="color:#666666;">NOTE: The behavior of this function is a work in progress. Based on its ording behavior, certain employees may objectively benefit more from the use of this function.</div>
+        </div>
+    </div>
+</div>
+<div class="panel">
+    <div class="hstack">
+        <div>{% fillTemplateIcon '35px' '35px' '#ffffff' %}</div>
+        <div style="width:60%">
+            <h3 class="badge badge-primary">Fill Templated Slots</h3>
+            <span style="color:#666666;">NOTE: Templated Slots will NOT be filled if the employee has a PTO Request for that day.</span>
+            <span>Employees who work certain shifts are scheduled by a template (ex. 7P, OP, 3, N). These templated slots can be 
+                created before the bot goes to work by using this function. Bot success increases greatly if templating is
+                filled in prior to its execution. 
+                </span>
+    </div>
+</div>
+{% endblock %}

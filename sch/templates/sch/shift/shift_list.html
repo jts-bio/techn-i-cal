@@ -15,11 +15,11 @@
 {% block content %}
 
     <h1 class="text-center" style="font-size:32px;">MANAGE SHIFTS</h1>
-
+<div style="hstack center">
     <div class="panel w-fc">
 
             <button href="/sch/shifts/new/" 
-               class="btn btn-primary btn-small" style="float:right;"> 
+               class="btn btn-xs" style="float:right;"> 
                 <div class="hstack">
                     <div>{% plusIcon %}</div>
                     <div> NEW</div>
@@ -30,6 +30,6 @@
         <div>{% render_table shiftTable %}</div>
     
     </div>
-
+</div>
 {% endblock content %}
     

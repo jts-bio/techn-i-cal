@@ -13,12 +13,37 @@ class EmployeeTable (tables.Table):
     Displays basic details about each employee
     """
     name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
+    avg_shift_pref_score = tables.columns.Column(verbose_name="Avg Shift Pref Score", accessor='avg_shift_pref_score')
+    templated_days = tables.columns.Column(verbose_name='Templated Days', accessor='templated_days')
 
     class Meta:
         model           = Employee
-        fields          = ['name', 'fte', 'streak_pref']
-        template_name   = 'django_tables2/bootstrap-responsive.html'
+        fields          = [
+            'name', 
+            'fte', 
+            'fte_14_day',
+            'streak_pref',
+            'avg_shift_pref_score',
+            'templated_days'
+            ]
+        template_name   = 'django_tables2/semantic.html'
         attrs           = {"class":"table table-compact table-xs"}
+
+    def render_fte(self, value):
+        return f'{value:.3f}FTE'
+    
+    def render_fte_14_day(self, value):
+        return f'({value} hrs/ 2 weeks)'
+    
+    def render_avg_shift_pref_score(self, value):
+        return f'{value:.0f}'
+    
+    def render_templated_days(self, record):
+        return f'{" ".join([st.reper for st in record.templated_days])}'
+    
+    
+        
+    
 
 class ShiftListTable (tables.Table) :
     """
@@ -105,12 +130,12 @@ class WeekListTable (tables.Table):
     percentage_filled = tables.columns.Column(verbose_name="Filled")
     
     class Meta:
-        model           = Workday
         fields          = ['week','percentage_filled','coordinator','notes']
-        template_name   = 'django_tables2/bootstrap.html'
+        template_name   = 'django_tables2/bootstrap-responsive.html'
+        
         
     def render_week(self, record):
-        return f"{record.week_of} - {record.week_of+6}"
+        return f"W{record.iweek}"
 
     
     def render_percentage_filled(self, record):

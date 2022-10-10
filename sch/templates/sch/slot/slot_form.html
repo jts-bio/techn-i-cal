@@ -10,25 +10,32 @@
     {{date}}
     <span class="emph-2">{{shift}}</span>
 </h1>
+<div class="hstack" style="justify-content:space-around">
+    <div class="panel">
+    <table>
 
-<table>
+        <form method="post"> {% csrf_token %}
 
-    <form method="post"> {% csrf_token %}
+            {{ form.as_table }}
+            <input type="submit" value="Submit">
 
-        {{ form.as_table }}
-        <input type="submit" value="Submit">
+        </form>
 
-    </form>
-
-    {% for slot in slots %}
-    <tr>
-        <td>{{slot.shift}}</td>
-        <td>{{slot.employee}}</td>
-    </tr>
-    {% endfor %}
-    
-</table>
-
+        {% for slot in slots %}
+        <tr>
+            <td>{{slot.shift}}</td>
+            <td>{{slot.employee}}</td>
+        </tr>
+        {% endfor %}
+        
+    </table>
+</div>
+<div class="panel">
+    <h3>Need More or Different Options to fill this slot?</h3>
+    <h1 class="text-lg">Override Overtime Guardrails</h1>
+    <a href="ot-allowed/" class="btn">Approve and View Options</a>
+</div>
+</div>
     
 {% endblock content %}
 
