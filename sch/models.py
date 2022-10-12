@@ -293,7 +293,10 @@ class Employee (ComputedFieldsModel) :
         return Employee.objects.filter(pk=self.pk).annotate(
             avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
                 employee=OuterRef('pk')).values_list('score',flat=True),output_field=FloatField())))[0].avgSftPref
-        
+    
+    @property
+    def agg_avg_shift_pref_score (self):
+        return ShiftPreference.objects.filter(employee=self).values('score').aggregate(Avg('score'))['score__avg']
     
     @property
     def templated_days (self): 
@@ -302,6 +305,10 @@ class Employee (ComputedFieldsModel) :
     @property
     def templated_days_display (self):
         return " ".join([s.day for s in self.templated_days])
+    
+    def count_shift_occurances (self):
+        slots = Slot.objects.filter(employee=self).values('shift__name')
+        return slots.distinct().annotate(count=Count('shift__name'))
                 
     objects = EmployeeManager.as_manager()
 
@@ -555,8 +562,15 @@ class Slot (ComputedFieldsModel) :
         
         
         return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)
-                
-        
+      
+    @computed (models.IntegerField(), depends=[('self', ['workday','shift'])])          
+    def streak (self):
+        # count the streak of slots in a row this employee has had
+        i = 1
+        while Slot.objects.filter(workday__date=self.workday.date - dt.timedelta(days=i),employee=self.employee).exists():
+            i = i + 1
+        return i
+            
             
 
     objects = SlotManager.as_manager()

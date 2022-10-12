@@ -14,14 +14,8 @@ from .models import (
     WorkdayManager
 )
 
-from .forms import (
-    SlotForm, SlotPriorityForm, SstForm, 
-    ShiftForm, EmployeeForm, EmployeeEditForm, 
-    BulkWorkdayForm, SSTForm, SstEmployeeForm, 
-    PTOForm, PTORangeForm, EmployeeScheduleForm,
-    PtoResolveForm, PTODayForm, ClearWeekSlotsForm,
-    EmployeeShiftPreferencesForm, EmployeeShiftPreferencesFormset
-)
+
+from .forms import *
 
 from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions
 
@@ -626,6 +620,51 @@ class SHIFT :
 
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
+        
+        
+    def trainedShiftView(request, name):
+        context = {}
+        shift = Shift.objects.get(name=name)
+        context['shift'] = shift
+        TrainedEmployeeShiftFormSet = formset_factory(TrainedEmployeeShiftForm, extra=0)
+        
+        if request.method == 'POST':
+            formset = TrainedEmployeeShiftFormSet(request.POST)
+            if formset.is_valid():
+                for form in formset:
+                    employee = form.cleaned_data.get('employee')
+                    if form['is_trained'].value() == 'True':
+                        if shift not in employee.shifts_trained:
+                            employee.shifts_trained.add(shift)
+                    if form['is_trained'].value() == 'False':
+                        if shift in employee.shifts_trained:
+                            employee.shifts_trained.remove(shift)
+                            employee.save()
+                    if form['is_available'].value() == 'True':
+                        if shift not in employee.shifts_available:
+                            employee.shifts_available.add(shift) 
+                            employee.save()
+                    if form['is_available'].value() == 'False':
+                        if shift in employee.shifts_available:
+                            employee.shifts_available.remove(shift)
+                            employee.save()
+                return HttpResponseRedirect(f'/sch/shift/{name}/')
+            if formset.is_valid() == False:
+                print(formset.errors)
+        initData = [
+            {
+                'is_trained' : em.shifts_trained.filter(name=name).exists(),
+                'is_available' : em.shifts_available.filter(name=name).exists(),
+                'employee' : em,
+                'shift' : shift,
+            } for em in Employee.objects.all()
+        ]
+        formset = TrainedEmployeeShiftFormSet(initial=initData)
+        context['formset'] = formset
+        return render(request, 'sch/shift/trained_available_emps.html', context)
+                        
+        
+            
 
 class EMPLOYEE:
     class EmployeeListView (ListView):
@@ -1183,7 +1222,10 @@ def shiftTemplate (request, shift):
         return HttpResponseRedirect(f'/sch/shift/{shift.name}/')
 
     initData = [
-        {'ppd_id': i, 'shift': shift } for i in on_days
+        {'ppd_id': i, 
+         'shift' : shift } 
+        
+                            for i in on_days
         ]
 
     formset = TmpSlotFormSet(initial=initData)

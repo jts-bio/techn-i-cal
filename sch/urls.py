@@ -43,6 +43,7 @@ urlpatterns = [
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
     path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
+    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), #TODO NOT WORKING!!
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
 

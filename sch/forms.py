@@ -170,6 +170,7 @@ class ClearWeekSlotsForm (forms.Form) :
     class Meta:
         fields = ['confirm']
         widgets = {'confirm': forms.CheckboxInput(attrs={'class': 'form-control'})}
+    
 
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
@@ -183,7 +184,7 @@ class SstForm (forms.Form):
         trained_emps = Employee.objects.filter(shifts_trained__name=shift)
         conflicting_tmpl = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id')).exclude(shift=shift).values('employee')
         emp_choices = trained_emps.exclude(pk__in=conflicting_tmpl)
-        self.fields['employee'].choices  = list(emp_choices.values_list('id','name')) + [("","---------")] # type: ignore
+        self.fields['employee'].choices  = list(emp_choices.values_list('id','name')) + [("","---------")] + [("OFF","DAY OFF")]# type: ignore
         if ShiftTemplate.objects.filter(
                     shift=shift, 
                     ppd_id=self.initial.get('ppd_id')).exists():
@@ -330,10 +331,6 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
             employee_id = cleaned_data.get('employee_id')
             shift = cleaned_data.get('shift')
             
-        
-            
-            
-    
 class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
     
     def clean(self):
@@ -351,4 +348,16 @@ class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
         for form in self.forms:
             form.save(commit=commit)
     
+class TrainedEmployeeShiftForm (forms.Form):
+    
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
+    shift = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
+    is_trained = forms.BooleanField(required=False)
+    is_available = forms.BooleanField(required=False)
+    
+    def __init__ (self, *args, **kwargs) :
+        super(TrainedEmployeeShiftForm, self).__init__(*args, **kwargs)
+        self.fields['is_trained'].label = 'Trained'
+        self.fields['is_available'].label = 'Available'
+
     
