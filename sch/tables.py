@@ -40,10 +40,23 @@ class EmployeeTable (tables.Table):
     
     def render_templated_days(self, record):
         return f'{" ".join([st.reper for st in record.templated_days])}'
+
+class EmployeeWeeklyHoursTable (tables.Table):
+    """
+    Columns of Every (year,week) value...
+    Rows of Each Employee
+    """
+    name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
     
-    
-        
-    
+    class Meta:
+        model           = Employee
+        fields          = ['name',]
+        template_name   = 'django_tables2/semantic.html'
+        attrs           = {"class":"table table-compact table-xs"}
+        sequence        = ('name',) # For header ordering
+
+    def render_name(self, value):
+        return str(value).upper()
 
 class ShiftListTable (tables.Table) :
     """
@@ -59,11 +72,9 @@ class ShiftListTable (tables.Table) :
         template_name   = 'django_tables2/bootstrap.html'
         
 class ShiftsWorkdayTable (tables.Table):
-    """
-    View from a WORKDAY
+    """View from a WORKDAY
     display ALL SHIFTS for a given day
     """
-    
     del_slot = tables.columns.LinkColumn("slot-delete", args=[A("date"),A("pk")], verbose_name="Delete", attrs={"td": {"class": "small"}})
     class Meta:
         model           = Shift
@@ -72,8 +83,6 @@ class ShiftsWorkdayTable (tables.Table):
 
     def render_del_slot(self, record):
         return record.pk
-
-    # DONE! --- add a column for "delete" slot
 
 class ShiftsWorkdaySmallTable (tables.Table):
 
@@ -84,20 +93,18 @@ class ShiftsWorkdaySmallTable (tables.Table):
         attrs           = {"class":"table table-compact table-xs"}
 
 class WorkdayListTable (tables.Table):
+    """Summary for ALL WORKDAYS
     """
-    Summary for ALL WORKDAYS
-    """
-
-    date = tables.columns.LinkColumn("workday", args=[A("date")])
+    date       = tables.columns.LinkColumn("workday", args=[A("date")])
     n_unfilled = tables.columns.Column(verbose_name="Unfilled Shifts")
-    days_away = tables.columns.Column(verbose_name="Days Away")  
+    days_away  = tables.columns.Column(verbose_name="Days Away")  
 
 
     class Meta:
         model           = Workday
         fields          = [
-                            'date', 'iweek', 'iperiod', 
-                            'iweekday', 'n_unfilled', 'days_away',
+                            'date',         'iweek',        'iperiod',      'ischedule',
+                            'iweekday',     'n_unfilled',   'days_away',
                             'percFilled'
                            ]
         template_name   = 'django_tables2/bootstrap.html'
@@ -126,8 +133,8 @@ class WorkdayListTable (tables.Table):
     
 class WeekListTable (tables.Table):
     
-    date = tables.columns.LinkColumn("workday", args=[A("date")])
-    percentage_filled = tables.columns.Column(verbose_name="Filled")
+    date              = tables.columns.LinkColumn ("workday", args=[A("date")])
+    percentage_filled = tables.columns.Column (verbose_name="Filled")
     
     class Meta:
         fields          = ['week','percentage_filled','coordinator','notes']
@@ -152,7 +159,7 @@ class PtoListTable (tables.Table):
 
 class WeeklyHoursTable (tables.Table):
 
-    name = tables.columns.LinkColumn("employee-detail", args=[A("name")])
+    name  = tables.columns.LinkColumn("employee-detail", args=[A("name")])
     hours = tables.columns.Column(verbose_name="Weekly Hours")
 
     class Meta:

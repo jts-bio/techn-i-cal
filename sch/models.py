@@ -21,7 +21,7 @@ Models:
     - Workday
     - Slot
     - PtoRequest
-    -
+    - 
 """
 
 DAYCHOICES = (
@@ -215,15 +215,21 @@ class WorkdayManager (models.QuerySet):
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
 
+
+class EmployeeClass (models.Model):
+    id          = models.CharField(max_length=5, primary_key=True)
+    class_name  = models.CharField(max_length=40)
+
 #* Models
 # ============================================================================
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
-    name        = models.CharField(max_length=100)
-    start       = models.TimeField()
-    duration    = models.DurationField()
-    occur_days  = MultiSelectField(choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
-    is_iv       = models.BooleanField(default=False)
+    name            = models.CharField (max_length=100)
+    employee_class  = models.ForeignKey (EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    start           = models.TimeField()
+    duration        = models.DurationField()
+    occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
+    is_iv           = models.BooleanField (default=False)
 
     def __str__(self) :
         return self.name
@@ -267,6 +273,8 @@ class Employee (ComputedFieldsModel) :
     shifts_trained  = models.ManyToManyField(Shift, related_name='trained')
     shifts_available= models.ManyToManyField(Shift, related_name='available')
     streak_pref     = models.IntegerField(default=3)
+    employee_class  = models.ForeignKey(EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    
 
     def __str__(self) :
         return self.name
@@ -346,6 +354,11 @@ class Workday (ComputedFieldsModel) :
     def ppd_id (self) -> int:
         # range 0 -> 13
         return (self.date - dt.date(2022,9,4)).days % 14
+    
+    @computed 
+    def ischedule (self) -> int:
+        # range 0 -> 9
+        return self.iperiod // 3 
     
     @property
     def weekday (self) -> str :

@@ -100,7 +100,7 @@ class WeekActions:
         week_numbers = []
         for workday in workdays:
             if (workday.date.year, workday.iweek) not in week_numbers:
-                week_numbers.append(workday.week_number)
+                week_numbers.append((workday.date.year, workday.iweek))
         return week_numbers    
     
     def delSlotsLowPrefScores (year,week):

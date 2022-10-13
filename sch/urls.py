@@ -23,6 +23,7 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/clear-low-score-slots/', views.WEEK.clearWeekSlots_LowPrefScoresOnly, name='week-clear-low-score-slots'),
     path('week/<int:year>/<int:week>/clear-slots-form/', views.WEEK.ClearWeekSlotsView.as_view(), name='clear-week-slots-form'),
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
+    path('week/weekly-hours/', views.WEEK.weeklyHoursView, name='weeks-weekly-hours'),
     
     #? ==== Pay Period ==== ?#
     path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),

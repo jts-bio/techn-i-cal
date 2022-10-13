@@ -19,15 +19,11 @@ from .forms import *
 
 from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions
 
-from .tables import (
-    EmployeeTable, PtoRequestTable, ShiftListTable, ShiftsWorkdayTable, 
-    ShiftsWorkdaySmallTable, WeeklyHoursTable, WorkdayListTable, 
-    PtoRequestTable, PtoListTable, WeekListTable
-)
+from .tables import *
 
 from django.db.models import Q, F, Sum, Subquery, OuterRef, DurationField, ExpressionWrapper, Count
 
-from django_tables2 import tables
+from django_tables2 import tables, RequestConfig
 
 import datetime as dt
 import random
@@ -353,6 +349,16 @@ class WEEK:
             return Employee.objects.all().annotate(
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
+
+    def weeklyHoursView (request):
+        """View for a djangotables2 to show weeks in columns and employees in rows, with the employee weekly hours."""
+        all_weeks = WeekActions.getAllWeekNumbers()
+        table = EmployeeWeeklyHoursTable(Employee.objects.all())
+        RequestConfig(request, paginate=False).configure(table) 
+        context = {'table': table,
+                    'weeks': all_weeks,}
+        return render(request, 'sch/week/weekly-hours.html', context)
+        
 
 
     def weekFillTemplates(request,year, week):
@@ -680,7 +686,7 @@ class EMPLOYEE:
     class EmployeeCreateView (FormView):
         template_name   = 'sch/employee/employee_form.html'
         form_class      = EmployeeForm
-        fields          = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref']
+        fields          = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'employee_class']
         success_url     = '/sch/employees/all/'
 
         def form_valid(self, form):
