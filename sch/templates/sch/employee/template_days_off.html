@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<h1>Templated Days Off</h1>
+<h2>{{employee}}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+        
+    <div class="panel grid-7-by-2">
+        <div class="lg">SUN</div>
+        <div class="lg">MON</div>
+        <div class="lg">TUE</div>
+        <div class="lg">WED</div>
+        <div class="lg">THU</div>
+        <div class="lg">FRI</div>
+        <div class="lg">SAT</div>
+        {% for form in formset %}
+        {{ form.as_div }}
+        {% endfor %}
+    </div>
+
+    <input type="submit" value="Submit" />
+</form>    
+    
+{% endblock content %}
+    

@@ -28,6 +28,7 @@ class EmployeeTable (tables.Table):
             ]
         template_name   = 'django_tables2/semantic.html'
         attrs           = {"class":"table table-compact table-xs"}
+        sort_by         = ('name',)
 
     def render_fte(self, value):
         return f'{value:.3f}FTE'
@@ -108,6 +109,7 @@ class WorkdayListTable (tables.Table):
                             'percFilled'
                            ]
         template_name   = 'django_tables2/bootstrap.html'
+        attrs           = {"class":"table table-compact table-xs"}
 
     def render_n_unfilled(self, record):
         return record.n_unfilled
@@ -120,6 +122,9 @@ class WorkdayListTable (tables.Table):
     
     def render_iperiod(self, record):
         return f"P-{record.iperiod}"
+    
+    def render_ischedule(self,record):
+        return f'S-{record.ischedule}'
     
     def render_iweekday(self, record):
         WEEKDAY_CHOICES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]

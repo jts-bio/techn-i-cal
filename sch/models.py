@@ -3,8 +3,9 @@ from re import sub
 
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
-from django.db.models import (Avg, Count, F, Max, Min, Q, QuerySet, StdDev, Subquery,
-                              Sum, Variance, OuterRef, ExpressionWrapper, DurationField, FloatField)
+from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
+                              FloatField, Max, Min, OuterRef, Q, QuerySet,
+                              StdDev, Subquery, Sum, Variance)
 from django.urls import reverse
 from multiselectfield import MultiSelectField
 
@@ -132,8 +133,7 @@ class SlotManager (models.QuerySet):
         
         # 4 -- return only slots whose shift pref score is less than 0
         return query.filter(change__lte=0)
-        
-        
+           
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -355,7 +355,7 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 13
         return (self.date - dt.date(2022,9,4)).days % 14
     
-    @computed 
+    @computed(models.CharField(max_length=20), depends=[('self',['date'])])
     def ischedule (self) -> int:
         # range 0 -> 9
         return self.iperiod // 3 
@@ -446,7 +446,9 @@ class Workday (ComputedFieldsModel) :
     def list_unpref_slots (self):
         return self.filledSlots.annotate(
                 score=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'),shift=OuterRef('shift')).values('score'))
-            )
+            ).filter(score__lt=0)
+        
+    
     
     @property
     def printSchedule (self):
@@ -587,7 +589,6 @@ class Slot (ComputedFieldsModel) :
             
 
     objects = SlotManager.as_manager()
-
 # ============================================================================
 class ShiftTemplate (models.Model) :
     # fields: name, start, duration 
@@ -624,7 +625,23 @@ class ShiftTemplate (models.Model) :
 
     class Meta:
         unique_together = ['shift', 'ppd_id']
+        
 
+class TemplatedDayOff (models.Model) :
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    ppd_id   = models.IntegerField() 
+
+    def weekAB (self):
+        return 'A' if self.ppd_id < 7 else 'B'
+    
+    def weekday (self):
+        days = "Sun Mon Tue Wed Thu Fri Sat".split()
+        return days[self.ppd_id % 7]
+    
+    def __str__ (self) :
+        return f'{self.weekday()}{self.weekAB()}'
+    
+    
 # ============================================================================
 PTO_STATUS_CHOICES = (
     ('P', 'Pending'),
@@ -656,7 +673,6 @@ class PtoRequest (ComputedFieldsModel):
     @property
     def days_away (self):
         return (self.workday.date - dt.date.today()).days
-
 PRIORITIES = (
     ('L', 'Low'),
     ('M', 'Medium'),
@@ -669,8 +685,7 @@ class SlotPriority (models.Model):
     priority = models.CharField(max_length=20, choices=PRIORITIES, default='M')
 
     class Meta:
-        unique_together = ['iweekday', 'shift']
-        
+        unique_together = ['iweekday', 'shift']     
 # ============================================================================
 PREF_SCORES = (
     ('SP', 'Strongly Prefer'),

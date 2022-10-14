@@ -9,11 +9,10 @@ from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormVi
 from django.forms import formset_factory
 
 from .models import (
-    PtoRequest, Shift, Employee, ShiftPreference, Workday, Slot, 
+    PtoRequest, Shift, Employee, ShiftPreference, TemplatedDayOff, Workday, Slot, 
     PtoRequest, ShiftManager, ShiftTemplate, 
     WorkdayManager
 )
-
 
 from .forms import *
 
@@ -680,7 +679,7 @@ class EMPLOYEE:
         def get_context_data(self, **kwargs):
             context                  = super().get_context_data(**kwargs)
             context['employees']     = Employee.objects.all()
-            context['employeeTable'] = EmployeeTable(Employee.objects.all())
+            context['employeeTable'] = EmployeeTable(Employee.objects.all().order_by('name'))
             return context
 
     class EmployeeCreateView (FormView):
@@ -868,20 +867,74 @@ class EMPLOYEE:
         and allow new/del SSTs"""
 
         template_name = 'sch/employee/employee_ssts_form.html'
-        form_class = SstEmployeeForm
-        success_url = '/sch/employees/all/'
+        form_class    = SstEmployeeForm
+        success_url   = '/sch/employees/all/'
         
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
 
-            context['template_slots'] = ShiftTemplate.objects.filter(employee__name=self.kwargs['name'])
+            context['template_slots']     = ShiftTemplate.objects.filter(employee__name=self.kwargs['name'])
+            context['templated_days_off'] = TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'])
             formset = formset_factory(SstEmployeeForm, extra=0)
-            formset = formset(initial=[{'ppd_id': i,'employee':employee} for i in range(14)])
-            employee = Employee.objects.get(name=self.kwargs['name'])
+            
+            initial = [{'ppd_id': i,'employee':employee} for i in range(14)]
+            
+            formset    = formset (initial=initial)
+            employee   = Employee.objects.get(name=self.kwargs['name'])
             context['employee'] = employee
-            empl_ssts = ShiftTemplate.objects.filter(employee=employee)
-            context['formset'] = formset
+            context['formset']  = formset
             return context
+        
+        def form_valid(self, form):
+            form.save()
+            return super().form_valid(form)
+        
+    class EmployeeTemplatedDaysOffView(FormView):
+        
+            template_name = 'sch/employee/template_days_off.html'
+            form_class = EmployeeTemplatedDaysOffForm
+            success_url = '/sch/employees/all/'
+            
+            def get_context_data(self, **kwargs):
+                context = super().get_context_data(**kwargs)
+                context['templated_days_off'] = TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'])
+                context['employee'] = Employee.objects.get(name=self.kwargs['name'])
+                
+                formset = formset_factory(EmployeeTemplatedDaysOffForm, extra=0)
+                employee = Employee.objects.get(name=self.kwargs['name'])
+                
+                initial = [{'ppd_id': i, 'employee': employee} for i in range(14)]
+                
+                formset = formset(initial=initial)
+                context['formset'] = formset
+                return context
+            
+            def form_valid(self, form):
+                form.save()
+                if form.cleaned_data.get('is_templated_off') == True:
+                    if TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'], day=self.request.POST['day']).exists():
+                        pass
+                    else:
+                        templated_day_off = TemplatedDayOff.objects.create(employee=Employee.objects.get(name=self.kwargs['name']), ppd_id=form.cleaned_data.get('ppd_id'))
+                        templated_day_off.save()
+                return super().form_valid(form)
+            
+            def post (self, request, *args, **kwargs):
+                form = self.get_form()
+                if form.is_valid():
+                    if form.cleaned_data.get('is_templated_off') == True:
+                        if TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'], day=self.request.POST['day']).exists():
+                            pass
+                    else:
+                        templated_day_off = TemplatedDayOff.objects.create(employee=Employee.objects.get(name=self.kwargs['name']), ppd_id=form.cleaned_data.get('ppd_id'))
+                        templated_day_off.save()
+                        return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': self.kwargs['name']}))
+                else: 
+                    print("invalid form")
+                    print(form.errors)
+                    return self.form_invalid(form)
+                
+
 
     class EmployeeAddPtoView (FormView):
 
@@ -976,9 +1029,6 @@ class EMPLOYEE:
             
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
-        
-    
-        
 
 class SLOT:
 

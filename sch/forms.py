@@ -1,5 +1,5 @@
 from django import forms
-from .models import PtoRequest, Slot, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
+from .models import PtoRequest, Slot, TemplatedDayOff, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
 from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
 
@@ -66,10 +66,10 @@ class EmployeeEditForm (forms.ModelForm) :
             'fte_14_day': 'FTE (hours per 14 days)',
         }
         widgets = {
-            'shifts_trained': forms.CheckboxSelectMultiple(),
+            'shifts_trained'  : forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
-            'streak_pref': forms.NumberInput(attrs={'class': 'form-control'}),
-            'employee_class': forms.RadioSelect(choices=EmployeeClass.objects.all()),
+            'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
+            'employee_class'  : forms.RadioSelect(choices=EmployeeClass.objects.all()),
         }
 
 class SstEmployeeForm (forms.Form):
@@ -105,14 +105,43 @@ class SstEmployeeForm (forms.Form):
             shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=ppd_id_proxy)
         else:
             shiftList = Shift.objects.none()
+        if TemplatedDayOff.objects.filter(ppd_id=self.initial.get('ppd_id'), employee=employee).exists():
+            shiftList = Shift.objects.none()
 
-        self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]# type: ignore
+        self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]      # type: ignore
 
         if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('ppd_id')).shift.id
 
+            
+        self.fields['shift'].widget.attrs.update({'class': 'form-control'})
+        
+class EmployeeTemplatedDaysOffForm (forms.ModelForm):
+    
+    is_templated_off = forms.BooleanField(label='Day off', required=False)
+    ppd_id   = forms.IntegerField(widget=forms.HiddenInput(), required=False)
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
+    
+    class Meta:
+        model = TemplatedDayOff
+        fields = ['ppd_id','is_templated_off', 'employee']
+        labels = {
+            'ppd_id': 'Day from month start',
+        }
+        widgets = {
+            'ppd_id'   : forms.HiddenInput(),
+        }
+        
+        def __init__(self, *args, **kwargs):
+            super(EmployeeTemplatedDaysOffForm, self).__init__(*args, **kwargs)
+            employee = self.initial.get('employee')
+            self.initial['ppd_id'] = self.initial['ppd_id']
+            
+            wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
+            self.fields['is_templated_off'].label = wds[self.initial.get('ppd_id')]
+
 class EmployeeScheduleForm(forms.Form):
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
+    employee  = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
     date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
     date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
 
