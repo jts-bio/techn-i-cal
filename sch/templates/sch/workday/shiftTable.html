@@ -1,7 +1,9 @@
 {% load tags %}
 
-
-<table>
+<div class="hstack">
+<div class="vstack">
+    <h1 class="text-xl">CPhTs</h1>
+<table class="table table-compact table-xs">
     <thead>
         <tr>
             <th>Shift</th>
@@ -11,6 +13,7 @@
     </thead>
     <tbody>
         {% for shift in shifts %}
+        {% if shift.name.0 != "R" %}
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
@@ -20,16 +23,66 @@
                               {{shift.assignment}}
                         </span></td>
                 {% else %}
-                    <td><span>{{shift.assignment}}</span>
-                        <div class="btn btn-xs"><div class="hstack">{%favoriteIcon%}{{shift.prefScore}}</div></div>
+                    <td><div class="hstack"><span>{{shift.assignment}}</span>
+                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc"><div class="hstack" style="font-size:9px;">
+                            {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
+                        </div></div>
                     </td>
                 {% endif %}
-                <td><div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div></td>
+                <td>
+                    <div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div>
+                    <div><a href="/sch/test/{{workday.slug}}/{{shift}}/i-s/">{% solveIcon '15px' '15px' '#aabbdd' %}</a></div>
+                </td>
             {% else %}
                 <td></td>
                 <td><div><a class="green-glow" href="{{shift}}/new/">Assign</a></div></td>
             {% endif %}
         </tr>
+        {% endif %}
         {% endfor %}
     </tbody>
 </table>
+</div>
+<div class="vstack">
+    <h1 class="text-xl">RPhs</h1>
+<table class="table table-compact table-xs">
+    <thead>
+        <tr>
+            <th>Shift</th>
+            <th>Assignment</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for shift in shifts %}
+        {% if shift.name.0 == "R" %}
+        <tr>
+            <td>{{shift}}</td>
+            {% if shift.assignment %}
+                {% if shift.is_turnaround %}
+                    <td><span style="color:yellow;border:1px yellow solid;border-radius:4px;padding:0px 3px;" 
+                              title="TURNAROUND (From Late Shift Day Prior)">
+                              {{shift.assignment}}
+                        </span></td>
+                {% else %}
+                    <td><div class="hstack"><span>{{shift.assignment}}</span>
+                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc"><div class="hstack" style="font-size:9px;">
+                            {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
+                        </div></div>
+                    </td>
+                {% endif %}
+                <td>
+                    <div><a href="{{shift}}/delete/" title="Remove Employee">{% clearIcon '15px' '15px' %}</a></div>
+                    <div><a href="/sch/test/{{workday.slug}}/{{shift}}/i-s/">{% solveIcon '15px' '15px' '#aabbdd' %}</a></div>
+                </td>
+            {% else %}
+                <td></td>
+                <td><div><a class="green-glow" href="{{shift}}/new/">Assign</a></div></td>
+            {% endif %}
+        </tr>
+        {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+</div>

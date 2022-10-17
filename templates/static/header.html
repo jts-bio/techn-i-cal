@@ -2,17 +2,45 @@
 {% load tags %}
 
     <div class="hstack sp-btw nav-top" style="height:120px;">
+
         <a href="/" style="text-decoration:none;">
             <div class="hstack">
-                <img src="{% static '/img/FlowRate Logo.svg' %}" alt="LOGO: DripRate" style="width:90px;height:90px;"/>
+                <img src="{% static '/img/FlowRate Logo.svg' %}" 
+                     alt="LOGO: DripRate" 
+                     style="width:90px;height:90px;"/>
             </div>
         </a>
+
         <div class="hstack">
-            <a href="/sch/day/all" class="header-link"><div class="vstack aic"><div>{% include 'Date.svg' %}</div><div> WORKDAYS</div></div></a>
-            <a href="/sch/shifts/all" class="header-link"><div class="vstack aic"><div>{% include 'Shift.svg' %}</div><div> SHIFTS</div></div></a>
-            <a href="/sch/employees/all" class="header-link"><div class="vstack aic"><div>{% include 'Profile.svg' %}</div><div> EMPLOYEES</div></div></a>
+
+            <a href="/sch/day/all" class="header-link">
+                <div class="vstack aic">
+                    <div>{% include 'Date.svg' %}</div>
+                    <div> WORKDAYS </div>
+                </div>
+            </a>
+
+            <a href="/sch/shifts/all" class="header-link">
+                <div class="vstack aic">
+                    <div>{% include 'Shift.svg' %}</div>
+                    <div> SHIFTS</div>
+                </div>
+            </a>
+
+            <a href="/sch/employees/all" class="header-link">
+                <div class="vstack aic">
+                    <div>{% include 'Profile.svg' %}</div>
+                    <div> EMPLOYEES</div>
+                </div>
+            </a>
+
         </div>
-        <div>
+
+        <div class="vstack">
             {% goToThisWeek %}
+            <div><a href="/sch/schedule/" class="btn btn-compact">
+                VIEW SCHEDULE GRID
+            </a></div>
         </div>
+
     </div>

@@ -57,7 +57,7 @@ urlpatterns = [
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
     path('employee/<str:name>/ssts/add', views.EMPLOYEE.employeeCoworkerView, name='employee-coworker'),
-    path('employee/<str:name>/template-days-off/', views.EMPLOYEE.EmployeeTemplatedDaysOffView.as_view(), name='employee-tdos'),
+    path('employee/<str:name>/template-days-off/', views.EMPLOYEE.employeeTemplatedDaysOffView, name='employee-tdos'),
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
     path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
@@ -68,4 +68,13 @@ urlpatterns = [
     
     #? ==== DOCS ==== ?#
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),
+    
+    #? ==== SCHEDULE ==== ?#
+    path('schedule/', views.SCHEDULE.scheduleView, name='schedule'),
+    
+    #? ==== TESTS ==== ?#
+    path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
+    path('test/<slug:workday>/<str:shift>/i-s/',views.TEST.possibleInterWeekSlotSwaps,name="test2"),
+    path('test/<slug:slotA>/<slug:slotB>/make-swap/',views.TEST.makeSwap,name="InterWeek Swap")
+    
 ]

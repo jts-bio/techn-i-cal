@@ -19,6 +19,7 @@ AUTHOR:             JOSH STEINBECKER
 Models: 
     - Shift
     - Employee
+    - EmployeeClass
     - Workday
     - Slot
     - PtoRequest
@@ -97,9 +98,9 @@ class SlotManager (models.QuerySet):
         return self.filter(pk__in=preturnarounds)
 
     def incompatible_slots (self, workday, shift):
-        if shift.start <= dt.time(12,0,0):
+        if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
-            incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(12,0,0))
+            incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayBefore,shift__in=incompat_shifts)
             return incompat_slots
         elif shift.start >= dt.time(20,0,0):
@@ -107,9 +108,9 @@ class SlotManager (models.QuerySet):
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(20,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
-        elif shift.start >= dt.time(12,0,0):
+        elif shift.start >= dt.time(10,0,0):
             dayAfter = workday.nextWD()
-            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(12,0,0))
+            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
         
@@ -133,6 +134,12 @@ class SlotManager (models.QuerySet):
         
         # 4 -- return only slots whose shift pref score is less than 0
         return query.filter(change__lte=0)
+    
+    def streaks (self, employee):
+        return self.filter(employee=employee, is_terminal=True)
+    
+    def tally_schedule_streaks (self, employee, year, schedule):
+        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule)))
            
 # ============================================================================
 class EmployeeManager (models.QuerySet):
@@ -198,7 +205,8 @@ class EmployeeManager (models.QuerySet):
         return self.annotate(
             avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
                 employee=OuterRef('pk')).values('score'),output_field=FloatField())))
-        
+
+
 class ShiftPreferenceManager (models.QuerySet):
     
         def below_average(self, employee):
@@ -225,7 +233,7 @@ class EmployeeClass (models.Model):
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
-    employee_class  = models.ForeignKey (EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    #employee_class  = models.ForeignKey (EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
     start           = models.TimeField()
     duration        = models.DurationField()
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
@@ -259,6 +267,13 @@ class Shift (ComputedFieldsModel) :
     def end (self):
         return (dt.datetime(2022,1,1,self.start.hour,self.start.minute) + self.duration).time()
 
+    def info_prefRatio (self):
+        likes = ShiftPreference.objects.filter(score__gt=0,shift=self).count()
+        dislikes = ShiftPreference.objects.filter(score__lt=0,shift=self).count()
+        if dislikes != 0:
+            return round (likes/dislikes,  2)
+        else:
+            return 0
 
     def trained_employees (self):
         return Employee.objects.filter(shifts_trained=self)
@@ -273,7 +288,7 @@ class Employee (ComputedFieldsModel) :
     shifts_trained  = models.ManyToManyField(Shift, related_name='trained')
     shifts_available= models.ManyToManyField(Shift, related_name='available')
     streak_pref     = models.IntegerField(default=3)
-    employee_class  = models.ForeignKey(EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    #employee_class  = models.ForeignKey(EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
     
 
     def __str__(self) :
@@ -317,8 +332,20 @@ class Employee (ComputedFieldsModel) :
     def count_shift_occurances (self):
         slots = Slot.objects.filter(employee=self).values('shift__name')
         return slots.distinct().annotate(count=Count('shift__name'))
-                
+    
+    
+    def info_printWeek(self,year,week):
+            slots = list(Slot.objects.filter(employee=self,workday__date__year=year,workday__iweek=week).values_list('shift__name',flat=True))
+            return f'{self.name}: {slots}'
+    
+       
     objects = EmployeeManager.as_manager()
+
+class EmployeeClass (models.Model):
+    id          = models.CharField(max_length=5, primary_key=True)
+    class_name  = models.CharField(max_length=40) 
+
+
 
 # ============================================================================
 class Workday (ComputedFieldsModel) :
@@ -508,8 +535,6 @@ class Slot (ComputedFieldsModel) :
     shift    = models.ForeignKey( Shift,     on_delete=models.CASCADE)
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
     
-    
-    
     class Meta:
         unique_together = ('workday', 'shift')
         
@@ -563,6 +588,12 @@ class Slot (ComputedFieldsModel) :
             else:
                 return False
     
+    @computed (models.BooleanField(), depends=[('self',['workday'])])
+    def is_terminal (self):
+        if Slot.objects.filter(workday=self.workday.nextWD(), employee=self.employee).exists() :
+            return False
+        else:
+            return True
          
     @property   
     def siblings_day (self) -> SlotManager:
@@ -585,7 +616,13 @@ class Slot (ComputedFieldsModel) :
         while Slot.objects.filter(workday__date=self.workday.date - dt.timedelta(days=i),employee=self.employee).exists():
             i = i + 1
         return i
-            
+    
+    @computed (models.BooleanField(), depends=[('self', ['employee'])])
+    def isOverStreakPref (self) -> bool :
+        if self.streak:
+            return self.streak > self.employee.streak_pref
+        else:
+            return False
             
 
     objects = SlotManager.as_manager()
@@ -715,10 +752,10 @@ class ShiftPreference (ComputedFieldsModel):
 
 # ============================================================================
 class SchedulingMax (models.Model):
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    year = models.IntegerField()
+    employee   = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    year       = models.IntegerField()
     pay_period = models.IntegerField(null=True, blank=True)
-    max_hours = models.IntegerField()
+    max_hours  = models.IntegerField()
     
     class Meta:
         unique_together = ('employee', 'year', 'pay_period')

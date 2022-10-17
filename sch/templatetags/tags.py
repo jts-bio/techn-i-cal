@@ -32,6 +32,8 @@ def nDaysAwaySmall (date):
     return {
         'n': (date - today).days
     }
+    
+    
 
 @register.inclusion_tag("LeftArrow.svg")
 def backArrow (width="20px", height="20px", fill="#e1e1e1",fillB="#acffde"):

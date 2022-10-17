@@ -46,7 +46,7 @@ class SSTForm (forms.ModelForm) :
 class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref','employee_class']
+        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref',] #'employee_class'
         labels = {
             'fte_14_day': 'FTE (hrs/ 14 days)',
         }
@@ -54,14 +54,14 @@ class EmployeeForm (forms.ModelForm) :
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'shifts_trained': forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
-            'employee_class': forms.RadioSelect(),
+            #'employee_class': forms.RadioSelect(),
         }
         
 
 class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['fte_14_day', 'streak_pref', 'shifts_trained', 'shifts_available', 'employee_class']
+        fields = ['name','fte_14_day', 'streak_pref', 'shifts_trained', 'shifts_available', ] # 'employee_class'
         labels = {
             'fte_14_day': 'FTE (hours per 14 days)',
         }
@@ -69,7 +69,7 @@ class EmployeeEditForm (forms.ModelForm) :
             'shifts_trained'  : forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
-            'employee_class'  : forms.RadioSelect(choices=EmployeeClass.objects.all()),
+            #'employee_class'  : forms.RadioSelect(choices=EmployeeClass.objects.all()),
         }
 
 class SstEmployeeForm (forms.Form):

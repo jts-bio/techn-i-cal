@@ -1,4 +1,4 @@
-from .models import Shift, Employee, Workday, Slot, ShiftTemplate, PtoRequest, ShiftPreference
+from .models import *
 from django.db.models import Count, Sum, Subquery, OuterRef, F, Avg
 import datetime as dt
 import random 
@@ -160,28 +160,36 @@ class ScheduleBot:
             shift = slot[1]
             
             # pull out employees with no guaranteed hours
-            prn_empls = Employee.objects.filter(fte=0)
-            empl = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
+            prn_empls     = Employee.objects.filter(fte=0)
+            empl          = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
             incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
             
             # don't schedule on opposite weekends 
             if day.iweekday == 0: 
                 opp_weekend = Workday.objects.get(date=day.date+dt.timedelta(days=6)).filledSlots.values('employee')
-                empl = empl.exclude(pk__in=opp_weekend)
+                empl        = empl.exclude(pk__in=opp_weekend)
             if day.iweekday == 6:
                 opp_weekend = Workday.objects.get(date=day.date-dt.timedelta(days=6)).filledSlots.values('employee')
-                empl = empl.exclude(pk__in=opp_weekend)
+                empl        = empl.exclude(pk__in=opp_weekend)
                 
             # exclude pt employees who would cross their fte 
             wk_hours_pt = Employee.objects.filter(fte_14_day__lt=70).exclude(pk__in=prn_empls)
             for pt_emp in wk_hours_pt:
                 weekly_hours= pt_emp.weekly_hours(day.date.year,day.iweek) 
                 if weekly_hours:
-                    if weekly_hours > pt_emp.fte_14_day / 2 + 5: 
+                    if weekly_hours > pt_emp.fte_14_day / 2 : 
                         empl = empl.exclude(pk=pt_emp.pk)
             
             empl = empl.exclude(pk__in=incompat_empl)
             empl = empl.exclude(pk__in=prn_empls)
+            
+            # try not to cross streak_pref thresholds
+            underStreak = ScheduleBot.streakPrefOk(day)
+            underStreak = Employee.objects.filter(pk__in=underStreak)
+            
+            if empl.filter(pk__in=underStreak).count() != 0:
+                empl = empl.filter(pk__in=underStreak)
+            
             if empl.count() == 0:
                 attempting_slot += 1
             else: 
@@ -208,7 +216,7 @@ class ScheduleBot:
         # get shift list by day of week
         shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
     
-    # ==== SWAP FUNCTIONS ==== 
+    # ==== INTER-DAY SWAP FUNCTIONS ==== 
     def is_agreeable_swap (slotA, slotB):
         employeeA = slotA.employee
         if ShiftPreference.objects.filter(employee=employeeA, shift=slotA.shift).exists():
@@ -272,6 +280,9 @@ class ScheduleBot:
                 if ScheduleBot.WdOverallShiftPrefScore(day) == pref_score:
                     keep_trying = False
         return None
+       
+    # ==== INTER-WEEK SWAP FUNCTIONS ====
+    
         
     def WdOverallShiftPrefScore(workday) -> int:
         """
@@ -295,9 +306,17 @@ class ScheduleBot:
             overall_pref = 0
         
         return overall_pref
-        
+       
+    def streakPrefOk (workday) -> EmployeeManager :
+        output = []
+        empls = Employee.objects.all()
+        for empl in empls:
+            if PredictBot.predict_streak(empl,workday) <= empl.streak_pref:
+                output.append (empl.pk)
+        return Employee.objects.filter(pk__in=output)
     
-class ShiftPrefBot:
+class ShiftPrefBot :
+    
     def make_avg_agg ():
         # annotate on employee -- get avg preference for each all shifts scored by an employee
         return Employee.objects.annotate(avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(employee=OuterRef('pk')).values('score'),output_field=FloatField())))
@@ -305,7 +324,9 @@ class ShiftPrefBot:
     def slotsBelowEmplAvg ():
         # annotate on each slot -- get employee's avg and what their assigned shift's pref score is relative to that
         return Slot.objects.annotate(emplAvgSftPref=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee')).values('score'), output_field=FloatField()))
-        
+    
+    def slotsOverStreakPref ():
+        return Slot.objects.filter(isOverStreakPref=True)
             
               
 class ExportBot :
@@ -333,3 +354,27 @@ class ExportBot :
             for sl in Slot.objects.filter(workday=workday):
                 df.loc[sl.employee.name][i] = sl.shift.name
         print(df)
+        
+    def scheduleForEmployee (employee):
+        """ SCHEDULE FOR EMPLOYEE
+        Shows Schedule for the next 42 Days
+        ------------------------------------
+        Example Output: 
+        >>>     <WorkdayManager [{'empShift': 7}, {'empShift': None}]>
+        """
+        
+        wds = Workday.objects.filter(date__gte=dt.date.today(), date__lte=dt.date.today() + dt.timedelta(days=42))
+        return  wds.annotate(empShift=Subquery(Slot.objects.filter(employee=employee, workday=OuterRef('pk')).values('shift')))
+    
+    
+class PredictBot :
+    
+    def predict_streak (employee, workday) -> int :
+        if Slot.objects.filter(employee=employee, workday=workday).exists():
+            streak = Slot.objects.get(employee=employee,workday=workday).streak 
+            return streak + 1
+        else :
+            return 1
+    
+            
+            

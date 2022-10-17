@@ -1,0 +1,61 @@
+{% extends "base_blank.html" %}
+{% load tags %}
+
+
+{% block body %}
+
+    <table class="table table-compact table-xs" style="width:100%;">
+        <thead>
+            <tr>
+                <th>EMPLOYEES</th>
+                {% for day in days %}
+                <th><span style="font-family:Raleway;opacity:50%;font-weight:100;">{{day.date.month}}/{{day.date.day}}</span>
+                <div style="font-family:Raleway;font-weight:700;opacity:85%;">{{day.weekday.0}}</div></th>
+                {% endfor %}
+            </tr>
+        </thead>
+    {% for empl in employees %}
+    <tr>
+        <th>{{empl}}</th>
+        {% for day in empl.schedule %}
+            
+            {% if day.1 == None %} 
+                {% if day.3 == None %}
+                    <td style="opacity:30%;">*</td> 
+                {% else %}
+                    <td style="background-color:#5d85d059;color:#ffffffa0;text-shadow:1px 1px 1px black;font-size:9px;">PTO</td>
+                {% endif %}
+            {%else%}
+                {% if day.0 in weekendlist %} 
+                    <td style="background-color:#e3727233;">
+                        <span>{{day.1}}<sub style="font-size:9px;opacity:50%;">{{day.2}}</sub></span>  
+                        {% if day.4 < day.2 %}
+                        <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;">!!</span>
+                        {% endif %}
+                    </td>
+                {% elif day.3 != None %}
+                    <td style="background-color:#d43b3b;">
+                        <span>{{day.1}}<sub style="font-size:9px;opacity:50%;color:white;">{{day.2}}</sub></span>  
+                        {% if day.4 < day.2 %}
+                        <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;">!!</span>
+                        {% endif %}
+                    </td>
+                {% else %}
+                    <td><span>{{day.1}}<sub style="font-size:9px;opacity:50%;">{{day.2}}</sub></span> 
+                        {% if day.4 < day.2 %}
+                        <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;">!!</span>
+                        {% endif %}</td>
+                {% endif %}
+            {%endif%}
+        {% endfor %}
+    </tr>
+
+    {% endfor %}
+    </table>
+
+
+
+{% endblock body %}
+
+    
+    

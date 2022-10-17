@@ -7,16 +7,13 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView, FormView
 from django.forms import formset_factory
+from django.contrib import messages
 
-from .models import (
-    PtoRequest, Shift, Employee, ShiftPreference, TemplatedDayOff, Workday, Slot, 
-    PtoRequest, ShiftManager, ShiftTemplate, 
-    WorkdayManager
-)
+from .models import *
 
 from .forms import *
 
-from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions
+from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions, ExportBot
 
 from .tables import *
 
@@ -292,7 +289,12 @@ class WEEK:
                 context['nextYear'] = year
                 context['prevYear'] = year - 1
 
-            context['hrsTable']   = [(empl, Slot.objects.empls_weekly_hours(year, week, empl)) for empl in Employee.objects.all()]
+            dates = Workday.objects.filter(date__year=year,iweek=week).values('date')
+            context['hrsTable']   = [(
+                empl, #0
+                Slot.objects.empls_weekly_hours(year, week, empl), #1
+                PtoRequest.objects.filter(workday__in=dates,employee=empl).count() #2
+                ) for empl in Employee.objects.all()]
             
             weekprefScore = []
             
@@ -358,8 +360,6 @@ class WEEK:
                     'weeks': all_weeks,}
         return render(request, 'sch/week/weekly-hours.html', context)
         
-
-
     def weekFillTemplates(request,year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
         for day in days:
@@ -380,6 +380,8 @@ class WEEK:
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
     
     def make_preference_swaps (request, year, week):
+        for empl in Employee.objects.all():
+            print(empl.info_printWeek(year,week))
         workdays = Workday.objects.filter(date__year=year, iweek=week)
         for workday in workdays:
             i = 3
@@ -387,7 +389,11 @@ class WEEK:
                 bestswap = ScheduleBot.best_swap(workday)
                 if bestswap != None:
                     ScheduleBot.perform_swap(*bestswap)
-                i -= 1
+                    messages.success(request,f"[{bestswap[0].shift}] {bestswap[0].employee} swapped with [{bestswap[1].shift}] {bestswap[1].employee}")
+                else:
+                    i -= 1
+        for empl in Employee.objects.all():
+            print(empl.info_printWeek(year,week))
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
     class ClearWeekSlotsView (FormView):
@@ -590,7 +596,7 @@ class SHIFT :
     class ShiftCreateView (FormView):
         template_name   = 'sch/shift/shift_form.html'
         form_class      = ShiftForm
-        fields          = ['name', 'start', 'duration','occur_days']
+        fields          = ['name', 'start', 'duration','occur_days', 'is_iv']
         success_url     = '/sch/shifts/all/'
 
         def form_valid(self, form):
@@ -600,7 +606,7 @@ class SHIFT :
     class ShiftUpdateView (UpdateView):
         model           = Shift
         template_name   = 'sch/shift/shift_form_edit.html'
-        fields          = ['start','duration','occur_days','is_iv']
+        fields          = ['name','start','duration','occur_days','is_iv']
         success_url     = '/sch/shifts/all/'
         
 
@@ -625,7 +631,7 @@ class SHIFT :
 
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
-        
+    
         
     def trainedShiftView(request, name):
         context = {}
@@ -668,9 +674,6 @@ class SHIFT :
         context['formset'] = formset
         return render(request, 'sch/shift/trained_available_emps.html', context)
                         
-        
-            
-
 class EMPLOYEE:
     class EmployeeListView (ListView):
         model           = Employee
@@ -889,53 +892,50 @@ class EMPLOYEE:
             form.save()
             return super().form_valid(form)
         
-    class EmployeeTemplatedDaysOffView(FormView):
+    def employeeTemplatedDaysOffView(request, name ):
         
             template_name = 'sch/employee/template_days_off.html'
             form_class = EmployeeTemplatedDaysOffForm
             success_url = '/sch/employees/all/'
             
-            def get_context_data(self, **kwargs):
-                context = super().get_context_data(**kwargs)
-                context['templated_days_off'] = TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'])
-                context['employee'] = Employee.objects.get(name=self.kwargs['name'])
-                
-                formset = formset_factory(EmployeeTemplatedDaysOffForm, extra=0)
-                employee = Employee.objects.get(name=self.kwargs['name'])
-                
-                initial = [{'ppd_id': i, 'employee': employee} for i in range(14)]
-                
-                formset = formset(initial=initial)
-                context['formset'] = formset
-                return context
+            employee = Employee.objects.get(name=name)
             
-            def form_valid(self, form):
-                form.save()
-                if form.cleaned_data.get('is_templated_off') == True:
-                    if TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'], day=self.request.POST['day']).exists():
-                        pass
-                    else:
-                        templated_day_off = TemplatedDayOff.objects.create(employee=Employee.objects.get(name=self.kwargs['name']), ppd_id=form.cleaned_data.get('ppd_id'))
-                        templated_day_off.save()
-                return super().form_valid(form)
+            if request.method == "POST":
+                formset = formset_factory(EmployeeTemplatedDaysOffForm)
+                formset = formset (request.POST)
+                if formset.is_valid():
+                    for form in formset:
+                        if form.cleaned_data.get('is_templated_off') == True:
+                            if TemplatedDayOff.objects.filter(employee=employee, ppd_id=form.cleaned_data.get('ppd_id')).exists():
+                                pass
+                            else:
+                                templated_day_off = TemplatedDayOff.objects.create(employee=employee, ppd_id=form.cleaned_data.get('ppd_id'))
+                                templated_day_off.save()
+                        if form.cleaned_data.get('is_templated_off') == False:
+                            if TemplatedDayOff.objects.filter(employee=employee, ppd_id=form.cleaned_data.get('ppd_id')).exists():
+                                templated_day_off = TemplatedDayOff.objects.get(employee=employee, ppd_id=form.cleaned_data.get('ppd_id'))
+                                templated_day_off.delete()
+                            else:
+                                pass
+                    return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
+
+            context = {}
             
-            def post (self, request, *args, **kwargs):
-                form = self.get_form()
-                if form.is_valid():
-                    if form.cleaned_data.get('is_templated_off') == True:
-                        if TemplatedDayOff.objects.filter(employee__name=self.kwargs['name'], day=self.request.POST['day']).exists():
-                            pass
-                    else:
-                        templated_day_off = TemplatedDayOff.objects.create(employee=Employee.objects.get(name=self.kwargs['name']), ppd_id=form.cleaned_data.get('ppd_id'))
-                        templated_day_off.save()
-                        return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': self.kwargs['name']}))
-                else: 
-                    print("invalid form")
-                    print(form.errors)
-                    return self.form_invalid(form)
+            context['templated_days_off'] = TemplatedDayOff.objects.filter(employee__name=employee)
+            context['employee'] = employee
+            
+            formset = formset_factory(EmployeeTemplatedDaysOffForm, extra=0)
+            
+            
+            initial = [{'ppd_id': i, 'employee': employee, 'is_templated_off': TemplatedDayOff.objects.filter(employee=employee,ppd_id=i).exists()} for i in range(14)]
+            
+            formset = formset(initial=initial)
+            context['formset'] = formset
+            
+            return render(request, template_name, context)
                 
-
-
+                
+                
     class EmployeeAddPtoView (FormView):
 
         template_name = 'sch/employee/employee_add_pto.html'
@@ -1141,7 +1141,6 @@ class SLOT:
                 slot.save()
             return Slot.objects.turnarounds()
 
-
 def EmpSSTView (request, name):
     context                  = {}
     employee                 = Employee.objects.get(name=name)
@@ -1292,6 +1291,126 @@ def shiftTemplate (request, shift):
         'formset': formset
         })
     
-    
     return render(request, 'sch/shift/shift_sst_form.html', context)
     
+class SCHEDULE:
+    
+    def scheduleView (request):
+        context = {}
+        employees = Employee.objects.all().order_by('name')
+        for empl in employees:
+            schedule = Workday.objects.filter(date__gte=dt.date.today(), date__lt=dt.date.today()+dt.timedelta(days=42)).annotate(
+                emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
+                    ptoReq=Subquery(PtoRequest.objects.filter(employee=empl.pk, workday=OuterRef('date')).values('employee__name')[:1])).annotate(
+                    streakPref=Subquery(Employee.objects.filter(pk=empl.pk).values('streak_pref')[:1])).annotate(
+                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])).values_list('iweekday','emplShift','streak','ptoReq','streakPref')
+            
+            empl.schedule = schedule
+            
+        context['employees'] = employees
+        context['days'] = Workday.objects.filter(date__gte=dt.date.today(),date__lt=dt.date.today()+dt.timedelta(days=42))
+        context['weekendlist'] = [0,6]
+        
+    
+        return render(request, 'sch/schedule/grid.html', context)
+
+class TEST:
+    
+    def possibleInterWeekSlotSwaps (request, workday, shift):
+        context = {}
+        slot = Slot.objects.get(workday__slug=workday,shift__name=shift)
+        context['shift'] = slot.shift
+        context['employee'] = slot.employee
+        context['workday'] = slot.workday
+        context['slot'] = slot
+        
+        allinWeek       = Slot.objects.filter(workday__date__year=slot.workday.date.year,workday__iweek=slot.workday.iweek)
+        daysWorked      = allinWeek.filter(employee=slot.employee).values('workday')
+        dropDaysWork    = allinWeek.exclude(workday__in=daysWorked)
+        dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+        empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
+        dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
+        #conflicting are Slots that create turnaround interference with the potential trade
+        allconflicting  = []
+        for s in Slot.objects.filter(pk__in=empAslots):
+            allconflicting += Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
+        dropConflicting = dropOnDaysWorked.exclude(pk__in=allconflicting)
+        possible        = dropConflicting
+
+        pos = []
+        
+        for possibleSlot in possible:
+            # check to make sure employeeB is trained for the shift they would be swapping into
+            if possibleSlot.employee.shifts_trained.contains(slot.shift):
+                # dont include in possiblities if employeeB would be traded into a turnaround
+                if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
+                    pass
+                else:
+                    pos.append(possibleSlot)
+        
+        context['possible'] = pos
+        
+        context['incompatible'] = Slot.objects.incompatible_slots(shift=slot.shift,workday=slot.workday)
+        return render(request,'sch/test/is.html',context)
+    
+    def makeSwap (request,slotA,slotB):
+        slot_a = Slot.objects.get(slug=slotA)
+        slot_b = Slot.objects.get(slug=slotB)
+        slotAEmpl = slot_a.employee
+        slotAWD = slot_a.workday
+        slotAShift = slot_a.shift
+        slotBEmpl = slot_b.employee
+        slotBWD = slot_b.workday
+        slotBShift = slot_b.shift
+        
+        slot_a.delete()
+        slot_b.delete()
+        newA = Slot.objects.create(workday=slotAWD,shift=slotAShift,employee=slotBEmpl)
+        newA.save()
+        newB = Slot.objects.create(workday=slotBWD,shift=slotBShift,employee=slotAEmpl)
+        newB.save()
+        
+        message = f"""
+        [{newA.workday.weekday} {newA.shift}]-{newA.employee.name.capitalize()} 
+        swapped with
+        [{newB.workday.weekday} {newB.shift}]-{newB.employee.name.capitalize()}"""
+        
+        messages.success(request,message,"toast")
+        
+        return HttpResponseRedirect(f'/sch/week/{slotAWD.date.year}/{slotAWD.iweek}/')
+    
+    def allOkIntraWeekSwaps (request , workday, shift):
+        """ALL OK INTRA-WEEK SWAPS
+        ============================
+        -> list [Slot]
+        Get All the Slots that could be traded with this input slot with respect to training,
+        and would NOT create any inappropraite turnarounds.
+        """
+        slot = Slot.objects.get(workday__slug=workday,shift__name=shift)
+        empA = slot.employee    #type: Employee 
+        shiftA = slot.shift     #type: Shift
+        
+        # potential slots employee A can swap into within this week
+        potential = Slot.objects.filter(
+            workday__iweek=slot.workday.iweek,
+            workday__date__year=slot.workday.date.year,
+            shift__in=empA.shifts_trained.all())
+        
+        # build list of employeeA currentSlots
+        empA_weekslots = Slot.objects.filter(employee=empA, workday__iweek=slot.workday.iweek).exclude(workday=slot.workday)
+        weekbeforeSat = (slot.workday.iweek_of).prevWD()
+        weekafterSun = Slot.objects.filter(workday__date=weekbeforeSat.date+dt.timedelta(days=7),employee=empA)
+        weekbeforeSat = Slot.objects.filter(workday=weekbeforeSat,employee=empA)
+        empA_allslots = empA_weekslots & weekbeforeSat & weekafterSun
+        
+        # use the incompatible_slots method of employeeA's slots to exculde slots to not consider
+        for s in empA_allslots:
+            potential = potential.exclude(Slot.objects.incompatible_slots(s.workday,s.shift))
+        context = {
+            'slot':slot,
+            'empA':empA,
+            'shiftA':shiftA,
+            'empA_allSlots':empA_allslots,
+            'potential':potential,
+        }
+        return render(request, 'sch/test/test.html', context=context)

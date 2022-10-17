@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div>{{workday}}/ {{shift}}/ {{employee}}</div>
+
+<div class="panel">
+{% for ic in incompatible %}
+    <span class="btn btn-compact">{{ic}}</span>
+{% endfor %}
+</div>
+<h1 class="text-2xl">Possible Swaps</h1>
+<p>These shift assignments can be traded within the weekly schedule, and will not give either employee a scheduled turnaround.
+    <span class="italic text-yellow-700">Clicking on them will execute the trade.</span>
+</p>
+<div class="panel">
+    {% for pos in possible %}
+    <a href="/sch/test/{{slot.slug}}/{{pos.slug}}/make-swap/" class="btn btn-xs">{{pos}} <sup>{{pos.employee}}</sup> </a>
+    {% endfor %}
+</div>
+{% endblock content %}
+    
