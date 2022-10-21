@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from .models import (
-    Shift, Employee, Workday, Slot, 
+    Shift, Employee, TemplatedDayOff, Workday, Slot, 
     ShiftTemplate, PtoRequest
 )
 
@@ -30,8 +30,8 @@ class SlotAdmin(admin.ModelAdmin):
 
 @admin.register(ShiftTemplate)
 class ShiftTemplateAdmin(admin.ModelAdmin):
-    fields          = ['shift','employee','ppd_id',]
-    list_display    = ['shift','employee','ppd_id',]
+    fields          = ['shift','employee','ppd_id']
+    list_display    = ['shift','employee','ppd_id']
 
 @admin.register(PtoRequest)
 class PtoRequestAdmin(admin.ModelAdmin):
@@ -39,3 +39,7 @@ class PtoRequestAdmin(admin.ModelAdmin):
     readonly_fields = ['stands_respected',]
     list_display    = ['workday','employee','status','stands_respected',]
 
+@admin.register(TemplatedDayOff)
+class TmplDayOffAdmin(admin.ModelAdmin):
+    fields          = ['employee','ppd_id','sd_id']
+    list_display    = ['employee','ppd_id','sd_id']

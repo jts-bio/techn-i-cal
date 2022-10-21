@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+
+{% block style %}
+<style>
+    .right-line {
+        border-right : 2px solid #aaa!important;
+    }
+    .cell-glow {
+        color: rgb(194, 212, 247);
+        text-shadow: 1px 0px 5px #94a2d4;
+    }
+</style>
+{% endblock style %}
+    
+
+
+{% block content %}
+
+    
+
+<table class="table table-compact table-xs">
+    <thead>
+        <tr>
+        <th class="right-line">Employee</th>
+        <th>Sunday</th>
+        <th>Monday</th>
+        <th>Tuesday</th>
+        <th>Wednesday</th>
+        <th>Thursday</th>
+        <th>Friday</th>
+        <th>Saturday</th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for emp in empls %}
+        <tr>
+            <td class="right-line">{{emp}}</td>
+            <td class="cell-glow">{% if emp.week.1 %}{{emp.week.1.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.2 %}{{emp.week.2.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.0 %}{{emp.week.0.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.3 %}{{emp.week.3.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.4 %}{{emp.week.4.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.5 %}{{emp.week.5.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.6 %}{{emp.week.6.0}}{%endif%}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+    
+{% endblock content %}

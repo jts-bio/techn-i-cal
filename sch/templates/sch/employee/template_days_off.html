@@ -1,10 +1,15 @@
 {% extends "base.html" %}
-
+{% load tags %}
 
 {% block content %}
 
 <h1>Templated Days Off</h1>
 <h2>{{employee}}</h2>
+
+<a href="match/" class="btn btn-neutral"><div class="hstack">
+    <div>{% robotIcon %}</div>
+    <div>Match Template of Coworker</div>
+</div></a>
 
 <form method="post">
     {% csrf_token %}

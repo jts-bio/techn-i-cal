@@ -61,8 +61,13 @@
                 {% for sst in SSTGrid %}
                 {% if sst.1 %}
                     <div class="panel w-70" style="background-color:#5af7;border-color:#7bf;height:90px;width:70px;">
-                        <span style="font-size:9px;">Day {{sst.0}}</span><br />
+                        <span style="font-size:9px;">Day {{sst.0}}</span><br>
                         <span class="text-center" style="font-size:25px;font-style:italic;opacity:80%;padding-right:2px;">{{sst.1.0.shift}}</span>
+                    </div>
+                {% elif sst.2 %}
+                    <div class="panel w-70 bg-zinc-900" style="height:90px;">
+                        <span style="font-size:9px">Day {{sst.0}}</span><br>
+                        <span class="text-center">{% lockIcon '40px' '40px' %}</span>
                     </div>
                 {% else %}
                     <div class="panel w-70" style="height:90px;width:70px;">
@@ -70,9 +75,9 @@
                     </div>
                 {% endif %}
                 
-                {% if sst.0 == 6 %}
-                    </div>
-                    <div class="hstack">
+                    {% if sst.0 in multiplesOf7m1 %}
+                        </div> 
+                        <div class="hstack">
                     {% endif %} 
                 {% endfor %}
             </div>
@@ -104,5 +109,26 @@
     </div>
         
     </div>
+
+    <div class="panel">
+        <h2 class="text-2xl"><div class="hstack">
+            <div>{% mortarIcon %}</div><div>Unfavorables</div>
+        </div>
+        <div class="badge badge-primary">{{unfavorables|length}} Upcoming</div>
+    </h2>
+        {% regroup unfavorables by workday.iweek as ufs_week %}
+        <div class="hstack">
+        {% for s in ufs_week %}
+            <div class="vstack panel"> <div> WEEK {{s.grouper}}</div>
+                <div>
+                {% for sft in s.list %}
+                    <div class="badge badge-secondary">{{sft.shift}}</div>
+                {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+        </div>   
+    </div>
+
 </div>
 {% endblock %}

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block body %}
+
+
+    <a href="/sch/employee/{{emp1}}/" class="hstack">
+        <div>{% backArrow %}</div>
+        <div>{{emp1}}</div>
+    </a>
+
+
+<div class="vstack">
+
+    <div class="text-center"><h1 class="text-3xl">{{emp1}}/ {{emp2}} Days Together</h1></div>
+
+    <div class="hstack" style="justify-content:center;width:100%">
+        <table class="table table-compact">
+        <thead>
+            <tr>
+                <td></td>
+                <td>{{emp1}}</td>
+                <td>{{emp2}}</td>
+            </tr>
+        </thead>
+        {% for day in days %}
+        <tr>
+            <td><a href="{{day.url}}">{{day.date}}</a></td>
+            <td>{{day.sft1}}</td>
+            <td>{{day.sft2}}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    </div>
+</div>
+    
+{% endblock body %}
+    

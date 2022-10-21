@@ -24,12 +24,14 @@ background-size: 24%;
 <form method="post">  {% csrf_token %}
     <div class="hstack flex flex-wrap"> {{ formset.management_form }}
 
-    {% for form in formset %}
     <div class="panel">
-        <div class="emph">{{form.initial.employee}}</div>
-        {{form.as_div}}
+        {% for form in formset %}
+            <table>
+            <tr>{{form.initial.employee}}</tr>
+            {{form.as_table}}
+            </table>
+        {% endfor %}
     </div>
-    {% endfor %}
 
 </div>
     <input type="submit" value="Submit All" class="btn btn-lg btn-primary">

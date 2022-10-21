@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
-from . import views
+from . import views, actions
 
 
 urlpatterns = [
@@ -24,6 +24,7 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/clear-slots-form/', views.WEEK.ClearWeekSlotsView.as_view(), name='clear-week-slots-form'),
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
     path('week/weekly-hours/', views.WEEK.weeklyHoursView, name='weeks-weekly-hours'),
+    path('week/<int:year>/<int:week>/table/', views.WEEK.weekHoursTable, name='weeks-table'),
     
     #? ==== Pay Period ==== ?#
     path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),
@@ -44,9 +45,10 @@ urlpatterns = [
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
     path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
-    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), #TODO NOT WORKING!!
+    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), 
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
+    path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
 
     #? ==== Employees ==== ?#
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
@@ -55,13 +57,18 @@ urlpatterns = [
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
     path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
-    path('employee/<str:name>/ssts/', views.EmpSSTView, name='employee-edit-ssts'),   
+    path('employee/<str:name>/ssts/', views.EMPLOYEE.employeeSstsView, name='employee-edit-ssts'),   
     path('employee/<str:name>/ssts/add', views.EMPLOYEE.employeeCoworkerView, name='employee-coworker'),
+    path('employee/<str:name>/coworker/', views.EMPLOYEE.coWorkerSelectView, name='coworker-select'),
+    path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='coworker'),
     path('employee/<str:name>/template-days-off/', views.EMPLOYEE.employeeTemplatedDaysOffView, name='employee-tdos'),
+    path('employee/<str:name>/template-days-off/match/', views.EMPLOYEE.employeeMatchCoworkerTdosView, name='employee-days-off'),
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
     path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
-    path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),  # type: ignore
+    path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
+    path('employee/day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
+    
 
     #? ==== PTO Requests ==== ?#
     path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
@@ -70,11 +77,15 @@ urlpatterns = [
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),
     
     #? ==== SCHEDULE ==== ?#
-    path('schedule/', views.SCHEDULE.scheduleView, name='schedule'),
+    path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
+    path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
+    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),
     
     #? ==== TESTS ==== ?#
     path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
     path('test/<slug:workday>/<str:shift>/i-s/',views.TEST.possibleInterWeekSlotSwaps,name="test2"),
-    path('test/<slug:slotA>/<slug:slotB>/make-swap/',views.TEST.makeSwap,name="InterWeek Swap")
+    path('test/<slug:slotA>/<slug:slotB>/make-swap/',views.TEST.makeSwap,name="InterWeek Swap"),
+    path('spinner/',views.TEST.spinner,name="spinner"),
+    path('predict-streak/<str:employee>/<slug:workday>/', actions.PredictBot.predict_createdStreak, name="predict-streak"),
     
 ]

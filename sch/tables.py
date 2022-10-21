@@ -15,6 +15,7 @@ class EmployeeTable (tables.Table):
     name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
     avg_shift_pref_score = tables.columns.Column(verbose_name="Avg Shift Pref Score", accessor='avg_shift_pref_score')
     templated_days = tables.columns.Column(verbose_name='Templated Days', accessor='templated_days')
+    templated_days_off = tables.columns.Column(verbose_name='Templated Days Off', accessor='templated_days_off')
 
     class Meta:
         model           = Employee
@@ -25,6 +26,7 @@ class EmployeeTable (tables.Table):
             'streak_pref',
             'avg_shift_pref_score',
             'templated_days'
+            'templated_days_off',
             ]
         template_name   = 'django_tables2/semantic.html'
         attrs           = {"class":"table table-compact table-xs"}
@@ -40,7 +42,10 @@ class EmployeeTable (tables.Table):
         return f'{value:.0f}'
     
     def render_templated_days(self, record):
-        return f'{" ".join([st.reper for st in record.templated_days])}'
+        return len(record.templated_days)
+    
+    def render_templated_days_off(self,record):
+        return f'{" ".join([st.symb for st in record.templated_days_off])}'
 
 class EmployeeWeeklyHoursTable (tables.Table):
     """
@@ -66,10 +71,11 @@ class ShiftListTable (tables.Table) :
     name = tables.columns.LinkColumn("shift", args=[A("name")])
     hours = tables.columns.Column(verbose_name="Hours", attrs={"td": {"class": "small"}})
     is_iv = tables.columns.BooleanColumn(verbose_name="IV Room?")
+    cls = tables.columns.Column(verbose_name='Class')
     
     class Meta:
         model           = Shift
-        fields          = ['name','start','hours', 'is_iv','on_days_display']
+        fields          = ['name','start','hours', 'is_iv','on_days_display', 'cls']
         template_name   = 'django_tables2/bootstrap.html'
         
 class ShiftsWorkdayTable (tables.Table):
@@ -89,7 +95,7 @@ class ShiftsWorkdaySmallTable (tables.Table):
 
     class Meta:
         model           = Shift
-        fields          = ['name','employee']
+        fields          = ['name','employee','cls']
         template_name   = 'django_tables2/bootstrap.html'
         attrs           = {"class":"table table-compact table-xs"}
 
@@ -104,11 +110,11 @@ class WorkdayListTable (tables.Table):
     class Meta:
         model           = Workday
         fields          = [
-                            'date',         'iweek',        'iperiod',      'ischedule',
+                            'date',         'iweek',        'iperiod',      'ischedule',    'sd_id',
                             'iweekday',     'n_unfilled',   'days_away',
                             'percFilled'
                            ]
-        template_name   = 'django_tables2/bootstrap.html'
+        template_name   = 'django_tables2/bootstrap-responsive.html'
         attrs           = {"class":"table table-compact table-xs"}
 
     def render_n_unfilled(self, record):

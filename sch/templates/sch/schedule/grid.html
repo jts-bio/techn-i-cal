@@ -4,24 +4,30 @@
 
 {% block body %}
 
+    <a href="delete-all-slots/" class="btn btn-danger">Delete All Slots</a>
+    <a href="solve-slots/" class="btn btn-secondary">Solve</a>
+
     <table class="table table-compact table-xs" style="width:100%;">
         <thead>
             <tr>
                 <th>EMPLOYEES</th>
                 {% for day in days %}
-                <th><span style="font-family:Raleway;opacity:50%;font-weight:100;">{{day.date.month}}/{{day.date.day}}</span>
-                <div style="font-family:Raleway;font-weight:700;opacity:85%;">{{day.weekday.0}}</div></th>
+                    <th><span style="font-family:Raleway;opacity:50%;font-weight:100;">
+                        <a href="/sch/day/{{day.slug}}/">{{day.date.month}}/{{day.date.day}}</a> </span>
+                    <div style="font-family:Raleway;font-weight:700;opacity:85%;">{{day.weekday.0}}</div></th>
                 {% endfor %}
             </tr>
         </thead>
     {% for empl in employees %}
     <tr>
-        <th>{{empl}}</th>
+        <th><a href="/sch/employee/{{empl}}/">{{empl}}</a></th>
         {% for day in empl.schedule %}
             
             {% if day.1 == None %} 
                 {% if day.3 == None %}
+                    
                     <td style="opacity:30%;">*</td> 
+                    
                 {% else %}
                     <td style="background-color:#5d85d059;color:#ffffffa0;text-shadow:1px 1px 1px black;font-size:9px;">PTO</td>
                 {% endif %}
@@ -53,7 +59,16 @@
     {% endfor %}
     </table>
 
-
+<div class="panel">
+    <div class="hstack wrap">
+    {% for uf,count in unfavorables.items %}
+        <div class="vstack">
+            <div>{{uf}}</div>
+            <div>{{count}}</div>
+        </div>
+    {% endfor %}
+</div>
+</div>
 
 {% endblock body %}
 

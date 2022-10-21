@@ -1,9 +1,6 @@
 # TODO
 
 [ ] New Column on Slots Table-- Streak
-
-[x] New ViewSet: Pay Periods
-
 [ ] New Filtering: Hours in PayPrd don't exceed FTE
 
 ----------------
@@ -17,3 +14,4 @@
 ## Completed
 
 [x] New View: Table of All Weeks
+[x] New ViewSet: Pay Periods

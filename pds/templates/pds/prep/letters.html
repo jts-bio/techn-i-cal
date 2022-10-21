@@ -1,0 +1,12 @@
+<table>
+    <thead>
+        <th>
+            LETTER
+        </th>
+    </thead>
+    {% for letter in letters %}
+        <th>
+            <a href="letters/{{letter}}/"> {{letter}} </a>
+        </th>
+    {% endfor %}
+</table>

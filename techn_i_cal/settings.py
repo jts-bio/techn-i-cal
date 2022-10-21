@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
     "computedfields",

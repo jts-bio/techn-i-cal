@@ -30,6 +30,18 @@
         
     </table>
 </div>
+
+<table class="table table-compact table-2xs">
+    {% for emp in posEmpls %}
+        <tr>
+            <th>{{emp}}</th>
+            <td>{{emp.weeklyHours}} hrs</td>
+            <td>{{emp.periodHours}}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+
 <div class="panel">
     <h3>Need More or Different Options to fill this slot?</h3>
     <h1 class="text-lg">Override Overtime Guardrails</h1>

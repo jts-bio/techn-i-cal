@@ -12,14 +12,24 @@
 {% endblock style %}
 
 {% block content %}
+
     <h1 class="text-4xl text-center">Pay Period {{year}} #{{period}}</h1>
     <div class="hstack" style="width:100%;justify-content:space-around;">
         <a href="{{prevPeriodUrl}}">{% backArrow %}</a>
         <a href="{{nextPeriodUrl}}">{% forwardArrow %}</a>
     </div>
+
+
+
     <div class="panel">
         <a href="fill-template/">{% fillTemplateIcon %}</a>
+        <a href="solve-slots/"> {% robotIcon %} </a>
     </div>
+
+
+
+
+
     <div class="panel" style="text-align:center;font-size:10px;">
         <a href="{{ weekA_url }}" style="letter-spacing:4px;" class="btn btn-neutral">
              WEEK A 

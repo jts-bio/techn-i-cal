@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<div class="panel">
+    <form method="post"> {% csrf_token %}
+        {{form.as_table}}
+        <td><input type="submit" value="Submit and Match"></td>
+    </form>
+</div>
+    
+{% endblock content %}
+    

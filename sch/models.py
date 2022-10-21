@@ -223,7 +223,6 @@ class WorkdayManager (models.QuerySet):
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
 
-
 class EmployeeClass (models.Model):
     id          = models.CharField(max_length=5, primary_key=True)
     class_name  = models.CharField(max_length=40)
@@ -233,7 +232,7 @@ class EmployeeClass (models.Model):
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
-    #employee_class  = models.ForeignKey (EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
     start           = models.TimeField()
     duration        = models.DurationField()
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
@@ -267,6 +266,7 @@ class Shift (ComputedFieldsModel) :
     def end (self):
         return (dt.datetime(2022,1,1,self.start.hour,self.start.minute) + self.duration).time()
 
+    @property
     def info_prefRatio (self):
         likes = ShiftPreference.objects.filter(score__gt=0,shift=self).count()
         dislikes = ShiftPreference.objects.filter(score__lt=0,shift=self).count()
@@ -275,6 +275,7 @@ class Shift (ComputedFieldsModel) :
         else:
             return 0
 
+    @property
     def trained_employees (self):
         return Employee.objects.filter(shifts_trained=self)
 
@@ -288,7 +289,8 @@ class Employee (ComputedFieldsModel) :
     shifts_trained  = models.ManyToManyField(Shift, related_name='trained')
     shifts_available= models.ManyToManyField(Shift, related_name='available')
     streak_pref     = models.IntegerField(default=3)
-    #employee_class  = models.ForeignKey(EmployeeClass, on_delete=models.CASCADE, null=True, blank=True)
+    cls             = models.CharField(choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=4)
+    evening_pref    = models.BooleanField(default=False)
     
 
     def __str__(self) :
@@ -311,6 +313,9 @@ class Employee (ComputedFieldsModel) :
     def weekly_hours (self, year, iweek):
         return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
 
+    def period_hours (self, year, iperiod):
+        return Slot.objects.filter(workday__date__year=year,workday__iperiod=iperiod, employee=self).aggregate(hours=Sum('hours'))['hours']
+
     @property
     def avg_shift_pref_score (self):
         return Employee.objects.filter(pk=self.pk).annotate(
@@ -329,9 +334,30 @@ class Employee (ComputedFieldsModel) :
     def templated_days_display (self):
         return " ".join([s.day for s in self.templated_days])
     
+    @property
+    def templated_days_off (self):
+        return TemplatedDayOff.objects.filter(employee=self)
+    
+    @property
+    def templated_days_off_display (self):
+        return " ".join([s.day for s in self.templated_days_off])
+    
+    
+    def ftePercForWeek (self, year, iweek):
+        if self.fte == 0:
+            return 0.8
+        if self.weekly_hours(year,iweek) == None:
+            return 0
+        return  self.weekly_hours(year,iweek) / (Employee.objects.get(pk=self.pk).fte_14_day/ 2)
+    
     def count_shift_occurances (self):
         slots = Slot.objects.filter(employee=self).values('shift__name')
         return slots.distinct().annotate(count=Count('shift__name'))
+    
+    @property
+    def get_TdoSlotConflicts (self):
+        tdos = list(TemplatedDayOff.objects.filter(employee=self).values_list('pk',flat=True))
+        return Slot.objects.filter(workday__sd_id__in=tdos, employee=self)
     
     
     def info_printWeek(self,year,week):
@@ -340,11 +366,6 @@ class Employee (ComputedFieldsModel) :
     
        
     objects = EmployeeManager.as_manager()
-
-class EmployeeClass (models.Model):
-    id          = models.CharField(max_length=5, primary_key=True)
-    class_name  = models.CharField(max_length=40) 
-
 
 
 # ============================================================================
@@ -386,6 +407,12 @@ class Workday (ComputedFieldsModel) :
     def ischedule (self) -> int:
         # range 0 -> 9
         return self.iperiod // 3 
+    
+    @computed(models.IntegerField(),depends=[('self',['date'])])
+    def sd_id (self) -> int:
+        # range 0 -> 41
+        return (self.date - dt.date(2022,9,4)).days % 42
+    
     
     @property
     def weekday (self) -> str :
@@ -475,7 +502,13 @@ class Workday (ComputedFieldsModel) :
                 score=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'),shift=OuterRef('shift')).values('score'))
             ).filter(score__lt=0)
         
-    
+    @property
+    def areTemplateSlotsFilled (self):
+        tslots = ShiftTemplate.objects.filter(ppd_id=self.ppd_id).values_list('shift',flat=True)
+        for shift in tslots:
+            if not self.filledSlots.filter(shift=shift).exists():
+                return False
+        return True
     
     @property
     def printSchedule (self):
@@ -494,7 +527,7 @@ class Week (ComputedFieldsModel) :
     ]
 
     iweek = models.IntegerField() 
-    year = models.IntegerField()
+    year  = models.IntegerField()
 
     @property
     def slug (self) -> str: 
@@ -578,7 +611,7 @@ class Slot (ComputedFieldsModel) :
             else:
                 return False
 
-    @property
+    @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_preturnaround (self) -> bool:
         if self.shift.start < dt.time(12,0):
             return False
@@ -623,9 +656,9 @@ class Slot (ComputedFieldsModel) :
             return self.streak > self.employee.streak_pref
         else:
             return False
-            
-
+    
     objects = SlotManager.as_manager()
+    
 # ============================================================================
 class ShiftTemplate (models.Model) :
     # fields: name, start, duration 
@@ -655,10 +688,6 @@ class ShiftTemplate (models.Model) :
     
     def __str__(self) :
         return f'{self.weekday}{self.weekAB()}:{self.shift.name} Template'
-    
-    @property
-    def reper (self) :
-        return f'{self.ppd_id}[{self.shift.name}]'
 
     class Meta:
         unique_together = ['shift', 'ppd_id']
@@ -666,17 +695,27 @@ class ShiftTemplate (models.Model) :
 
 class TemplatedDayOff (models.Model) :
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    ppd_id   = models.IntegerField() 
+    ppd_id   = models.IntegerField(null=True) 
+    sd_id    = models.IntegerField()
+    
+    @property
+    def symb (self) :
+        return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"[self.sd_id]
 
     def weekAB (self):
-        return 'A' if self.ppd_id < 7 else 'B'
+        if self.sd_id == None:
+            return 'G'
+        return 'ABCDEF' [self.sd_id // 7]
     
     def weekday (self):
-        days = "Sun Mon Tue Wed Thu Fri Sat".split()
-        return days[self.ppd_id % 7]
+        days = "Sun Mon Tue Wed Thu Fri Sat".split(" ")
+        return days[self.sd_id % 7]
     
     def __str__ (self) :
-        return f'{self.weekday()}{self.weekAB()}'
+        return f'{self.weekday}{self.sd_id}'
+    
+    class Meta:
+        unique_together = ['employee','sd_id']
     
     
 # ============================================================================
@@ -685,7 +724,6 @@ PTO_STATUS_CHOICES = (
     ('A', 'Approved'),
     ('D', 'Denied'),
 )
-
 class PtoRequest (ComputedFieldsModel): 
     employee         = models.ForeignKey(Employee, on_delete=models.CASCADE)
     workday          = models.DateField(null=True, blank=True)
@@ -710,6 +748,7 @@ class PtoRequest (ComputedFieldsModel):
     @property
     def days_away (self):
         return (self.workday.date - dt.date.today()).days
+
 PRIORITIES = (
     ('L', 'Low'),
     ('M', 'Medium'),
@@ -724,6 +763,7 @@ class SlotPriority (models.Model):
     class Meta:
         unique_together = ['iweekday', 'shift']     
 # ============================================================================
+
 PREF_SCORES = (
     ('SP', 'Strongly Prefer'),
     ('P', 'Prefer'),
@@ -731,7 +771,6 @@ PREF_SCORES = (
     ('D', 'Dislike'),
     ('SD', 'Strongly Dislike'),
 )
-
 class ShiftPreference (ComputedFieldsModel):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
@@ -775,3 +814,6 @@ def sortDict (d):
     """ SORT DICT BY VALUE """
     return {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
 
+
+def dayLetter (i):
+    return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"

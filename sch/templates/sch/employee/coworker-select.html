@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block content %}
+
+    <a href="/sch/employee/{{employee}}/" class="hstack">
+        <div>{% backArrow %}</div>
+        <div>{{employee}}</div>
+    </a>
+
+    <div class="vstack">
+        <div class="panel">
+            {% for emp in employees %}
+            <a href="{{emp}}/" class="btn btn-xs btn-primary">{{emp}}</a>
+            {% endfor %}
+        </div>
+    </div>
+    
+{% endblock content %}
+    

@@ -9,20 +9,22 @@ TODAY = dt.date.today()
 class ShiftForm (forms.ModelForm) :
     class Meta:
         model = Shift
-        fields = ['name', 'start', 'duration','occur_days']
+        fields = ['name', 'start', 'duration','occur_days','cls']
         labels = {
             'name': 'Shift name',
             'start': 'Start time',
             'duration': 'Duration',
             'occur_days': 'Days of the week',
-            'employee_class': "Shift for"
+            'employee_class': "Shift for",
+            'cls': 'Shift Class'
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'start': forms.TimeInput(attrs={'class': 'form-control'}),
             'duration': forms.TimeInput(attrs={'class': 'form-control'}),
             'occur_days': forms.CheckboxSelectMultiple(),
-            'employee_class': forms.RadioSelect(),
+            'cls': forms.RadioSelect(),
+            
         }
 
 class SSTForm (forms.ModelForm) :
@@ -34,7 +36,7 @@ class SSTForm (forms.ModelForm) :
         fields = ['shift', 'ppd_id', 'employee']
         labels = {
             'shift': 'Shift',
-            'ppd_id': 'PPD ID',
+            'ppd_id': 'sD ID',
             'employee': 'Employee',
         }
         widgets = {
@@ -46,37 +48,41 @@ class SSTForm (forms.ModelForm) :
 class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref',] #'employee_class'
+        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','evening_pref'] 
         labels = {
             'fte_14_day': 'FTE (hrs/ 14 days)',
+            'cls':'Employee Class',
+            'evening_pref': 'Prefers Working Evenings?'
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'shifts_trained': forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
-            #'employee_class': forms.RadioSelect(),
+            'cls': forms.RadioSelect(),
         }
         
 
 class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name','fte_14_day', 'streak_pref', 'shifts_trained', 'shifts_available', ] # 'employee_class'
+        fields = ['name','fte_14_day', 'streak_pref', 'shifts_trained', 'shifts_available', 'cls','evening_pref'] 
         labels = {
             'fte_14_day': 'FTE (hours per 14 days)',
+            'cls': 'Employee Class',
+            'evening_pref': "Prefers PM"
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
-            #'employee_class'  : forms.RadioSelect(choices=EmployeeClass.objects.all()),
+            'cls'  : forms.RadioSelect(),
         }
 
 class SstEmployeeForm (forms.Form):
     
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), required=False)
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-    ppd_id   = forms.IntegerField(widget=forms.HiddenInput())
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
+    ppd_id   = forms.IntegerField(widget=forms.HiddenInput(),required=False)
 
     def __init__(self, *args, **kwargs):
         super(SstEmployeeForm, self).__init__(*args, **kwargs)
@@ -96,11 +102,11 @@ class SstEmployeeForm (forms.Form):
         else:
             other_empls = Employee.objects.all()
         occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id'),employee__in=other_empls).values('shift')
-        ppd_id_proxy = self.initial.get('ppd_id')
+        ppd_id_proxy = self.initial.get('ppd_id') 
         if ppd_id_proxy is None:
             ppd_id_proxy = 0
-        if ppd_id_proxy > 6:
-            ppd_id_proxy -= 7
+        else:
+            ppd_id_proxy = int(ppd_id_proxy) % 7
         if employee:
             shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=ppd_id_proxy)
         else:
@@ -119,26 +125,49 @@ class SstEmployeeForm (forms.Form):
 class EmployeeTemplatedDaysOffForm (forms.ModelForm):
     
     is_templated_off = forms.BooleanField(label='Day off', required=False)
-    ppd_id   = forms.IntegerField(widget=forms.HiddenInput(), required=False)
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
+    sd_id    = forms.IntegerField(widget=forms.HiddenInput(),required=True)
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=True)
     
     class Meta:
         model = TemplatedDayOff
-        fields = ['ppd_id','is_templated_off', 'employee']
+        fields = ['is_templated_off', 'employee','sd_id']
         labels = {
-            'ppd_id': 'Day from month start',
+            'sd_id': 'Day from month start',
         }
         widgets = {
-            'ppd_id'   : forms.HiddenInput(),
+            'sd_id'   : forms.HiddenInput(),
         }
         
-        def __init__(self, *args, **kwargs):
-            super(EmployeeTemplatedDaysOffForm, self).__init__(*args, **kwargs)
-            employee = self.initial.get('employee')
-            self.initial['ppd_id'] = self.initial['ppd_id']
+    # if checked and already existing: pass and don't error
+    # if checked and not existing: create
+    # if not checked and not existing: pass and don't error
+    # if not checked and existing: delete
+    def clean(self):
+        cleaned_data = super().clean()
+        td = TemplatedDayOff.objects.filter(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])
+        if cleaned_data['is_templated_off']:    # create or pass
+            if td.exists():                    # pass
+                pass
+            else:                              # create 
+                td = TemplatedDayOff.objects.create(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])  # type: ignore
+        else:                                  # delete or pass
+            if td.exists():                    # delete
+                td[0].delete()  
+            else:
+                pass
             
-            wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
-            self.fields['is_templated_off'].label = wds[self.initial.get('ppd_id')]
+class EmployeeMatchCoworkerTdosForm (forms.ModelForm):
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=True)
+    coworker = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select(),required=True)
+    
+    class Meta:
+        model = TemplatedDayOff
+        fields = ['employee', 'coworker']
+        
+    def clean(self):
+        cleaned_data = super().clean()
+
+        return cleaned_data
 
 class EmployeeScheduleForm(forms.Form):
     employee  = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
@@ -394,4 +423,7 @@ class TrainedEmployeeShiftForm (forms.Form):
         self.fields['is_trained'].label = 'Trained'
         self.fields['is_available'].label = 'Available'
 
+class EmployeeCoworkerSelectForm (forms.Form):
+    
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select())
     

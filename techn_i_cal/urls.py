@@ -33,5 +33,6 @@ urlpatterns = [
     path('' , index,  name='index'),
     path('admin/',  admin.site.urls ),
     path('sch/',    include('sch.urls'),    name='sch'),
+    path('pds/',    include('pds.urls'),    name='pds'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

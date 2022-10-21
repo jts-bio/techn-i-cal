@@ -21,14 +21,15 @@
 
 <a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">
   <div class="hstack">
-  <span>{% backArrow %}</span> <span>WEEK</span>
+    <span>{% backArrow %}</span> 
+    <span>WEEK</span>
   </div>
 </a>
 
 <section>
-  <div class="center text-center">{% include 'sch/workday/dayChanger.html' %}</div>
-  <div class="hstack" style="justify-items:space-between;">
-    <div class="vstack" style="align-items:center;">
+  <div class="hstack" style="justify-content:space-around;">{% include 'sch/workday/dayChanger.html' %}</div>
+  <div class="hstack" style="justify-items:space-between;align-items:start;">
+    <div class="vstack" style="align-items:start;">
       <div style="justify-content:center;">
         {% nDaysAway wd.date %}
       </div>
@@ -76,7 +77,7 @@
       <div style="margin-top: 10px">
         <span> PTO: </span>
         {% if ptoReqs %} {% for req in ptoReqs %}
-           {{ req.employee__name }} 
+           <a href="#" class="btn btn-neutral btn-xs">{{ req.employee__name }}</a>
         {% endfor %} {% endif %}
         <br>
         <a href="add-pto/">{% addNewIcon %}</a>
@@ -90,6 +91,8 @@
       </div>
     </div>
     <div class="panel">
+      <h2 style="text-align:center;">
+        TOOLBOX</h2>
       {% include 'sch/workday/tools_panel.html' %}
     </div>
   </div>

@@ -110,3 +110,20 @@ def sortingHatIcon (width="20px", height="20px", fill="#bbbbbbaa"):
 @register.inclusion_tag("posion.svg")
 def posionIcon (width="20px", height="20px", fill="#003322dd"):
     return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("mortarPestle.svg")
+def mortarIcon (width="20px", height="20px", fill="#8899dddd"):
+    return {'width': width,'height': height,'fill': fill}
+
+@register.inclusion_tag("RxStaff.svg")
+def staffIcon (width="20px", height="20px", fill="#8899dddd"):
+    return {'width': width,'height': height,'fill': fill}
+
+
+@register.simple_tag
+def todayYear ():
+    return dt.date.today().year 
+
+@register.simple_tag
+def todaySch ():
+    return 7

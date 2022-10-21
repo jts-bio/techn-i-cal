@@ -1,9 +1,21 @@
 {% load tags %}
 
-<a class="btn btn-primary" style="float:right;" href="fill-template/">
-    {% fillTemplateIcon %} <span>FILL TEMPLATE SLOTS</span>
+<a class="btn btn-primary" 
+   style="float:right;" 
+   href="fill-template/" 
+   {%if wd.areTemplateSlotsFilled %} disabled {%endif%}>
+  {% fillTemplateIcon %} <span>FILL TEMPLATE SLOTS </span>
 </a>
-  <div>
-    <a class="btn btn-neutral" href="run-swaps/">
-     <span style="margin-right:10px;"> {% shuffleIcon %}</span> FIND TRADES {{swapped}} <span class="badge badge-secondary" style="margin-left:10px;" title="Overall Shift Preference, (max= 100%)">{{overallSftPref}}%</span> </a> 
-  </div>
+
+<div>
+    <a class="btn btn-neutral" 
+       href="run-swaps/">
+        <span style="margin-right:10px;"> {% shuffleIcon %}</span> 
+          FIND TRADES {{swapped}} 
+        <span class="badge badge-secondary" 
+              style="margin-left:10px;" 
+              title="Overall Shift Preference, (max= 100%)">
+              {{overallSftPref}}%
+        </span> 
+      </a> 
+</div>

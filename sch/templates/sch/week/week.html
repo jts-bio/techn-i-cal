@@ -11,12 +11,24 @@
         background-repeat: repeat;
         background-size: 20%;
     }
+
+    .btn-coral {
+        background-color: coral!important;
+        color: white!important;
+        margin-bottom: 7px;
+    }
+
 </style>
 
 {% endblock style %}
 
 
 {% block content %}
+
+<div class="text-center">
+
+</div>
+
 
 <div class="badge badge badge-primary" style="float:right;"> <a href="/sch/docs/week/"> Need Help?</a></div>
 
@@ -28,7 +40,7 @@
     <div class="vstack" style="align-items:center;">
         <h1 class="text-3xl"> Week {{week_num}} </h1>
         <a href="/sch/pay-period/{{year}}/{{pay_period}}/">
-            <h2 class="btn btn-sm" style="background-color:coral padding:2px 4px;">PAY PERIOD {{pay_period}}</h2>
+            <h2 class="btn btn-sm btn-coral"> PAY PERIOD {{pay_period}} </h2>
         </a>
     </div>
 
@@ -62,7 +74,7 @@
 <div class="panel hstack" style="justify-content:space-between;">
 
     <div class="tooltip" data-tip="Weekly Shift Preference Score">
-        <div class="radial-progress" style="--value:{{weekprefScore}};">
+        <div class="radial-progress" style="--value:{{weekprefScore}};background-color:rgb(22, 25, 30)">
             {% favoriteIcon %} <span class="text-xs">{{weekprefScore}}%</span>
         </div>
     </div>
@@ -111,22 +123,34 @@
     </div>
     {% endif %}{% endif %}
 
+    <a href="table/">View Table</a>
+
     <div class="vstack" style="align-items:center;float:end;">
+        
         <div class="hstack">
+            
             <div class="tooltip" data-tip="FILL Templated Slots">
-                <a class="btn btn-neutral" href="fill-template/">{% fillTemplateIcon %} </a>
+                <a class="btn btn-neutral" href="fill-template/">
+                    {% fillTemplateIcon %} </a>
             </div>
+           
 
             <div class="tooltip" data-tip="RUN Assignment Solver">
-                <a class="btn btn-neutral" href="solve/">{% robotIcon %} </a>
+                <a class="btn btn-neutral" href="solve/">
+                    {% robotIcon %} </a>
             </div>
+
             <div class="tooltip" data-tip="SORT & SWAP To Improve Schedule">
-                <a href="swap-bot/" class="btn btn-neutral" color="text-accent">{% sortingHatIcon %}</a>
+                <a class="btn btn-neutral" color="text-accent" href="swap-bot/">
+                    {% sortingHatIcon %}
+                </a>
             </div>
+
             <div class="tooltip" data-tip="CLEAR & RETRY Low Preference Slots">
                 <a href="clear-low-score-slots/" class="btn btn-neutral"
                     style="background-color:rgb(150, 112, 9);color:rgb(255, 255, 255);">{% posionIcon %}</a>
             </div>
+
             <div class="tooltip" data-tip="CLEAR All Slots This Week">
                 <a class="btn btn-danger" href="clear-slots-form/"
                     style="background-color:rgb(69, 10, 11);color:rgb(235, 235, 235);">{% clearIcon %}</a>
@@ -139,7 +163,14 @@
 
 </div>
 
-
+<script>
+    function showLoader () {
+        var loaders = document.getElementById('loadIndicator2');
+        loaders.style.display = "inline";
+        loaders.style.hidden = "false";
+        })
+    }
+</script>
 
 <div class="hstack" style="justify-content:space-between;">
     {% for day in workdays %}
@@ -199,11 +230,30 @@
 
     </div>
     {% endfor %}
+    
+    
+
+</div>
+<div class="panel">
+    <div class="hstack" style="flex-wrap: wrap;">
+    {% for uf,count in unfavorables.items %}
+        <div class="hstack">
+            <div>{% mortarIcon %}</div>
+            <div>{{uf}} <span style="border:1px solid #aabbdd;width:30px;border-radius:100px;padding:3px;">{{count}}</span> </div>
+        </div>
+    {% endfor %}
+    </div>
+        
+</div>
+
+</div>
+
 
 
 </div>
-</div>
 
+
+<script src="https://unpkg.com/htmx.org@1.8.2" integrity="sha384-+8ISc/waZcRdXCLxVgbsLzay31nCdyZXQxnsUy++HJzJliTzxKWr0m1cIEMyUzQu" crossorigin="anonymous"></script>
 
 
 

@@ -55,9 +55,7 @@
                 <tr>
                     <th>TRAINED EMPLOYEES</th>
                     <td>
-                        {% for emp in shift.trained_employees %}
-                            <a href="{{emp.url}}" style="background-color:#0000;">{{ emp }}</a> <br>
-                        {% endfor %}
+                        {{count}}
                     </td>
                 </tr>
             </table>
@@ -82,6 +80,14 @@
         </div>
         {% endfor %}
     </div>
+    <div class="panel">
+        <a href="upcoming/" class="btn btn-secondary btn-xs">
+            <div class="hstack">
+                <div>{% staffIcon '15px' '15px' '#ffffff' %}</div>
+                <div>View Upcoming Occurances</div>
+            </div>
+        </a>
+    </div>
 
 </div>
 
@@ -91,12 +97,12 @@
     <div class="hstack">
         {% for sst in ssts %}
         {% if sst.1 %}
-            <div class="panel" style="background-color:#5af7;border-color:#7bf;height:90px;width:110px;">
+            <div class="panel" style="background-color:#5af7;border-color:#7bf;height:90px;width:125px;">
                 <span style="font-size:11px;">Day {{sst.0}}</span><br/>
                 <span class="lg" style="font-size:13px;color:#fff7">{{sst.1.0.employee}}</span>
             </div>
         {% else %}
-            <div class="panel w-70" style="height:90px;">
+            <div class="panel w-70" style="height:90px;width:125px;">
                 <span class="small">N/A</span>
             </div>
         {% endif %}

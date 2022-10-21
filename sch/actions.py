@@ -75,23 +75,9 @@ class WorkdayActions:
                         other_slot = Slot.objects.get(shift=mf.shift, workday=workday)
                         other_slot.employee = empl
                         other_slot.save()
-                
-            # if ShiftPreference.objects.filter(employee=empl, shift=slot.shift).exists():
-            #     currentScore = ShiftPreference.objects.get(employee=empl, shift=slot.shift).score
-            #     moreFavorables = ShiftPreference.objects.filter(employee=empl, score__gt=currentScore)
-            #     if moreFavorables.exists():
-            #         for mf in moreFavorables:
-            #             currentOccupant = Slot.objects.get(workday=workday, shift=mf.shift).employee
-            #             if ShiftPreference.objects.filter(employee=currentOccupant, shift=mf.shift).exists():
-            #                 currentOccScore = ShiftPreference.objects.get(employee=currentOccupant, shift=mf.shift).score
-            #                 if ShiftPreference.objects.filter(employee=currentOccupant, shift=slot.shift).exists():
-            #                     currentOccSwapScore = ShiftPreference.objects.get(employee=currentOccupant, shift=slot.shift).score
-            #                     if currentOccSwapScore > currentOccScore:
-            #                         if Slot.objects.get(workday=workday, shift=mf.shift).employee != empl:
-            #                             Slot.objects.filter(workday=workday, shift=slot.shift).update(employee=Slot.objects.get(workday=workday, shift=mf.shift).employee)
-            #                             Slot.objects.filter(workday=workday, shift=mf.shift).update(employee=empl)
 
 class WeekActions:
+    
     def getAllWeekNumbers ():
         """
         Returns a list of all week numbers in the database
@@ -115,6 +101,7 @@ class WeekActions:
             slot.delete()
         
 class PayPeriodActions:
+    
     def getPeriodFtePercents (year,pp):
         employees = Employee.objects.filter(fte__gt=0)
         slots = Slot.objects.filter(workday__date__year=year,workday__iperiod=pp)
@@ -130,7 +117,16 @@ class PayPeriodActions:
         slots = Slot.objects.filter(workday=workday).count()
         shifts = Shift.objects.filter(occur_days__contains=workday.iweekday).count()
         return int((slots/shifts)*100)
+
 class ScheduleBot:
+    
+    def get_unfavorables (year, sch):
+        nfs = tally(list(
+            Slot.objects.filter(
+                shift__start__gt = dt.time(10,00),
+                workday__ischedule = sch,
+            ).values_list('employee__name',flat=True)))
+        return nfs
     
     def performSolvingFunctionOnce (year, week):
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
@@ -150,10 +146,12 @@ class ScheduleBot:
         
         while attempting_slot < 5 :
             
-            if len(unfilledSlots) < attempting_slot:
+            if len(unfilledSlots) <= attempting_slot:
                 return True
             
-            slot = unfilledSlots[attempting_slot]
+            
+            
+            slot = unfilledSlots[attempting_slot-1]
             
             # for each slot, assign the employee who has the least number of other slots they could fill
             day = slot[0]
@@ -177,7 +175,7 @@ class ScheduleBot:
             for pt_emp in wk_hours_pt:
                 weekly_hours= pt_emp.weekly_hours(day.date.year,day.iweek) 
                 if weekly_hours:
-                    if weekly_hours > pt_emp.fte_14_day / 2 : 
+                    if weekly_hours >= pt_emp.fte_14_day / 2 : 
                         empl = empl.exclude(pk=pt_emp.pk)
             
             empl = empl.exclude(pk__in=incompat_empl)
@@ -193,7 +191,7 @@ class ScheduleBot:
             if empl.count() == 0:
                 attempting_slot += 1
             else: 
-                rand = random.randint(0,int(empl.count()/2))
+                rand = random.randint(0,int(empl.count()-1))
                 empl = empl[rand]
                 newslot = Slot.objects.create(workday=day, shift=shift, employee=empl)
                 newslot.save()
@@ -217,6 +215,7 @@ class ScheduleBot:
         shift_list = [Shift.objects.filter(occur_days__contains=i) for i in range(7)]
     
     # ==== INTER-DAY SWAP FUNCTIONS ==== 
+    
     def is_agreeable_swap (slotA, slotB):
         employeeA = slotA.employee
         if ShiftPreference.objects.filter(employee=employeeA, shift=slotA.shift).exists():
@@ -282,9 +281,8 @@ class ScheduleBot:
         return None
        
     # ==== INTER-WEEK SWAP FUNCTIONS ====
-    
         
-    def WdOverallShiftPrefScore(workday) -> int:
+    def WdOverallShiftPrefScore (workday) -> int:
         """
         A Value describing the overall affinity of the shifts employees were assigned for that day. Higher score should
         mean employees on average are assigned to the shifts they like the most.
@@ -314,6 +312,72 @@ class ScheduleBot:
             if PredictBot.predict_streak(empl,workday) <= empl.streak_pref:
                 output.append (empl.pk)
         return Employee.objects.filter(pk__in=output)
+    
+    # ==== SCHEDULE =====
+    
+    def solveSchedule (yr,sch):
+        
+        wds = Workday.objects.filter(date__year=yr,ischedule=sch)
+        
+        for day in wds:
+            WorkdayActions.fillDailySST(day)
+        
+        if len(wds) == 0:
+            return False
+        
+        for day in wds:
+            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+            day.slots     = Slot.objects.filter(workday=day)
+        
+        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        
+        # sort this list by the number of employees who could fill the slot
+        unfilledSlots.sort (key=lambda x: x[2])
+        
+        for slot in unfilledSlots:
+            employees = Employee.objects.can_fill_shift_on_day(shift=slot[1],workday=slot[0])
+            
+            employee_lowest_fte_percent = [emp.ftePercForWeek(slot[0].date.year,slot[0].iweek) for emp in employees]
+        
+            if len(employees) != 0:
+               # select lowest fte
+                index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
+                empl      = employees[index]
+                newSlot   = Slot.objects.create(workday=slot[0],shift=slot[1],employee=empl)
+                newSlot.save() 
+        
+        
+class EmployeeBot:
+    
+    def get_emplUpcomingUnfavorables (employeeName):
+        td = Workday.objects.get(date=dt.date.today())
+        week0 = td.iweek
+        weeks = range(week0, week0 + 6)
+        return Slot.objects.filter(workday__iweek__in=weeks,workday__date__year=td.date.year, shift__start__hour__gte=10, employee__name=employeeName)
+        
+    
+    def empScheduleHours (employeeName,year,sch):
+        """Get #hrs an employee is scheduled for a particular schedule"""
+        return sum(list(Slot.objects.filter(
+            workday__ischedule=sch,workday__date__year=year,employee__name=employeeName).values_list('shift__hours',flat=True)))
+        
+    def empScheduleHoursByWeek (employeeName,year,sch):
+        first_day   = Workday.objects.filter(date__year=year,ischedule=sch).first()
+        week_nums   = range(first_day.iweek, first_day.iweek + 6)
+        week_totals = []
+        for week in week_nums:
+            week_totals.append(sum(list(Slot.objects.filter(
+                workday__iweek=week,workday__date__year=year,employee__name=employeeName).values_list('shift__hours',flat=True))))
+        return week_totals
+        
+    def empScheduleHoursFtePercent (employeeName,year,sch):
+        """Get a % Expected hours for a given schedule"""
+        empl = Employee.objects.get(name=employeeName)
+        if empl.fte == 0:
+            return None
+        total = EmployeeBot.empScheduleHours(employeeName,year,sch)
+        return total / (empl.fte * 3 * 80)
     
 class ShiftPrefBot :
     
@@ -375,6 +439,15 @@ class PredictBot :
             return streak + 1
         else :
             return 1
-    
-            
-            
+        
+    def predict_createdStreak (employee, workday):
+        if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists():
+            if Slot.objects.filter(employee=employee,workday=workday.nextWD()).exists() == False:
+                return Slot.objects.get(employee=employee,workday=workday.prevWD()).streak + 1
+            elif Slot.objects.filter(employee=employee,workday=workday.nextWD()).exists():
+                i = 1
+                while Slot.objects.filter(employee=employee,workday__date=workday.date + dt.timedelta(days=i)).exists():
+                    i += 1
+                return Slot.objects.get(employee=employee,workday=workday.prevWD()).streak + 1 + i
+        if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists() == False:
+            return 1

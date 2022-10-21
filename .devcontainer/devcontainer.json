@@ -5,7 +5,11 @@
 	"vscode": {
 		"extensions": [
 			"GitHub.copilot",
-			"ms-python.python"
+			"ms-python.python",
+			"GitHub.copilot-nightly",
+			"GitHub.copilot-labs",
+			"christian-kohler.path-intellisense",
+			"mgesbert.python-path"
 		]
 	}
 }
