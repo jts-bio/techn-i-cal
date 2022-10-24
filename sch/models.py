@@ -177,6 +177,15 @@ class EmployeeManager (models.QuerySet):
         for empl in weeklyHours:
             if weeklyHours[empl]['hours'] is None:
                 weeklyHours[empl]['hours'] = 0
+                weeklyHours[empl]['weeklyPercent'] = 0
+            if empl.fte == 0:
+                weeklyHours[empl]['weeklyPercent'] = 1
+            else:
+                weeklyHours[empl]['weeklyPercent'] = weeklyHours[empl]['hours']/( empl.fte  * 40)
+        # find min value for weeklyPercent
+        minPercent = min(weeklyHours.values(), key=lambda x: x['weeklyPercent'])
+        # get that employee: with min weeklyPercent
+        minEmpl = list(weeklyHours.keys())[list(weeklyHours.values()).index(minPercent)]
         return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
         
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
@@ -315,6 +324,14 @@ class Employee (ComputedFieldsModel) :
 
     def weekly_hours (self, year, iweek):
         return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
+
+    def weekly_hours_perc (self,year, iweek):
+        """
+        Returns the ratio of hours worked to hours scheduled.
+        """
+        if self.fte == 0:
+            return 1
+        return round(self.weekly_hours(year,iweek)/(self.fte*80/2),2)
 
     def period_hours (self, year, iperiod):
         return Slot.objects.filter(workday__date__year=year,workday__iperiod=iperiod, employee=self).aggregate(hours=Sum('hours'))['hours']

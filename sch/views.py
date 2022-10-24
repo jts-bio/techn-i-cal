@@ -7,7 +7,7 @@ from django.views.generic.edit import UpdateView, DeleteView, FormView
 from django.forms import formset_factory
 from django.contrib import messages
 
-from sql_utils.utils import SubqueryAggregate
+
 import itertools
 
 from .models import *
@@ -728,6 +728,8 @@ class SHIFT :
         return render(request, 'sch/shift/trained_available_emps.html', context)
                         
 class EMPLOYEE:
+    
+    
     class EmployeeListView (ListView):
         model           = Employee
         template_name   = 'sch/employee/employee_list.html'
@@ -1204,6 +1206,18 @@ class EMPLOYEE:
         return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
 
 class SLOT:
+    class GET :
+        def empl__weekbestFill (workday,shift):
+            yr = workday.date.year 
+            iweek = workday.iweek 
+            employees = Employee.objects.can_fill_shift_on_day(shift,workday)
+            data = {
+                empl : empl.weekly_hours_perc (yr,iweek)
+                for empl in employees 
+                    }
+            # return empl with the lowest week-percentage
+            return min(data, key=data.get) if data else None
+            
 
     def create_slot (request, date, shift):
 
@@ -1242,14 +1256,15 @@ class SLOT:
             context['shift'] = Shift.objects.get(name=self.kwargs['shift'])
             context['slots'] = Slot.objects.filter(workday__slug=self.kwargs['date'])
             empls            = Employee.objects.can_fill_shift_on_day(
-                                    shift=context['shift'], workday=context['date'], method="available")
+                                    shift=context['shift'], workday=context['date'], method="available") #.order_by(F('weeklyPercent').desc(nulls_last=True))
+                                    
             for empl in empls:
                 empl.weeklyHours = empl.weekly_hours(year,week)
+                empl.weeklyPercent = empl.weekly_hours_perc(year,week)
                 empl.periodHours = empl.period_hours(year,period)
+                
             context['posEmpls'] = empls
-            
-            print(empls._query)
-                                    
+            context['bestFill'] = SLOT.GET.empl__weekbestFill (wd,context['shift'])     
             
             return context
             
