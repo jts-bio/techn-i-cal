@@ -7,6 +7,9 @@ from django.views.generic.edit import UpdateView, DeleteView, FormView
 from django.forms import formset_factory
 from django.contrib import messages
 
+from sql_utils.utils import SubqueryAggregate
+import itertools
+
 from .models import *
 
 from .forms import *
@@ -321,7 +324,18 @@ class WEEK:
             context['dateFrom']     = context['workdays'].first().slug
             context['dateTo']       = context['workdays'].last().nextWD().slug
             
-            context['unfavorables'] = self.get_unfavorables()
+            
+            ufs = self.get_unfavorables()
+            # group ufs, currently {empl:count,empl:count..} as {count:[empl,empl...]} :
+            context['unfavorables'] = {}
+            for empl in ufs:
+                if ufs[empl] in context['unfavorables']:
+                    context['unfavorables'][ufs[empl]].append(empl)
+                else:
+                    context['unfavorables'][ufs[empl]] = [empl]
+            # and sort it by decreasing count:
+            context['unfavorables'] = {i:sorted(context['unfavorables'][i]) for i in sorted(context['unfavorables'], reverse=True)}
+            
 
             return context
 
@@ -351,6 +365,14 @@ class WEEK:
         def get_unfavorables (self):
             nfs = tally(list(Slot.objects.filter(shift__start__hour__gte=10,workday__in=self.object_list).values_list('employee__name',flat=True)))
             return nfs
+
+    class GET: 
+        def empl_lowestHours (year,week):
+            wds = Workday.objects.filter(date__year=year,iweek=week)
+            emps = Employee.objects.all().exclude(fte=0)
+            slots = Slot.objects.filter(workday__in=wds, employee=OuterRef('pk'))
+            return emps.annotate(weekSlots=Subquery(Sum('slots__hours')))
+            
 
     def weeklyHoursView (request):
         """View for a djangotables2 to show weeks in columns and employees in rows, with the employee weekly hours."""
@@ -382,9 +404,11 @@ class WEEK:
         return render(request, 'sch/week/all_weeks.html', context)
     
     def solve_week_slots (request, year, week):
-        fx = True
-        while fx == True:
+        fx = True 
+        n = 0
+        while fx == True and n < 200 :
             fx = ScheduleBot.performSolvingFunctionOnce(year,week)
+            n += 1
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
     
     def make_preference_swaps (request, year, week):
@@ -428,7 +452,6 @@ class WEEK:
         # only switches slots that don't have the preferred employee
         WeekActions.delSlotsLowPrefScores(year,week)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-    
     class WeeklyUnfilledSlotsView (ListView):
         model = Workday
         template_name = 'sch/week/unfilled_slots.html'
@@ -651,10 +674,21 @@ class SHIFT :
         def get_queryset (self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
     
+    def shiftTalliesView (request, name):
+        shift = Shift.objects.get(name=name)
+        
+        employees = Employee.objects.annotate(tally=Count('slot',filter=Q(slot__shift__name=shift)))
+        context = {}
+        context['shift'] = shift
+        context['employees'] = employees 
+        context['total'] = Slot.objects.filter(shift=shift).count()
+        
+        return render(request, 'sch/shift/tallies.html', context)
         
     def trainedShiftView(request, name):
         context = {}
         shift = Shift.objects.get(name=name)
+        shiftClass = shift.cls
         context['shift'] = shift
         TrainedEmployeeShiftFormSet = formset_factory(TrainedEmployeeShiftForm, extra=0)
         
@@ -687,7 +721,7 @@ class SHIFT :
                 'is_available' : em.shifts_available.filter(name=name).exists(),
                 'employee' : em,
                 'shift' : shift,
-            } for em in Employee.objects.all()
+            } for em in Employee.objects.filter(cls=shiftClass).order_by('name')
         ]
         formset = TrainedEmployeeShiftFormSet(initial=initData)
         context['formset'] = formset
@@ -781,13 +815,13 @@ class EMPLOYEE:
             date_from = form.cleaned_data['date_from']
             date_to = form.cleaned_data['date_to']
             employee = form.cleaned_data['employee']
-            return HttpResponseRedirect(reverse_lazy('employee-schedule', kwargs={'name': employee.name, 'date_from': date_from, 'date_to': date_to}))
+            return HttpResponseRedirect(f'{date_from.slug}/{date_to.slug}/')
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             employee = Employee.objects.get(name=self.kwargs['name'])
-            date_from = dt.date.today() - dt.timedelta(days=int(dt.date.today().strftime("%w")))
-            date_to   = date_from + dt.timedelta(days=42)
+            date_from = Workday.objects.filter(iweekday=0, date__lt=dt.date.today()).latest('date')
+            date_to   = Workday.objects.get(date=date_from.date + dt.timedelta(days=28))
             context['form'] = EmployeeScheduleForm(initial={'employee': employee, 'date_from': date_from, 'date_to': date_to})
             context['employee'] = employee
             return context
@@ -1112,7 +1146,7 @@ class EMPLOYEE:
             name=employee).annotate(
                 count=Count('slot__workday', filter=Q(slot__workday__in=workdays))).order_by('-count')
         
-        return render(request, 'sch/employee/coworkers.html', {'coworkers':other_employees, 'employee':employee})
+        return render(request, 'sch/employee/coworker.html', {'coworkers':other_employees, 'employee':employee})
 
     ### SHIFT TALLY
     class EmployeeShiftTallyView (DetailView):
@@ -1272,21 +1306,21 @@ class SLOT:
         def get_object(self):
             return Slot.objects.get(name=self.kwargs['name'])
 
-    class SlotDeleteView (DeleteView):
-        model         = Slot
-        template_name = 'sch/slot/slot_confirm_delete.html'
+    class SlotDeleteView (DeleteView)               : 
+        model                                       = Slot
+        template_name                               = 'sch/slot/slot_confirm_delete.html'
 
-        def get_object(self):
-            return Slot.objects.get(workday__slug=self.kwargs['date'], shift__name=self.kwargs['shift'])
+        def get_object(self)                        : 
+            return Slot.objects.get(workday__slug   = self.kwargs['date'], shift__name=self.kwargs['shift'])
 
         def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['workday'] = self.object.workday
-            context ['shift']  = self.object.shift
-            context ['employee'] = self.object.employee
+            context                                 = super().get_context_data(**kwargs)
+            context['workday']                      = self.object.workday
+            context ['shift']                       = self.object.shift
+            context ['employee']                    = self.object.employee
             return context
         
-        def get_success_url(self):
+        def get_success_url(self)                   : 
             return reverse_lazy('workday', kwargs={'slug': self.object.workday.slug})
 
     class SlotTurnaroundsListView (ListView):
@@ -1299,6 +1333,7 @@ class SLOT:
             return Slot.objects.turnarounds()
 
 def EmpSSTView (request, name):
+    
     context                  = {}
     employee                 = Employee.objects.get(name=name)
     context['employee']      = employee
@@ -1452,6 +1487,12 @@ def shiftTemplate (request, shift):
     
 class SCHEDULE:
     
+    class FX:
+        
+        def getSlots (year,sch):
+            wds = Workday.objects.filter(date__year=year, ischedule=sch)
+            for wd in wds:
+                wd.slots = wd.emptySlots 
     
     def scheduleView (request, year, sch):
         context = {}
@@ -1469,18 +1510,84 @@ class SCHEDULE:
         context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
         context['weekendlist'] = [0,6]
         context['unfavorables'] = ScheduleBot.get_unfavorables(year,sch)
+        context['year'] = year
+        context['sch'] = sch
+        
+        context['conflicted'] = SCHEDULE.tdosConflictedSlots(year,sch)
+        te = 0
+        tot = 0
+        for wd in Workday.objects.filter(date__year=year,ischedule=sch):
+            te += wd.emptySlots.count()
+            tot += wd.filledSlots.count() + wd.emptySlots.count()
+        context['percComplete'] = f'{int(100-round(te / tot, 2) * 100)}%'
+        context['nEmpty'] = te
+        context['tot'] = tot
         return render(request, 'sch/schedule/grid.html', context)
     
     def scheduleDelSlots (request, year, sch):
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
         for slot in slots:
             slot.delete()
-        return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
+        context = {}
+        employees = Employee.objects.all().order_by('name')
+        for empl in employees:
+            schedule = Workday.objects.filter(date__year=year,ischedule=sch).annotate(
+                emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
+                    ptoReq=Subquery(PtoRequest.objects.filter(employee=empl.pk, workday=OuterRef('date')).values('employee__name')[:1])).annotate(
+                    streakPref=Subquery(Employee.objects.filter(pk=empl.pk).values('streak_pref')[:1])).annotate(
+                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])).values_list('iweekday','emplShift','streak','ptoReq','streakPref')
+            
+            empl.schedule = schedule
+            
+        context['employees'] = employees
+        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
+        context['weekendlist'] = [0,6]
+        te = 0
+        for wd in Workday.objects.filter(date__year=year,ischedule=sch):
+            te += wd.emptySlots.count()
+        context['totalEmpty'] = te
+        return render(request,'sch/schedule/grid.html',context )
     
     def solveScheduleSlots (request,year,sch):
         ScheduleBot.solveSchedule(year,sch)
+        for slot in SCHEDULE.tdosConflictedSlots(year,sch):
+            slot.delete()
+        for slot in Slot.objects.filter(workday__date__year=year,workday__ischedule=sch):
+            slot.save()
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
+    
+    def solvePart2 (request,year,sch):
+        emptySlots = []
+        for day in Workday.objects.filter(date__year=year, ischedule=sch):
+            for sft in day.emptySlots:
+                emptySlots.append((day,sft))
+        for slot in emptySlots:
+            ScheduleBot.performSolvingFunctionOnce(slot)
 
+    def tdosConflictedSlots (year, sch):
+        tdos = TemplatedDayOff.objects.all().annotate(overlapped=Subquery(
+            Slot.objects.filter(
+                workday__date__year=year,
+                workday__ischedule=sch,
+                workday__sd_id=OuterRef('sd_id'),
+                employee=OuterRef('employee')).values('pk')
+        ))
+        dic = {empl:[] for empl in Employee.objects.all()}
+        tdos_notblank = []
+        for tdo in tdos:
+            if tdo.overlapped != None:
+                s = Slot.objects.get(pk=tdo.overlapped)
+                tdos_notblank.append(s)
+        return tdos_notblank
+    
+
+class HTMX:
+    def alertView (request, title, msg):
+        return render(request, 'sch/doc/alert.html', context={'title': title, 'msg': msg})
+    
+    def spinner (request):
+        return render(request, 'sch/test/spinner.html')
+        
 class TEST:
     
     def spinner (request):
@@ -1517,8 +1624,14 @@ class TEST:
                     pass
                 else:
                     pos.append(possibleSlot)
+                    
+        possibilities = []    
+        for p in pos:
+            if not ShiftTemplate.objects.filter(shift=p.shift,ppd_id=p.workday.ppd_id).exists():
+                possibilities.append(p)
         
-        context['possible'] = pos
+        
+        context['possible'] = possibilities
         
         context['incompatible'] = Slot.objects.incompatible_slots(shift=slot.shift,workday=slot.workday)
         return render(request,'sch/test/is.html',context)

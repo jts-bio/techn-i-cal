@@ -8,16 +8,21 @@
         Turnarounds
     </h1>
 </div>
-<div class="hstack" style="justify-content:space-around">
+<div class="hstack" style="justify-content:space-around;align-items:start;">
+
 <img src="https://media.discordapp.net/attachments/1011557410940403822/1023856790724689920/jsteinbecker_Darth_Vader_works_as_an_employee_of_a_drive_thru_P_f82c9c03-ec75-49cf-9acb-3dccf62e2d1a.png?width=1392&height=1392" 
 alt="Darth Vader, RPh" style="width:300px;height:300px;border-radius:10px;">
 
-{% for slot in slots %}
-    <div>
-        {{slot.employee}} --- {{slot.shift}} on <a href="/sch/day/{{slot.workday.slug}}/">{{slot.workday.date}}</a>
-    </div>
-{% endfor %}
+{#---GRID of CARDS repr TURNAROUNDS ---#}
+<div class="flex flex-wrap w-200" style="justify-content:space-around;gap:10px;">
+    {% for slot in slots %}
+        <div>
+            {% iconCard  slot.employee  slot.workday.date   slot.workday.url  slot.shift  %}
+        </div>
+    {% endfor %}
+</div>
 
+{#---NO TURNAROUNDS MESSAGE---#}
 {% if slots|length == 0 %}
 <div class="vstack">
     <p>No Turnarounds are scheduled! </p>

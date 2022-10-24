@@ -1,16 +1,35 @@
 {% extends "base.html" %}
 {% load tags %}
 
+
+
+{% block style %}
+
+<style>
+    html {
+        background-image: url("https://cdn.discordapp.com/attachments/1022445219704225842/1033115199760248872/jsteinbecker_Jelly_Beans_delicious_food_photography_fancy_dimme_335e6cda-cf59-41cc-8e94-17a6f95da59a.png");
+        background-repeat: repeat;
+        background-size: 41%;
+    }
+</style>
+    
+{% endblock style %}
+    
+
+
 {% block content %}
 
+{#---HEADING---#}
 <h1>Templated Days Off</h1>
 <h2>{{employee}}</h2>
 
+{#---MATCH COWORKER BUTTON---#}
 <a href="match/" class="btn btn-neutral"><div class="hstack">
     <div>{% robotIcon %}</div>
     <div>Match Template of Coworker</div>
 </div></a>
 
+{#---FORMSET OF CHECKBOXES ---#}
 <form method="post">
     {% csrf_token %}
     {{ formset.management_form }}

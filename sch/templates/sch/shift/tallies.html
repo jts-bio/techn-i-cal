@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+<div>
+    <h1 class="h1 text-3xl">{{shift}}</h1>
+    <h3>Tally by Employee</h3>
+</div>
+
+
+<div>
+    {% for empl in employees %}
+        {% if empl.tally != 0 %}
+        <div class="panel">
+        <div class="vstack">
+            <div>{{empl.name}}</div>
+            <div class="badge badge-rounded badge-xs">{{empl.tally}}</div>
+            <meter class="progress" id="{{empl.name}}-progress" value="{{empl.tally}}" max="{{total}}">{{empl.tally}}</meter>
+        </div></div>
+        {% endif %}
+    {% endfor %}
+</div>
+    
+{% endblock content %}
+    

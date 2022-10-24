@@ -138,8 +138,11 @@ class SlotManager (models.QuerySet):
     def streaks (self, employee):
         return self.filter(employee=employee, is_terminal=True)
     
+    def sch__pmSlots (self, year, sch):
+        return self.objects.filter(workday__date__year=year,workday__ischedule=sch, shift__start__hour__gte=12)
+    
     def tally_schedule_streaks (self, employee, year, schedule):
-        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule)))
+        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))
            
 # ============================================================================
 class EmployeeManager (models.QuerySet):
@@ -432,8 +435,10 @@ class Workday (ComputedFieldsModel) :
         return Slot.objects.filter(workday=self).count()
     
     @property
-    def n_emptySlots (self) -> int:
-        return self.slots.filter(employee=None).count()
+    def emptySlots (self) -> ShiftManager:
+        filled = self.filledSlots.values('shift')
+        return Shift.objects.filter(occur_days__contains= self.iweekday).exclude(pk__in=filled)
+    
 
     @property
     def n_shifts (self) -> ShiftManager:
@@ -569,7 +574,10 @@ class Slot (ComputedFieldsModel) :
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
     
     class Meta:
-        unique_together = ('workday', 'shift')
+        constraints = [
+            models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
+            models.UniqueConstraint(fields=["workday", "employee"], name='Employee Duplicates on day')
+            ]
         
     # computed fields:
     @computed(models.SlugField(max_length=20), depends=[('self',['workday','shift'])])
@@ -656,6 +664,14 @@ class Slot (ComputedFieldsModel) :
             return self.streak > self.employee.streak_pref
         else:
             return False
+        
+    @property 
+    def shouldBeTdo (self) -> bool:
+        """EMPLOYEE SHOULD NOT WORK THIS DAY BECAUSE OF A TEMPLATED DAY OFF OBJECT"""
+        if TemplatedDayOff.objects.filter(employee=self.employee, sd_id=self.workday.sd_id).exists():
+            return True
+        else:
+            return False
     
     objects = SlotManager.as_manager()
     
@@ -705,14 +721,14 @@ class TemplatedDayOff (models.Model) :
     def weekAB (self):
         if self.sd_id == None:
             return 'G'
-        return 'ABCDEF' [self.sd_id // 7]
+        return  'A' if self.ppd_id < 7 else 'B'
     
     def weekday (self):
         days = "Sun Mon Tue Wed Thu Fri Sat".split(" ")
-        return days[self.sd_id % 7]
+        return days[self.ppd_id % 7]
     
     def __str__ (self) :
-        return f'{self.weekday}{self.sd_id}'
+        return f'TDO-{self.symb}'
     
     class Meta:
         unique_together = ['employee','sd_id']

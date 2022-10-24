@@ -36,9 +36,9 @@
         {% for emp in empls %}
         <tr>
             <td class="right-line">{{emp}}</td>
-            <td class="cell-glow">{% if emp.week.1 %}{{emp.week.1.0}}{%endif%}</td>
-            <td class="cell-glow">{% if emp.week.2 %}{{emp.week.2.0}}{%endif%}</td>
-            <td class="cell-glow">{% if emp.week.0 %}{{emp.week.0.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.0 %}{{emp.week.1.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.1 %}{{emp.week.2.0}}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.2 %}{{emp.week.0.0}}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.3 %}{{emp.week.3.0}}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.4 %}{{emp.week.4.0}}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.5 %}{{emp.week.5.0}}{%endif%}</td>

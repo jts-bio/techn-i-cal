@@ -49,6 +49,7 @@ urlpatterns = [
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
+    path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
 
     #? ==== Employees ==== ?#
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
@@ -58,7 +59,7 @@ urlpatterns = [
     path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EMPLOYEE.employeeSstsView, name='employee-edit-ssts'),   
-    path('employee/<str:name>/ssts/add', views.EMPLOYEE.employeeCoworkerView, name='employee-coworker'),
+    path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='employee-coworker'),
     path('employee/<str:name>/coworker/', views.EMPLOYEE.coWorkerSelectView, name='coworker-select'),
     path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='coworker'),
     path('employee/<str:name>/template-days-off/', views.EMPLOYEE.employeeTemplatedDaysOffView, name='employee-tdos'),
@@ -69,7 +70,6 @@ urlpatterns = [
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
     path('employee/day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
     
-
     #? ==== PTO Requests ==== ?#
     path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
     
@@ -79,13 +79,21 @@ urlpatterns = [
     #? ==== SCHEDULE ==== ?#
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
-    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),
-    
-    #? ==== TESTS ==== ?#
+    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),    
+]
+
+test_patterns = [
     path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
     path('test/<slug:workday>/<str:shift>/i-s/',views.TEST.possibleInterWeekSlotSwaps,name="test2"),
     path('test/<slug:slotA>/<slug:slotB>/make-swap/',views.TEST.makeSwap,name="InterWeek Swap"),
     path('spinner/',views.TEST.spinner,name="spinner"),
     path('predict-streak/<str:employee>/<slug:workday>/', actions.PredictBot.predict_createdStreak, name="predict-streak"),
-    
 ]
+
+htmx_patterns = [
+    path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
+    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view')
+]
+
+urlpatterns += test_patterns
+urlpatterns += htmx_patterns

@@ -149,7 +149,7 @@ class WeekListTable (tables.Table):
     
     class Meta:
         fields          = ['week','percentage_filled','coordinator','notes']
-        template_name   = 'django_tables2/bootstrap-responsive.html'
+        
         
         
     def render_week(self, record):

@@ -119,6 +119,10 @@ def mortarIcon (width="20px", height="20px", fill="#8899dddd"):
 def staffIcon (width="20px", height="20px", fill="#8899dddd"):
     return {'width': width,'height': height,'fill': fill}
 
+@register.inclusion_tag("moon.svg")
+def moonIcon (width="20px", height="20px", fill="indigo"):
+    return {'width': width,'height': height,'fill': fill}
+
 
 @register.simple_tag
 def todayYear ():
@@ -127,3 +131,19 @@ def todayYear ():
 @register.simple_tag
 def todaySch ():
     return 7
+
+@register.inclusion_tag('iconCard.html')
+def iconCard (title="", body="", cardUrl="", badge=""):
+    return {'title':title, 'body':body, 'cardUrl':cardUrl, 'badge':badge} 
+
+@register.inclusion_tag('iconCard_listBody.html')
+def iconCard2 (title="", body=[], cardUrl="", badge=""):
+    return {'title':title, 'body':body, 'cardUrl':cardUrl, 'badge':badge}
+
+@register.inclusion_tag('figCard.html')
+def figCard (title="", figure="",unit="",percComplete="", tot=""):
+    return {'title':title, 'figure': figure, 'unit':unit, 'percComplete':percComplete, 'tot':tot}
+
+@register.inclusion_tag('datePicker.html')
+def datePicker ():
+    return {}

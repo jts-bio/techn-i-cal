@@ -280,6 +280,15 @@ class ScheduleBot:
                     keep_trying = False
         return None
        
+    def del_turnarounds (year, sch): 
+        slots = Slot.objects.filter(workday__year=year,workday__ischedule=sch, is_turnaround=True)
+        for slot in slots:
+            if slot.employee.evening_pref == False: 
+                wd = slot.workday.prevWD()
+                Slot.objects.get(workday=wd, employee=slot.employee).delete()
+            else:
+                slot.delete()
+                
     # ==== INTER-WEEK SWAP FUNCTIONS ====
         
     def WdOverallShiftPrefScore (workday) -> int:
@@ -346,6 +355,77 @@ class ScheduleBot:
                 empl      = employees[index]
                 newSlot   = Slot.objects.create(workday=slot[0],shift=slot[1],employee=empl)
                 newSlot.save() 
+                
+        for slot in Slot.objects.filter(is_turnaround=True, workday__iweekday__in=[1,2,3,4,5]):
+        
+            allinWeek       = Slot.objects.filter(workday__date__year=slot.workday.date.year,workday__iweek=slot.workday.iweek)
+            daysWorked      = allinWeek.filter(employee=slot.employee).values('workday')
+            dropDaysWork    = allinWeek.exclude(workday__in=daysWorked)
+            dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+            empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
+            dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
+            #conflicting are Slots that create turnaround interference with the potential trade
+            allconflicting  = []
+            for s in Slot.objects.filter(pk__in=empAslots):
+                allconflicting += Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
+            dropConflicting = dropOnDaysWorked.exclude(pk__in=allconflicting)
+            possible        = dropConflicting
+
+            pos = []
+            
+            for possibleSlot in possible:
+                # check to make sure employeeB is trained for the shift they would be swapping into
+                if possibleSlot.employee.shifts_trained.contains(slot.shift):
+                    # dont include in possiblities if employeeB would be traded into a turnaround
+                    if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
+                        pass
+                    else:
+                        if possibleSlot.workday.iweekday in [1,2,3,4,5]:
+                            pos.append(possibleSlot)
+                        
+                        
+            possibilities = []    
+            for p in pos:
+                if not ShiftTemplate.objects.filter(shift=p.shift,ppd_id=p.workday.ppd_id).exists():
+                    possibilities.append(p)
+            
+            pos_choice = possibilities[random.randint (0,len(possibilities)-1)]
+            
+            
+            slot_a     = slot
+            slot_b     = pos_choice
+            slotAEmpl  = slot_a.employee
+            slotAWD    = slot_a.workday
+            slotAShift = slot_a.shift
+            slotBEmpl  = slot_b.employee
+            slotBWD    = slot_b.workday
+            slotBShift = slot_b.shift
+            
+            slot_a.delete()
+            slot_b.delete()
+            newA = Slot.objects.create(
+                workday=slotAWD, shift=slotAShift, employee=slotBEmpl)
+            newA.save()
+            newB = Slot.objects.create(
+                workday=slotBWD, shift=slotBShift, employee=slotAEmpl)
+            newB.save()
+            
+            turnarounds  = Slot.objects.filter(workday__date__year=yr,workday__ischedule=sch, is_turnaround=True)
+            for ta in turnarounds:
+                if ta.employee.evening_pref == False: 
+                    if Slot.objects.filter(workday__date=ta.workday.prevWD().date, employee=slot.employee,shift__start__hour__gt=10).exists():
+                        Slot.objects.get(workday__date=ta.workday.prevWD().date, employee=slot.employee, shift__start__hour__gt=10).delete()
+                    else:
+                        ta.delete()
+                else:
+                    ta.delete()
+                    
+        week_nums = wds.values('iweek').distinct()
+        
+        for i in week_nums :
+            ScheduleBot.performSolvingFunctionOnce (yr, i['iweek'])
+            
+
         
         
 class EmployeeBot:
@@ -441,6 +521,7 @@ class PredictBot :
             return 1
         
     def predict_createdStreak (employee, workday):
+        
         if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists():
             if Slot.objects.filter(employee=employee,workday=workday.nextWD()).exists() == False:
                 return Slot.objects.get(employee=employee,workday=workday.prevWD()).streak + 1
@@ -451,3 +532,43 @@ class PredictBot :
                 return Slot.objects.get(employee=employee,workday=workday.prevWD()).streak + 1 + i
         if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists() == False:
             return 1
+        
+
+class GhostSlot :
+    
+    def toExcludeTurnarounds (workday,shift):
+        if shift.start.hour >= 10:
+            return Slot.objects.filter(workday=workday.nextWD(),shift__start__hour__lte=10).values('employee__pk').distinct()
+        if shift.start.hour < 10:
+            return Slot.objects.filter(workday=workday.prevWD(),shift__start__hour__gte=10).values('employee__pk').distinct()
+        
+    def toExcludeSameDay (workday):
+        return Slot.objects.filter(workday=workday).values('employee__pk').distinct()
+    
+    def toExcludeOvertime (workday,shift):
+        empls = []
+        for emp in Employee.objects.all():
+            if emp.weekly_hours(workday.date.year,workday.iweek):
+                if emp.weekly_hours(workday.date.year,workday.iweek) + shift.hours <= 40:
+                    empls.append(emp.pk)
+        return empls
+    
+    def toExcludeAvailability (shift):
+        avail =  Employee.objects.filter(shifts_available=shift).values_list('pk',flat=True)
+        return Employee.objects.exclude(pk__in=avail)
+    
+    def toExcludeTdoExists (workday):
+        return TemplatedDayOff.objects.filter(sd_id=workday.sd_id).values('employee__pk').distinct()
+    
+    def toExcludePtoReqExists (workday):
+        return PtoRequest.objects.filter(workday=workday.date,status__in=['P','A']).values('employee__pk').distinct()
+    
+    def fillList (workday,shift):
+        empls = Employee.objects.all()
+        fill = empls.exclude(pk__in=GhostSlot.toExcludeTurnarounds(workday,shift))
+        fill = fill.exclude(pk__in=GhostSlot.toExcludeSameDay(workday))
+        fill = fill.exclude(pk__in=GhostSlot.toExcludeOvertime(workday,shift))
+        fill = fill.exclude(pk__in=GhostSlot.toExcludeAvailability(shift))
+        fill = fill.exclude(pk__in=GhostSlot.toExcludeTdoExists(workday))
+        fill = fill.exclude(pk__in=GhostSlot.toExcludePtoReqExists(workday))
+        return fill

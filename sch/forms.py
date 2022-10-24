@@ -164,27 +164,30 @@ class EmployeeMatchCoworkerTdosForm (forms.ModelForm):
         model = TemplatedDayOff
         fields = ['employee', 'coworker']
         
-    def clean(self):
+    def clean(self): 
         cleaned_data = super().clean()
 
         return cleaned_data
 
 class EmployeeScheduleForm(forms.Form):
     employee  = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-    date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
-    date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
+    date_from = forms.ModelChoiceField(queryset=Workday.objects.filter(iweekday=0))
+    date_to   = forms.ModelChoiceField(queryset=Workday.objects.filter(iweekday=0))
 
     def __init__(self, *args, **kwargs):
         super(EmployeeScheduleForm, self).__init__(*args, **kwargs)
-        self.fields['employee'].initial = self.initial.get('employee')
-        self.fields['date_from'].initial = TODAY 
-        self.fields['date_to'].initial = TODAY + dt.timedelta(days=30)
+        
+
+        self.fields['employee'].initial  = self.initial.get('employee')
+         # Set initial date_from as the last Sunday which occured 
+        self.fields['date_from'].initial = Workday.objects.filter(iweekday=0).exclude(date__gt=dt.date.today()).order_by('-date')[0]
+        self.fields['date_to'].initial   = Workday.objects.filter(iweekday=0).exclude(date__lt=dt.date.today()).order_by('-date')[4]
 
     def clean(self):
         cleaned_data = super(EmployeeScheduleForm, self).clean()
         date_from = cleaned_data.get('date_from')
         date_to = cleaned_data.get('date_to')
-        if date_from and date_to and date_from > date_to:
+        if date_from and date_to and date_from.date > date_to.date:
             raise forms.ValidationError("Date from must be before date to.")
 
 class BulkWorkdayForm (forms.Form) :
@@ -275,7 +278,6 @@ class SstFormSet (BaseFormSet):
             shifts.append(shift)
 
 class PTOForm (forms.ModelForm) :
-
     class Meta:
         model = PtoRequest
         fields = ['employee', 'workday']
