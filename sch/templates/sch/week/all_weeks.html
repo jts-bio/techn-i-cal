@@ -31,15 +31,23 @@
             <table class="table">
                 <thead>
                     <th>Week</th>
+                    <th>Filled Slots</th>
                 </thead>
                 <tbody>
                     {% for week in weeks %}
                     <tr>
-                        <td><a href="/sch/week/{{week.date__year}}/{{week.iweek}}/">W-{{week.date__year }}-{{week.iweek}}</a></td>
+                        <td><a href="/sch/week/{{week.0.date__year}}/{{week.0.iweek}}/">
+                            W-{{week.0.date__year }}-{{week.0.iweek}}
+                        </a></td>
+                        <td>
+                            {{ week.1 }}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>    
             </table>     
+            
+            {% render_table weekTable %}
             
         </div>
     </div>

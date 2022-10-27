@@ -144,20 +144,19 @@ class WorkdayListTable (tables.Table):
     
 class WeekListTable (tables.Table):
     
-    date              = tables.columns.LinkColumn ("workday", args=[A("date")])
-    percentage_filled = tables.columns.Column (verbose_name="Filled")
+    year              = tables.columns.Column()
+    iweek             = tables.columns.Column()
+    perc_filled       = tables.columns.Column (verbose_name="% Filled")
     
     class Meta:
-        fields          = ['week','percentage_filled','coordinator','notes']
-        
-        
+        fields          = ['year','iweek','perc_filled']
         
     def render_week(self, record):
         return f"W{record.iweek}"
-
     
-    def render_percentage_filled(self, record):
-        return f"{round(record.percFilled*100, 2)}%"
+    def render_perc_filled (self,record):
+        return f"{int(record['perc_filled']/104*100)}%"
+
     
 class PtoListTable (tables.Table):
 

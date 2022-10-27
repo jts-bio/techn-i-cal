@@ -6,6 +6,31 @@
 				{
 					"line": 186,
 					"column": 14,
+					"label": "WORKDAY--fillableBy"
+				}
+			]
+		},
+		{
+			"path": "sch/models.py",
+			"bookmarks": [
+				{
+					"line": 422,
+					"column": 6,
+					"label": "Workday.weedId"
+				},
+				{
+					"line": 434,
+					"column": 0,
+					"label": ""
+				},
+				{
+					"line": 454,
+					"column": 5,
+					"label": "Workday__scheduleId"
+				},
+				{
+					"line": 713,
+					"column": 8,
 					"label": ""
 				}
 			]

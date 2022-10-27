@@ -13,7 +13,7 @@
     </thead>
     <tbody>
         {% for shift in shifts %}
-        {% if shift.name.0 != "R" %}
+            {% if shift.cls == 'CPhT' %}
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
@@ -55,7 +55,7 @@
     </thead>
     <tbody>
         {% for shift in shifts %}
-        {% if shift.name.0 == "R" %}
+        {% if shift.cls == "RPh" %}
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
@@ -65,8 +65,10 @@
                               {{shift.assignment}}
                         </span></td>
                 {% else %}
-                    <td><div class="hstack"><span>{{shift.assignment}}</span>
-                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc"><div class="hstack" style="font-size:9px;">
+                    <td><div class="hstack">
+                        <span>{{shift.assignment}}</span>
+                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc">
+                            <div class="hstack" style="font-size:9px;">
                             {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
                         </div></div>
                     </td>

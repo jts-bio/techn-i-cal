@@ -131,6 +131,7 @@ class ScheduleBot:
     def performSolvingFunctionOnce (year, week):
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
         if len(wds) == 0:
+            raise Exception
             return False
         for day in wds:
             day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
@@ -140,6 +141,7 @@ class ScheduleBot:
         # sort this list by the number of employees who could fill the slot
         unfilledSlots.sort(key=lambda x: x[2])
         if len(unfilledSlots) == 0:
+            raise Exception
             return False
 
         attempting_slot = 0
@@ -307,8 +309,15 @@ class ScheduleBot:
             is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround'))).annotate(
                 prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
             )
-        if len(slots) != 0:
-            overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+        if ShiftPreference.objects.exists():
+            if len(slots) != 0:
+                if shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] != None:
+                   overall_pref = int(shifts.aggregate(
+                       Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+                else:
+                    overall_pref = 0
+            else:
+                overall_pref = 0
         else:
             overall_pref = 0
         
@@ -424,10 +433,7 @@ class ScheduleBot:
         
         for i in week_nums :
             ScheduleBot.performSolvingFunctionOnce (yr, i['iweek'])
-            
-
-        
-        
+         
 class EmployeeBot:
     
     def get_emplUpcomingUnfavorables (employeeName):
@@ -471,8 +477,7 @@ class ShiftPrefBot :
     
     def slotsOverStreakPref ():
         return Slot.objects.filter(isOverStreakPref=True)
-            
-              
+                    
 class ExportBot :
     
     def exportWeek (year,week):
@@ -509,8 +514,7 @@ class ExportBot :
         
         wds = Workday.objects.filter(date__gte=dt.date.today(), date__lte=dt.date.today() + dt.timedelta(days=42))
         return  wds.annotate(empShift=Subquery(Slot.objects.filter(employee=employee, workday=OuterRef('pk')).values('shift')))
-    
-    
+       
 class PredictBot :
     
     def predict_streak (employee, workday) -> int :
@@ -533,7 +537,6 @@ class PredictBot :
         if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists() == False:
             return 1
         
-
 class GhostSlot :
     
     def toExcludeTurnarounds (workday,shift):

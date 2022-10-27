@@ -370,15 +370,39 @@ class WEEK:
         def empl_lowestHours (year,week):
             wds = Workday.objects.filter(date__year=year,iweek=week)
             emps = Employee.objects.all().exclude(fte=0)
-            slots = Slot.objects.filter(workday__in=wds, employee=OuterRef('pk'))
-            return emps.annotate(weekSlots=Subquery(Sum('slots__hours')))
+            fteDict = {}
+            ftes = emps.values('name','fte_14_day')
+            for fte in ftes:
+                fteDict.update({fte['name']:fte['fte_14_day']})
+            workedHrs = {}
+            for emp in emps:
+                v = emp.weekly_hours(year,week)
+                workedHrs.update({ emp.name :v })
+            percWorked = {}
+            for emp in ftes:
+                if workedHrs[emp] != None:
+                    percWorked.update({emp:workedHrs[emp]/fteDict[emp]})
+            return percWorked
+        
+        def solvableUnfilledWeekSlots (self,year,iweek):
+            wds = Workday.objects.filter(date__year=year,iweek=iweek)
+            unsolved = [ wd.emptySlots for wd in wds ]
+            for wd in unsolved:
+                pass    # wd = [SlotMgr<S,S,S...> SlotMgr<S,S,S...>]
+            
+            return HttpResponse(slots,emps)
+        
+        def allEmplsWeeklyPercent (year,week):
+            wds = Workday.objects.filter(date__year=year,iweek=week)
+            emps = Employee.objects.all().exclude(fte=0)
+            
             
 
     def weeklyHoursView (request):
         """View for a djangotables2 to show weeks in columns and employees in rows, with the employee weekly hours."""
         all_weeks = WeekActions.getAllWeekNumbers()
         table = EmployeeWeeklyHoursTable(Employee.objects.all())
-        RequestConfig(request, paginate=False).configure(table) 
+        RequestConfig(request, paginate=True).configure(table) 
         context = {'table': table,
                     'weeks': all_weeks,}
         return render(request, 'sch/week/weekly-hours.html', context)
@@ -387,7 +411,7 @@ class WEEK:
         wds= Workday.objects.filter(date__year=year,iweek=week)
         empls = Employee.objects.all()
         for empl in empls:
-            empl.week = [wds.filter(iweekday=i, slot__employee=empl).values_list('slot__shift__name',flat=True) for i in range(7)]
+            empl.week = [wds.filter(iweekday=i, slot__employee=empl).order_by('iweekday').values_list('slot__shift__name',flat=True) for i in range(7)]
         return render (request,'sch/week/week-hours-table.html', context={'empls': empls,'wds': wds, 'seven': range(7)})
              
     def weekFillTemplates(request,year, week):
@@ -398,9 +422,21 @@ class WEEK:
 
     def all_weeks_view(request):
         weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
+        for week in weeks:
+            sums = []
+            for day in Workday.objects.filter(date__year=week['date__year'],iweek=week['iweek']):
+                sums += [day.percFilled]
+            week['perc_filled'] = sum(sums)
+        # weeks => List[int]
+        weekTable = WeekListTable(weeks)
+        slotCounts = []
+        for week in weeks: 
+            slotCounts.append(Slot.objects.filter(workday__date__year=week['date__year'],workday__iweek=week['iweek']).count())
         context = {
-            'weeks': weeks,
+            'weeks' : list(zip(weeks,slotCounts)),
+            'weekTable': weekTable,
         }
+        
         return render(request, 'sch/week/all_weeks.html', context)
     
     def solve_week_slots (request, year, week):
@@ -630,7 +666,7 @@ class SHIFT :
         def get_context_data(self, **kwargs):
             context               = super().get_context_data(**kwargs)
             context['shifts']     = Shift.objects.all()
-            shiftTable            = ShiftListTable(Shift.objects.all())
+            shiftTable            = ShiftListTable(Shift.objects.all().order_by('start'))
             context['shiftTable'] = shiftTable
 
             return context
@@ -738,7 +774,31 @@ class EMPLOYEE:
             context                  = super().get_context_data(**kwargs)
             context['employees']     = Employee.objects.all()
             context['employeeTable'] = EmployeeTable(Employee.objects.all().order_by('name'))
+            context['allActive']     = "bg-yellow-700"
             return context
+        
+    class EmployeeListViewCpht (ListView):
+        model           = Employee
+        template_name   = 'sch/employee/employee_list.html'
+        
+        def get_context_data(self,**kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employees']     = Employee.objects.filter(cls='CPhT')
+            context['employeeTable'] = EmployeeTable(Employee.objects.filter(cls='CPhT').order_by('name'))
+            context['cphtActive']    = "bg-yellow-700"
+            return context
+        
+    class EmployeeListViewRph (ListView):
+        model           = Employee
+        template_name   = 'sch/employee/employee_list.html'
+        
+        def get_context_data(self,**kwargs):
+            context = super().get_context_data(**kwargs)
+            context['employees']     = Employee.objects.filter(cls='RPh')
+            context['employeeTable'] = EmployeeTable(Employee.objects.filter(cls='RPh').order_by('name'))
+            context['rphActive']     = "bg-yellow-700"
+            return context
+    
 
     ### CREATE
     class EmployeeCreateView (FormView):
@@ -1185,7 +1245,7 @@ class EMPLOYEE:
     def coWorkerSelectView (request, name):
         context = {}
         context['employee'] = Employee.objects.get(name=name)
-        context ['employees'] = Employee.objects.all()
+        context ['employees'] = Employee.objects.all().order_by('cls')
 
         return render(request,'sch/employee/coworker-select.html',context)
         
@@ -1623,9 +1683,9 @@ class TEST:
         empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
         dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
         #conflicting are Slots that create turnaround interference with the potential trade
-        allconflicting  = []
+        allconflicting  = Slot.objects.none()
         for s in Slot.objects.filter(pk__in=empAslots):
-            allconflicting += Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
+            allconflicting = allconflicting & Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
         dropConflicting = dropOnDaysWorked.exclude(pk__in=allconflicting)
         possible        = dropConflicting
 

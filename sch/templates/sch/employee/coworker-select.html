@@ -8,12 +8,15 @@
         <div>{{employee}}</div>
     </a>
 
+    {% regroup employees by cls as groups %}
     <div class="vstack">
-        <div class="panel">
-            {% for emp in employees %}
-            <a href="{{emp}}/" class="btn btn-xs btn-primary">{{emp}}</a>
+        {% for grp in groups %}{{grp.grouper}}
+        <div class="panel flex flex-wrap">
+            {% for emp in grp.list %}
+            <a href="{{emp}}/" class="btn">{{emp}}</a>
             {% endfor %}
         </div>
+        {% endfor %}
     </div>
     
 {% endblock content %}

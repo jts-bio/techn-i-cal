@@ -4,6 +4,7 @@ from . import views, actions
 
 
 urlpatterns = [
+    
     path('', views.index, name='index'),
 
     #? ==== Workday ==== ?#
@@ -25,6 +26,7 @@ urlpatterns = [
     path('week/all-weeks/', views.WEEK.all_weeks_view, name='weeks-all'),
     path('week/weekly-hours/', views.WEEK.weeklyHoursView, name='weeks-weekly-hours'),
     path('week/<int:year>/<int:week>/table/', views.WEEK.weekHoursTable, name='weeks-table'),
+    path('week/<int:year>/<int:iweek>/get-empty-slots/', views.WEEK.GET.solvableUnfilledWeekSlots, name='get-empty-slots'),
     
     #? ==== Pay Period ==== ?#
     path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),
@@ -40,6 +42,7 @@ urlpatterns = [
     path('day/<slug:date>/<str:employee>/resolve-pto-request/', views.WORKDAY.ResolvePtoRequestFormView.as_view(), name='resolve-pto-request'),
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
     
+    
 
     #? ==== Shifts ==== ?#
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
@@ -51,8 +54,19 @@ urlpatterns = [
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
     path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
 
+    
+    #? ==== PTO Requests ==== ?#
+    path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
+    
+    #? ==== DOCS ==== ?#
+    path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
+]
+
+employee_patterns = [
     #? ==== Employees ==== ?#
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
+    path("employees/cpht/", views.EMPLOYEE.EmployeeListViewCpht.as_view(), name='cpht-list'),
+    path("employees/rph/", views.EMPLOYEE.EmployeeListViewRph.as_view(), name='rph-list'),
     path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
@@ -69,18 +83,20 @@ urlpatterns = [
     path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
     path('employee/day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
-    
-    #? ==== PTO Requests ==== ?#
-    path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
-    
-    #? ==== DOCS ==== ?#
-    path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),
-    
+]
+urlpatterns += employee_patterns
+
+
+
+schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
-    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),    
+    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),  
 ]
+urlpatterns += schedule_patterns
+
+
 
 test_patterns = [
     path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
@@ -89,11 +105,12 @@ test_patterns = [
     path('spinner/',views.TEST.spinner,name="spinner"),
     path('predict-streak/<str:employee>/<slug:workday>/', actions.PredictBot.predict_createdStreak, name="predict-streak"),
 ]
+urlpatterns += test_patterns
+
+
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
     path('htmx/spinner/', views.HTMX.spinner, name='spinner-view')
 ]
-
-urlpatterns += test_patterns
 urlpatterns += htmx_patterns

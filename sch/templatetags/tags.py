@@ -123,6 +123,9 @@ def staffIcon (width="20px", height="20px", fill="#8899dddd"):
 def moonIcon (width="20px", height="20px", fill="indigo"):
     return {'width': width,'height': height,'fill': fill}
 
+@register.inclusion_tag("team.svg")
+def teamIcon (width="20px", height="20px", fill="#faed2a99"):
+    return {'width': width,'height': height,'fill': fill}
 
 @register.simple_tag
 def todayYear ():

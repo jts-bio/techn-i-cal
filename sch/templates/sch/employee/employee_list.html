@@ -18,16 +18,27 @@
 
 {% block content %}
 
-    <h1 class="text-3xl text-center">
-        Employees</h1>
-    <div class="panel w-fc">
-        <div class="hstack" 
-             style="justify-content:space-between;">
-            <a href="/sch/employees/new/">
-                {% newEmployee %}</a>
-            <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
-                {{employees|length}} Active </div>
+    <h1 class="text-3xl text-center">Employees</h1>
+
+    <div class="vstack">
+        <div class="hstack align-content-start">
+            <a href="/sch/employees/all/" class="btn {{allActive}}">All</a>
+            <a href="/sch/employees/cpht/" class="btn {{cphtActive}}">Technicians</a>
+            <a href="/sch/employees/rph/" class="btn {{rphActive}}">Pharmacists</a>
         </div>
-        {% render_table employeeTable %}
+
+
+        <div class="panel w-fc">
+            <div class="hstack" 
+                style="justify-content:space-between;">
+                <a href="/sch/employees/new/">
+                    {% newEmployee %}</a>
+                <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
+                    {{employees|length}} Active </div>
+            </div>
+
+            {% render_table employeeTable %}
+
+        </div>
     </div>
 {% endblock %}
