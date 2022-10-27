@@ -5,7 +5,7 @@ from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
 from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
                               FloatField, Max, Min, OuterRef, Q, QuerySet,
-                              StdDev, Subquery, Sum, Variance)
+                              StdDev, Subquery, Sum, Variance )
 from django.urls import reverse
 from multiselectfield import MultiSelectField
 
@@ -148,31 +148,31 @@ class EmployeeManager (models.QuerySet):
 
     def trained_for (self,shift):
         return self.filter(shifts_trained=shift)
-
     def in_slot (self, shift, workday):
         return self.filter(slot__shift__name=shift, slot__workday=workday)
-
     def in_other_slot (self, shift, workday):
-        return Slot.objects.filter(workday=workday).exclude(shift=shift).values('employee')
-
+        e = Slot.objects.filter(workday=workday).exclude(shift=shift).values('employee')
+        return self.filter(pk__in=e)
     def weekly_hours(self, year, week):
         return Employee.objects.annotate(
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
-
     def can_fill_shift_on_day (self, shift, workday, method="available"):
         week = workday.iweek
         year = workday.date.year
-        shift_len = (shift.duration - dt.timedelta(minutes=30)).total_seconds() / 3600
-
+        shift_len = shift.hours
+        
         if method == "available":
             employees = Employee.objects.filter(shifts_available=shift)
         elif method == "trained":
             employees = Employee.objects.filter(shifts_trained=shift)
-        in_other = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
+           
+        # Exclusion 1-- Empl 
+        in_other    = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
         has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
         employees   = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
         weeklyHours = {empl: Slot.objects.empls_weekly_hours(workday.date.year,workday.iweek,empl) for empl in employees}
+        
         for empl in weeklyHours:
             if weeklyHours[empl]['hours'] is None:
                 weeklyHours[empl]['hours'] = 0
@@ -186,15 +186,7 @@ class EmployeeManager (models.QuerySet):
             minPercent = min(weeklyHours.values(), key=lambda x: x['weeklyPercent'])
         else:
             minPercent = 0
-        # get that employee: with min weeklyPercent
-        # try:
-        #     minEmpl = list(weeklyHours.keys())[list(weeklyHours.values()).index(minPercent)]
-        # except:
-        #     return None
-        return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
-        
-        return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
-
+        return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40]) 
     def can_fill_shift_on_day_ot_overide (self, shift, workday, method="available"):
         week = workday.iweek
         year = workday.date.year
@@ -208,21 +200,30 @@ class EmployeeManager (models.QuerySet):
         has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
         employees = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
-        
-
     def who_worked_evening_day_before (self, workday):
         dateBefore = workday.date - dt.timedelta(days=1)
         slots = Slot.objects.filter(workday__date=dateBefore, shift__start__gte=dt.time(12,0,0))
         return slots.values('employee')
-
     def weekly_hours (self, year, week):
         return self.filter(slot__workday__iweek=week, slot__workday__date__year=year).aggregate(hours=Sum('slot__hours'))
-
     def avg_shift_pref_score (self):
         return self.annotate(
             avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
                 employee=OuterRef('pk')).values('score'),output_field=FloatField())))
-
+    def workEveningBefore (self,workday):
+        emps = Slot.objects.filter(workday__date=workday.prevWD(),shift__start__hour__gte=12).values('employee')
+        return self.filter(pk__in=emps)
+    def workMorningAfter (self,workday):
+        emps = Slot.objects.filter(workday__date=workday.nextWD(),shift__start__hour__lte=9).values('employee')
+        return self.filter(pk__in=emps)
+    def availableFor (self,shift):
+        emps = self.filter(shifts_available=shift)
+        return emps
+    def inConflictingSlot (self,slot):
+        if slot.shift.start.hour > 10:
+            return Employee.workMorningAfter(slot.workday)
+        if slot.shift.start.hour < 10:
+            return self.workEveningBefore(slot.workday)
 
 class ShiftPreferenceManager (models.QuerySet):
     
@@ -292,9 +293,7 @@ class Shift (ComputedFieldsModel) :
         else:
             return 0
 
-    @property
-    def trained_employees (self):
-        return Employee.objects.filter(shifts_trained=self)
+   
 
     objects = ShiftManager.as_manager()
 
@@ -398,6 +397,7 @@ class Employee (ComputedFieldsModel) :
 class Workday (ComputedFieldsModel) :
     # fields: date, shifts 
     date = models.DateField()
+    week = models.ForeignKey("week", on_delete=models.CASCADE, null=True, related_name='workdays')
 
     __all__ = ['date','slug','iweekday','iweek','iperiod','ppd_id','weekday',
                'shifts',
@@ -409,12 +409,12 @@ class Workday (ComputedFieldsModel) :
     def slug (self) -> str: 
         return self.date.strftime('%Y-%m-%d')
 
-    @computed(models.IntegerField(), depends=[('self',['date'])])
+    @computed(models.IntegerField(null=True), depends=[('self',['date'])])
     def iweekday (self) -> int:
         # range 0 -> 6
         return int (self.date.strftime('%w'))
     
-    @computed(models.IntegerField(), depends=[('self',['date'])])
+    @computed(models.IntegerField(null=True), depends=[('self',['date'])])
     def iweek (self) -> int:
         # range 0 -> 53
         return int (self.date.strftime('%U'))
@@ -441,10 +441,13 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 13
         return (self.date - dt.date(2022,9,4)).days % 14
     
-    @computed(models.CharField(max_length=20), depends=[('self',['date'])])
+    @computed(models.CharField(max_length=20,null=True), depends=[('self',['iperiod'])])
     def ischedule (self) -> int:
         # range 0 -> 9
-        return self.iperiod // 3 
+        if self.iperiod:
+            return self.iperiod // 3 
+        else:
+            return 
 
     @computed(models.IntegerField(),depends=[('self',['date'])])
     def sd_id (self) -> int:
@@ -478,11 +481,14 @@ class Workday (ComputedFieldsModel) :
     def emptySlots (self) -> ShiftManager:
         filled = self.filledSlots.values('shift')
         return Shift.objects.filter(occur_days__contains= self.iweekday).exclude(pk__in=filled)
-    
 
     @property
     def n_shifts (self) -> ShiftManager:
         return Shift.objects.filter(occur_days__contains= self.iweekday).count()
+    
+    @property
+    def n_empty (self) :
+        return self.n_unfilled
     
     @property
     def percFilled (self) -> float:
@@ -560,17 +566,28 @@ class Workday (ComputedFieldsModel) :
         slots = Slot.objects.filter(workday=self)
         for slot in slots :
             print(slot.shift.name, slot.employee)
-            
+        
+    def who_can_fill (self, shift):
+        if shift not in self.shifts:
+            return None
+        if Slot.objects.filter(workday=self,shift=shift).exists():
+            current = Slot.objects.get(workday=self,shift=shift).employee
+            return Union(Employee.objects.can_fill_shift_on_day(workday=self,shift=shift),Employee.objects.filter(pk__in=current.pk))
+        return Employee.objects.can_fill_shift_on_day(workday=self,shift=shift)
+    
+    def n_can_fill (self, shift):
+        if self.who_can_fill == None:
+            return None 
+        return self.who_can_fill(shift).count()
+        
     
     objects = WorkdayManager.as_manager()
 
 class Week (ComputedFieldsModel) :
     __all__ = [
-        'year','iweek',
-        'workdays',
-        'prevWeek','nextWeek',
+        'year','iweek','prevWeek','nextWeek',
     ]
-
+    
     iweek = models.IntegerField() 
     year  = models.IntegerField()
 
@@ -581,10 +598,6 @@ class Week (ComputedFieldsModel) :
     @property
     def name (self) -> str: 
         return f'{self.year}_{self.iweek}'
-    
-    @computed(models.IntegerField(), depends=[('self',['year','iweek'])])
-    def workdays (self) -> WorkdayManager:
-        return Workday.objects.filter(date__year=self.year, date__week=self.iweek)
     
     def prevWeek (self) -> "Week":
         try:
@@ -605,6 +618,10 @@ class Week (ComputedFieldsModel) :
                 return Week.objects.get(year=yearnew, iweek=0)
             except:
                 return Week.objects.get(year=yearnew, iweek=1)
+    
+    def __str__ (self) :
+        return f'{str(self.year)[2:]}-W{str(self.iweek)}'
+    
     
 # ============================================================================
 class Slot (ComputedFieldsModel) :
@@ -637,7 +654,7 @@ class Slot (ComputedFieldsModel) :
         return (self.shift.duration.total_seconds() - 1800) / 3600 
 
     def __str__(self) :
-        return str(self.workday) + ' ' + str(self.shift)
+        return str(self.workday.date.strftime('%y%m%d')) + '-' + str(self.shift) + " " + str(self.employee)
 
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})

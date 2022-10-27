@@ -7,7 +7,8 @@
 ## Models 
 
 ### Employee
-```toml
+``` toml
+
 [FIELDS]
     name
     fte_14_day 
@@ -16,8 +17,10 @@
     streak_pref 
     cls
     evening_pref
+
 [CALCULATED_FIELDS]
-    @ fte 
+    + fte 
+
 [METHODS]
     * url
     * weekly_hours()

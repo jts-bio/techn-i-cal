@@ -46,6 +46,7 @@ urlpatterns = [
 
     #? ==== Shifts ==== ?#
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
+    path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
     path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
     path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), 
@@ -91,6 +92,7 @@ urlpatterns += employee_patterns
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
+    path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
     path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),  
 ]

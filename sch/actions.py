@@ -150,9 +150,6 @@ class ScheduleBot:
             
             if len(unfilledSlots) <= attempting_slot:
                 return True
-            
-            
-            
             slot = unfilledSlots[attempting_slot-1]
             
             # for each slot, assign the employee who has the least number of other slots they could fill
@@ -374,10 +371,10 @@ class ScheduleBot:
             empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
             dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
             #conflicting are Slots that create turnaround interference with the potential trade
-            allconflicting  = []
+            allconflicting  = Slot.objects.none()
             for s in Slot.objects.filter(pk__in=empAslots):
-                allconflicting += Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
-            dropConflicting = dropOnDaysWorked.exclude(pk__in=allconflicting)
+                allconflicting = allconflicting & Slot.objects.incompatible_slots(workday=s.workday,shift=s.shift)
+            dropConflicting = dropOnDaysWorked.exclude(pk__in=allconflicting.values('pk'))
             possible        = dropConflicting
 
             pos = []
@@ -396,9 +393,16 @@ class ScheduleBot:
             possibilities = []    
             for p in pos:
                 if not ShiftTemplate.objects.filter(shift=p.shift,ppd_id=p.workday.ppd_id).exists():
-                    possibilities.append(p)
-            
-            pos_choice = possibilities[random.randint (0,len(possibilities)-1)]
+                    if not Slot.objects.incompatible_slots(workday=p.workday,shift=p.shift).filter(employee=slot.employee).exists():
+                        if not Slot.objects.filter(workday=slot.workday, employee=p.employee).exists():
+                            possibilities.append(p)
+                        
+            if len(possibilities) != 0:
+                pos_choice = possibilities[random.randint (0,len(possibilities)-1)]
+            else:
+                pos_choice = None
+                slot.delete()
+                break
             
             
             slot_a     = slot
@@ -412,12 +416,10 @@ class ScheduleBot:
             
             slot_a.delete()
             slot_b.delete()
-            newA = Slot.objects.create(
-                workday=slotAWD, shift=slotAShift, employee=slotBEmpl)
-            newA.save()
-            newB = Slot.objects.create(
-                workday=slotBWD, shift=slotBShift, employee=slotAEmpl)
-            newB.save()
+            
+            Slot.objects.create(employee=slotBEmpl, workday=slotAWD, shift=slotAShift)
+            Slot.objects.create(employee=slotAEmpl, workday=slotBWD, shift=slotBShift)
+            
             
             turnarounds  = Slot.objects.filter(workday__date__year=yr,workday__ischedule=sch, is_turnaround=True)
             for ta in turnarounds:
@@ -575,3 +577,29 @@ class GhostSlot :
         fill = fill.exclude(pk__in=GhostSlot.toExcludeTdoExists(workday))
         fill = fill.exclude(pk__in=GhostSlot.toExcludePtoReqExists(workday))
         return fill
+
+class ResolveBot:
+    
+    def resolveTurnaroundWithinDay (turnaroundSlot):
+        emp = turnaroundSlot.employee
+        if emp.evening_pref:
+            wd = turnaroundSlot.workday
+            sfta = turnaroundSlot.shift
+        elif emp.evening_pref == False:
+            wd = turnaroundSlot.workday.prevWD()
+            sfta = wd.shift
+        
+        sfts = emp.shifts_available 
+        noIncompatibles = []
+        for sft in sfts:
+            if not Slot.objects.incompatible_slots(workday=wd,shift=sft).exists():
+                noIncompatibles += [sft.shift]
+        List = []
+        for sft in noIncompatibles:
+            checking = Slot.object.filter(workday=wd,shift=sft)
+            if checking.exists():
+                if sfta in checking.employee.shifts_available:
+                    List += [sfta]
+        return random.randint(0,len(List))
+        
+                    

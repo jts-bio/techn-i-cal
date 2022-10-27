@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
+    "django_extensions",
     "computedfields",
     "multiselectfield",
     "compressor",
@@ -116,7 +117,7 @@ PYDEVD_UNBLOCK_THREADS_TIMEOUT = 240
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "MST"
 
 USE_I18N = True
 

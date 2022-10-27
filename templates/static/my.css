@@ -61,6 +61,9 @@
 			text-decoration: none;
 			padding: 1px 10px 1px 10px;
 		}
+		.image {
+			height: 100%;
+		}
 		.aic {
 			align-items:center;
 		}
@@ -114,21 +117,19 @@
 			font-style: italic;
 		}
 		.content {
-			width: 82.5%;
-			margin: 0 auto;
+			margin-left: 115px;
+			margin-right: 115px;
 			padding-left: 20px;
 			padding-right: 20px;
-			background-color: #0f172a;
+			background-color: #141d33;
 			border-radius: 15px;
 			border: 2px white solid;
-			
 		}
 		.table-xs :where(td,th) {
 			font-size: 68%!important;
 			line-height: 0.63!important;
 			padding: 0.4px;
 		}
-		
 		.badge {
 			background-color: #bbb!important;
 			color: #000!important;

@@ -399,7 +399,11 @@ class WEEK:
             
 
     def weeklyHoursView (request):
-        """View for a djangotables2 to show weeks in columns and employees in rows, with the employee weekly hours."""
+        """
+        View for a djangotables2 to show weeks in columns 
+        and employees in rows, with the employee 
+        weekly hours."""
+        
         all_weeks = WeekActions.getAllWeekNumbers()
         table = EmployeeWeeklyHoursTable(Employee.objects.all())
         RequestConfig(request, paginate=True).configure(table) 
@@ -462,7 +466,7 @@ class WEEK:
                     i -= 1
         for empl in Employee.objects.all():
             print(empl.info_printWeek(year,week))
-        return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
+        return HttpResponseRedirect (f'/sch/week/{year}/{week}/')
 
     class ClearWeekSlotsView (FormView):
         template_name = 'sch/week/clear_slots_form.html'
@@ -658,6 +662,26 @@ class SHIFT :
         
         return render(request,'sch/shift/upcoming.html',context=context)
         
+    def shiftOverview (request):
+        rph_n_evening = 0
+        for sft in Shift.objects.filter(start__hour__gte=10, cls='RPh').values_list('occur_days',flat=True):
+            rph_n_evening += len(sft)
+        rph_ssts = ShiftTemplate.objects.filter(shift__start__hour__gte=10, employee__cls='RPh').count()
+        cpht_n_evening = 0
+        for sft in Shift.objects.filter(start__hour__gte=10, cls='CPhT').values_list('occur_days',flat=True):
+            cpht_n_evening += len(sft)
+        cpht_ssts = ShiftTemplate.objects.filter(shift__start__hour__gte=10, employee__cls='CPhT').count()
+        
+        resp = f""" *** EVENING TOTALS ***
+         RPH EVENING SHIFTS : {rph_n_evening*6}/schedule
+              RPH TEMPLATED : {rph_ssts}/schedule
+              {rph_n_evening*6-rph_ssts} EVENING SHIFT(S) Remain
+        CPHT EVENING SHIFTS : {cpht_n_evening*6}/schedule
+        CPHT EVENING SHIFTS : {cpht_n_evening*6}/schedule
+             CPHT TEMPLATED : {cpht_ssts}/schedule
+             {cpht_n_evening*6-cpht_ssts} EVENING SHIFT(S) Remain"""
+        print(resp)
+        return HttpResponse(resp)
 
     class ShiftListView (ListView):
         model           = Shift
@@ -1623,11 +1647,19 @@ class SCHEDULE:
         context['totalEmpty'] = te
         return render(request,'sch/schedule/grid.html',context )
     
+    def solveScheduleLoader (request,year,sch):
+        dt.time.sleep(5000)
+        HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
+    
     def solveScheduleSlots (request,year,sch):
         ScheduleBot.solveSchedule(year,sch)
         for slot in SCHEDULE.tdosConflictedSlots(year,sch):
             slot.delete()
         for slot in Slot.objects.filter(workday__date__year=year,workday__ischedule=sch):
+            if slot.is_turnaround :
+                slot.delete()
+            if slot.is_preturnaround :
+                slot.delete()
             slot.save()
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
     

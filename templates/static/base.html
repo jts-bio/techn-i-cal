@@ -38,21 +38,26 @@
 	
 	</head>
 
-	<body class="content">
-		
-		{% include 'header.html' %}
+	<body class="image">
+		<div class="image">
+			<div class="content">
+				
+				{% include 'header.html' %}
 
-		{% block content %}
-		{% endblock %}
+				{% block content %}
+				{% endblock %}
 
-		<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
-		<script src="https://unpkg.com/htmx.org@1.8.2"></script>
+				<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+				<script src="https://unpkg.com/htmx.org@1.8.2"></script>
+
+			</div>
+		</div>
 	</body>
-
 	<body>
 		{% block body %}
 		{% endblock %}
 	</body>
+	
 
 
 </html>
