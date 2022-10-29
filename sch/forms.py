@@ -9,21 +9,23 @@ TODAY = dt.date.today()
 class ShiftForm (forms.ModelForm) :
     class Meta:
         model = Shift
-        fields = ['name', 'start', 'duration','occur_days','cls']
+        fields = ['name', 'start', 'duration','occur_days','cls','group']
         labels = {
             'name': 'Shift name',
             'start': 'Start time',
             'duration': 'Duration',
             'occur_days': 'Days of the week',
             'employee_class': "Shift for",
-            'cls': 'Shift Class'
+            'cls': 'Shift Class',
+            'group': 'Group',
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'start': forms.TimeInput(attrs={'class': 'form-control'}),
             'duration': forms.TimeInput(attrs={'class': 'form-control'}),
             'occur_days': forms.CheckboxSelectMultiple(),
-            'cls': forms.RadioSelect(),
+            'cls': forms.Select(),
+            'group': forms.Select(attrs={"class":"form-control"})
             
         }
 

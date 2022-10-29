@@ -68,14 +68,14 @@ class ShiftListTable (tables.Table) :
     """
     Summary for ALL SHIFTS
     """
-    name = tables.columns.LinkColumn("shift", args=[A("name")])
-    hours = tables.columns.Column(verbose_name="Hours", attrs={"td": {"class": "small"}})
-    is_iv = tables.columns.BooleanColumn(verbose_name="IV Room?")
-    cls = tables.columns.Column(verbose_name='Class')
+    name  = tables.columns.LinkColumn ("shift", args=[A("name")])
+    hours = tables.columns.Column (verbose_name="Hours", attrs={"td": {"class": "small"}})
+    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?")
+    group = tables.columns.Column (verbose_name="Group")
     
     class Meta:
         model           = Shift
-        fields          = ['name','start','hours', 'is_iv','on_days_display', 'cls']
+        fields          = ['name','start','hours', 'is_iv','on_days_display',]
         template_name   = 'django_tables2/bootstrap.html'
         
 class ShiftsWorkdayTable (tables.Table):

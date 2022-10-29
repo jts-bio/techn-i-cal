@@ -1,3 +1,4 @@
+import asyncio
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect, render
 from django.db.models import Count
 from django.urls import reverse_lazy
@@ -335,7 +336,7 @@ class WEEK:
                     context['unfavorables'][ufs[empl]] = [empl]
             # and sort it by decreasing count:
             context['unfavorables'] = {i:sorted(context['unfavorables'][i]) for i in sorted(context['unfavorables'], reverse=True)}
-            
+            context['weekly_percents'] = WEEK.GET.getPercentsWorkedWeek(year,week)
 
             return context
 
@@ -367,22 +368,47 @@ class WEEK:
             return nfs
 
     class GET: 
-        def empl_lowestHours (year,week):
+        def getPercentsWorkedWeek (year,week):
+            """
+            Get a DICT of percentFTE filled in a given week
+            Suggested to fill next slot with employee at lowest FTE %
+            
+            >>> [(0.75,Josh),(0.83,Molly)...]
+            """
             wds = Workday.objects.filter(date__year=year,iweek=week)
             emps = Employee.objects.all().exclude(fte=0)
-            fteDict = {}
-            ftes = emps.values('name','fte_14_day')
-            for fte in ftes:
-                fteDict.update({fte['name']:fte['fte_14_day']})
-            workedHrs = {}
-            for emp in emps:
+            ftes = emps.values_list('name','fte_14_day')
+            
+            ### ANNOTATION 1 : worked_hours
+            workedHrs = Employee.objects.filter(fte__gt=0)
+            for emp in workedHrs:
                 v = emp.weekly_hours(year,week)
-                workedHrs.update({ emp.name :v })
-            percWorked = {}
-            for emp in ftes:
-                if workedHrs[emp] != None:
-                    percWorked.update({emp:workedHrs[emp]/fteDict[emp]})
-            return percWorked
+                emp.worked_hours = v
+                
+            ### ANNOTATION 2 : perc_worked
+            
+            for emp in workedHrs:
+                if Slot.objects.filter(workday__date__year=year,workday__iweek=week,employee=emp).exists():
+                    emp.perc_worked= emp.worked_hours/(emp.fte_14_day/2)
+            
+            s = []
+            for d in workedHrs:
+                try:
+                    if d.perc_worked != None:
+                        if d.perc_worked > 1:
+                            css= "orange-glow"
+                        if d.perc_worked <= 1:
+                            css= "green-glow"
+                        if d.perc_worked <= 0.83:
+                            css= "red-glow"
+                except:
+                    d.perc_worked = 0
+                    css = ""
+                     
+                s.append((int(d.perc_worked*100),d.worked_hours,d.name,css))
+            s.sort()
+            # turn into Dict of {name: {'worked':workedH, 'perc_fte_w':perc}}
+            return [{'employee':e[2], 'week_hours':e[1],'week_percent':e[0],'css':e[3]} for e in s]
         
         def solvableUnfilledWeekSlots (self,year,iweek):
             wds = Workday.objects.filter(date__year=year,iweek=iweek)
@@ -708,10 +734,16 @@ class SHIFT :
     class ShiftUpdateView (UpdateView):
         model           = Shift
         template_name   = 'sch/shift/shift_form_edit.html'
-        fields          = ['name','start','duration','occur_days','is_iv','cls']
+        fields          = ['name',
+                           'start',
+                           'duration',
+                           'occur_days',
+                           'is_iv',
+                           'cls',
+                           'group'
+                           ]
         success_url     = '/sch/shifts/all/'
         
-
         def get_object(self):
             return Shift.objects.get(name=self.kwargs['name'])
     
@@ -1421,6 +1453,16 @@ class SLOT:
         
         def get_success_url(self)                   : 
             return reverse_lazy('workday', kwargs={'slug': self.object.workday.slug})
+        
+    def deleteTurnaroundsView (request):
+        slots = Slot.objects.filter(is_turnaround=True)
+        for slot in slots:
+            if slot.employee.evening_pref:
+                slot = slot.conflicting_slots().get(employee=slot.employee,workday=slot.workday.prevWD())
+            slot.delete()
+        return HttpResponseRedirect('/sch/day/all/')
+        
+    
 
     class SlotTurnaroundsListView (ListView):
         template_name = 'sch/slot/turnarounds.html'
@@ -1592,6 +1634,9 @@ class SCHEDULE:
             wds = Workday.objects.filter(date__year=year, ischedule=sch)
             for wd in wds:
                 wd.slots = wd.emptySlots 
+                
+        
+            
     
     def scheduleView (request, year, sch):
         context = {}
@@ -1648,8 +1693,8 @@ class SCHEDULE:
         return render(request,'sch/schedule/grid.html',context )
     
     def solveScheduleLoader (request,year,sch):
-        dt.time.sleep(5000)
-        HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
+        asyncio.sleep(5000)
+        return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
     def solveScheduleSlots (request,year,sch):
         ScheduleBot.solveSchedule(year,sch)

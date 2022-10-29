@@ -481,7 +481,7 @@
 	
 		.red-glow {
 			color: #d77;
-			text-shadow: 0 0 10px #fff4 !important;
+			text-shadow: 0 0 10px rgba(59, 59, 59, 0.267) !important;
 			font-weight: 800;
 			font-style: italic;
 			text-shadow: 0 0 10px #fbb7 !important;
@@ -492,6 +492,13 @@
 			font-weight: 800;
 			text-shadow: 0 0 5px #fff8;
 			animation: green-glow 1s ease-in-out infinite alternate;
+		}
+		.orange-glow {
+			color: rgb(239, 190, 121);
+			text-shadow: 1 1 4 #fff4 !important;
+			font-weight: 800;
+			text-shadow: 0 0 5px #fff8;
+			animation: orange-glow 1s ease-in-out infinite alternate;
 		}
 		.badge-green-lg {
 			background-color: #4a1;
@@ -569,6 +576,32 @@
 		}
 		img {
 			@apply box-border block border-none;
+		}
+		.card {
+			background-color: #7bf3;
+		}
+		.loader {
+			border-top-color: #3498db;
+			-webkit-animation: spinner 1.5s linear infinite;
+			animation: spinner 1.5s linear infinite;
+		}
+		
+		@-webkit-keyframes spinner {
+			0% {
+				-webkit-transform: rotate(0deg);
+			}
+			100% {
+				-webkit-transform: rotate(360deg);
+			}
+		}
+		
+		@keyframes spinner {
+			0% {
+				transform: rotate(0deg);
+			}
+			100% {
+				transform: rotate(360deg);
+			}
 		}
 				/* --color-canvas-default-transparent: rgba(13,17,23,0);
 				--color-page-header-bg: #0d1117;

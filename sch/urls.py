@@ -41,6 +41,7 @@ urlpatterns = [
     path('day/<slug:date>/<str:shift>/delete/', views.SLOT.SlotDeleteView.as_view(), name='slot-delete'),
     path('day/<slug:date>/<str:employee>/resolve-pto-request/', views.WORKDAY.ResolvePtoRequestFormView.as_view(), name='resolve-pto-request'),
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
+    path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
     
     
 

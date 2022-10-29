@@ -147,6 +147,9 @@ class SlotManager (models.QuerySet):
 class EmployeeManager (models.QuerySet):
 
     def trained_for (self,shift):
+        """
+        VERIFIED WORKING
+        """
         return self.filter(shifts_trained=shift)
     def in_slot (self, shift, workday):
         return self.filter(slot__shift__name=shift, slot__workday=workday)
@@ -224,13 +227,11 @@ class EmployeeManager (models.QuerySet):
             return Employee.workMorningAfter(slot.workday)
         if slot.shift.start.hour < 10:
             return self.workEveningBefore(slot.workday)
-
 class ShiftPreferenceManager (models.QuerySet):
     
         def below_average(self, employee):
             average = employee.avg_shift_pref_score 
             return self.filter(employee=employee, score__lt=average)
-
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
     def in_week(self, year, iweek):
@@ -253,6 +254,7 @@ class Shift (ComputedFieldsModel) :
     cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
     start           = models.TimeField()
     duration        = models.DurationField()
+    group           = models.CharField(max_length=10, choices=(('AM','AM'),('MD','MD'),('PM','PM'),('XN','XN')), null=True)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
 
@@ -320,12 +322,6 @@ class Employee (ComputedFieldsModel) :
 
     def url(self):
         return reverse("employee-detail", kwargs={"name": self.name})
-
-    def trained_for (self, shift):
-        return Shift.objects.filter(name__in=self.shifts_trained.all())
-
-    def available_for (self, shift):
-        return Shift.objects.filter(name__in=self.shifts_available.all())
 
     def weekly_hours (self, year, iweek):
         return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
@@ -745,6 +741,15 @@ class Slot (ComputedFieldsModel) :
         
         return can_fill 
     
+    def conflicting_slots (self) -> SlotManager:
+        if self.start.hour > 10:
+            slots = Slot.objects.filter(workday=self.workday.nextWD(), shift__start__hour__lt=10)
+        elif self.start.hour < 10:
+            slots = Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
+        elif self.start.hour == 10:
+            slots = Slot.objects.filter(workday=self.workday.nextWD(), shift__start__hour__lt=10) | Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
+        return slots
+    
     objects = SlotManager.as_manager()
     
 # ============================================================================
@@ -887,6 +892,10 @@ class SchedulingMax (models.Model):
     class Meta:
         unique_together = ('employee', 'year', 'pay_period')
 
+
+
+
+
 def tally (lst):
     """ TALLY A LIST OF VALUES 
     Tallys each occurence of a particular value"""
@@ -901,7 +910,6 @@ def tally (lst):
 def sortDict (d):
     """ SORT DICT BY VALUE """
     return {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
-
 
 def dayLetter (i):
     return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"

@@ -3,12 +3,10 @@
 
 
 {% block body %}
+    
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
-        <div class="hstack"> 
-            {%comment%} hx-delete="{%url 'sch-del-slots' year sch %}" 
-            class="btn btn-danger" 
-            hx-indicator="#spinner" -->{%endcomment%}
+        <div class="hstack">
         <a class ="btn" href="delete-all-slots/">
             Delete All Slots
             <div id="spinner" role="status" class="htmx-indicator">
@@ -20,24 +18,22 @@
             </div>
         </a>
         <div class="spinner"></div>
-        <a 
-        class="btn btn-secondary" 
-        hx-get="/sch/htmx/alert/Processing/Please%20Wait/"
+
+        <button 
+        href="solve/" 
+        type="button" 
+        id="htmxTargetButton"
+        class="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 inline-flex items-center"
+        hx-get="solve/"
         hx-trigger="click"
-        hx-target="#alert-container"
-        hx-swap="outerHTML"
-        hx-get="solve-slots/">
-            Solve
-        </a>
-
-        <div>{% figCard 'Empty Slots' nEmpty "SLOTS" percComplete tot  %}</div>
-
-
+        hx-target="#htmxTargetButton"
+        src="/sch/schedule/load_button.html">
+        Solve
+        </button>
+        
+        <div class="float-right">{% figCard 'Empty Slots' nEmpty "SLOTS" percComplete tot  %}</div>
     </div>
     </div>
-
-
-
     {#---ALERTS---#}
     <div id="alert-container">
     </div>

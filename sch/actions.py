@@ -141,7 +141,6 @@ class ScheduleBot:
         # sort this list by the number of employees who could fill the slot
         unfilledSlots.sort(key=lambda x: x[2])
         if len(unfilledSlots) == 0:
-            raise Exception
             return False
 
         attempting_slot = 0
@@ -228,8 +227,8 @@ class ScheduleBot:
         if Slot.objects.incompatible_slots(shift=slotB.shift, workday=slotB.workday).filter(employee=employeeA).exists():
             return None 
         employeeB = slotB.employee
-        if employeeB.available_for(shift=slotA.shift) == False:
-            print(employeeB.available_for(shift=slotA.shift))
+        if not slotA.shift in employeeB.shifts_available.all():
+            print ('{employeeB} not available for {slotA.shift}')
             return None
         if ShiftPreference.objects.filter(employee=employeeB, shift=slotB.shift).exists():
             scoreB = ShiftPreference.objects.get(employee=employeeB, shift=slotB.shift).score 
@@ -516,7 +515,21 @@ class ExportBot :
         
         wds = Workday.objects.filter(date__gte=dt.date.today(), date__lte=dt.date.today() + dt.timedelta(days=42))
         return  wds.annotate(empShift=Subquery(Slot.objects.filter(employee=employee, workday=OuterRef('pk')).values('shift')))
-       
+    
+    def exportScheduleGrid (self,year,schedule):
+        wds = Workday.objects.filter(date__year=year,ischedule=schedule).order_by('date')
+        head = [wd.slug for wd in wds]
+        
+        emps = Employee.objects.all().order_by('-group','name')
+        for emp in emps:
+            empSchedule = []
+            for wd in wds:
+                slot = Slot.objects.filter(employee=emp,workday=wd).exists()
+                if slot:
+                    empSchedule += [slot.shift.name]
+                else:
+                    empSchedule += ["*"]
+                     
 class PredictBot :
     
     def predict_streak (employee, workday) -> int :

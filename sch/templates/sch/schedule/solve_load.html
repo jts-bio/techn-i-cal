@@ -14,14 +14,18 @@
         background-repeat: true;
         background-size: 40%;
     }
+    .htmx-settling img {
+        opacity: 0;
+      }
+      img {
+       transition: opacity 300ms ease-in;
+      }
 </style>
 {% endblock style %}
     
 
-{% block content %}
-
-<h1 class="h1">Please Wait...</h1>
-
-{% endblock content %}
+<div hx-get="/sch/schedule/" hx-trigger="load">
+    <img  alt="Result loading..." class="htmx-indicator" width="150" src="/sch/img/RightArrow.svg"/>
+  </div>
 
     
