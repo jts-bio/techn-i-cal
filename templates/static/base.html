@@ -27,7 +27,7 @@
 			<style> {% include 'my.css' %} </style>
 
 			{% block style %} {% endblock %}
-			<link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" rel="stylesheet" type="text/css" />
+			{#<link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" rel="stylesheet" type="text/css" />#}
 			<script src="https://cdn.tailwindcss.com"></script>
 			<link rel="stylesheet" 
 			  href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css">
@@ -40,22 +40,24 @@
 
 	<body>
 			<div class="content">
-				
+
+				{# HEADER #}	
 				{% include 'header.html' %}
 
 				{% block content %}
 				{% endblock %}
 
+				{# FLOWBITE #}
 				<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+				{# HTMX #}
 				<script src="https://unpkg.com/htmx.org@1.8.2"></script>
 
 			</div>
+
+			{% block body %}
+			{% endblock %}
+			
 	</body>
-	<body>
-		{% block body %}
-		{% endblock %}
-	</body>
-	
 
 
 </html>
