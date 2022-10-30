@@ -31,7 +31,7 @@
 
 
     <div class="panel" style="text-align:center;font-size:10px;">
-        <a href="{{ weekA_url }}" style="letter-spacing:4px;" class="btn btn-neutral">
+        <a href="{{ weekA_url }}" style="letter-spacing:4px;" class="link pb-2">
              WEEK A 
         </a> 
         <div class="hstack" style="width:100%;">
@@ -40,13 +40,16 @@
                     <h5 style="font-size:16px;">
                         <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
                     </h5>
-                    <div class="radial-progress {% if day.percent_coverage == 100 %}green-glow{%endif%}" style="--value:{{day.percent_coverage}};">{{day.percent_coverage}}%</div>
+                    <div class="radial-progress {% if day.percent_coverage == 100 %}green-glow{%endif%}" 
+                    style="--value:{{day.percent_coverage}};">
+                    <span class="text-lg"> {{day.percent_coverage}}% </span>
+                </div>
                 </div>
             {% endfor %}
         </div>
     </div>
     <div class="panel" style="text-align:center;font-size:10px;letter-spacing:4px;">
-        <a href="{{ weekB_url }}" style="letter-spacing:4px;" class="btn btn-neutral">
+        <a href="{{ weekB_url }}" style="letter-spacing:4px;" class="link mb-2">
             WEEK B </a> 
         <div class="hstack" style="width:100%;">
             {% for day in weekB %}
@@ -54,16 +57,19 @@
                     <h5 style="font-size:16px;">
                         <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
                     </h5>
-                    <div class="radial-progress {% if day.percent_coverage == 100 %}green-glow{%endif%}" style="--value:{{day.percent_coverage}};">{{day.percent_coverage}}%</div>
+                    <div class="radial-progress {% if day.percent_coverage == 100 %}green-glow{%endif%}" 
+                         style="--value:{{day.percent_coverage}};">
+                        <span class="text-lg"> {{day.percent_coverage}}% </span>
+                    </div>
                     
                 </div>
         {% endfor %}
         </div>
     </div>
 
-    <div class="hstack" style="width:100%;justify-content:space-around;">
+    <div class="hstack flex flex-row flex-wrap" style="width:100%;justify-content:space-around;">
     {% for emp in employees %}
-        <a href="/sch/employee/{{emp}}/generate-schedule/{{firstDay}}/{{lastDayPlusOne}}">
+        <a class="card p-3 h-30" href="/sch/employee/{{emp}}/generate-schedule/{{firstDay}}/{{lastDayPlusOne}}">
             <div style="font-size:13px;font-weight:light;" class="jbm">
                 {{emp}}:
                 {% if emp.period_fte_percent > 100 %} <span class="jbm" style="color:#a55c;background-color:#3115;font-size:15px;">{{emp.period_fte_percent}}% </span>{% else %}

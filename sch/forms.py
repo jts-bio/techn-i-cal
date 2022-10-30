@@ -74,7 +74,7 @@ class EmployeeEditForm (forms.ModelForm) :
             'evening_pref': "Prefers PM"
         }
         widgets = {
-            'shifts_trained'  : forms.CheckboxSelectMultiple(),
+            'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}),
             'shifts_available': forms.CheckboxSelectMultiple(),
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
             'cls'  : forms.RadioSelect(),

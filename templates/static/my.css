@@ -3,10 +3,14 @@
 		* {
 			font-family: 'Raleway', sans-serif;
 			color: #ddd;
-			letter-spacing: -1px;
+			letter-spacing: 0px;
+			text-shadow: #1a202c66;
 		}
 		html {
 			background-color: #0f172a!important;
+		}
+		body {
+			min-height: 1000px;
 		}
 
 		input[type="submit"] {

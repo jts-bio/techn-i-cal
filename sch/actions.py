@@ -261,10 +261,20 @@ class ScheduleBot:
 
     def perform_swap (slotA, slotB):
         empA = slotA.employee
-        slotA.employee = slotB.employee
-        slotA.save()
-        slotB.employee = empA
-        slotB.save()
+        wdA  = slotA.workday
+        sftA = slotA.shift
+        empB = slotB.employee
+        wdB  = slotB.workday
+        sftB = slotB.shift
+        
+        slotA.delete()
+        slotB.delete()
+        
+        newSlotA = Slot.objects.create(workday=wdB,employee=empB,shift=sftB)
+        newSlotA.save()
+        newSlotB = Slot.objects.create(workday=wdA,employee=empA,shift=sftA)
+        newSlotB.save()
+        
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
         
     def swaps_for_week (year, week):
@@ -287,8 +297,7 @@ class ScheduleBot:
             else:
                 slot.delete()
                 
-    # ==== INTER-WEEK SWAP FUNCTIONS ====
-        
+    # ==== INTER-WEEK SWAP FUNCTIONS ==== 
     def WdOverallShiftPrefScore (workday) -> int:
         """
         A Value describing the overall affinity of the shifts employees were assigned for that day. Higher score should

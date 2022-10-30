@@ -241,12 +241,12 @@ class WorkdayManager (models.QuerySet):
         week = workday.iweek
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
-
 class EmployeeClass (models.Model):
     id          = models.CharField(max_length=5, primary_key=True)
     class_name  = models.CharField(max_length=40)
 
-#* Models
+# ============================================================================
+#* ===== Models ===== *#
 # ============================================================================
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
@@ -625,7 +625,11 @@ class Slot (ComputedFieldsModel) :
     workday  = models.ForeignKey("Workday",  on_delete=models.CASCADE)
     shift    = models.ForeignKey( Shift,     on_delete=models.CASCADE)
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
+    empl_sentiment = models.SmallIntegerField (default=50)
     
+    def __post_init__(self):
+        if ShiftPreference.objects.filter(employee=self.employee, shift=self.shift).exists():
+            self.empl_sentiment = ShiftPreference.objects.get(employee=self.employee, shift=self.shift).score
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
@@ -636,32 +640,23 @@ class Slot (ComputedFieldsModel) :
     @computed(models.SlugField(max_length=20), depends=[('self',['workday','shift'])])
     def slug (self):
         return self.workday.slug + '-' + self.shift.name
-
-    
     def start (self):
         return dt.datetime.combine(self.workday.date, self.shift.start)
-
-   
     def end (self):
         return dt.datetime.combine(self.workday.date, self.shift.start) + self.shift.duration
-
     @computed(models.FloatField(), depends=[('self',['shift'])])
     def hours (self) -> float:
         return (self.shift.duration.total_seconds() - 1800) / 3600 
-
     def __str__(self) :
         return str(self.workday.date.strftime('%y%m%d')) + '-' + str(self.shift) + " " + str(self.employee)
-
     def get_absolute_url(self):
         return reverse("slot", kwargs={"slug": self.slug})
-    
     @property
     def prefScore (self) -> int:
         if ShiftPreference.objects.filter(shift=self.shift, employee=self.employee).exists() :
             return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
         else:
             return 0
-
     @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_turnaround (self) -> bool:
         if self.shift.start > dt.time(12,0):
@@ -865,6 +860,12 @@ PREF_SCORES = (
     ('SD', 'Strongly Dislike'),
 )
 class ShiftPreference (ComputedFieldsModel):
+    """SHIFT PREFERENCE [model]
+    >>> employee <fkey> 
+    >>> shift    <fkey>
+    >>> priority <str> SP/P/N/D/SD
+    >>> score    <int> -2/-1/0/1/2
+    """
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
     priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')

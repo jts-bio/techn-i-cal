@@ -29,9 +29,24 @@
 					"label": "Workday__scheduleId"
 				},
 				{
-					"line": 726,
+					"line": 721,
 					"column": 8,
 					"label": ""
+				}
+			]
+		},
+		{
+			"path": "sch/urls.py",
+			"bookmarks": [
+				{
+					"line": 18,
+					"column": 0,
+					"label": "Week URLs"
+				},
+				{
+					"line": 67,
+					"column": 0,
+					"label": "Employee URLs"
 				}
 			]
 		}

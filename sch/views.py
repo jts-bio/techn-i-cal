@@ -1625,7 +1625,8 @@ def shiftTemplate (request, shift):
         })
     
     return render(request, 'sch/shift/shift_sst_form.html', context)
-    
+
+import random
 class SCHEDULE:
     
     class FX:
@@ -1635,7 +1636,23 @@ class SCHEDULE:
             for wd in wds:
                 wd.slots = wd.emptySlots 
                 
+    class DO:
         
+        def generateRandomPtoRequest(request,year,sch):
+            emp = Employee.objects.all()[random.randint(0,Employee.objects.all().count())]   
+            print("-"*35)
+            print("Employee Selected:{}".format(emp))
+            amount = random.randint(1,6)
+            startDay = Workday.objects.filter(date__year=year,ischedule=sch)[random.randint(0,Workday.objects.filter(date__year=year,ischedule=sch).count())]
+            i = 0
+            while i < amount:
+                if not PtoRequest.objects.filter(employee=emp, workday=startDay.date+dt.timedelta(days=i)).exists():
+                    pto = PtoRequest.objects.create(employee=emp, workday=startDay.date+dt.timedelta(days=i))
+                    pto.save()
+                    print("   Created PtoRequest for ", startDay.date+dt.timedelta(days=i))
+                    i += 1
+            print()
+            return HttpResponseRedirect('/sch/schedule/{}/{}'.format(year,sch))
             
     
     def scheduleView (request, year, sch):
@@ -1693,6 +1710,8 @@ class SCHEDULE:
         return render(request,'sch/schedule/grid.html',context )
     
     def solveScheduleLoader (request,year,sch):
+        url_pattern = '/sch/schedule/<int:year>/<int:sch>/solve/'
+        
         asyncio.sleep(5000)
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
@@ -1743,7 +1762,7 @@ class HTMX:
 class TEST:
     
     def spinner (request):
-        return render(request, 'sch/test/spinner.html')
+        return render(request, 'sch/test/spin_center.html')
     
     def possibleInterWeekSlotSwaps (request, workday, shift):
         context = {}
