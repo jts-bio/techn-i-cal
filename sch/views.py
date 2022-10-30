@@ -1685,6 +1685,17 @@ class SCHEDULE:
         context['tot'] = tot
         return render(request, 'sch/schedule/grid.html', context)
     
+    def weeklyOTView (request, year, sch):
+        weeks = Workday.objects.filter(date__year=year,ischedule=sch).values_list('iweek',flat=True).distinct()
+        employees = []
+        for emp in Employee.objects.all(): 
+            weeklyHrs = []
+            for w in weeks:
+                weeklyHrs += [Slot.objects.filter(employee=emp, workday__iweek=w).aggregate(Sum('shift__hours'))['shift__hours__sum']]
+            employees += [{'name':emp.name, 'weeklyHrs':weeklyHrs}]
+            
+        return render(request, 'sch/schedule/ot.html', {'employees':employees,'weeks':weeks,'year':year,'sch':sch})
+                  
     def scheduleDelSlots (request, year, sch):
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
         for slot in slots:
