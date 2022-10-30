@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+    <div class="panel">
+        <table class="table table-compact">
+            <thead>
+                <tr>
+                    <td></td>
+                    {% for w in weeks %}
+                    <td>{{w}}</td>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                
+                {% for emp in employees %}
+                <tr>
+                   <td>{{emp.name}}</td>
+                    {% for hr in emp.weeklyHours %}
+                        <td>{{ emp.weeklyHrs.weekly__hours__sum }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                    
+            </tbody>
+        </table>
+    </div>
+{% endblock content %}
