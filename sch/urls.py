@@ -97,6 +97,7 @@ schedule_patterns = [
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
     path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),  
     path('schedule/<int:year>/<int:sch>/generate-random-pto/',views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
+    path('schedule/<int:year>/<int:sch>/weekly-ot/', views.SCHEDULE.weeklyOTView, name='weekly-ot'),
 
 ]
 urlpatterns += schedule_patterns
