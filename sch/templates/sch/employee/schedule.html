@@ -30,7 +30,9 @@
             <a href="/sch/day/{{day.date}}/">{{day.date}} </a>
         </h5>
         {% if day.slot %}
-            <h3 class="green-glow"> {{day.slot.shift}} </h3>
+            <div class="flex flex-col">
+            <h3 class="green-glow" style="margin-bottom:0px;font-size:23px!important;">{{day.slot.shift}}</h3>
+            <i style="font-size:8px;padding-top:0px;margin-top:0px;"> DAY{{day.slot.streak}} </i></div>
         {% endif %}
         {% if day.ptoReq %}
             <h3 class="blue-glow">{% lockIcon %} </h3>
