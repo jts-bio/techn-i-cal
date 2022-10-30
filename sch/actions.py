@@ -30,7 +30,7 @@ class WorkdayActions:
         4. Dont fill an employee into a turnaround 
         #TODO Dont fill if employee is working a different shift that day
         """
-        templs = ShiftTemplate.objects.filter(ppd_id=workday.ppd_id) # type: ignore
+        templs = ShiftTemplate.objects.filter(ppd_id=workday.sd_id) # type: ignore
 
         shifts = Shift.objects.filter(occur_days__contains=workday.iweekday) # type: ignore
         for shift in shifts:
