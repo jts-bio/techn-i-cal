@@ -1,3 +1,4 @@
+import itertools
 from .models import *
 from django.db.models import Count, Sum, Subquery, OuterRef, F, Avg
 import datetime as dt
@@ -215,6 +216,10 @@ class ScheduleBot:
     # ==== INTER-DAY SWAP FUNCTIONS ==== 
     
     def is_agreeable_swap (slotA, slotB):
+        if slotA.employee == None:
+            return None
+        if slotB.employee == None:
+            return None
         employeeA = slotA.employee
         if ShiftPreference.objects.filter(employee=employeeA, shift=slotA.shift).exists():
             scoreA = ShiftPreference.objects.get(employee=employeeA, shift=slotA.shift).score 
@@ -227,6 +232,7 @@ class ScheduleBot:
         if Slot.objects.incompatible_slots(shift=slotB.shift, workday=slotB.workday).filter(employee=employeeA).exists():
             return None 
         employeeB = slotB.employee
+    
         if not slotA.shift in employeeB.shifts_available.all():
             print ('{employeeB} not available for {slotA.shift}')
             return None
@@ -248,12 +254,12 @@ class ScheduleBot:
     def best_swap (workday):
         slots = Slot.objects.filter(workday=workday)
         swaps = {}
-        for slota in slots:
-            for slotb in slots:
-                if slota != slotb:
-                    swap = ScheduleBot.is_agreeable_swap(slota,slotb)
-                    if swap != None:
-                        swaps.update(swap)
+        pairs = itertools.combinations(slots,2)
+        for slota,slotb in pairs:
+            if slota != slotb:
+                swap = ScheduleBot.is_agreeable_swap(slota,slotb)
+                if swap != None:
+                    swaps.update(swap)
         if swaps == {}:
             return None
         best_swap = max(swaps, key=swaps.get)

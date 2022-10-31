@@ -161,7 +161,7 @@ class WORKDAY :
             return context
 
         def form_valid(self, form):
-            slot = form.cleaned_data['slot']
+            slot   = form.cleaned_data['slot']
             ptoreq = form.cleaned_data['ptoreq']
             action = form.cleaned_data['action']
             if action == 'es':
@@ -330,12 +330,15 @@ class WEEK:
             # group ufs, currently {empl:count,empl:count..} as {count:[empl,empl...]} :
             context['unfavorables'] = {}
             for empl in ufs:
-                if ufs[empl] in context['unfavorables']:
-                    context['unfavorables'][ufs[empl]].append(empl)
-                else:
-                    context['unfavorables'][ufs[empl]] = [empl]
+                if empl:
+                    if ufs[empl] in context['unfavorables']:
+                        context['unfavorables'][ufs[empl]].append(empl)
+                    else:
+                        context['unfavorables'][ufs[empl]] = [empl]
             # and sort it by decreasing count:
-            context['unfavorables'] = {i:sorted(context['unfavorables'][i]) for i in sorted(context['unfavorables'], reverse=True)}
+            context['unfavorables'] = {
+                i : sorted(context['unfavorables'][i]) for i in sorted(
+                    context['unfavorables'], reverse=True)}
             context['weekly_percents'] = WEEK.GET.getPercentsWorkedWeek(year,week)
 
             return context
@@ -481,13 +484,13 @@ class WEEK:
         for empl in Employee.objects.all():
             print(empl.info_printWeek(year,week))
         workdays = Workday.objects.filter(date__year=year, iweek=week)
+        i = 3
         for workday in workdays:
-            i = 3
             while i > 0:
                 bestswap = ScheduleBot.best_swap(workday)
                 if bestswap != None:
                     ScheduleBot.perform_swap(*bestswap)
-                    messages.success(request,f"[{bestswap[0].shift}] {bestswap[0].employee} swapped with [{bestswap[1].shift}] {bestswap[1].employee}")
+                    messages.success(request,[f"{bestswap[0].shift}] {bestswap[0].employee} swapped with [{bestswap[1].shift}] {bestswap[1].employee}"])
                 else:
                     i -= 1
         for empl in Employee.objects.all():
@@ -1635,6 +1638,44 @@ class SCHEDULE:
             wds = Workday.objects.filter(date__year=year, ischedule=sch)
             for wd in wds:
                 wd.slots = wd.emptySlots 
+                
+        def removePtoConflictSlots (request,year,sch):
+            ac = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch).annotate(
+                ptoConflict=Subquery(PtoRequest.objects.filter(
+                    employee=OuterRef('employee'), 
+                    workday=OuterRef('workday__date')).values('workday')[:1]))
+            allConflicts = ac.exclude(ptoConflict=None)
+            for cnf in allConflicts:
+                messages.success(request, f'Deleting Slot {cnf}')
+                
+            allConflicts.update(employee=None)
+            return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}')
+            
+            
+                
+        def removeTurnaround_EmplOptimized (self,year,sch):
+            allConflicts = Slot.objects.filter (
+                is_turnaround=True,workday__date__year=year,workday__ischedule=sch) | Slot.objects.filter (
+                    is_preturnaround=True,workday__date__year=year,workday__ischedule=sch)
+            strs = []
+            for conflict in allConflicts:
+                print('checking {}'.format(conflict))
+                if conflict.employee != None:
+                    if conflict.employee.evening_pref:
+                        if conflict.shift.start.hour < 10:
+                            strs.append('Deleted Slot: %s' % conflict)
+                            Slot.objects.filter(pk=conflict.pk).update(employee=None)
+                            
+                    elif conflict.employee.evening_pref == False:
+                        if conflict.shift.start.hour > 10:
+                            strs.append('Deleted Slot: %s' % conflict)
+                            Slot.objects.filter(pk=conflict.pk).update(employee=None)
+            for conflict in allConflicts:
+                conflict.save()
+            for s in strs:
+                messages.success( self, s )          
+            return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}')
+        
                 
     class DO:
         

@@ -95,6 +95,26 @@
 			text-align: center;
 			width: 100%;
 		}
+		.pharmer-gray {
+			font-family: 'Helvetica Neue';
+			font-weight: 200;
+			font-style: oblique;
+			letter-spacing: -0.1px;
+			color:rgba(146, 131, 202, 0.967);
+			background-color: #141d33;
+			border-radius: 3px;
+			padding-inline: 7px;
+		}
+		.tech-gray {
+			font-family: 'Helvetica Neue';
+			font-weight: 400;
+			letter-spacing: -0.2px;
+			color: #141d33;
+			background-color: #828790;
+			border-radius: 5px;
+			padding-inline: 7px;
+
+		}
 		.jbm {
 			font-family: 'JetBrains Mono', monospace;
 		}

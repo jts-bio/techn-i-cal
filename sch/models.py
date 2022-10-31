@@ -628,8 +628,9 @@ class Slot (ComputedFieldsModel) :
     empl_sentiment = models.SmallIntegerField (default=50)
     
     def __post_init__(self):
-        if ShiftPreference.objects.filter(employee=self.employee, shift=self.shift).exists():
-            self.empl_sentiment = ShiftPreference.objects.get(employee=self.employee, shift=self.shift).score
+        if self.employee != None:
+            if ShiftPreference.objects.filter(employee=self.employee, shift=self.shift).exists():
+                self.empl_sentiment = ShiftPreference.objects.get(employee=self.employee, shift=self.shift).score
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
@@ -666,7 +667,6 @@ class Slot (ComputedFieldsModel) :
                 return True
             else:
                 return False
-
     @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_preturnaround (self) -> bool:
         if self.shift.start < dt.time(12,0):
@@ -676,14 +676,12 @@ class Slot (ComputedFieldsModel) :
                 return True
             else:
                 return False
-    
     @computed (models.BooleanField(), depends=[('self',['workday'])])
     def is_terminal (self):
         if Slot.objects.filter(workday=self.workday.nextWD(), employee=self.employee).exists() :
             return False
         else:
             return True
-         
     @property   
     def siblings_day (self) -> SlotManager:
         return Slot.objects.filter(workday=self.workday).exclude(shift=self.shift)
@@ -706,6 +704,8 @@ class Slot (ComputedFieldsModel) :
     
     @computed (models.BooleanField(), depends=[('self', ['employee'])])
     def isOverStreakPref (self) -> bool :
+        if not self.employee:
+            return False
         if self.streak:
             return self.streak > self.employee.streak_pref
         else:
@@ -737,11 +737,11 @@ class Slot (ComputedFieldsModel) :
         return can_fill 
     
     def conflicting_slots (self) -> SlotManager:
-        if self.start.hour > 10:
+        if self.shift.start.hour > 10:
             slots = Slot.objects.filter(workday=self.workday.nextWD(), shift__start__hour__lt=10)
-        elif self.start.hour < 10:
+        elif self.shift.start.hour < 10:
             slots = Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
-        elif self.start.hour == 10:
+        elif self.shift.start.hour == 10:
             slots = Slot.objects.filter(workday=self.workday.nextWD(), shift__start__hour__lt=10) | Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
         return slots
     
@@ -914,3 +914,5 @@ def sortDict (d):
 
 def dayLetter (i):
     return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"
+
+

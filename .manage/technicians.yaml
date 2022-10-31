@@ -1,11 +1,11 @@
 - name: Josh
-  fte: 0.625
-  shifts_trained: [MI,7C,7P,S,OP,EI,EP,3,N]
+  fte:  0.625
+  shifts_trained:   [MI,7C,7P,S,OP,EI,EP,3,N]
   shifts_avaliable: [MI,7C,7P,S,OP,EI,EP,3,N]
 
 - name: Brittanie
-  fte: 1
-  shifts_trained: [MI,7C,7P,S,OP,EI,EP,3,N]
+  fte:  1
+  shifts_trained:   [MI,7C,7P,S,OP,EI,EP,3,N]
   shifts_avaliable: [OP]
 
 - name:

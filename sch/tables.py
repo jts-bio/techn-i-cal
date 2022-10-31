@@ -3,6 +3,7 @@ from django.db.models import (Avg, Case, CharField, Count, F, FloatField,
                               When)
 from django_tables2 import tables
 from django_tables2.utils import A
+from django.utils.html import format_html
 
 from .models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday, PtoRequest
 
@@ -67,6 +68,13 @@ class EmployeeWeeklyHoursTable (tables.Table):
 class ShiftListTable (tables.Table) :
     """
     Summary for ALL SHIFTS
+    
+    ---------------------------------
+    name| hours   | IV?  | Group
+    ---------------------------------
+    MI  |   10hrs |  X   |  CPhT
+    RS  |   10hrs |      |  RPh
+    ---------------------------------
     """
     name  = tables.columns.LinkColumn ("shift", args=[A("name")])
     hours = tables.columns.Column (verbose_name="Hours", attrs={"td": {"class": "small"}})
@@ -95,9 +103,15 @@ class ShiftsWorkdaySmallTable (tables.Table):
 
     class Meta:
         model           = Shift
-        fields          = ['name','employee','cls']
+        fields          = ['name','employee']
         template_name   = 'django_tables2/bootstrap.html'
         attrs           = {"class":"table table-compact table-xs"}
+        
+    def render_employee(self, value, record):
+        if record.cls == "RPh":
+            return format_html("<span class='pharmer-gray'>{} <span class='xs'>{}</span></span>", value, record.cls)
+        elif record.cls == "CPhT":
+            return format_html('<span class="tech-gray">{} <span class="xs">{}</span></span>', value, record.cls)
 
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS

@@ -89,3 +89,45 @@ op.hours
 
 op.is_iv
 True
+
+# ~~~~~ DJANGO JUPYTER SETUP
+import django 
+import os
+os.environ["DJANGO_ALLOW_ASYNC_UNSAFE"] = "true"
+django.setup()
+
+from sch.models import *
+from sch.actions import *
+
+
+
+
+
+
+from sch.models import *
+j = Slot.objects.filter(employee__name='Josh').values('workday')
+
+j
+<SlotManager [{'workday': 337}, {'workday': 338}, {'workday': 336}, {'workday': 350}, {'workday': 358}, {'workday': 364}, {'workday': 334}, {'workday': 342}, {'workday': 348}, {'workday': 356}, {'workday': 362}, {'workday': 343}, {'workday': 253}, {'workday': 254}, {'workday': 274}, {'workday': 275}, {'workday': 262}, {'workday': 284}, {'workday': 252}, {'workday': 256}, '...(remaining elements truncated)...']>
+
+n = Slot.objects.filter(employee__name='Nicki').values('workday')
+
+union = j & n
+
+union
+<SlotManager []>
+
+union = Workday.objects.filter(pk__in=j) & Workday.objects.filter(pk__in=n)
+
+union
+<WorkdayManager [<Workday: 2022 09 13>, <Workday: 2022 09 16>, <Workday: 2022 09 19>, <Workday: 2022 09 26>, <Workday: 2022 09 27>, <Workday: 2022 10 01>, <Workday: 2022 10 05>, <Workday: 2022 10 10>, <Workday: 2022 10 19>, <Workday: 2022 10 22>, <Workday: 2022 10 24>, <Workday: 2022 11 01>, <Workday: 2022 11 03>, <Workday: 2022 11 09>, <Workday: 2022 11 10>, <Workday: 2022 11 13>, <Workday: 2022 11 14>, <Workday: 2022 11 20>, <Workday: 2022 11 26>, <Workday: 2022 11 30>, '...(remaining elements truncated)...']>
+
+union.count()
+24
+
+union.count()/j.count()
+0.4897959183673469
+
+union.count()/n.count()
+0.375
+
