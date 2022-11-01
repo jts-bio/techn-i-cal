@@ -1335,24 +1335,6 @@ class SLOT:
             return min(data, key=data.get) if data else None
             
 
-    def create_slot (request, date, shift):
-
-        if request.method == 'POST':
-            form = SlotForm(request.POST)
-            if form.is_valid():
-                form.save()
-                return redirect('/sch/slots/all/')
-        else:
-            initial = {'workday': date, 'shift': shift}
-            form    = SlotForm(initial=initial)
-
-        return render(
-            request, 'sch/slot/slot_form.html', {
-                'form': form, 
-                'date': date, 
-                'shift': shift
-                })  
-
     class SlotCreateView (FormView):
 
         template_name   = 'sch/slot/slot_form.html'
