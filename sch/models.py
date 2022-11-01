@@ -568,7 +568,9 @@ class Workday (ComputedFieldsModel) :
             return None
         if Slot.objects.filter(workday=self,shift=shift).exists():
             current = Slot.objects.get(workday=self,shift=shift).employee
-            return Union(Employee.objects.can_fill_shift_on_day(workday=self,shift=shift),Employee.objects.filter(pk__in=current.pk))
+            return Employee.objects.can_fill_shift_on_day(
+                workday=self,shift=shift) | Employee.objects.filter(
+                    pk__in=current.pk)
         return Employee.objects.can_fill_shift_on_day(workday=self,shift=shift)
     
     def n_can_fill (self, shift):
@@ -614,6 +616,15 @@ class Week (ComputedFieldsModel) :
                 return Week.objects.get(year=yearnew, iweek=0)
             except:
                 return Week.objects.get(year=yearnew, iweek=1)
+    
+         
+    def workdays (self):
+        return Workday.objects.filter(date__year=self.year,iweek=self.iweek)
+    
+    
+    def slots (self):
+        return Slot.objects.filter(workday__in=self.workdays)
+    
     
     def __str__ (self) :
         return f'{str(self.year)[2:]}-W{str(self.iweek)}'

@@ -13,6 +13,7 @@ import itertools
 
 from .models import *
 from .forms import *
+from .formsets import *
 from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions, EmployeeBot
 from .tables import *
 from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
@@ -1047,7 +1048,9 @@ class EMPLOYEE:
     def tdoBreakdownView (request):
         context = {}
         context['days'] = tally(list(TemplatedDayOff.objects.all().values_list('ppd_id',flat=True)))
-        return HttpResponse(context)
+        context['employees'] = Employee.objects.all()
+        context['tdos'] = TemplatedDayOff.objects.all()
+        return render(request,'sch/tdo/all.html', context)
         
     ### SFT-SLOT-TMPL
     class EmployeeSstsView (FormView):
@@ -1129,7 +1132,7 @@ class EMPLOYEE:
         
             template_name = 'sch/employee/template_days_off.html'
             form_class = EmployeeTemplatedDaysOffForm
-            success_url = '/sch/employees/all/'
+            success_url = '/sch/employees/all/' 
             
             employee = Employee.objects.get(name=name)
             
@@ -1157,7 +1160,7 @@ class EMPLOYEE:
                     print('NOT VALID')
                     print(formset.errors)
                         
-                    return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
+                    return HttpResponseRedirect('/sch/day-off-breakdown/')
 
             context = {}
             
@@ -1756,8 +1759,6 @@ class SCHEDULE:
     
     def solveScheduleLoader (request,year,sch):
         url_pattern = '/sch/schedule/<int:year>/<int:sch>/solve/'
-        
-        asyncio.sleep(5000)
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
     def solveScheduleSlots (request,year,sch):
@@ -1771,6 +1772,7 @@ class SCHEDULE:
                 slot.delete()
             slot.save()
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
+        
     
     def solvePart2 (request,year,sch):
         emptySlots = []

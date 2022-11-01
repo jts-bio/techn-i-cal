@@ -145,7 +145,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
     # if not checked and not existing: pass and don't error
     # if not checked and existing: delete
     def clean(self):
-        cleaned_data = super().clean()
+        cleaned_data = super(EmployeeTemplatedDaysOffForm,self).clean()
         td = TemplatedDayOff.objects.filter(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])
         if cleaned_data['is_templated_off']:    # create or pass
             if td.exists():                    # pass

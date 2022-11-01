@@ -4,7 +4,7 @@
 			"path": "sch/views.py",
 			"bookmarks": [
 				{
-					"line": 181,
+					"line": 182,
 					"column": 14,
 					"label": "WORKDAY--fillableBy"
 				}
@@ -29,7 +29,7 @@
 					"label": "Workday__scheduleId"
 				},
 				{
-					"line": 721,
+					"line": 732,
 					"column": 8,
 					"label": ""
 				}
