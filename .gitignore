@@ -1,5 +1,4 @@
 __pycache__/
-staticfiles/
 .manage/
 .vscode/
 .env
