@@ -3,9 +3,19 @@
 
 
 {% block body %}
+
 <div id="content" hx-get="#" hx-trigger="load delay:2s" hx-target="#content"  hx-swap="innerHTML">
+    <a id="back-home" href="/">{% backArrow %} HOME</a>
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
+
+        <div class="avatar indicator">
+            <span class="indicator-item badge badge-secondary">typing…</span> 
+            <div class="w-20 h-20 rounded-lg">
+              <img src="https://placeimg.com/160/160/people" />
+            </div>
+          </div>
+
         <div class="hstack">
         <a class ="btn" hx-get="delete-all-slots/" hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. ">
             Delete All Slots
@@ -70,8 +80,10 @@
         {% endfor %}{% endif %}
     </div>
 
+    <div class="overflow-x-auto">
+        
     {#---MAIN APP TABLE---#}
-    <table class="table table-compact table-xs" style="width:100%;">
+    <table class="table table-compact table-xs w-full" style="width:100%;">
         <thead>
             <tr>
                 <th>EMPLOYEES</th>
@@ -90,10 +102,12 @@
             {% if day.1 == None %} 
                 {% if day.3 == None %}
                     <td style="opacity:30%;">
-                        *</td> 
+                        *
+                    </td> 
                 {% else %}
                     <td style="background-color:#5d85d059;color:#ffffffa0;text-shadow:1px 1px 1px black;font-size:9px;">
-                        PTO</td>
+                        PTO
+                    </td>
                 {% endif %}
             {%else%}
                 {% if day.0 in weekendlist %} 
@@ -122,18 +136,22 @@
 
     {% endfor %}
     </table>
+    </div>
 
 <div class="panel">
     <div class="hstack wrap">
     {% for uf,count in unfavorables.items %}
         <div class="vstack">
-            <div>{{uf}}</div>
-            <div>{{count}}</div>
+            <div> {{uf}} </div>
+            <div> {{count}} </div>
         </div>
     {% endfor %}
+    </div>
 </div>
+
+<div class="flex flex-wrap">
+    {% for c in conflicted %} {{c}} {% endfor %}
 </div>
-<div class="flex flex-wrap">{% for c in conflicted %} {{c}} {% endfor %}</div>
 
 </div>
 {% endblock body %}

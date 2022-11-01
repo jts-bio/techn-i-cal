@@ -12,17 +12,11 @@ from django.contrib import messages
 import itertools
 
 from .models import *
-
 from .forms import *
-
 from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions, EmployeeBot
-
 from .tables import *
-
 from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
-
 from django_tables2 import RequestConfig
-
 import datetime as dt
 
 
@@ -1460,9 +1454,10 @@ class SLOT:
     def deleteTurnaroundsView (request):
         slots = Slot.objects.filter(is_turnaround=True)
         for slot in slots:
-            if slot.employee.evening_pref:
-                slot = slot.conflicting_slots().get(employee=slot.employee,workday=slot.workday.prevWD())
-            slot.delete()
+            if slot.employee:
+                if slot.employee.evening_pref:
+                    slot = slot.conflicting_slots().get(employee=slot.employee,workday=slot.workday.prevWD())
+                slot.delete()
         return HttpResponseRedirect('/sch/day/all/')
         
     
@@ -1614,9 +1609,7 @@ def shiftTemplate (request, shift):
 
     initData = [
         {'ppd_id': i, 
-         'shift' : shift } 
-        
-                            for i in on_days
+         'shift' : shift }  for i in on_days
         ]
 
     formset = TmpSlotFormSet(initial=initData)
