@@ -68,10 +68,10 @@ class ShiftListTable (tables.Table) :
     """
     Summary for ALL SHIFTS
     """
-    name = tables.columns.LinkColumn("shift", args=[A("name")])
+    name  = tables.columns.LinkColumn("shift", args=[A("name")])
     hours = tables.columns.Column(verbose_name="Hours", attrs={"td": {"class": "small"}})
     is_iv = tables.columns.BooleanColumn(verbose_name="IV Room?")
-    cls = tables.columns.Column(verbose_name='Class')
+    cls   = tables.columns.Column(verbose_name='Class')
     
     class Meta:
         model           = Shift
@@ -105,8 +105,6 @@ class WorkdayListTable (tables.Table):
     date       = tables.columns.LinkColumn("workday", args=[A("date")])
     n_unfilled = tables.columns.Column(verbose_name="Unfilled Shifts")
     days_away  = tables.columns.Column(verbose_name="Days Away")  
-
-
     class Meta:
         model           = Workday
         fields          = [
@@ -144,9 +142,9 @@ class WorkdayListTable (tables.Table):
     
 class WeekListTable (tables.Table):
     
+    
     date              = tables.columns.LinkColumn ("workday", args=[A("date")])
     percentage_filled = tables.columns.Column (verbose_name="Filled")
-    
     class Meta:
         fields          = ['week','percentage_filled','coordinator','notes']
         
@@ -154,7 +152,6 @@ class WeekListTable (tables.Table):
         
     def render_week(self, record):
         return f"W{record.iweek}"
-
     
     def render_percentage_filled(self, record):
         return f"{round(record.percFilled*100, 2)}%"

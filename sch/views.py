@@ -9,6 +9,7 @@ from django.contrib import messages
 
 
 import itertools
+from sql_util.utils import SubqueryAggregate
 
 from .models import *
 
@@ -889,6 +890,42 @@ class EMPLOYEE:
                 return self.form_valid(form)
             print(request.POST)
             return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': self.kwargs['name']}))
+        
+    # codex
+    def shift_preference_form_view2 (request, name):
+        context = {}
+        employee = Employee.objects.get(name=name)
+        context['employee'] = employee
+        trainedFor = employee.shifts_trained.all()
+        prefFormset = formset_factory(EmployeeShiftPreferencesForm, extra=0, min_num=len(trainedFor))
+        
+        formset = prefFormset()
+        if request.method == "POST":
+            print(request.POST)
+            formset = prefFormset(request.POST)
+            for form in formset:
+                print(form)
+                shift = form.cleaned_data['shift']
+                priority = form.cleaned_data['priority']
+                if ShiftPreference.objects.filter(employee=employee, shift=shift).exists():
+                    shiftPreference = ShiftPreference.objects.get(employee=employee, shift=shift)
+                    print(shiftPreference,"test")
+                    shiftPreference.delete()
+                    shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
+                    shiftPreference.save()
+                else:
+                    shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
+                    shiftPreference.save()
+                    print(shiftPreference,'didntexist')
+            return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
+        for i in range(len(trainedFor)):
+            formset[i].fields['shift'].initial = trainedFor[i]
+            if ShiftPreference.objects.filter(employee=employee, shift=trainedFor[i]).exists():
+                formset[i].fields['priority'].initial = ShiftPreference.objects.get(employee=employee, shift=trainedFor[i]).priority
+        context['formset'] = formset
+        return render(request, 'sch/employee/shift_preferences_form.html', context)
+
+        
     
     def shift_preference_form_view (request, name):
         context = {}
@@ -1203,7 +1240,10 @@ class EMPLOYEE:
             sft1=Subquery(Slot.objects.filter(employee=emp1,workday=OuterRef('pk')).values('shift__name'))).annotate(
                 sft2=Subquery(Slot.objects.filter(employee=emp2,workday=OuterRef('pk')).values('shift__name')))
             
-        return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
+        emp1perc = round(days.count() / Slot.objects.filter(employee=emp1).count() * 100, 1)
+        emp2perc = round(days.count() / Slot.objects.filter(employee=emp2).count() * 100, 1)
+            
+        return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2, 'emp1perc':emp1perc, 'emp2perc':emp2perc})
 
 class SLOT:
     class GET :
@@ -1508,35 +1548,56 @@ class SCHEDULE:
             wds = Workday.objects.filter(date__year=year, ischedule=sch)
             for wd in wds:
                 wd.slots = wd.emptySlots 
+                
+    def scheduleVerticalView (request, year, sch):
+        wds = Workday.objects.filter(date__year=year,ischedule=sch)
+        shifts = Shift.objects.all()
+        
+        for wd in wds:
+            schedule = Shift.objects.all().annotate(
+                employee= Subquery(Slot.objects.filter(workday=wd,shift=OuterRef('pk')).values('employee__name'))
+            ).values_list('employee')
+            wd.schedule = schedule 
+        
+        return render(request, 'sch/schedule/vertical.html', {'wds':wds, 'shifts':shifts})
     
     def scheduleView (request, year, sch):
         context = {}
         employees = Employee.objects.all().order_by('name')
+        
         for empl in employees:
             schedule = Workday.objects.filter(date__year=year,ischedule=sch).annotate(
                 emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
                     ptoReq=Subquery(PtoRequest.objects.filter(employee=empl.pk, workday=OuterRef('date')).values('employee__name')[:1])).annotate(
                     streakPref=Subquery(Employee.objects.filter(pk=empl.pk).values('streak_pref')[:1])).annotate(
-                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])).values_list('iweekday','emplShift','streak','ptoReq','streakPref')
+                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])).annotate(
+                    tdos=Subquery(TemplatedDayOff.objects.filter(employee=empl.pk, sd_id=OuterRef('sd_id')).values('sd_id')[:1])
+                ).values_list('iweekday','emplShift','streak','ptoReq','streakPref','tdos')
             
             empl.schedule = schedule
+            empl.shiftsPerWeek = round(Slot.objects.filter(employee=empl.pk, workday__date__year=year,workday__ischedule=sch).count() / 6, 1)
             
         context['employees'] = employees
         context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
-        context['weekendlist'] = [0,6]
+        context['weekendlist']  = [0,6]
         context['unfavorables'] = ScheduleBot.get_unfavorables(year,sch)
         context['year'] = year
-        context['sch'] = sch
+        context['sch']  = sch
         
         context['conflicted'] = SCHEDULE.tdosConflictedSlots(year,sch)
-        te = 0
+        te  = 0
         tot = 0
+        
         for wd in Workday.objects.filter(date__year=year,ischedule=sch):
             te += wd.emptySlots.count()
             tot += wd.filledSlots.count() + wd.emptySlots.count()
+            
         context['percComplete'] = f'{int(100-round(te / tot, 2) * 100)}%'
         context['nEmpty'] = te
-        context['tot'] = tot
+        context['tot']    = tot
+        
+        
+        
         return render(request, 'sch/schedule/grid.html', context)
     
     def scheduleDelSlots (request, year, sch):
@@ -1550,7 +1611,8 @@ class SCHEDULE:
                 emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
                     ptoReq=Subquery(PtoRequest.objects.filter(employee=empl.pk, workday=OuterRef('date')).values('employee__name')[:1])).annotate(
                     streakPref=Subquery(Employee.objects.filter(pk=empl.pk).values('streak_pref')[:1])).annotate(
-                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])).values_list('iweekday','emplShift','streak','ptoReq','streakPref')
+                    streak=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('streak')[:1])
+                ).values_list('iweekday','emplShift','streak','ptoReq','streakPref')
             
             empl.schedule = schedule
             
@@ -1652,13 +1714,13 @@ class TEST:
         return render(request,'sch/test/is.html',context)
     
     def makeSwap (request,slotA,slotB):
-        slot_a = Slot.objects.get(slug=slotA)
-        slot_b = Slot.objects.get(slug=slotB)
-        slotAEmpl = slot_a.employee
-        slotAWD = slot_a.workday
+        slot_a     = Slot.objects.get(slug=slotA)
+        slot_b     = Slot.objects.get(slug=slotB)
+        slotAEmpl  = slot_a.employee
+        slotAWD    = slot_a.workday
         slotAShift = slot_a.shift
-        slotBEmpl = slot_b.employee
-        slotBWD = slot_b.workday
+        slotBEmpl  = slot_b.employee
+        slotBWD    = slot_b.workday
         slotBShift = slot_b.shift
         
         slot_a.delete()
@@ -1671,7 +1733,8 @@ class TEST:
         message = f"""
         [{newA.workday.weekday} {newA.shift}]-{newA.employee.name.capitalize()} 
         swapped with
-        [{newB.workday.weekday} {newB.shift}]-{newB.employee.name.capitalize()}"""
+        [{newB.workday.weekday} {newB.shift}]-{newB.employee.name.capitalize()}
+        """
         
         messages.success(request,message,"toast")
         

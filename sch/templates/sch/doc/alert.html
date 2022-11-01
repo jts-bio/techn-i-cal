@@ -1,19 +1,17 @@
 <a href="solve-slots/">
-  <div role="alert" class="rounded-xl border border-gray-100 p-4 shadow-xl float float-center w-220" style="float:center;">
+  <div role="alert" class="rounded-xl border border-gray-100 p-4 shadow-xl float float-center w-90 ml-170 mr-90" style="float:center;">
     <div class="flex items-start gap-4">
-      <span class="text-green-600">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </span>
-
       <div class="flex-1">
-        <strong class="block font-medium text-gray-100">{{ title }}</strong>
+        <div class="lds-hourglass"></div><div></div>
+      </div>
+        
+      <div class="flex-4">
+        <strong class="block font-medium text-blue-400">{{ title }}</strong>
 
-        <p class="mt-1 text-sm text-gray-700">{{ msg }}</p>
+        <p class="mt-1 text-sm text-blue-200">{{ msg }}</p>
       </div>
 
-      <button class="text-gray-500 transition hover:text-gray-400">
+      <button class="transition hover:text-gray-400">
         <span class="sr-only">Dismiss popup</span>
 
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">

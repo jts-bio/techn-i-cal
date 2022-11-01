@@ -1,0 +1,30 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<table class="table table-compact">
+    <thead>
+        <tr>
+            <td>Workday</td>
+            {% for shift in shifts %} <td>{{ shift }}</td> {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for wd in wds %}
+            <tr>
+                <td>{{wd.date}}</td>
+                {% for sft in wd.schedule %}
+                    {% if sft.0 %}
+                    <td class="text-2xs">{{ sft.0 }}</td> {% else %} <td></td> {% endif %}
+                {% endfor %}
+                    
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+    
+{% endblock content %}
+    

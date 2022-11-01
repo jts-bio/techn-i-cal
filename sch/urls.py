@@ -56,7 +56,7 @@ urlpatterns = [
     path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
-    path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
+    path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view2, name='shift-preferences-form'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
     path('employee/<str:name>/ssts/', views.EMPLOYEE.employeeSstsView, name='employee-edit-ssts'),   
     path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='employee-coworker'),
@@ -78,9 +78,12 @@ urlpatterns = [
     
     #? ==== SCHEDULE ==== ?#
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
+    path('schedule/<int:year>/<int:sch>/vertical/', views.SCHEDULE.scheduleVerticalView, name='schedule-vertical'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
     path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),    
 ]
+
+
 
 test_patterns = [
     path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
@@ -89,11 +92,12 @@ test_patterns = [
     path('spinner/',views.TEST.spinner,name="spinner"),
     path('predict-streak/<str:employee>/<slug:workday>/', actions.PredictBot.predict_createdStreak, name="predict-streak"),
 ]
+urlpatterns += test_patterns
+
+
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
     path('htmx/spinner/', views.HTMX.spinner, name='spinner-view')
 ]
-
-urlpatterns += test_patterns
 urlpatterns += htmx_patterns

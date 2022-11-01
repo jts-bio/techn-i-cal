@@ -7,7 +7,6 @@
 
 ## Easy
 
-[ ] List of Weeks Should filter out past weeks
 
 ----------------
 
@@ -15,3 +14,4 @@
 
 [x] New View: Table of All Weeks
 [x] New ViewSet: Pay Periods
+[x] List of Weeks Should filter out past weeks

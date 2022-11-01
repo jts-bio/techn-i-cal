@@ -1,3 +1,5 @@
+#/usr/bin/python3
+
 import datetime as dt
 from re import sub
 
@@ -9,11 +11,14 @@ from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
 from django.urls import reverse
 from multiselectfield import MultiSelectField
 
-"""
-DJANGO PROJECT:     TECHNICAL
-APPLICATION:        FLOW-RATE SCHEDULING (SCH)
+from sql_util.utils import SubqueryAggregate
 
-AUTHOR:             JOSH STEINBECKER        
+
+"""
+DJANGO PROJECT:        TECHN-I-CAL
+APPLICATION:           FLOW-RATE SCHEDULING (SCH)
+
+AUTHOR:                JOSH STEINBECKER        
 ========================================================
 
 Models: 
@@ -23,8 +28,14 @@ Models:
     - Workday
     - Slot
     - PtoRequest
-    - 
 """
+
+
+WEEKABCHOICES = (
+        (0, 'A'),
+        (1, 'B'),)
+
+TODAY = dt.date.today()
 
 DAYCHOICES = (
         (0, 'Sunday'),
@@ -35,14 +46,10 @@ DAYCHOICES = (
         (5, 'Friday'),
         (6, 'Saturday')
     )
-WEEKABCHOICES = (
-        (0, 'A'),
-        (1, 'B'),)
 
-TODAY = dt.date.today()
-
-
+#********************#
 #* --- Managers --- *#
+#********************#
 # ============================================================================
 class ShiftManager (models.QuerySet):
 
@@ -217,8 +224,6 @@ class EmployeeManager (models.QuerySet):
         return self.annotate(
             avgSftPref=Avg(Subquery(ShiftPreference.objects.filter(
                 employee=OuterRef('pk')).values('score'),output_field=FloatField())))
-
-
 class ShiftPreferenceManager (models.QuerySet):
     
         def below_average(self, employee):
@@ -235,11 +240,17 @@ class WorkdayManager (models.QuerySet):
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
 
+# ============================================================================  
 class EmployeeClass (models.Model):
     id          = models.CharField(max_length=5, primary_key=True)
     class_name  = models.CharField(max_length=40)
 
-#* Models
+
+
+
+#******************#
+#* --- Models --- *#
+#******************#
 # ============================================================================
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
@@ -387,7 +398,6 @@ class Employee (ComputedFieldsModel) :
        
     objects = EmployeeManager.as_manager()
 
-
 # ============================================================================
 class Workday (ComputedFieldsModel) :
     # fields: date, shifts 
@@ -408,15 +418,35 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 6
         return int (self.date.strftime('%w'))
     
+    
+    def weekdayId (self) -> int:
+        return int (self.date.strftime('%w'))
+    
     @computed(models.IntegerField(), depends=[('self',['date'])])
     def iweek (self) -> int:
         # range 0 -> 53
         return int (self.date.strftime('%U'))
     
+    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
+    # def weekId (self):
+    #     w = int (self.date.strftime('%U'))
+    #     yr = self.date.yr
+    #     if w == 0:
+    #         yr -= 1
+    #     return f'{yr}-W{w}'
+    
     @computed(models.IntegerField(), depends=[('self',['date'])])
     def iperiod (self) -> int:
         # range 0 -> 27
         return int (self.date.strftime('%U')) // 2
+    
+    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
+    # def periodId (self):
+    #     p = int (self.date.strftime('%U')) // 2
+    #     yr = self.date.yr
+    #     if p == 0:
+    #         yr -= 1
+    #     return f'{yr}-P{p}'
 
     @computed(models.IntegerField(), depends=[('self',['date'])])
     def ppd_id (self) -> int:
@@ -428,11 +458,18 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 9
         return self.iperiod // 3 
     
+    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
+    # def scheduleId (self):
+    #     s = int(self.date.strftime('%U')) // 6
+    #     yr = self.date.yr 
+    #     if w==0:
+    #         yr -= 1
+    #     return f'{yr}-S{s}'
+    
     @computed(models.IntegerField(),depends=[('self',['date'])])
     def sd_id (self) -> int:
         # range 0 -> 41
         return (self.date - dt.date(2022,9,4)).days % 42
-    
     
     @property
     def weekday (self) -> str :
@@ -538,9 +575,11 @@ class Workday (ComputedFieldsModel) :
         for slot in slots :
             print(slot.shift.name, slot.employee)
             
+            
     
     objects = WorkdayManager.as_manager()
 
+# ============================================================================  
 class Week (ComputedFieldsModel) :
     __all__ = [
         'year','iweek',
@@ -725,7 +764,7 @@ class ShiftTemplate (models.Model) :
     class Meta:
         unique_together = ['shift', 'ppd_id']
         
-
+# ============================================================================  
 class TemplatedDayOff (models.Model) :
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     ppd_id   = models.IntegerField(null=True) 
@@ -749,8 +788,7 @@ class TemplatedDayOff (models.Model) :
     
     class Meta:
         unique_together = ['employee','sd_id']
-    
-    
+
 # ============================================================================
 PTO_STATUS_CHOICES = (
     ('P', 'Pending'),
@@ -782,6 +820,7 @@ class PtoRequest (ComputedFieldsModel):
     def days_away (self):
         return (self.workday.date - dt.date.today()).days
 
+# ============================================================================  
 PRIORITIES = (
     ('L', 'Low'),
     ('M', 'Medium'),
@@ -794,9 +833,9 @@ class SlotPriority (models.Model):
     priority = models.CharField(max_length=20, choices=PRIORITIES, default='M')
 
     class Meta:
-        unique_together = ['iweekday', 'shift']     
+        unique_together = ['iweekday', 'shift']    
+         
 # ============================================================================
-
 PREF_SCORES = (
     ('SP', 'Strongly Prefer'),
     ('P', 'Prefer'),
@@ -833,7 +872,8 @@ class SchedulingMax (models.Model):
         unique_together = ('employee', 'year', 'pay_period')
 
 def tally (lst):
-    """ TALLY A LIST OF VALUES 
+    """ 
+    --- TALLY A LIST OF VALUES ---
     Tallys each occurence of a particular value"""
     tally = {}
     for item in lst:
@@ -847,6 +887,5 @@ def sortDict (d):
     """ SORT DICT BY VALUE """
     return {k: v for k, v in sorted(d.items(), key=lambda item: item[1])}
 
-
 def dayLetter (i):
-    return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"
+    return "ABCDEFGHIJKLMNOPQRSTUVWXYZБДЖИЛФШЮЯΔΘΛΞΣΨΩ"[i]

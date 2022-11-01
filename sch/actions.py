@@ -28,7 +28,7 @@ class WorkdayActions:
         2. Template exists for the day
         3. Employee Templated is not on PTO.
         4. Dont fill an employee into a turnaround 
-        #TODO Dont fill if employee is working a different shift that day
+        5. Dont fill if employee is working a different shift that day
         """
         templs = ShiftTemplate.objects.filter(ppd_id=workday.ppd_id) # type: ignore
 
@@ -39,16 +39,18 @@ class WorkdayActions:
                 if templs.filter(shift=shift).exists():
                     # dont fill if templated employee has a PTO request for day
                     if PtoRequest.objects.filter(employee=templs.get(shift=shift).employee, workday=workday.date).exists()==False:
-                        # avoid creating a turnaround
-                        if shift.start < dt.time(12):
-                            if Slot.objects.filter(workday=workday.prevWD(), employee=templs.get(shift=shift).employee, shift__start__gt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
-                                slot.save()
-                        # avoid creating a preturnaround
-                        elif shift.start > dt.time(12):
-                            if Slot.objects.filter(workday=workday.nextWD(), employee=templs.get(shift=shift).employee, shift__start__lt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
-                                slot.save()
+                        # dont fill if employee already works that day:
+                        if Slot.objects.filter(workday=workday, employee=templs.get(shift=shift).employee).exists()==False:
+                            # avoid creating a turnaround
+                            if shift.start < dt.time(12):
+                                if Slot.objects.filter(workday=workday.prevWD(), employee=templs.get(shift=shift).employee, shift__start__gt=dt.time(12)).exists()==False:
+                                    slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
+                                    slot.save()
+                            # avoid creating a preturnaround
+                            elif shift.start > dt.time(12):
+                                if Slot.objects.filter(workday=workday.nextWD(), employee=templs.get(shift=shift).employee, shift__start__lt=dt.time(12)).exists()==False:
+                                    slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
+                                    slot.save()
 
     def identifySwaps (workday) :
         slots = Slot.objects.filter(workday=workday)
@@ -259,14 +261,16 @@ class ScheduleBot:
         if swaps == {}:
             return None
         best_swap = max(swaps, key=swaps.get)
-        return best_swap
+        print(best_swap)
+        return best_swap  # ex: (slotA, slotB)
 
     def perform_swap (slotA, slotB):
-        empA = slotA.employee
+        empA           = slotA.employee
         slotA.employee = slotB.employee
         slotA.save()
         slotB.employee = empA
         slotB.save()
+        
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
         
     def swaps_for_week (year, week):
@@ -425,9 +429,6 @@ class ScheduleBot:
         for i in week_nums :
             ScheduleBot.performSolvingFunctionOnce (yr, i['iweek'])
             
-
-        
-        
 class EmployeeBot:
     
     def get_emplUpcomingUnfavorables (employeeName):
@@ -471,8 +472,7 @@ class ShiftPrefBot :
     
     def slotsOverStreakPref ():
         return Slot.objects.filter(isOverStreakPref=True)
-            
-              
+                        
 class ExportBot :
     
     def exportWeek (year,week):
@@ -509,8 +509,7 @@ class ExportBot :
         
         wds = Workday.objects.filter(date__gte=dt.date.today(), date__lte=dt.date.today() + dt.timedelta(days=42))
         return  wds.annotate(empShift=Subquery(Slot.objects.filter(employee=employee, workday=OuterRef('pk')).values('shift')))
-    
-    
+      
 class PredictBot :
     
     def predict_streak (employee, workday) -> int :
@@ -533,7 +532,6 @@ class PredictBot :
         if Slot.objects.filter(employee=employee,workday=workday.prevWD()).exists() == False:
             return 1
         
-
 class GhostSlot :
     
     def toExcludeTurnarounds (workday,shift):
@@ -572,3 +570,4 @@ class GhostSlot :
         fill = fill.exclude(pk__in=GhostSlot.toExcludeTdoExists(workday))
         fill = fill.exclude(pk__in=GhostSlot.toExcludePtoReqExists(workday))
         return fill
+    
