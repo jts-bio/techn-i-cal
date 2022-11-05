@@ -85,6 +85,7 @@ employee_patterns = [
     path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
     path('day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
+    path('evening-fractions/', views.EMPLOYEE.eveningFractionView,name='pm-fractions'),
 ]
 urlpatterns += employee_patterns
 

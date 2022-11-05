@@ -12,6 +12,7 @@ from django.contrib import messages
 import itertools
 
 from .models import *
+from .xviews.week import *
 from .forms import *
 from .formsets import *
 from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions, EmployeeBot
@@ -1036,9 +1037,9 @@ class EMPLOYEE:
         for i in initData:
             if ShiftPreference.objects.filter(employee=employee, shift=i['shift']).exists():
                 i['priority'] = ShiftPreference.objects.get(employee=employee, shift=i['shift']).priority
-        
+        print(initData)
         formset = prefFormset(initial=initData) # type: ignore
-        
+        print(formset)
         context['formset'] = formset
         context['emplPrefs'] = ShiftPreference.objects.filter(employee=employee)
         
@@ -1297,15 +1298,13 @@ class EMPLOYEE:
             
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
-    
+
     def coWorkerSelectView (request, name):
         context = {}
         context['employee'] = Employee.objects.get(name=name)
         context ['employees'] = Employee.objects.all().order_by('cls')
 
         return render(request,'sch/employee/coworker-select.html',context)
-        
-     
     ### COWORKER
     def coWorkerView (request, nameA, nameB):
         emp1 = Employee.objects.get(name=nameA)
@@ -1320,8 +1319,24 @@ class EMPLOYEE:
                 sft2=Subquery(Slot.objects.filter(employee=emp2,workday=OuterRef('pk')).values('shift__name')))
             
         return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
+    ### EVENING-FRACTION VIEW
+    def eveningFractionView (request):
+        empls = list(Employee.objects.all().values_list('name', flat=True))
+        empls = {i : {'eveningFraction':0, 'evening':0, 'total':0} for i in empls}
+        for emp in empls:
+            if Slot.objects.filter(employee__name=emp).exists():
+                percent = int (Slot.objects.filter(
+                    employee__name=emp,shift__start__hour__gte=10).count() / Slot.objects.filter(
+                        employee__name=emp).count()*100)
+                empls[emp]['eveningFraction'] = percent
+                empls[emp]['evening'] = Slot.objects.filter(employee__name=emp,shift__start__hour__gte=10).count()
+                empls[emp]['total'] = Slot.objects.filter(employee__name=emp).count()
+        
+        
+        return render(request,'sch/employee/eveningRatio/pmFrac.html', { 'employees':empls })
 
 class SLOT:
+        
     class GET :
         def empl__weekbestFill (workday,shift):
             yr = workday.date.year 

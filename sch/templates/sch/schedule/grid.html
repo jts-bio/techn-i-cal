@@ -9,13 +9,6 @@
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
 
-        <div class="avatar indicator">
-            <span class="indicator-item badge badge-secondary">typing…</span> 
-            <div class="w-20 h-20 rounded-lg">
-              <img src="https://placeimg.com/160/160/people" />
-            </div>
-          </div>
-
         <div class="hstack">
         <a class ="btn" hx-get="delete-all-slots/" hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. ">
             Delete All Slots
@@ -38,9 +31,10 @@
             hx-target="#content #solveIndicator"
             src="/sch/schedule/load_button.html">
             <div id="solveIndicator"></div>
-        Solve
-        </button>
-        <a hx-get="generate-random-pto/" hx-trigger="click delay:1000ms">
+        Solve </button>
+        <a 
+        hx-get="generate-random-pto/" 
+        hx-trigger="click delay:1000ms">
         <button  
             type="button"
             id="randomPTOButton"
@@ -53,8 +47,7 @@
             hx-get="/sch/spinner/"
             hx-trigger="click"
             hx-target="#indicator"]>
-        + Random PTO Requests <div id="indicator">{% include 'sch/test/spinner.html' %}</div>
-        </button>
+        + Random PTO Requests <div id="indicator">{% include 'sch/test/spinner.html' %}</div></button>
         </a>
         <a  id="DeletePtoConfl"
             class="py-3 px-2 mr-2 text-xs font-light text-gray-400 bg-gray-900 rounded-lg border border-gray-200 

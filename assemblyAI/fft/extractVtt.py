@@ -6,7 +6,7 @@ def extract_vtt (vtt_file):
     
     Get lines 5,11,....in the file.
     """
- \
+ 
 
 
 response = extract_vtt('assemblyAI/fft/Russiagate Explained.webvtt')

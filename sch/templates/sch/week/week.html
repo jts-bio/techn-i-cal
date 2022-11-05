@@ -248,13 +248,15 @@ class='flex flex-wrap justify-between'>
 
 <div class="hstack" style="justify-content:space-between;">
     {% for day in workdays %}
-    <div class="panel inline-flex relative vstack p-3 text-sm font-medium text-center text-white" style="height:510px;">
+    <div 
+    class="panel inline-flex relative vstack p-3 text-sm font-medium text-center text-white" 
+    style="height:510px;">
+
+        {#~~ PTO REQUEST POPOVER ~~#}
         {%if day.nPTO %}
-        <div
-            class="inline-flex absolute -top-2 -right-2 justify-center items-center w-6 h-6 text-xs text-white bg-blue-500 rounded-full border-2 border-white dark:border-gray-900">
-            <div class="tooltip" data-tip="PTO: {{day.PTO}}">{{day.nPTO}}</div>
-        </div>
+            {% include 'sch/week/ptoPopover.html' %}
         {%endif%}
+        
         <h3 style="color:orange;font-family:Raleway;font-size:24px;">
             <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
         </h3>

@@ -3,7 +3,6 @@ from .models import *
 from django.db.models import Count, Sum, Subquery, OuterRef, F, Avg
 import datetime as dt
 import random 
-import pandas as pd 
 
 class WorkdayActions:
 

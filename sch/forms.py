@@ -120,6 +120,8 @@ class SstEmployeeForm (forms.Form):
 
         if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('ppd_id')).shift.id
+            # add css class to self.fields['shift'] object
+        
 
             
         self.fields['shift'].widget.attrs.update({'class': 'form-control'})
@@ -375,23 +377,14 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
     
     class Meta:
         model = ShiftPreference
-        fields = ['employee','shift','priority']
+        fields = [
+            'employee','shift','priority']
         widgets = {
             'employee' : forms.HiddenInput(),
             'shift'    : forms.HiddenInput(),
-            'priority' : forms.Select(choices=PREF_SCORES),
-        }
+            'priority' : forms.Select(choices=PREF_SCORES),}
         labels = {
-            'priority' : 'Preference',
-        }
-        
-        def __init__(self, *args, **kwargs):
-            super(EmployeeShiftPreferencesForm, self).__init__(*args, **kwargs)
-            employee = self.initial.get('employee')
-            if ShiftPreference.objects.filter(employee=employee, shift=self.initial.get('shift')).exists():
-                self.fields['priority'].initial = ShiftPreference.objects.get(employee=employee, shift=self.initial.get('shift')).priority
-            else:
-                self.fields['priority'].initial = "N"
+            'priority' : 'Preference',}
                 
         def clean(self):
             cleaned_data = super(EmployeeShiftPreferencesForm, self).clean()
