@@ -2,14 +2,17 @@
 {% load tags %}
 {% load render_table from django_tables2 %}
 
+
+
 {% block content %}
 
-<div class="hstack flex flex-center">
-    <h1>Weekly Hours</h1>
+    <div class="hstack flex flex-center space-around">
 
-    <div class="panel">
-    {% render_table table %}
+        <h1>Weekly Hours</h1>
+
+        <div class="panel"> {% render_table table %} </div>
+
     </div>
-</div>
+
 {% endblock content %}
     

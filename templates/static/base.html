@@ -40,15 +40,17 @@
 	</head>
 
 	<body>
-		<script src="https://cdn.tailwindcss.com"></script>
-			<div class="content">
 
-				{# HEADER #}	
-				{% include 'header.html' %}
+			{# HEADER #}	
+			{% include 'header.html' %}
+
+			<div class="content">
 
 				{% block content %}
 				{% endblock %}
-
+				
+				{# TAILWINDCSS #}
+				<script src="https://cdn.tailwindcss.com"></script>
 				{# FLOWBITE #}
 				<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
 				{# HTMX #}
