@@ -190,10 +190,11 @@ class EmployeeManager (models.QuerySet):
             else:
                 weeklyHours[empl]['weeklyPercent'] = weeklyHours[empl]['hours']/( empl.fte  * 40)
         # find min value for weeklyPercent
-        minPercent = min(weeklyHours.values(), key=lambda x: x['weeklyPercent'])
-        # get that employee: with min weeklyPercent
-        minEmpl = list(weeklyHours.keys())[list(weeklyHours.values()).index(minPercent)]
-        return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
+        if weeklyHours:
+            minPercent = min(weeklyHours.values(), key=lambda x: x['weeklyPercent'])
+            # get that employee: with min weeklyPercent
+            minEmpl = list(weeklyHours.keys())[list(weeklyHours.values()).index(minPercent)]
+            return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
         
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
 
@@ -255,11 +256,29 @@ class EmployeeClass (models.Model):
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
-    cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
+    cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT')
     start           = models.TimeField()
-    duration        = models.DurationField()
+    hours           = models.FloatField(default=0)
+    duration        = models.DurationField(default=0)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
+    group           = models.CharField (max_length=3, default="", null=True)
+    
+    def save(self, *args, **kwargs):
+        # self.group
+        if self.start.hour < 9:
+            self.group = 'AM'
+        elif self.start.hour < 11:
+            self.group = 'MD'
+        elif self.start.hour < 14:
+            self.group = 'PM1'
+        elif self.start.hour < 19:
+            self.group = 'PM2'
+        else:
+            self.group = 'XN'
+        #self.hours
+        self.hours = self.duration.total_seconds() / 3600 - 0.5
+        super().save(*args, **kwargs)
 
     def __str__(self) :
         return self.name
@@ -267,23 +286,9 @@ class Shift (ComputedFieldsModel) :
     def url(self):
         return reverse("shift", kwargs={"name": self.name})
 
-    @computed(models.FloatField(), depends=[('self', ['duration'])])
-    def hours (self):
-        return self.duration.total_seconds() / 3600 - 0.5
-
     @property
     def on_days_display (self):
         return " ".join(["Sun Mon Tue Wed Thu Fri Sat".split(" ")[int(i)] for i in self.occur_days])
-
-    @property
-    def ppd_ids(self):
-        """
-        Returns a list of the ids of the PPDs (0-13) that this shift occurs on.
-        """
-        ids = list(self.occur_days)
-        for i in self.occur_days:
-            ids.append(str(int(i)+7))
-        return ids
 
     @property
     def end (self):
@@ -402,6 +407,27 @@ class Employee (ComputedFieldsModel) :
 class Workday (ComputedFieldsModel) :
     # fields: date, shifts 
     date = models.DateField()
+    scheduleId = models.CharField(max_length=10, null=True, blank=True,default="")
+    
+    iweekday = models.IntegerField(default=0)
+    iweek    = models.IntegerField(default=0)
+    iperiod  = models.IntegerField(default=0)
+    ischedule= models.IntegerField(default=0)
+    ppd_id   = models.IntegerField(default=0)
+    sd_id    = models.IntegerField(default=0)
+    periodId = models.IntegerField(null=True)
+    
+    def save(self, *args, **kwargs):
+        iweekday = int (self.date.strftime('%w'))
+        self.iweekday = iweekday
+        self.iweek = int (self.date.strftime('%U'))
+        self.iperiod = int (self.date.strftime('%U')) // 2
+        self.ppd_id = (self.date - dt.date(2022,9,4)).days % 14
+        self.sd_id = (self.date - dt.date(2022,9,4)).days % 42
+        self.ischedule = self.iperiod // 3 
+        self.periodId = self.ppd_id
+        super(Workday, self).save(*args, **kwargs)
+        
 
     __all__ = ['date','slug','iweekday','iweek','iperiod','ppd_id','weekday',
                'shifts',
@@ -412,64 +438,6 @@ class Workday (ComputedFieldsModel) :
     @computed(models.SlugField(max_length=20), depends=[('self',['date'])])
     def slug (self) -> str: 
         return self.date.strftime('%Y-%m-%d')
-
-    @computed(models.IntegerField(), depends=[('self',['date'])])
-    def iweekday (self) -> int:
-        # range 0 -> 6
-        return int (self.date.strftime('%w'))
-    
-    
-    def weekdayId (self) -> int:
-        return int (self.date.strftime('%w'))
-    
-    @computed(models.IntegerField(), depends=[('self',['date'])])
-    def iweek (self) -> int:
-        # range 0 -> 53
-        return int (self.date.strftime('%U'))
-    
-    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
-    # def weekId (self):
-    #     w = int (self.date.strftime('%U'))
-    #     yr = self.date.yr
-    #     if w == 0:
-    #         yr -= 1
-    #     return f'{yr}-W{w}'
-    
-    @computed(models.IntegerField(), depends=[('self',['date'])])
-    def iperiod (self) -> int:
-        # range 0 -> 27
-        return int (self.date.strftime('%U')) // 2
-    
-    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
-    # def periodId (self):
-    #     p = int (self.date.strftime('%U')) // 2
-    #     yr = self.date.yr
-    #     if p == 0:
-    #         yr -= 1
-    #     return f'{yr}-P{p}'
-
-    @computed(models.IntegerField(), depends=[('self',['date'])])
-    def ppd_id (self) -> int:
-        # range 0 -> 13
-        return (self.date - dt.date(2022,9,4)).days % 14
-    
-    @computed(models.CharField(max_length=20), depends=[('self',['date'])])
-    def ischedule (self) -> int:
-        # range 0 -> 9
-        return self.iperiod // 3 
-    
-    # @computed(models.CharField(max_length=8), depends=[('self',['date'])])
-    # def scheduleId (self):
-    #     s = int(self.date.strftime('%U')) // 6
-    #     yr = self.date.yr 
-    #     if w==0:
-    #         yr -= 1
-    #     return f'{yr}-S{s}'
-    
-    @computed(models.IntegerField(),depends=[('self',['date'])])
-    def sd_id (self) -> int:
-        # range 0 -> 41
-        return (self.date - dt.date(2022,9,4)).days % 42
     
     @property
     def weekday (self) -> str :
@@ -482,7 +450,7 @@ class Workday (ComputedFieldsModel) :
     
     @property
     def filledSlots (self) -> SlotManager:
-        return Slot.objects.filter(workday=self)
+        return Slot.objects.filter(workday=self).exclude(employee=None)
     
     @property
     def n_slots (self) -> SlotManager:
@@ -501,7 +469,10 @@ class Workday (ComputedFieldsModel) :
     @property
     def percFilled (self) -> float:
         slots = Slot.objects.filter(workday=self)
-        return slots.count() / self.n_shifts
+        if slots:
+            return slots.count() / self.n_shifts
+        else:
+            return 0
 
     @property
     def siblings_iweek (self) -> "WorkdayManager":
@@ -526,15 +497,15 @@ class Workday (ComputedFieldsModel) :
         return reverse("workday", kwargs={"slug": self.slug})
     
     def prevWD(self) -> "Workday":
-        try:
-            return Workday.objects.get(date=self.date - dt.timedelta(days=1))
-        except Workday.DoesNotExist:
+        if Workday.objects.filter(date=self.date + dt.timedelta(days=1)).exists():
+            return Workday.objects.get(date=self.date + dt.timedelta(days=1))
+        else:
             return self
 
     def nextWD(self) -> "Workday":
-        try:
+        if Workday.objects.filter(date=self.date + dt.timedelta(days=1)).exists():
             return Workday.objects.get(date=self.date + dt.timedelta(days=1))
-        except Workday.DoesNotExist:
+        else:
             return self
     
     def prevURL (self) -> str:
@@ -708,6 +679,8 @@ class Slot (ComputedFieldsModel) :
       
     @computed (models.IntegerField(), depends=[('self', ['workday','shift'])])          
     def streak (self):
+        if self.employee == None:
+            return 0
         # count the streak of slots in a row this employee has had
         i = 1
         while Slot.objects.filter(workday__date=self.workday.date - dt.timedelta(days=i),employee=self.employee).exists():
@@ -716,6 +689,8 @@ class Slot (ComputedFieldsModel) :
     
     @computed (models.BooleanField(), depends=[('self', ['employee'])])
     def isOverStreakPref (self) -> bool :
+        if self.employee == None:
+                return False
         if self.streak:
             return self.streak > self.employee.streak_pref
         else:
@@ -763,11 +738,10 @@ class ShiftTemplate (models.Model) :
 
     class Meta:
         unique_together = ['shift', 'ppd_id']
-        
+       
 # ============================================================================  
 class TemplatedDayOff (models.Model) :
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    ppd_id   = models.IntegerField(null=True) 
     sd_id    = models.IntegerField()
     
     @property
@@ -870,6 +844,21 @@ class SchedulingMax (models.Model):
     
     class Meta:
         unique_together = ('employee', 'year', 'pay_period')
+
+
+class SwapMessage (models.Model):
+    body = models.TextField(max_length=5000)
+    workday = models.ForeignKey('Workday', on_delete=models.CASCADE)
+    
+class Schedule (models.Model):
+    year = models.IntegerField()
+    sch_id = models.IntegerField()
+    
+    def getInitialDay (self):
+        day0 = dt.date(self.year,1,1)
+        while (day0 - dt.date(2022,9,4)).days % 42 != 0:
+            day0 += dt.timedelta(days=1)
+        return day0 + dt.timedelta(days=42 * (self.sch_id-1))
 
 def tally (lst):
     """ 

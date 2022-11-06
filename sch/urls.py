@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from . import views, actions
+from django.views.decorators.csrf import csrf_exempt
 
 
 urlpatterns = [
@@ -11,7 +12,7 @@ urlpatterns = [
     path('day/<slug:slug>/', views.WORKDAY.WorkDayDetailView.as_view(), name='workday'),
     path('day/<slug:date>/fill-template/', views.workdayFillTemplate, name='workdayFillTemplate'),
     path('day/<slug:date>/add-pto/', views.WORKDAY.WorkdayPtoRequest.as_view(), name='workdayAddPTO'),
-    path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
+    path('days/new/', views.WORKDAY.workdayBulkCreateView, name='workday-new'),
     path('day/<slug:date>/run-swaps/', views.WORKDAY.runSwaps, name='run-swaps'),
 
     #? ==== Week ==== ?#
@@ -19,6 +20,7 @@ urlpatterns = [
     path('week/<int:year>/<int:week>/unfilled-slots/', views.WEEK.WeeklyUnfilledSlotsView.as_view(), name='week-unfilled-slots'),
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
     path('week/<int:year>/<int:week>/solve/', views.WEEK.solve_week_slots, name='solve-week'),
+    path('week/<int:year>/<int:week>/solve/spinner', views.TEST.spinner, name='solve-week'),
     path('week/<int:year>/<int:week>/swap-bot/', views.WEEK.make_preference_swaps, name="make-swaps-week"),
     path('week/<int:year>/<int:week>/clear-low-score-slots/', views.WEEK.clearWeekSlots_LowPrefScoresOnly, name='week-clear-low-score-slots'),
     path('week/<int:year>/<int:week>/clear-slots-form/', views.WEEK.ClearWeekSlotsView.as_view(), name='clear-week-slots-form'),
@@ -80,7 +82,9 @@ urlpatterns = [
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
     path('schedule/<int:year>/<int:sch>/vertical/', views.SCHEDULE.scheduleVerticalView, name='schedule-vertical'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
-    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),    
+    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),
+    path('schedule/<int:year>/<int:sch>/unfilled/', views.SCHEDULE.unfilledSlotsView,name='unfilled-slots'),    
+    path('fill-slot/<slug:wd>/<str:sft>/<str:empl>/', csrf_exempt(views.SCHEDULE.fillUnfilledSlot),name='fill-unfilled-sch-slot'),
 ]
 
 
@@ -98,6 +102,8 @@ urlpatterns += test_patterns
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
-    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view')
+    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view'),
+    path('htmx/<slug:slot>/data', views.HTMX.getSlotData, name = 'get-slot-data'),
+    path('htmx/get-schInit-days/<int:year>/',views.HTMX.getSchInitDays, name='get-schInit-days')
 ]
 urlpatterns += htmx_patterns

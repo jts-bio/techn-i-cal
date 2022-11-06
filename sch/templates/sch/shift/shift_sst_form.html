@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load tags %}
 
 
 {% block content %}
 
-<a href="/sch/shift/{{shift}}/">Go Back</a>
+<a href="/sch/shift/{{shift}}/"> {%backArrow%} </a>
 
 <h1>{{shift}}</h1>
 

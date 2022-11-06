@@ -12,11 +12,9 @@ class WorkdayActions:
         """
         date = date_from
         while date <= date_to:
-            if Workday.objects.filter(date=date).exists()==False:
-                workday = Workday.objects.create(date=date)
-                workday.save()
-                # WorkdayActions.fillDailyTSS(workday)
-            date = date + dt.timedelta(days=1) 
+            wd = Workday.objects.get_or_create(date=date)
+            wd[0].save()
+            date +=  dt.timedelta(days=1) 
 
     def fillDailySST (workday) : # type: ignore
         """
@@ -312,7 +310,10 @@ class ScheduleBot:
                 prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
             )
         if len(slots) != 0:
-            overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+            if len(ShiftPreference.objects.all()) != 0:
+                overall_pref = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
+            else:
+                overall_pref = 0
         else:
             overall_pref = 0
         

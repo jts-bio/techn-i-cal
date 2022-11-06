@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block content %}
+
+<h1 class="h1 text-2xl">{{schedule}}</h1>
+
+<span hidden class="htmx-indicator">
+    <img src="https://cdn.discordapp.com/attachments/1024275121386553374/1038461738523308042/epic-loading.gif" alt="spinner">
+</span>
+
+<div class="bg-red-400 text-white font-bold w-fc px-4 m-1 rounded-md">{{ unfilled|length }} Unfilled Slots</div>
+
+{% for uf in unfilled %}
+    <div class="panel">
+        <div>{{uf.workday}}</div>
+        <div>{{uf.shift}}</div>
+        <div class="flex flex-row-flex-wrap">
+            
+            {% for emp in uf.fillableBy %}
+                <a class="btn btn-xs pr-4" 
+                   href="{% url 'fill-unfilled-sch-slot' uf.workday.slug uf.shift.name emp.pk %}"
+                   hx-confirm="Verify You Will Fill This Slot with {{emp}}"> 
+                    <div class="hstack">
+                        <span>{% staffIcon %}</span>
+                        <span>{{emp}}</span>
+                    </div>
+                </a>
+            {% endfor %}
+                
+        </div>
+    </div>
+{% endfor %}
+    
+  
+{% endblock content %}

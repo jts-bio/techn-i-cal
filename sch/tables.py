@@ -14,8 +14,6 @@ class EmployeeTable (tables.Table):
     """
     name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
     avg_shift_pref_score = tables.columns.Column(verbose_name="Avg Shift Pref Score", accessor='avg_shift_pref_score')
-    templated_days = tables.columns.Column(verbose_name='Templated Days', accessor='templated_days')
-    templated_days_off = tables.columns.Column(verbose_name='Templated Days Off', accessor='templated_days_off')
 
     class Meta:
         model           = Employee
@@ -25,8 +23,6 @@ class EmployeeTable (tables.Table):
             'fte_14_day',
             'streak_pref',
             'avg_shift_pref_score',
-            'templated_days'
-            'templated_days_off',
             ]
         template_name   = 'django_tables2/semantic.html'
         attrs           = {"class":"table table-compact table-xs"}

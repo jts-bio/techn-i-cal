@@ -16,14 +16,15 @@ class ShiftForm (forms.ModelForm) :
             'duration': 'Duration',
             'occur_days': 'Days of the week',
             'employee_class': "Shift for",
-            'cls': 'Shift Class'
+            'cls': 'Shift Class',
+            
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'start': forms.TimeInput(attrs={'class': 'form-control'}),
             'duration': forms.TimeInput(attrs={'class': 'form-control'}),
             'occur_days': forms.CheckboxSelectMultiple(),
-            'cls': forms.RadioSelect(),
+            'cls': forms.Select(),
             
         }
 
@@ -48,7 +49,7 @@ class SSTForm (forms.ModelForm) :
 class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','evening_pref'] 
+        fields = ['name', 'fte_14_day',  'streak_pref', 'cls','evening_pref'] 
         labels = {
             'fte_14_day': 'FTE (hrs/ 14 days)',
             'cls':'Employee Class',
@@ -56,9 +57,7 @@ class EmployeeForm (forms.ModelForm) :
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'shifts_trained': forms.CheckboxSelectMultiple(),
-            'shifts_available': forms.CheckboxSelectMultiple(),
-            'cls': forms.RadioSelect(),
+            'cls': forms.Select(),
         }
         
 
@@ -77,12 +76,20 @@ class EmployeeEditForm (forms.ModelForm) :
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
             'cls'  : forms.RadioSelect(),
         }
+    def __init__(self, *args, **kwargs):
+        '''Filter the shifts available to a person to ones they have trained for.
+        Also, set the shifts trained as available by default'''
+        self.fields['shifts_trained'].queryset = Shift.objects.filter(emp_class=self.instance.cls) # Exclude shifts that don't match the employee class
+        # If a new instance is created, set the available shifts to trained shifts
+        if self.instance.id == None:
+            self.fields['shifts_available'].initial = self.fields['shifts_trained']
+        super(EmployeeEditForm, self).__init__(*args, **kwargs)
 
 class SstEmployeeForm (forms.Form):
     
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), required=False)
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
-    ppd_id   = forms.IntegerField(widget=forms.HiddenInput(),required=False)
+    sd_id     = forms.IntegerField(widget=forms.HiddenInput(),required=False)
 
     def __init__(self, *args, **kwargs):
         super(SstEmployeeForm, self).__init__(*args, **kwargs)
@@ -101,8 +108,8 @@ class SstEmployeeForm (forms.Form):
             other_empls = Employee.objects.exclude(pk=employee.pk)
         else:
             other_empls = Employee.objects.all()
-        occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id'),employee__in=other_empls).values('shift')
-        ppd_id_proxy = self.initial.get('ppd_id') 
+        occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('sd_id'),employee__in=other_empls).values('shift')
+        ppd_id_proxy = self.initial.get('sd_id') 
         if ppd_id_proxy is None:
             ppd_id_proxy = 0
         else:
@@ -111,13 +118,11 @@ class SstEmployeeForm (forms.Form):
             shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=ppd_id_proxy)
         else:
             shiftList = Shift.objects.none()
-        if TemplatedDayOff.objects.filter(ppd_id=self.initial.get('ppd_id'), employee=employee).exists():
-            shiftList = Shift.objects.none()
 
         self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]      # type: ignore
 
-        if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
-            self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('ppd_id')).shift.id
+        if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('sd_id')).exists():
+            self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('sd_id')).shift.id
 
             
         self.fields['shift'].widget.attrs.update({'class': 'form-control'})
@@ -194,6 +199,8 @@ class BulkWorkdayForm (forms.Form) :
     
     date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
     date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
+    
+    
 
 class SlotForm (forms.ModelForm):
 
@@ -211,6 +218,16 @@ class SlotForm (forms.ModelForm):
         workday = Workday.objects.get(slug=self.initial['workday'])
         self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday, method="available")
         self.fields['employee'].label = shift.name 
+    
+    def save(self, commit=True):
+        slot = Slot(
+            shift=self.cleaned_data['shift'],
+            workday=self.cleaned_data['workday'],
+            employee=self.cleaned_data['employee']
+        )
+        if commit:
+            slot.save()
+        return slot
         
         
 class SlotForm_OtOveride (forms.ModelForm):

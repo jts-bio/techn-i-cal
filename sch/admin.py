@@ -41,5 +41,6 @@ class PtoRequestAdmin(admin.ModelAdmin):
 
 @admin.register(TemplatedDayOff)
 class TmplDayOffAdmin(admin.ModelAdmin):
-    fields          = ['employee','ppd_id','sd_id']
-    list_display    = ['employee','ppd_id','sd_id']
+    fields          = ['employee','sd_id']
+    list_display    = ['employee','sd_id']
+    

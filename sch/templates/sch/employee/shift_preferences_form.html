@@ -23,5 +23,14 @@
 <input type="submit" text="Submit">
 
 </form>
+
+
+{% for pref in cur_prefs %}
+
+    <div class="card">
+        {{pref.ppd_id}}--{{pref.employee}}:
+        <span class="badge">{{pref.shift}}</span> 
+    </div>
+    
 {% endblock content %}
     

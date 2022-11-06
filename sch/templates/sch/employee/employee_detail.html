@@ -50,10 +50,16 @@
             </table>
         </div>
         <div class="panel w-fc">
-            <div style="float:right;"><a href="ssts/" class="btn btn-neutral btn-xs">Edit Shifts</a><br></div>
-            <div style="float:right;"><a href="template-days-off/" class="btn btn-info btn-xs">Edit Days Off Templating</a><br></div>
-            <h2 style="color:orange;font-size:18px;">Templating</h2>
-            <p>Employee templated for {{sstHours}} hours / pay period.</p>
+            <div class="hstack" style="float:right;">
+                <div><a href="ssts/" class="btn btn-neutral btn-xs">Edit Shifts</a><br></div>
+                <div><a href="template-days-off/" class="btn btn-info btn-xs">Edit Days Off Templating</a><br></div>
+            </div>
+            <h2 style="color:orange;font-size:24px;">Templating</h2>
+
+            {% if sstHours %}
+                <p>Employee templated for {{sstHours}} hours / pay period.</p>
+            {% endif %}
+
             <div class="hstack" style="justify-content:space-around;">
                 <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
             </div>
@@ -62,7 +68,11 @@
                 {% if sst.1 %}
                     <div class="panel w-70" style="background-color:#5af7;border-color:#7bf;height:90px;width:70px;">
                         <span style="font-size:9px;">Day {{sst.0}}</span><br>
-                        <span class="text-center" style="font-size:25px;font-style:italic;opacity:80%;padding-right:2px;">{{sst.1.0.shift}}</span>
+                        <span class="text-center" style="font-size:25px;font-style:italic;opacity:80%;padding-right:2px;">
+                            <a href="/sch/shift/{{sst.1.0.shift}}/">
+                                {{sst.1.0.shift}}
+                            </a>
+                        </span>
                     </div>
                 {% elif sst.2 %}
                     <div class="panel w-70 bg-zinc-900" style="height:90px;">

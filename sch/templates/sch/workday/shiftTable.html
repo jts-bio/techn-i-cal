@@ -1,5 +1,9 @@
 {% load tags %}
 
+<div class="vstack">
+    <h2 class="text-sm text-center font-light text-white badge-pill">
+        {{unfilled.count}}  Unfilled
+    </h2>
 <div class="hstack">
 <div class="vstack">
     <h1 class="text-xl">CPhTs</h1>
@@ -13,7 +17,7 @@
     </thead>
     <tbody>
         {% for shift in shifts %}
-        {% if shift.name.0 != "R" %}
+        {% if shift.cls == 'CPhT' %}
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
@@ -55,7 +59,7 @@
     </thead>
     <tbody>
         {% for shift in shifts %}
-        {% if shift.name.0 == "R" %}
+        {% if shift.cls == 'RPh' %}
         <tr>
             <td>{{shift}}</td>
             {% if shift.assignment %}
@@ -84,5 +88,6 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 </div>
 </div>

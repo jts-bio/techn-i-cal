@@ -25,6 +25,10 @@
 
 {% block content %}
 
+    
+    {% block spinner %} {% endblock spinner %}
+        
+
 <div class="text-center">
 
 </div>
@@ -136,7 +140,10 @@
            
 
             <div class="tooltip" data-tip="RUN Assignment Solver">
-                <a class="btn btn-neutral" href="solve/">
+                <a class="btn btn-neutral" 
+                   id="solve-button"
+                   href="solve/"
+                   >
                     {% robotIcon %} </a>
             </div>
 
@@ -148,12 +155,16 @@
 
             <div class="tooltip" data-tip="CLEAR & RETRY Low Preference Slots">
                 <a href="clear-low-score-slots/" class="btn btn-neutral"
-                    style="background-color:rgb(150, 112, 9);color:rgb(255, 255, 255);">{% posionIcon %}</a>
+                    style="background-color:rgb(71, 59, 26);color:rgb(255, 255, 255);">
+                    {% posionIcon %}
+                </a>
             </div>
 
             <div class="tooltip" data-tip="CLEAR All Slots This Week">
                 <a class="btn btn-danger" href="clear-slots-form/"
-                    style="background-color:rgb(69, 10, 11);color:rgb(235, 235, 235);">{% clearIcon %}</a>
+                    style="background-color:rgb(69, 10, 11);color:rgb(235, 235, 235);">
+                    {% clearIcon %}
+                </a>
             </div>
         </div>
 
@@ -165,7 +176,7 @@
 
 <script>
     function showLoader () {
-        var loaders = document.getElementById('loadIndicator2');
+        var loaders = document.getElementById('#solve-button');
         loaders.style.display = "inline";
         loaders.style.hidden = "false";
         })

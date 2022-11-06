@@ -18,4 +18,5 @@ class TestSlots (TestCase):
         self.assertEqual(self.shift.is_turnaround, False)
         
         
+        
             

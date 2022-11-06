@@ -9,10 +9,10 @@
 </div>
 
 
-<div>
+<div class="flex flex-row flex-wrap space-between" style="gap:10px;">
     {% for empl in employees %}
         {% if empl.tally != 0 %}
-        <div class="panel">
+        <div class="panel" style="width:155px;">
         <div class="vstack">
             <div>{{empl.name}}</div>
             <div class="badge badge-rounded badge-xs">{{empl.tally}}</div>

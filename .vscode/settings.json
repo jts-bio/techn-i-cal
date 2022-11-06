@@ -9,5 +9,7 @@
         "**/__pycache__": true
     },
     "explorerExclude.backup": {},
-    "python.linting.enabled": false
+    "python.linting.enabled": false,
+    "editor.tabCompletion": "on",
+    "diffEditor.codeLens": true
 }
