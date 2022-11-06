@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
+    "slippers",
     "django_extensions",
     "computedfields",
     "multiselectfield",
@@ -78,6 +79,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
+            "builtins": ["slippers.templatetags.slippers"],
         },
     },
 ]

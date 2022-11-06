@@ -638,10 +638,8 @@ class Slot (ComputedFieldsModel) :
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
     empl_sentiment = models.SmallIntegerField (default=50)
     
-    def __post_init__(self):
-        if self.employee != None:
-            if ShiftPreference.objects.filter(employee=self.employee, shift=self.shift).exists():
-                self.empl_sentiment = ShiftPreference.objects.get(employee=self.employee, shift=self.shift).score
+   
+        
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
@@ -671,6 +669,8 @@ class Slot (ComputedFieldsModel) :
             return 0
     @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_turnaround (self) -> bool:
+        if not self.employee:
+            return False
         if self.shift.start > dt.time(12,0):
             return False
         elif self.shift.start < dt.time(12,0) :
@@ -680,6 +680,8 @@ class Slot (ComputedFieldsModel) :
                 return False
     @computed (models.IntegerField(), depends=[('self',['workday'])])
     def is_preturnaround (self) -> bool:
+        if not self.employee:
+            return False
         if self.shift.start < dt.time(12,0):
             return False
         elif self.shift.start > dt.time(12,0) :

@@ -1,5 +1,5 @@
 import asyncio
-from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect, render
+from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
 from django.db.models import Count
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
@@ -80,7 +80,7 @@ class WORKDAY :
                 is_turnaround=Subquery(slots.filter(shift=OuterRef('pk')).values('is_turnaround'))).annotate(
                     prefScore=Subquery(ShiftPreference.objects.filter(shift=OuterRef('pk'), employee=OuterRef('assign')).values('score'))
                 )
-            context['shifts']   = shifts
+            context['shifts']   = shifts.order_by('start')
             try: 
                 context['overallSftPref'] = int(shifts.aggregate(Sum(F('prefScore')))['prefScore__sum'] /(2 * len(slots)) *100)
             except:
@@ -320,6 +320,7 @@ class WEEK:
             context['pto_requests'] = PtoRequest.objects.filter( workday__week=week, status__in=['A','P'])
             context['dateFrom']     = context['workdays'].first().slug
             context['dateTo']       = context['workdays'].last().nextWD().slug
+            context['turnarounds']  = (Slot.objects.filter(workday__in=context['workdays'], is_turnaround=True) | Slot.objects.filter(workday__in=context['workdays'], is_preturnaround=True))
             
             
             ufs = self.get_unfavorables()
@@ -1460,12 +1461,34 @@ class SLOT:
                 slot.delete()
         return HttpResponseRedirect('/sch/day/all/')
         
-    
+    def resolveTurnaroundSlot (request, date,shift):
+        potential = []
+        slot = Slot.objects.get(workday__slug=date,shift__name=shift)
+        for s in Slot.objects.filter(workday__slug=date, shift__start__hour__gte=12):
+            if slot.shift in s.employee.shifts_available.all():
+                if not s.employee in slot.conflicting_slots().values('employee'):
+                    if s.shift in slot.employee.shifts_available.all():
+                        potential.append(s)
+                    potential += [s]
+        print(potential)
+        if len(potential) == 0:
+            return HttpResponseRedirect(f'/sch/day/{date}/')
+        emp1 = potential[-1].employee
+        potential[-1].employee = None
+        potential[-1].save()
+        emp2 = slot.employee
+        slot.employee = None
+        slot.save()
+        potential[-1].employee = emp2
+        potential[-1].save()
+        slot.employee = emp1
+        slot.save()
+        return HttpResponseRedirect(f'/sch/day/{date}/')
+                
 
     class SlotTurnaroundsListView (ListView):
         template_name = 'sch/slot/turnarounds.html'
         context_object_name = 'slots'
-
         def get_queryset(self):
             for slot in Slot.objects.turnarounds():
                 slot.save()
@@ -1802,6 +1825,16 @@ class HTMX:
     
     def spinner (request):
         return render(request, 'sch/test/spinner.html')
+    
+    def rphShiftChoices (request):
+        context = {}
+        context['shift_choices'] = Shift.objects.filter(cls='RPh')
+        return render (request, 'sch/forms/shiftChoices.html', context)
+    
+    def cphtShiftChoices (request):
+        context = {}
+        context['shift_choices'] = Shift.objects.filter(cls='CPhT')
+        return render (request, 'sch/forms/shiftChoices.html', context=context)
         
 class TEST:
     

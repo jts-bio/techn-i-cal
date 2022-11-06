@@ -40,6 +40,7 @@ urlpatterns = [
     path('day/<slug:date>/<str:shift>/add/post', views.slotAdd_post, name='slot-add-post'),  # type: ignore
     path('day/<slug:date>/<str:shift>/delete/', views.SLOT.SlotDeleteView.as_view(), name='slot-delete'),
     path('day/<slug:date>/<str:employee>/resolve-pto-request/', views.WORKDAY.ResolvePtoRequestFormView.as_view(), name='resolve-pto-request'),
+    path('day/<slug:date>/<str:shift>/resolve-turnaround/',views.SLOT.resolveTurnaroundSlot, name='resolve-turnaround-inside-day' ),
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
     path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
     
@@ -86,6 +87,7 @@ employee_patterns = [
     path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
     path('day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
     path('evening-fractions/', views.EMPLOYEE.eveningFractionView,name='pm-fractions'),
+    
 ]
 urlpatterns += employee_patterns
 
@@ -119,6 +121,8 @@ urlpatterns += test_patterns
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
-    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view')
+    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view'),
+    path('htmx/form/rphShift-choices/', views.HTMX.rphShiftChoices, name = "rph-shift-choices"),
+    path('htmx/form/cphtShift-choices/', views.HTMX.cphtShiftChoices, name = "cpht-shift-choices"),
 ]
 urlpatterns += htmx_patterns

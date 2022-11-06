@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<form method="post"> {% csrf_token %}
+  <table>
+    <tr>
+      <th><label for="id_name">Name:</label></th>
+      <td>
+        <input type="text" name="name" class="form-control" maxlength="100" required id="id_name">
+      </td>
+    </tr>
+    <tr>
+      <th><label for="id_fte_14_day">FTE (hrs/ 14 days):</label></th>
+      <td>
+        <input type="number" name="fte_14_day" step="any" required id="id_fte_14_day">
+      </td>
+    </tr>
+    
+    {% for i in fourtyTwo in  %}
+    <tr>
+      <th><label>Shifts trained:</label></th>
+      <td>
+        <div id="id_shifts_trained">
+          <div>
+            <label for="id_shifts_trained_0">
+              <input type="checkbox" name="shifts_trained" value="1" id="id_shifts_trained_0">
+              MI
+            </label>
+          </div>
+        </div>
+    {% endfor %}
+    <tr>
+      <th><label>Shifts available:</label></th>
+      <td>
+
+        <div id="id_shifts_available">
+          <div>
+            <label for="id_shifts_available_0"><input type="checkbox" name="shifts_available" value="1"
+                id="id_shifts_available_0">
+              MI
+            </label>
+          </div>
+        </div>
+
+    <tr>
+      <th><label for="id_streak_pref">Streak pref:</label></th>
+      <td>
+        <input type="number" name="streak_pref" value="3" required id="id_streak_pref">
+      </td>
+    </tr>
+
+    <tr>
+      <th><label>Employee Class:</label></th>
+      <td>
+
+        <div id="id_cls">
+          <div>
+            <label for="id_cls_0"><input type="radio" name="cls" value="" id="id_cls_0">
+              ---------</label>
+          </div>
+
+          <div>
+            <label for="id_cls_1"><input type="radio" name="cls" value="CPhT" id="id_cls_1" checked>
+              CPhT</label>
+
+          </div>
+          <div>
+            <label for="id_cls_2"><input type="radio" name="cls" value="RPh" id="id_cls_2">
+              RPh</label>
+
+          </div>
+        </div>
+
+
+      </td>
+    </tr>
+
+    <tr>
+      <th><label for="id_evening_pref">Prefers Working Evenings?</label></th>
+      <td>
+
+        <input type="checkbox" name="evening_pref" id="id_evening_pref">
+
+
+
+
+      </td>
+    </tr>
+  </table>
+  <input type="submit" value="Save" />
+</form>
+
+{% endblock content %}

@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% for shift in shift_choices %}
+
+    <option value="{{shift.id}}">{{shift}}</option>
+    
+{% endfor %}
+    

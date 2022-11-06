@@ -42,13 +42,15 @@ class WorkdayActions:
                         # avoid creating a turnaround
                         if shift.start < dt.time(12):
                             if Slot.objects.filter(workday=workday.prevWD(), employee=templs.get(shift=shift).employee, shift__start__gt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
-                                slot.save()
+                                slot = Slot.objects.get_or_create(workday=workday, shift=shift)
+                                slot[0].employee = templs.get(shift=shift).employee
+                                slot[0].save()
                         # avoid creating a preturnaround
                         elif shift.start > dt.time(12):
                             if Slot.objects.filter(workday=workday.nextWD(), employee=templs.get(shift=shift).employee, shift__start__lt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.create(workday=workday, shift=shift, employee=templs.get(shift=shift).employee)
-                                slot.save()
+                                slot = Slot.objects.get_or_create(workday=workday, shift=shift)
+                                slot[0].employee = employee=templs.get(shift=shift).employee
+                                slot[0].save()
 
     def identifySwaps (workday) :
         slots = Slot.objects.filter(workday=workday)
