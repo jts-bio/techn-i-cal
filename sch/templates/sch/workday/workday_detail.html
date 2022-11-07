@@ -77,7 +77,9 @@
       <div style="margin-top: 10px">
         <span> PTO: </span>
         {% if ptoReqs %} {% for req in ptoReqs %}
+            
            <a href="#" class="btn btn-neutral btn-xs">{{ req.employee__name }}</a>
+
         {% endfor %} {% endif %}
         <br>
         <a href="add-pto/">{% addNewIcon %}</a>

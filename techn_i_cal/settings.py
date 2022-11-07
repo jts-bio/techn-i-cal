@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
     "slippers",
-    "django_extensions",
     "computedfields",
     "multiselectfield",
     "compressor",
