@@ -66,6 +66,7 @@ urlpatterns = [
 ]
 
 employee_patterns = [
+    
     #? ==== Employees ==== ?#
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
     path("employees/cpht/", views.EMPLOYEE.EmployeeListViewCpht.as_view(), name='cpht-list'),

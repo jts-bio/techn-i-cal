@@ -23,10 +23,10 @@ Models:
     - Workday
     - Slot
     - PtoRequest
-    - 
+    - ShiftPreference
 """
 
-DAYCHOICES = (
+DAYCHOICES    = (
         (0, 'Sunday'),
         (1, 'Monday'),
         (2, 'Tuesday'),
@@ -38,7 +38,7 @@ DAYCHOICES = (
 WEEKABCHOICES = (
         (0, 'A'),
         (1, 'B'),)
-TODAY = dt.date.today()
+TODAY         = dt.date.today()
 
 
 #* --- --- Managers --- --- *#
@@ -58,7 +58,6 @@ class ShiftManager (models.QuerySet):
     def empl_is_trained (self, employee):
         empl = Employee.objects.get(name=employee)
         return self.filter(name__in=empl.shifts_trained.all())
-
 # ============================================================================
 class SlotManager (models.QuerySet):
 
@@ -141,8 +140,7 @@ class SlotManager (models.QuerySet):
         return self.objects.filter(workday__date__year=year,workday__ischedule=sch, shift__start__hour__gte=12)
     
     def tally_schedule_streaks (self, employee, year, schedule):
-        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))
-           
+        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))        
 # ============================================================================
 class EmployeeManager (models.QuerySet):
 
@@ -227,6 +225,7 @@ class EmployeeManager (models.QuerySet):
             return Employee.workMorningAfter(slot.workday)
         if slot.shift.start.hour < 10:
             return self.workEveningBefore(slot.workday)
+# ============================================================================
 class ShiftPreferenceManager (models.QuerySet):
     
         def below_average(self, employee):

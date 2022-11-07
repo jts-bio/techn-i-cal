@@ -297,14 +297,14 @@ class WEEK:
             weekprefScore = []
             
             for day in context['workdays']:
-                                    day.table = self.render_day_table(day)
-                                    pto = PtoRequest.objects.filter(workday=day.date,status__in=['A','P'])
-                                    day.PTO = "-- ".join(pto.values_list('employee__name', flat=True))
-                                    print("PTO:", day.PTO)
-                                    day.nPTO = pto.count()
-                                    prefScore = ScheduleBot.WdOverallShiftPrefScore(workday=day)
-                                    day.prefScore = prefScore
-                                    weekprefScore.append(prefScore)
+                day.table = self.render_day_table(day)
+                
+                prefScore = ScheduleBot.WdOverallShiftPrefScore(workday=day)
+                day.prefScore = prefScore
+                weekprefScore.append(prefScore)
+            
+            context['ptos'] = PtoRequest.objects.filter(workday__in=context['workdays'])
+            print(context['ptos'])
                                     
             if len(weekprefScore) != 0:
                 weekprefScore = sum(weekprefScore) / len(weekprefScore)
@@ -1303,7 +1303,7 @@ class EMPLOYEE:
     def coWorkerSelectView (request, name):
         context = {}
         context['employee'] = Employee.objects.get(name=name)
-        context ['employees'] = Employee.objects.all().order_by('cls')
+        context ['employees'] = Employee.objects.all().order_by('cls','name')
 
         return render(request,'sch/employee/coworker-select.html',context)
     ### COWORKER
@@ -1322,7 +1322,7 @@ class EMPLOYEE:
         return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
     ### EVENING-FRACTION VIEW
     def eveningFractionView (request):
-        empls = list(Employee.objects.all().values_list('name', flat=True))
+        empls = list(Employee.objects.all().order_by('name').values_list('name', flat=True))
         empls = {i : {'eveningFraction':0, 'evening':0, 'total':0} for i in empls}
         for emp in empls:
             if Slot.objects.filter(employee__name=emp).exists():

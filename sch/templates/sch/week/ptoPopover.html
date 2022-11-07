@@ -5,14 +5,24 @@
 
     PTO
 </div>
-<div data-popover id="popover-default" role="tooltip" class="inline-block absolute invisible z-10 w-64 text-sm font-light text-gray-500 bg-white rounded-lg border border-gray-200 shadow-sm opacity-0 transition-opacity duration-300 
-    dark:text-gray-200 dark:border-gray-600 dark:bg-black">
-    <div class="py-2 px-3 bg-gray-100 rounded-t-lg border-b border-gray-100 dark:border-gray-100 dark:border-3 dark:bg-gray-900">
-        <h3 class="font-semibold text-gray-900 dark:text-white">PTO REQUESTS ON {{day.date}}</h3>
+<div data-popover id="popover-default" 
+     role="tooltip" 
+     class="inline-block absolute invisible z-10 w-64 text-sm font-light text-gray-500 
+            bg-white rounded-lg border border-gray-200 shadow-sm opacity-0 transition-opacity duration-300 
+            dark:text-gray-200 dark:border-gray-600 dark:bg-black">
+    <div class="py-2 px-3 bg-gray-100 rounded-t-lg border-b border-gray-100 dark:border-gray-100 
+                dark:border-3 dark:bg-gray-900">
+        <h3 class="font-semibold text-gray-900 dark:text-white">
+            PTO Requests {{day.date}}</h3>
     </div>
     <div class="py-2 px-3">
-        <h5 class="h5">{{day.nPTO}}</h5>
-        <p><span class="badge">{{day.PTO}}</span></p>
+        <p>
+        {% for pto in ptos %} 
+        {% if pto.workday.date == day.date %}
+            <span class="badge badge-xs badge-neutral">{{pto}}</span>
+        {% endfor %}
+        {% endfor %}
+        </p>
     </div>
     <div data-popper-arrow></div>
 </div>

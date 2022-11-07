@@ -4,7 +4,7 @@
 
 {% block body %}
 
-<div id="content" hx-get="#" hx-trigger="load delay:2s" hx-target="#content"  hx-swap="innerHTML">
+<div id="content" hx-get="#"  hx-target="#content"  hx-swap="innerHTML">
     <a id="back-home" href="/">{% backArrow %} HOME</a>
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
@@ -15,8 +15,12 @@
         </a>
         <div class="spinner"></div>
 
-        <a hx-get="/sch/htmx/spinner" hx-trigger="click once" hx-target="solveIndicator" hx-swap="'innerHTML"></a>
+        <a hx-get="/sch/htmx/spinner" 
+           hx-trigger="click once" 
+           hx-target="solveIndicator" 
+           hx-swap="'innerHTML">
         <button 
+            hx-confirm="Running this function will solve the 42 days within this schedule and may take up to 5 minutes. Verify to continue."
             href="solve/" 
             type="button" 
             id="htmxTargetButton"
@@ -31,7 +35,7 @@
             hx-target="#content #solveIndicator"
             src="/sch/schedule/load_button.html">
             <div id="solveIndicator"></div>
-        Solve </button>
+        Solve </button></a>
         <a 
         hx-get="generate-random-pto/" 
         hx-trigger="click delay:1000ms">
