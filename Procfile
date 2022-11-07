@@ -1,1 +1,1 @@
-web: gunicorn myproject.wsgi
+web: gunicorn techn_i_cal.wsgi
