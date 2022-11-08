@@ -132,10 +132,21 @@
     </tr>
 
     {% endfor %}
+    <tr>
+        <th>Unfilled Shifts</th>
+        {% for dy in unfilled  %}
+            <td>{% for uf in dy %} {{uf}}<br><br> {% endfor %}</td> 
+        {% endfor %}   
+    </tr>
     </table>
     </div>
 
 <div class="panel">
+
+    <div>
+        {{tdoEmpties|length}} -- {{tdoEmpties}}
+    </div>
+
     <div class="hstack wrap">
     {% for uf,count in unfavorables.items %}
         <div class="vstack">

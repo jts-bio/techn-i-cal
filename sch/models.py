@@ -240,11 +240,14 @@ class WorkdayManager (models.QuerySet):
         week = workday.iweek
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
+# ============================================================================  
 class EmployeeClass (models.Model):
     id          = models.CharField(max_length=5, primary_key=True)
     class_name  = models.CharField(max_length=40)
-
 # ============================================================================
+
+
+
 #* ===== Models ===== *#
 # ============================================================================
 class Shift (ComputedFieldsModel) :
@@ -280,6 +283,17 @@ class Shift (ComputedFieldsModel) :
         for i in self.occur_days:
             ids.append(str(int(i)+7))
         return ids
+    
+    @property
+    def sd_ids(self):
+        """
+        """
+        ids = list(self.occur_days)
+        for i in self.occur_days:
+            for x in [7,14,21,28,35]:
+                ids.append(str(int(i)+x))
+        return sorted(ids)
+        
 
     @property
     def end (self):
@@ -297,7 +311,6 @@ class Shift (ComputedFieldsModel) :
    
 
     objects = ShiftManager.as_manager()
-
 # ============================================================================
 class Employee (ComputedFieldsModel) :
     # fields: name, fte_14_day , shifts_trained, shifts_available 
@@ -386,8 +399,6 @@ class Employee (ComputedFieldsModel) :
     
        
     objects = EmployeeManager.as_manager()
-
-
 # ============================================================================
 class Workday (ComputedFieldsModel) :
     # fields: date, shifts 
@@ -579,7 +590,7 @@ class Workday (ComputedFieldsModel) :
         
     
     objects = WorkdayManager.as_manager()
-
+# ============================================================================  
 class Week (ComputedFieldsModel) :
     __all__ = [
         'year','iweek','prevWeek','nextWeek',
@@ -627,8 +638,6 @@ class Week (ComputedFieldsModel) :
     
     def __str__ (self) :
         return f'{str(self.year)[2:]}-W{str(self.iweek)}'
-    
-    
 # ============================================================================
 class Slot (ComputedFieldsModel) :
     # fields: workday, shift, employee
@@ -672,8 +681,11 @@ class Slot (ComputedFieldsModel) :
             return False
         if self.shift.start > dt.time(12,0):
             return False
-        elif self.shift.start < dt.time(12,0) :
+        elif self.shift.start > dt.time(10):
             if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+                return True 
+        elif self.shift.start < dt.time(12,0) :
+            if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(10,0), employee=self.employee).count() > 0 :
                 return True
             else:
                 return False
@@ -758,7 +770,6 @@ class Slot (ComputedFieldsModel) :
         return slots
     
     objects = SlotManager.as_manager()
-    
 # ============================================================================
 class ShiftTemplate (models.Model) :
     # fields: name, start, duration 
@@ -791,8 +802,7 @@ class ShiftTemplate (models.Model) :
 
     class Meta:
         unique_together = ['shift', 'ppd_id']
-        
-
+# ============================================================================
 class TemplatedDayOff (models.Model) :
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     ppd_id   = models.IntegerField(null=True) 
@@ -816,8 +826,6 @@ class TemplatedDayOff (models.Model) :
     
     class Meta:
         unique_together = ['employee','sd_id']
-    
-    
 # ============================================================================
 PTO_STATUS_CHOICES = (
     ('P', 'Pending'),
@@ -904,10 +912,6 @@ class SchedulingMax (models.Model):
     
     class Meta:
         unique_together = ('employee', 'year', 'pay_period')
-
-
-
-
 
 def tally (lst):
     """ TALLY A LIST OF VALUES 

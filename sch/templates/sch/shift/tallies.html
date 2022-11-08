@@ -1,21 +1,26 @@
 {% extends "base.html" %}
+{% load tags %}
 
 
 {% block content %}
 
-<div>
+<a href="/sch/shift/{{shift}}/" class="hstack">
+    <div>{% backArrow %}</div><div>BACK</div>
+</a>
+
+<div class="center text-center">
     <h1 class="h1 text-3xl">{{shift}}</h1>
     <h3>Tally by Employee</h3>
 </div>
 
 
-<div class="flex flex-wrap flex-row space-around gy-2">
+<div class="flex flex-wrap flex-row" style="gap:9px;">
     {% for empl in employees %}
         {% if empl.tally != 0 %}
-        <div class="panel w-40">
+        <div class="panel w-40" style="gap:9px;">
         <div class="vstack">
             <div>{{empl.name}}</div>
-            <div class="badge badge-rounded badge-xs">{{empl.tally}}</div>
+            <div class="badge badge-rounded badge-xs font-bold">{{empl.tally}}</div>
             <progress class="progress" id="{{empl.name}}-progress" value="{{empl.tally}}" max="{{total}}">{{empl.tally}}</progress>
         </div></div>
         {% endif %}

@@ -72,8 +72,8 @@ class ShiftListTable (tables.Table) :
     ---------------------------------
     name| hours   | IV?  | Group
     ---------------------------------
-    MI  |   10hrs |  X   |  CPhT
-    RS  |   10hrs |      |  RPh
+    MI  |  10 hrs |  X   |  CPhT
+    RS  |  10 hrs |      |  RPh
     ---------------------------------
     """
     name  = tables.columns.LinkColumn ("shift", args=[A("name")])

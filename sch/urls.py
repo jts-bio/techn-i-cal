@@ -43,6 +43,7 @@ urlpatterns = [
     path('day/<slug:date>/<str:shift>/resolve-turnaround/',views.SLOT.resolveTurnaroundSlot, name='resolve-turnaround-inside-day' ),
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
     path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
+    path('sst-by-day/', views.SST.sstDayView, name="sst-day-view"),
     
     
 

@@ -24,8 +24,8 @@
         </a>
     </div>
 
-    <div>
-        <h1>{{ shift }}</h1>
+    <div class="center text-center">
+        <h1 class="text-3xl">{{ shift }}</h1>
     </div>
 
     <div class="hstack" style="align-items:start;">
@@ -97,10 +97,10 @@
 
 </div>
 
-<div class="panel w-fc" style="height:320px;">
+<div class="panel w-fc">
     <div style="float:right;"><a href="template/" style="font-style:italic;margin-bottom:20px;">Edit</a><br></div>
     <h2 style="font-size:24px;color:orange;" class="jbm">Templating</h2> 
-    <div class="hstack">
+    <div class="grid-7-by-2">
         {% for sst in ssts %}
         {% if sst.1 %}
             <div class="panel" style="background-color:#5af7;border-color:#7bf;height:90px;width:125px;">
@@ -112,11 +112,6 @@
                 <span class="small">N/A</span>
             </div>
         {% endif %}
-        
-        {% if sst.0 == 6 %}
-            </div>
-            <div class="hstack">
-            {% endif %} 
         {% endfor %}
     </div>
    

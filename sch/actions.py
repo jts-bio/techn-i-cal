@@ -351,6 +351,22 @@ class ScheduleBot:
         
         for day in wds:
             WorkdayActions.fillDailySST(day)
+            
+        # fill the emptySSTs left behind by pto requests
+        empties = ScheduleActions.emptyUsuallyTemplatedSlots(0,yr,sch)
+        
+        for empty in empties:
+            employees = Employee.objects.can_fill_shift_on_day(shift=slot[1],workday=slot[0])
+            
+            employee_lowest_fte_percent = [emp.ftePercForWeek(slot[0].date.year,slot[0].iweek) for emp in employees]
+        
+            if len(employees) != 0:
+               # select lowest fte
+                index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
+                empl      = employees[index]
+                newSlot   = Slot.objects.create(workday=slot[0],shift=slot[1],employee=empl)
+                newSlot.save() 
+            
         
         if len(wds) == 0:
             return False
@@ -631,4 +647,12 @@ class ResolveBot:
                     List += [sfta]
         return random.randint(0,len(List))
         
-                    
+class ScheduleActions:
+    def emptyUsuallyTemplatedSlots (self, year, sch):
+        slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
+        tdos = TemplatedDayOff.objects.all()
+        empty = []
+        for tdo in tdos:
+            if slots.filter(workday__sd_id=tdo.sd_id).exists() == False:
+                empty += [tdo]
+        return empty

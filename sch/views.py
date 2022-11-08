@@ -15,7 +15,7 @@ from .models import *
 from .xviews.week import *
 from .forms import *
 from .formsets import *
-from .actions import PayPeriodActions, ScheduleBot, WorkdayActions, WeekActions, EmployeeBot
+from .actions import *
 from .tables import *
 from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
 from django_tables2 import RequestConfig
@@ -669,8 +669,9 @@ class SHIFT :
             context ['sstsA'] = sstsA
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] 
             context ['sstsB'] = sstsB
-            context ['ssts'] = sstsA + sstsB
-            ssts  = {day: ShiftTemplate.objects.filter(shift=self.object, ppd_id=day) for day in range(14)}
+            
+            ssts  = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(42)]
+            context ['ssts'] = ssts
             
             context ['prefs'] = ShiftPreference.objects.filter(shift=self.object).order_by('score') 
             context ['count'] = Employee.objects.filter(shifts_trained=self.object).count()
@@ -718,6 +719,7 @@ class SHIFT :
             context['shifts']     = Shift.objects.all()
             shiftTable            = ShiftListTable(Shift.objects.all().order_by('start'))
             context['shiftTable'] = shiftTable
+            
 
             return context
 
@@ -773,7 +775,7 @@ class SHIFT :
         context = {}
         context['shift'] = shift
         context['employees'] = employees 
-        context['total'] = Slot.objects.filter(shift=shift).count()
+        context['total'] = max(list(employees.values_list('tally',flat=True))) + 1
         
         return render(request, 'sch/shift/tallies.html', context)
         
@@ -782,7 +784,7 @@ class SHIFT :
         shift = Shift.objects.get(name=name)
         shiftClass = shift.cls
         context['shift'] = shift
-        TrainedEmployeeShiftFormSet = formset_factory(TrainedEmployeeShiftForm, extra=0)
+        TrainedEmployeeShiftFormSet = formset_factory(TrainedEmployeeShiftForm, extra=0 )
         
         if request.method == 'POST':
             formset = TrainedEmployeeShiftFormSet(request.POST)
@@ -1562,6 +1564,19 @@ class SST:
         def get_queryset(self):
             return ShiftTemplate.objects.filter(shift__name=self.kwargs['shift'])
 
+    def sstDayView (request):
+        context = {}
+        dayinfo = []
+        days = range(42)
+        for day in days:
+            dayinfo.append(ShiftTemplate.objects.filter(ppd_id=day))
+        context['days'] = dayinfo
+        context['range'] = range(42)
+        
+        return render(request, 'sch/sst/day_view.html', context)
+
+
+
 class PTO:
 
     def resolve_pto_request (request, date, employee):
@@ -1606,9 +1621,9 @@ def shiftTemplate (request, shift):
     context['shift']      = shift
     context['dayrange']   = range(14)
     context['wd']         = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    on_days = shift.ppd_ids 
+    on_days = shift.sd_ids 
     TmpSlotFormSet = formset_factory(SstForm, extra=0)
-
+    print(on_days)
     
     if request.method == 'POST':
         TmpSlotFormSet = formset_factory(SstForm)
@@ -1632,7 +1647,7 @@ def shiftTemplate (request, shift):
 
     initData = [
         {'ppd_id': i, 
-         'shift' : shift }  for i in on_days
+         'shift' : shift }  for i in range(42)
         ]
 
     formset = TmpSlotFormSet(initial=initData)
@@ -1714,7 +1729,7 @@ class SCHEDULE:
     
     def scheduleView (request, year, sch):
         context = {}
-        employees = Employee.objects.all().order_by('name')
+        employees = Employee.objects.all().order_by('cls','name')
         for empl in employees:
             schedule = Workday.objects.filter(date__year=year,ischedule=sch).annotate(
                 emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
@@ -1740,6 +1755,12 @@ class SCHEDULE:
         context['percComplete'] = f'{int(100-round(te / tot, 2) * 100)}%'
         context['nEmpty'] = te
         context['tot'] = tot
+        Slot.objects.filter(workday__date__year=year,workday__ischedule=sch,employee=None).delete()
+        context['unfilled'] = [wd.emptySlots for wd in Workday.objects.filter(date__year=year,ischedule=sch)]
+        print(context['unfilled'])
+        
+        context['tdoEmpties'] = ScheduleActions.emptyUsuallyTemplatedSlots(tot,year,sch)
+        
         return render(request, 'sch/schedule/grid.html', context)
     
     def weeklyOTView (request, year, sch):
@@ -1791,6 +1812,7 @@ class SCHEDULE:
             if slot.is_preturnaround :
                 slot.delete()
             slot.save()
+        SCHEDULE.solvePart2(request,year,sch)
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
         
     
@@ -1800,7 +1822,24 @@ class SCHEDULE:
             for sft in day.emptySlots:
                 emptySlots.append((day,sft))
         for slot in emptySlots:
-            ScheduleBot.performSolvingFunctionOnce(slot)
+            ScheduleBot.performSolvingFunctionOnce(day.year,slot.ischedule)
+        SCHEDULE.breakupLongStreaks(request, year,sch)
+            
+    def breakupLongStreaks (request,year,sch):
+        nUnfilled_initial = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
+        slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
+        oneOverStreak = []
+        for slot in slots:
+            if slot.employee.streak_pref - slot.streak ==1:
+                oneOverStreak += [slot]
+        oneOverStreak
+        for slot in oneOverStreak:
+            if not ShiftTemplate.objects.filter(ppd_id=slot.workday.sd_id, employee=slot.employee).exists():
+                slot.delete()
+        for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch):
+            wd.save()
+        nUnfilled_final = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
+        print( nUnfilled_final, nUnfilled_initial )
 
     def tdosConflictedSlots (year, sch):
         tdos = TemplatedDayOff.objects.all().annotate(overlapped=Subquery(
@@ -1836,6 +1875,7 @@ class HTMX:
         context['shift_choices'] = Shift.objects.filter(cls='CPhT')
         return render (request, 'sch/forms/shiftChoices.html', context=context)
         
+
 class TEST:
     
     def spinner (request):

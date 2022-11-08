@@ -18,7 +18,9 @@
 {% include 'header.html' %}
 
 {% block content %}
+
 <div class="hstack">
+    
     <div class="panel">
         <div class="vstack" style="justify-content:space-around;">
         <a href="/sch/day/all" style="text-decoration:none;"> 
@@ -34,10 +36,19 @@
             </a> 
         </div>
     </div>
-    "{% include 'FlowRate Logo.svg' %}
+
+    {% include 'FlowRate Logo.svg' %}
+
     <div>
-        <div style="font-size:60px;font-family:'JetBrains Mono';letter-spacing:2px;color:#fff6;font-style:italic;line-height:90%">PHARMACY SCHEDULING</div>
+        <div style="font-size:60px;font-family:'JetBrains Mono';
+                    letter-spacing:2px;color:#fff6;font-style:italic;line-height:90%">
+            PHARMACY SCHEDULING
+        </div>
+        <div>
+            {% now "j F Y H:i" %}
+        </div>
     </div>
+
 </div>
 
 {% endblock %}
