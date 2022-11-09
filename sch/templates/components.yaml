@@ -1,4 +1,16 @@
+### DJANGO SLIPPERS TEMPLALTES ###
 
 components:
 
-  logo: "sch/forms/shiftChoices.html"
+    accordion     : 'sch/doc/accordion.html'
+
+    toast-wrapper : 'sch/comp/toast-container.html'
+    toast         : 'sch/comp/toast.html'
+    wire-toast    : 'sch/comp/wireToast.html'
+    bs-toast      : 'sch/comp/bs-toast.html'
+
+    # ICONS ========
+
+    icon-Date       : 'sch/icons/date.svg'
+    icon-User       : 'sch/icons/profile.svg'
+    icon-Shift      : 'sch/icons/shift.svg'

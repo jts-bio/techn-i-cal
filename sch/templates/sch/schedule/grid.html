@@ -77,6 +77,15 @@
         {% endfor %}{% endif %}
     </div>
 
+    {#--- TOAST ALERT ---#}
+    {% #toast-wrapper %}
+        {% #bs-toast  title="ALERT" time="2 min. ago" %} 
+            <p class="text-2xs jbm">
+                THIS SCHEDULE LOOKS LIKE IT COULD BE IMPROVED.<br>
+                Want the SolveBot to take a look?</p>
+        {% /bs-toast %}
+    {% /toast-wrapper %}
+
     <div class="overflow-x-auto">
         
     {#---MAIN APP TABLE---#}
