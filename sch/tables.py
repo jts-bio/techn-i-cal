@@ -105,7 +105,7 @@ class ShiftsWorkdaySmallTable (tables.Table):
         model           = Shift
         fields          = ['name','employee']
         template_name   = 'django_tables2/bootstrap.html'
-        attrs           = {"class":"table table-compact table-xs"}
+        attrs           = {"class":"table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
         
     def render_employee(self, value, record):
         if record.cls == "RPh":
@@ -129,7 +129,7 @@ class WorkdayListTable (tables.Table):
                             'percFilled'
                            ]
         template_name   = 'django_tables2/bootstrap-responsive.html'
-        attrs           = {"class":"table table-compact table-xs"}
+        attrs           = {"class":["rounded-lg w-full text-sm text-left text-gray-500 dark:text-gray-400","bg-white  dark:bg-gray-900"]}
 
     def render_n_unfilled(self, record):
         return record.n_unfilled

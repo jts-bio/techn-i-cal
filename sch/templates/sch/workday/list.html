@@ -17,7 +17,23 @@
 {% block content %}
 <h1 class="text-center" style="font-size:32px;"> Workdays </h1>
     <section style="vstack" style="align-items:center;">
-
+        <div class='flex flex-row'>
+            <div class="flex flex-col">
+            <h3>Attention Needed</h3>
+            <div class="panel">
+                <div class="btn btn-accent" style="width:fit-content;"><a href="/sch/turnarounds/">Turnarounds<div class="badge badge-primary" style="float:right top;">{{n_turnarounds}}</div></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel hstack mx-20">
+                <div class="green-glow" style="font-size:28px;">{{firstUnfillednDays}}</div>
+                <div>
+                    <div style="opacity:65%;font-size:12px;letter-spacing:3px;">FIRST UNFILLED SLOT OCCURS IN</div>
+                    <div style="font-size:16px;">days</div>
+                </div>
+            </div>
+        </div>
     <div class="hstack" style="align-items: flex-start;">
         
 
@@ -29,6 +45,8 @@
             <a href="/sch/week/all-weeks/" 
                class="inactive-tab">
                BY WEEK</a>
+
+               
         </div>
 
 
@@ -36,26 +54,13 @@
 
             <div>
                 <a href="/sch/days/new/"> 
-                   Add Workdays </a></div>
+                   Add Workdays </a>
+                </div>
 
             {% render_table table %}       
 
         </div>
-        <div>
-            <h3>Attention Needed</h3>
-            <div class="panel">
-                <div class="btn btn-accent" style="width:fit-content;"><a href="/sch/turnarounds/">Turnarounds<div class="badge badge-primary" style="float:right top;">{{n_turnarounds}}</div></a>
-                    </div>
-            </div>
-            <h3>Summary Data</h3>
-            <div class="panel hstack">
-                <div class="green-glow" style="font-size:28px;">{{firstUnfillednDays}}</div>
-                <div>
-                    <div style="opacity:65%;font-size:12px;letter-spacing:3px;">FIRST UNFILLED SLOT OCCURS IN</div>
-                    <div style="font-size:16px;">days</div>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     </section>

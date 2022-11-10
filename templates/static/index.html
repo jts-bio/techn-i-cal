@@ -19,32 +19,34 @@
 
 {% block content %}
 
-<div class="hstack">
+<div class="flex-col">
     
-    <div class="panel">
-        <div class="vstack" style="justify-content:space-around;">
-        <a href="/sch/day/all" style="text-decoration:none;"> 
-                <div class="giant-button"> WORKDAYS </div>
-            </a>
 
-            <a href="/sch/shifts/all" style="text-decoration:none;">
-                <div class="giant-button"> SHIFTS </div>
-            </a> 
+        <div class="flex flex-col lg:flex lg:flex-row g-2 m-5 space-x-32">
 
-            <a href="/sch/employees/all/" style="text-decoration:none;">
-                <div class="giant-button"> EMPLOYEES </div>
-            </a> 
+            {% #dense-card title='Workdays' img='/static/img/GoldBlackBackground.jpg' link='/sch/day/all/' %}
+                <p>Workdays, weeks, pay periods, and schedules, as well as tools to build and edit schedule instances.</p>
+            {%/dense-card%}
+
+            {% #dense-card title='Shifts' img='/static/img/ChemistBackground.png' link='/sch/shifts/all/' %}
+                <p>Manage information about shifts and when they are scheduled.</p>
+            {%/dense-card%}
+
+            {% #dense-card title='Employees' img='/static/img/Orchestra.png' link='/sch/employees/all/' %}
+                <p>Manage employee information, preferences, scheduling constraints, and more.</p>
+            {%/dense-card%}
+           
         </div>
-    </div>
-
+    
+        <div class='flex flex-row align-center'>
     {% include 'FlowRate Logo.svg' %}
 
-    <div>
+    
         <div style="font-size:60px;font-family:'JetBrains Mono';
                     letter-spacing:2px;color:#fff6;font-style:italic;line-height:90%">
             PHARMACY SCHEDULING
         </div>
-        <div class="text-2xs text-zinc-400 font-light" style="font-style:italic;">
+        <div class="text-xs text-orange-400 font-light" style="font-style:italic;">
             {% now "j F Y H:i" %}
         </div>
     </div>

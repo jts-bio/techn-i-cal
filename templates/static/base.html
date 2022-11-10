@@ -27,11 +27,11 @@
 			<style> {% include 'my.css' %} </style>
 
 			{% block style %} {% endblock %}
-			<link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" 
+			{% comment %} <link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" 
 			      rel="stylesheet" 
-				  type="text/css"/>
+				  type="text/css"/> {% endcomment %}
 			<link rel="stylesheet" 
-			  href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css">
+			       href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css">
 			 
 			
 		{% endcompress %}

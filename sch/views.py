@@ -1,5 +1,6 @@
 import asyncio
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
@@ -1874,6 +1875,12 @@ class HTMX:
         context = {}
         context['shift_choices'] = Shift.objects.filter(cls='CPhT')
         return render (request, 'sch/forms/shiftChoices.html', context=context)
+       
+    @csrf_exempt 
+    def scheduleActiveLoad (request,year,sch):
+        SCHEDULE.solveScheduleSlots(request,year,sch)
+        SCHEDULE.solveScheduleSlots(request, year,sch)
+        return render(request, 'sch/schedule/load_button_active.html')
         
 
 class TEST:

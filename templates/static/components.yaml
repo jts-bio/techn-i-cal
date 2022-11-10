@@ -14,3 +14,8 @@ components:
     icon-Date       : 'sch/icons/date.svg'
     icon-User       : 'sch/icons/profile.svg'
     icon-Shift      : 'sch/icons/shift.svg'
+
+    # CARDS =========
+
+    dense-card      : 'sch/comp/dense-card.html' # ( link , img, title , messages )
+    

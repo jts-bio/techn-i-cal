@@ -264,7 +264,7 @@ class='flex flex-wrap justify-between'>
         <h3 style="color:orange;font-family:Helvetica Neue;font-weight:200;font-size:18px;">
             <a href="/sch/day/{{day.slug}}"> {{day.date}} </a>
         </h3>
-        <div class="overflow-x-auto">
+        <div class="overflow-hidden overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
             {{ day.table }}
         </div>
         <div class="tooltip" data-tip="Employee avg Shift Preference">

@@ -99,6 +99,7 @@ schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
     path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
+    path('schedule/<int:year>/<int:sch>/start/',views.HTMX.scheduleActiveLoad, name='sch-active-loading'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
     path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),  
     path('schedule/<int:year>/<int:sch>/generate-random-pto/',views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
