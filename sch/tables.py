@@ -85,6 +85,8 @@ class ShiftListTable (tables.Table) :
         model           = Shift
         fields          = ['name','start','hours', 'is_iv','on_days_display',]
         template_name   = 'django_tables2/bootstrap.html'
+        attrs           = {"class":"table table-xl"}
+
         
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY

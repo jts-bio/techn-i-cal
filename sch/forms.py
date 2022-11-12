@@ -253,8 +253,16 @@ class SstForm (forms.Form):
         shift  = self.initial.get('shift')
         trained_emps = Employee.objects.filter(shifts_trained__name=shift)
         conflicting_tmpl = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id')).exclude(shift=shift).values('employee')
+        
         emp_choices = trained_emps.exclude(pk__in=conflicting_tmpl)
-        self.fields['employee'].choices  = list(emp_choices.values_list('id','name')) + [("","---------")] + [("OFF","DAY OFF")]# type: ignore
+        tdos = TemplatedDayOff.objects.filter(ppd_id=self.initial.get('ppd_id')).values('employee')
+        emp_choices = emp_choices.exclude(pk__in=tdos)
+        if self.initial.get('ppd_id'):
+            if str(self.initial.get('ppd_id') % 7) in list(shift.occur_days):
+                self.fields['employee'].choices  = list(emp_choices.values_list('id','name')) + [("","---------------")] 
+        else:
+            self.fields['employee'].choices  = [("","---------------")] 
+        
         if ShiftTemplate.objects.filter(
                     shift=shift, 
                     ppd_id=self.initial.get('ppd_id')).exists():
@@ -263,9 +271,9 @@ class SstForm (forms.Form):
                         ppd_id=self.initial.get('ppd_id')).employee
         
         # custom labels 
-        wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
+        wds = 'Sun Mon Tue Wed Thu Fri Sat'.split(" ")
         try:
-            self.fields['employee'].label    = wds[int(self.initial.get('ppd_id'))] # type: ignore
+            self.fields['employee'].label    = wds[int(self.initial.get('ppd_id'))%7] # type: ignore
         except:
             pass
 

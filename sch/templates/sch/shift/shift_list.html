@@ -24,16 +24,17 @@
     <div class="w-fc">
 
             <a href="/sch/shifts/new/" 
-               class="btn btn-xs" style="float:right;"> 
+               class="bg-blue-900 border px-4 hover:bg-blue-700 border-blue-300 rounded " style="float:right;"> 
                 <div class="hstack">
                     <div>{% plusIcon %}</div>
                     <div> NEW</div>
                 </div>
                 </a>
     
+        <div class="panel">
+            <div>{% render_table shiftTable %}</div>
+        </div>
 
-        <div>{% render_table shiftTable %}</div>
-    
     </div>
 
 </div>

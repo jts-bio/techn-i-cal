@@ -20,6 +20,23 @@
 {% block content %}
 
 <div class="flex-col">
+
+        <div class="flex flex-col text-center">
+            
+            <div class="vstack py-22">
+                <div style="font-size:60px;font-family:'JetBrains Mono';letter-spacing:2px;color:#fff6;font-style:italic;line-height:120%">
+                    PHARMACY SCHEDULING
+                </div>
+
+                <div class="text-xs text-orange-400 font-light" style="font-style:italic;">
+                    {% now "j F Y H:i" %}
+                </div>
+            </div>
+        </div>
+        
+        <div class='flex flex-row align-center'>
+      
+        </div>
     
 
         <div class="flex flex-col lg:flex lg:flex-row g-2 m-5 space-x-32">
@@ -38,18 +55,9 @@
            
         </div>
     
-        <div class='flex flex-row align-center'>
-    {% include 'FlowRate Logo.svg' %}
+        
 
-    
-        <div style="font-size:60px;font-family:'JetBrains Mono';
-                    letter-spacing:2px;color:#fff6;font-style:italic;line-height:90%">
-            PHARMACY SCHEDULING
-        </div>
-        <div class="text-xs text-orange-400 font-light" style="font-style:italic;">
-            {% now "j F Y H:i" %}
-        </div>
-    </div>
+    {% toggle_section title="View Messages" content="No Messages to display" %}
 
 </div>
 

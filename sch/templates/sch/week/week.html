@@ -224,21 +224,15 @@
 
 <div 
 class='flex flex-wrap justify-between'>
-    {% for emp in weekly_percents %} 
-    <div 
-    class="card text-center" 
-    style="border:solid 1px #34390384;">
-        <h3 
-        class='text-lg w-32 p-1'>
-        {{ emp.employee }}</h3>
-        <div 
-        class='text-xs'>
-            {{ emp.week_hours }} hrs. 
-            <span 
-            class="{{emp.css}}">
-            ({{ emp.week_percent }}%)</span>
-        </div>
-    </div>
+    {% for emp in weekly_percents %} {# emp.week_percent / emp.week_hours / emp.employee #}
+        
+        {% if emp.week_percent > 100 %} 
+            {% #warn_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /warn_badge %} 
+        {% endif %}
+        {% if emp.week_percent < 85 %}  
+            {% #alert_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /alert_badge %} 
+        {% endif %}
+            
     {% endfor %}
 </div>
 
@@ -268,10 +262,12 @@ class='flex flex-wrap justify-between'>
             {{ day.table }}
         </div>
         <div class="tooltip" data-tip="Employee avg Shift Preference">
-            <span class="badge badge-xs" style="background-color:darkslateblue;color:black;">
-                {% favoriteIcon '10px' '10px' '#333333' %}
-                {{day.prefScore}}%
-            </span>
+            <div class="bg-gray-200 text-blue-700 rounded-xl px-4" style="background-color:darkslateblue;color:black;">
+                <div class="hstack">
+                    {% favoriteIcon '20px' '20px' '#fff' %}
+                    <div>{{day.prefScore}}%</div>
+                </div>
+            </div>
         </div>
 
     </div>

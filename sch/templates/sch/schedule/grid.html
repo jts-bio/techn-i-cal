@@ -4,8 +4,15 @@
 
 {% block body %}
 
-<div hx-get="" hx-trigger="load delay:300ms" hx-swap="outerHTML">
-    <a id="back-home" href="/">{% backArrow %} HOME</a>
+<div hx-get="" hx-trigger="load delay:30s" hx-swap="outerHTML">
+
+    <a id="back-home" href="/">
+        <div class="hstack">
+            <div>{% backArrow %} </div>
+            <div> HOME </div>
+        </div>
+    </a>
+    
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
 
@@ -38,7 +45,7 @@
             hx-get="/sch/spinner/"
             hx-trigger="click"
             hx-target="#indicator"]>
-        + Random PTO Requests <div id="indicator">{% include 'sch/test/spinner.html' %}</div></button>
+        + Random PTO Requests </button>
         </a>
         <a  id="DeletePtoConfl"
             class="py-3 px-2 mr-2 text-xs font-light text-gray-400 bg-gray-900 rounded-lg border border-gray-200 
@@ -48,7 +55,9 @@
             dark:hover:text-white dark:hover:bg-indigo-900  dark:hover:text-bold
             inline-flex items-center"
             href="del-pto-conflict-slots/">
+
         Clear Out PTO Conflicting Assignments
+        
         </a>
         
         <div class="float-right">
@@ -87,6 +96,7 @@
                 {% endfor %}
             </tr>
         </thead>
+
     {% for empl in employees %}
     <tr>
         <th><a href="/sch/employee/{{empl}}/">{{empl}}</a></th>
@@ -105,7 +115,7 @@
             {%else%}
                 {% if day.0 in weekendlist %} 
                     <td style="background-color:#e3727233;">
-                        <span>{{day.1}}<sub style="font-size:9px;opacity:50%;">{{day.2}}</sub></span>  
+                        <span> {{day.1}} <sub style="font-size:9px;opacity:50%;">{{day.2}}</sub></span>  
                         {% if day.4 < day.2 %}
                         <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;">!!</span>
                         {% endif %}
@@ -140,7 +150,7 @@
 <div class="panel">
 
     <div>
-        {{tdoEmpties|length}} -- {{tdoEmpties}}
+        {{tdoEmpties|length}}  {{tdoEmpties}}
     </div>
 
     <div class="hstack wrap">

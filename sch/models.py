@@ -246,9 +246,7 @@ class EmployeeClass (models.Model):
     class_name  = models.CharField(max_length=40)
 # ============================================================================
 
-
-
-#* ===== Models ===== *#
+#* === === MODELS === === *#
 # ============================================================================
 class Shift (ComputedFieldsModel) :
     # fields: name, start, duration 
@@ -646,8 +644,6 @@ class Slot (ComputedFieldsModel) :
     employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
     empl_sentiment = models.SmallIntegerField (default=50)
     
-   
-        
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
@@ -759,6 +755,13 @@ class Slot (ComputedFieldsModel) :
             can_fill = can_fill.exclude(pk__in=conflictingAfter).exclude(pk__in=conflictingBefore)
         
         return can_fill 
+    
+    def isFromTemplate (self) -> bool:
+        if self.employee:
+            if ShiftTemplate.objects.filter(ppd_id=self.workday.sd_id, employee=self.employee).exists():
+                return True
+            else:
+                return False
     
     def conflicting_slots (self) -> SlotManager:
         if self.shift.start.hour > 10:

@@ -53,6 +53,14 @@ class WorkdayActions:
                                 slot[0].save()
 
     def identifySwaps (workday) :
+        """
+        Identifies Trades that are tenable AND increase satisfaction for 1 or both employees,
+        AND doesn't decrease satisfaction for either.
+        
+        ONLY trades WITHIN a workday
+        """
+        
+        
         slots = Slot.objects.filter(workday=workday)
         for slot in slots:
             empl = slot.employee

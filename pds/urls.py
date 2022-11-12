@@ -7,7 +7,6 @@ from . import views
 
 urlpatterns = [
     
-    path('letters/',views.PREPMODE.letterView , name="letter-list"),
+    path("")
         
-    
 ]

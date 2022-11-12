@@ -337,7 +337,9 @@ class WEEK:
             context['unfavorables'] = {
                 i : sorted(context['unfavorables'][i]) for i in sorted(
                     context['unfavorables'], reverse=True)}
-            context['weekly_percents'] = WEEK.GET.getPercentsWorkedWeek(year,week)
+            _week = WEEK.GET()
+            context['weekly_percents'] = _week.getPercentsWorkedWeek(year,week)
+            context['turnarounds'] = _week.getTurnarounds(year,week)
 
             return context
 
@@ -369,7 +371,7 @@ class WEEK:
             return nfs
 
     class GET: 
-        def getPercentsWorkedWeek (year,week):
+        def getPercentsWorkedWeek (self,year,week):
             """
             Get a DICT of percentFTE filled in a given week
             Suggested to fill next slot with employee at lowest FTE %
@@ -423,7 +425,9 @@ class WEEK:
             wds = Workday.objects.filter(date__year=year,iweek=week)
             emps = Employee.objects.all().exclude(fte=0)
             
-            
+        def getTurnarounds (self,year,weekId):
+            slots = Slot.objects.filter(workday__date__year=year,workday__iweek=weekId,is_turnaround=True) | Slot.objects.filter(workday__date__year=year,workday__iweek=weekId,is_preturnaround=True) 
+            return slots
 
     def weeklyHoursView (request):
         """
@@ -1650,6 +1654,7 @@ def shiftTemplate (request, shift):
         {'ppd_id': i, 
          'shift' : shift }  for i in range(42)
         ]
+    
 
     formset = TmpSlotFormSet(initial=initData)
 
@@ -1682,8 +1687,6 @@ class SCHEDULE:
                 
             allConflicts.update(employee=None)
             return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}')
-            
-            
                 
         def removeTurnaround_EmplOptimized (self,year,sch):
             allConflicts = Slot.objects.filter (
@@ -1707,8 +1710,19 @@ class SCHEDULE:
             for s in strs:
                 messages.success( self, s )          
             return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}')
-        
+          
+        def theNickyCoefficient (self, year, sch):  
+            slotsTogether = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch,employee__name__in=['Josh','Nicki'])
+            print( f"{len(slotsTogether)}" )
+            
+            slot_trades = {}
+            for slot in slotsTogether:
+                slot_trades[slot] = slot.tenable_trades
                 
+            slot_trades = str(slot_trades.items())
+                
+            return HttpResponse (slot_trades)
+        
     class DO:
         
         def generateRandomPtoRequest(request,year,sch):
@@ -1727,7 +1741,6 @@ class SCHEDULE:
             print()
             return HttpResponseRedirect('/sch/schedule/{}/{}'.format(year,sch))
             
-    
     def scheduleView (request, year, sch):
         context = {}
         employees = Employee.objects.all().order_by('cls','name')
@@ -1758,7 +1771,7 @@ class SCHEDULE:
         context['tot'] = tot
         Slot.objects.filter(workday__date__year=year,workday__ischedule=sch,employee=None).delete()
         context['unfilled'] = [wd.emptySlots for wd in Workday.objects.filter(date__year=year,ischedule=sch)]
-        print(context['unfilled'])
+        
         
         context['tdoEmpties'] = ScheduleActions.emptyUsuallyTemplatedSlots(tot,year,sch)
         
@@ -1805,8 +1818,10 @@ class SCHEDULE:
     
     def solveScheduleSlots (request,year,sch):
         ScheduleBot.solveSchedule(year,sch)
+        print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")
         for slot in SCHEDULE.tdosConflictedSlots(year,sch):
             slot.delete()
+            print(f"{slot} : TDO-CONFLICT SLOT DELETED DURING SOLUTION")
         for slot in Slot.objects.filter(workday__date__year=year,workday__ischedule=sch):
             if slot.is_turnaround :
                 slot.delete()
@@ -1816,18 +1831,20 @@ class SCHEDULE:
         SCHEDULE.solvePart2(request,year,sch)
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
         
-    
     def solvePart2 (request,year,sch):
         emptySlots = []
         for day in Workday.objects.filter(date__year=year, ischedule=sch):
             for sft in day.emptySlots:
                 emptySlots.append((day,sft))
+                print(f"EMPTY SLOT DISCOVERED DURING PART-II-SOLUTION: {slot}")
         for slot in emptySlots:
-            ScheduleBot.performSolvingFunctionOnce(day.year,slot.ischedule)
+            ScheduleBot.performSolvingFunctionOnce(slot.workday.year,slot.ischedule)
         SCHEDULE.breakupLongStreaks(request, year,sch)
             
     def breakupLongStreaks (request,year,sch):
+        print("RUNNING PROCESS *** BREAKUP-LONG-STREAKS")
         nUnfilled_initial = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
+        print(f"N-UNFILLED INITIAL: {nUnfilled_initial}")
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
         oneOverStreak = []
         for slot in slots:
@@ -1836,11 +1853,12 @@ class SCHEDULE:
         oneOverStreak
         for slot in oneOverStreak:
             if not ShiftTemplate.objects.filter(ppd_id=slot.workday.sd_id, employee=slot.employee).exists():
+                print(f"DELETING SLOT : {slot}")
                 slot.delete()
         for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch):
             wd.save()
         nUnfilled_final = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
-        print( nUnfilled_final, nUnfilled_initial )
+        print(f"N-UNFILLED FINAL: {nUnfilled_final}")
 
     def tdosConflictedSlots (year, sch):
         tdos = TemplatedDayOff.objects.all().annotate(overlapped=Subquery(
