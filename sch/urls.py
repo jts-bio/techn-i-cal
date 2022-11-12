@@ -66,6 +66,8 @@ urlpatterns = [
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
 ]
 
+
+
 employee_patterns = [
     
     #? ==== Employees ==== ?#
@@ -97,6 +99,7 @@ urlpatterns += employee_patterns
 
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
+    path('schedule/current-schedule/', views.SCHEDULE.currentScheduleView, name='current-schedule'),
     path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
     path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
     path('schedule/<int:year>/<int:sch>/start/',views.HTMX.scheduleActiveLoad, name='sch-active-loading'),

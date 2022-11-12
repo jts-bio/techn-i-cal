@@ -20,6 +20,8 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
+from sch.models import Shift, Slot, Employee, Workday
+from rest_framework import routers, serializers, viewsets
 
 def index(request=0):
     template = loader.get_template('index.html')
@@ -27,12 +29,11 @@ def index(request=0):
     }
     return HttpResponse(template.render(context, request))
 
-
 urlpatterns = [
     
     path('' , index,  name='index'),
     path('admin/',  admin.site.urls ),
     path('sch/',    include('sch.urls'),    name='sch'),
-    path('pds/',    include('pds.urls'),    name='pds'),
+    path('pds/',    include('pds.urls'),    name="pds"),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -228,9 +228,9 @@ class EmployeeManager (models.QuerySet):
 # ============================================================================
 class ShiftPreferenceManager (models.QuerySet):
     
-        def below_average(self, employee):
-            average = employee.avg_shift_pref_score 
-            return self.filter(employee=employee, score__lt=average)
+    def below_average(self, employee):
+        average = employee.avg_shift_pref_score 
+        return self.filter(employee=employee, score__lt=average)
 # ============================================================================  
 class WorkdayManager (models.QuerySet):
     def in_week(self, year, iweek):
@@ -373,7 +373,21 @@ class Employee (ComputedFieldsModel) :
     
     @property
     def templated_days_off_display (self):
-        return " ".join([s.day for s in self.templated_days_off])
+        tdoAll = list(TemplatedDayOff.objects.all().order_by('sd_id').values_list('sd_id',flat=True).distinct())
+        empTdos = TemplatedDayOff.objects.filter(employee=self)
+        string = ""
+        for v in tdoAll:
+            if empTdos.filter(sd_id=v):
+                string += "X"
+            else:
+                string += "."
+        segs = []
+        while len(string) > 7:
+            segs += [string[:7]]
+            string = string[7:]
+        segs += [string]
+        return segs
+        
     
     def ftePercForWeek (self, year, iweek):
         if self.fte == 0:
@@ -696,6 +710,14 @@ class Slot (ComputedFieldsModel) :
                 return True
             else:
                 return False
+    def turnaround_pair (self) -> 'Slot':
+        self.save()
+        if self.is_turnaround :
+            return Slot.objects.get(employee=self.employee,workday=self.workday.prevWD())
+        if self.is_preturnaround :
+            return Slot.objects.get(employee=self.employee,workday=self.workday.nextWD())
+        else:
+            return None
     @computed (models.BooleanField(), depends=[('self',['workday'])])
     def is_terminal (self):
         if Slot.objects.filter(workday=self.workday.nextWD(), employee=self.employee).exists() :

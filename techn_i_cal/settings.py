@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "computedfields",
     "multiselectfield",
     "compressor",
+    # "rest_framework",
     "django_tables2",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -146,3 +147,10 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"  #
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# REST_FRAMEWORK = {
+#     # Use Django's standard `django.contrib.auth` permissions,
+#     # or allow read-only access for unauthenticated users.
+#     'DEFAULT_PERMISSION_CLASSES': [
+#         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+#     ]
+# }

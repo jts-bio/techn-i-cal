@@ -4,13 +4,17 @@
 
 {% block body %}
 
-<div hx-get="" hx-trigger="load delay:30s" hx-swap="outerHTML">
+<div hx-get="" hx-trigger="load delay:3s" hx-swap="innerHTML">
 
     <a id="back-home" href="/">
         <div class="hstack">
             <div>{% backArrow %} </div>
             <div> HOME </div>
         </div>
+    </a>
+
+    <a href="{{prevSch_url}}">
+        <div class="bg-indigo-400 text-indigo-800 rounded px-4 w-fc font-bold italic hover:bg-indigo-100 hover:rounded">PREVIOUS SCHEDULE</div>
     </a>
     
     {#---TOOLBAR---#}
@@ -36,24 +40,14 @@
         <button  
             type="button"
             id="randomPTOButton"
-            class="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 
-            hover:bg-gray-100 hover:text-blue-700 
-            focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 
-            dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 
-            dark:hover:text-white dark:hover:bg-yellow-900 
-            inline-flex items-center"
+            class="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:text-white dark:hover:bg-yellow-900 inline-flex items-center"
             hx-get="/sch/spinner/"
             hx-trigger="click"
             hx-target="#indicator"]>
         + Random PTO Requests </button>
         </a>
         <a  id="DeletePtoConfl"
-            class="py-3 px-2 mr-2 text-xs font-light text-gray-400 bg-gray-900 rounded-lg border border-gray-200 
-            hover:bg-gray-100 hover:text-purple-700 
-            focus:z-10 focus:ring-2 focus:ring-purple-700 focus:text-purple-700 
-            dark:bg-gray-800 dark:text-indigo-300 dark:border-indigo-600 
-            dark:hover:text-white dark:hover:bg-indigo-900  dark:hover:text-bold
-            inline-flex items-center"
+            class="py-3 px-2 mr-2 text-xs font-light text-gray-400 bg-gray-900 rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-purple-700 focus:z-10 focus:ring-2 focus:ring-purple-700 focus:text-purple-700 dark:bg-gray-800 dark:text-indigo-300 dark:border-indigo-600 dark:hover:text-white dark:hover:bg-indigo-900  dark:hover:text-boldinline-flex items-center"
             href="del-pto-conflict-slots/">
 
         Clear Out PTO Conflicting Assignments

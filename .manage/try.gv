@@ -1,20 +1,16 @@
+
+
 digraph G {
 	style=bold;
-	subgraph cluster_outer {
-		Act_1 -> Act_21;
-		Act_1 -> Act_23;
-		Act_25 -> Act_3;
-		subgraph cluster_inner {
-			label = "___Act_2___";
-			{Act_21 -> Act_22 [minlen=2]; rank=same;}
-			Act_22 -> Act_23;
-			Act_22 -> Act_24;
-			{Act_23 -> Act_24 [minlen=2]; rank=same;}
-			Act_23 -> Act_25;
-			Act_24 -> Act_25;
-		}
+	subgraph iv_room {
+		tech_MI -> tech_7C rank=same;
+		tech_7C -> tech_EI rank=same;
+		tech_EI -> tech_N;
+		tech_N -> tech_MI;
 	}
-	Ext_1 -> Act_1;
-	Act_23 -> Ext_2;
-	Ext_3 -> Act_24;
+	subgraph p_desk {
+		tech_7P -> tech_EP;
+		tech_EP -> tech_N;
+		tech_N -> tech_7P;
+	}
 }

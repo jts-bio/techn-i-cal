@@ -9,7 +9,8 @@
 			"GitHub.copilot-nightly",
 			"GitHub.copilot-labs",
 			"christian-kohler.path-intellisense",
-			"mgesbert.python-path"
+			"mgesbert.python-path",
+			"moalamri.inline-fold"
 		]
 	}
 }

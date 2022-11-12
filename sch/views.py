@@ -1378,7 +1378,7 @@ class SLOT:
             context['slots'] = Slot.objects.filter(workday__slug=self.kwargs['date'])
             empls            = Employee.objects.can_fill_shift_on_day(
                                     shift=context['shift'], workday=context['date'], method="available") #.order_by(F('weeklyPercent').desc(nulls_last=True))
-                                    
+                                     
             for empl in empls:
                 empl.weeklyHours = empl.weekly_hours(year,week)
                 empl.weeklyPercent = empl.weekly_hours_perc(year,week)
@@ -1775,7 +1775,19 @@ class SCHEDULE:
         
         context['tdoEmpties'] = ScheduleActions.emptyUsuallyTemplatedSlots(tot,year,sch)
         
+        if sch > 1:
+            context['prevSch_url']    = f'/sch/schedule/{year}/{sch-1}/'
+        else :
+            context['prevSch_url']    = f'/sch/schedule/{year-1}/8'
+        
         return render(request, 'sch/schedule/grid.html', context)
+    
+    def currentScheduleView (request):
+        today       = dt.date.today()
+        today_wd    = Workday.objects.get(date=today)
+        year        = today_wd.date.year 
+        sch         = today_wd.ischedule 
+        return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
     
     def weeklyOTView (request, year, sch):
         weeks = Workday.objects.filter(date__year=year,ischedule=sch).values_list('iweek',flat=True).distinct()
