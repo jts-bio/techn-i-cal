@@ -33,9 +33,10 @@
             inline-flex items-center"
             hx-get="/sch/spinner/"
             hx-trigger="click"
-            hx-target="#indicator"]>
+            hx-target="#indicator">
         + Random PTO Requests <div id="indicator">{% include 'sch/test/spinner.html' %}</div></button>
         </a>
+
         <a  id="DeletePtoConfl"
             class="py-3 px-2 mr-2 text-xs font-light text-gray-400 bg-gray-900 rounded-lg border border-gray-200 
             hover:bg-gray-100 hover:text-purple-700 
@@ -56,7 +57,7 @@
     {#---ALERTS---#}
     <div id="messages-container">
         {% if messages %}{% for msg in messages %}
-            {{message}}
+            {{msg}}
         {% endfor %}{% endif %}
     </div>
 

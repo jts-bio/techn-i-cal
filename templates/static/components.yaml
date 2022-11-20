@@ -5,20 +5,26 @@ components:
     accordion     : 'sch/doc/accordion.html'
     toggle_section: 'sch/comp/toggle-section.html' # ( content )
 
+    div_carousel      : 'sch/comp/div-carousel.html'        # ( children ) -- needs to be div-carousel-elems 
+    div_carousel_elem : 'sch/comp/div-carousel-elem.html'   # ( children )
+
+    # TOASTS =========================
+
     toast-wrapper : 'sch/comp/toast-container.html'
     toast         : 'sch/comp/toast.html'
     wire-toast    : 'sch/comp/wireToast.html'
     bs-toast      : 'sch/comp/bs-toast.html'
 
-    # ICONS ========
+    # ICONS =========================
 
     icon-Date       : 'sch/icons/date.svg'
     icon-User       : 'sch/icons/profile.svg'
     icon-Shift      : 'sch/icons/shift.svg'
 
-    # CARDS =========
+    # CARDS ========================
 
     dense-card      : 'sch/comp/dense-card.html' # ( link , img, title , messages )
 
     warn_badge      : 'sch/comp/warn-badge.html'
     alert_badge     : 'sch/comp/alert-badge.html'
+    circle_badge    : 'sch/comp/circle-badge.html'

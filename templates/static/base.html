@@ -24,7 +24,9 @@
 			      href="https://fonts.googleapis.com/css?family=JetBrains+Mono">
 			
 
-			<style> {% include 'my.css' %} </style>
+			<style> {% include 'my.css' %} 
+				<link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
+			</style>
 
 			{% block style %} {% endblock %}
 			{% comment %} <link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" 
@@ -35,11 +37,12 @@
 			 
 			
 		{% endcompress %}
-
+		
 	
 	</head>
 
 	<body>
+			<script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
 
 			{# HEADER #}	
 			{% include 'header.html' %}
@@ -53,6 +56,9 @@
 
 				{% block content %}
 				{% endblock %}
+
+
+
 				
 				{# TAILWINDCSS #}
 				<script src="https://cdn.tailwindcss.com"></script>
@@ -65,6 +71,7 @@
 
 			{% block body %}
 			{% endblock %}
+			
 			
 	</body>
 

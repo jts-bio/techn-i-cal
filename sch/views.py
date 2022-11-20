@@ -1,5 +1,4 @@
-import asyncio
-from django.shortcuts import render, HttpResponse, HttpResponseRedirect, redirect
+from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
 from django.urls import reverse_lazy
@@ -10,7 +9,6 @@ from django.forms import formset_factory
 from django.contrib import messages
 
 
-import itertools
 
 from .models import *
 from .xviews.week import *
@@ -660,6 +658,12 @@ def slotDelete(request, date, shift):
     slot.delete()
     return HttpResponseRedirect(f'/sch2/day/{date}/')
 
+class HYPER:
+    def hilight (request):
+        
+        return render(request, 'sch/hyper/highlight-mouseEnter.html')
+
+
 class SHIFT :
     class ShiftDetailView (DetailView):
         model                = Shift
@@ -828,6 +832,9 @@ class SHIFT :
                         
 class EMPLOYEE:
     
+    class ANNO:
+        nShiftsTrained = Employee.objects.annotate(n_shifts_trained=Count('shifts_trained')).order_by('n_shifts_trained').values_list('name','n_shifts_trained')
+        
     
     class EmployeeListView (ListView):
         model           = Employee
@@ -862,7 +869,6 @@ class EMPLOYEE:
             context['rphActive']     = "bg-yellow-700"
             return context
     
-
     ### CREATE
     class EmployeeCreateView (FormView):
         template_name   = 'sch/employee/employee_form.html'
@@ -893,11 +899,11 @@ class EMPLOYEE:
                                         TemplatedDayOff.objects.filter(employee=self.object, sd_id=day)) for day in range(42)] # type: ignore    
             context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
             context['ptoReqsExist'] = PtoRequest.objects.filter(employee=self.object).exists()
-            context['multiplesOf7m1'] = [i*7-1 for i in range(6) ]
+            context['multiplesOf7m1'] = [ i*7-1 for i in range(6) ]
             initial = {
-                'employee': self.object,
-                'date_from': dt.date.today() - dt.timedelta(days=int(dt.date.today().strftime("%w"))),
-                'date_to': dt.date.today() - dt.timedelta(days=int(dt.date.today().strftime("%w"))) + dt.timedelta(days=42)
+                'employee' : self.object,
+                'date_from': dt.date.today() - dt.timedelta( days=int(dt.date.today().strftime("%w")) ),
+                'date_to'  : dt.date.today() - dt.timedelta( days=int(dt.date.today().strftime("%w")) ) + dt.timedelta(days=42)
             }
             context['ScheduleForm'] = EmployeeScheduleForm(initial=initial)
             context['unfavorables'] = EmployeeBot.get_emplUpcomingUnfavorables(self.object.name)
@@ -1192,7 +1198,9 @@ class EMPLOYEE:
         context['form']          = form
         employee        = Employee.objects.get(name=name)
         context['employee']      = employee
+        
         template_name = 'sch/employee/match_tdos.html'
+        
         if request.method == 'POST':
             form = EmployeeMatchCoworkerTdosForm(request.POST)
             if form.is_valid():
@@ -1327,6 +1335,7 @@ class EMPLOYEE:
                 sft2=Subquery(Slot.objects.filter(employee=emp2,workday=OuterRef('pk')).values('shift__name')))
             
         return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
+    
     ### EVENING-FRACTION VIEW
     def eveningFractionView (request):
         empls = list(Employee.objects.all().order_by('name').values_list('name', flat=True))
@@ -1339,7 +1348,9 @@ class EMPLOYEE:
                 empls[emp]['eveningFraction'] = percent
                 empls[emp]['evening'] = Slot.objects.filter(employee__name=emp,shift__start__hour__gte=10).count()
                 empls[emp]['total'] = Slot.objects.filter(employee__name=emp).count()
-        
+                
+        # sort empls by eveningFraction:
+        empls = {k: v for k, v in sorted(empls.items(), key=lambda item: item[1]['eveningFraction'])}
         
         return render(request,'sch/employee/eveningRatio/pmFrac.html', { 'employees':empls })
 
@@ -1579,8 +1590,6 @@ class SST:
         context['range'] = range(42)
         
         return render(request, 'sch/sst/day_view.html', context)
-
-
 
 class PTO:
 
@@ -1888,8 +1897,10 @@ class SCHEDULE:
                 tdos_notblank.append(s)
         return tdos_notblank
     
-
 class HTMX:
+    def radProgress (request, progress):
+        return render(request,'sch/comp/rad-progress.html', {'progress':progress})
+    
     def alertView (request, title, msg):
         return render(request, 'sch/doc/alert.html', context={'title': title, 'msg': msg})
     
@@ -1912,7 +1923,6 @@ class HTMX:
         SCHEDULE.solveScheduleSlots(request, year,sch)
         return render(request, 'sch/schedule/load_button_active.html')
         
-
 class TEST:
     
     def spinner (request):
@@ -2022,3 +2032,5 @@ class TEST:
             'potential':potential,
         }
         return render(request, 'sch/test/test.html', context=context)
+    
+    

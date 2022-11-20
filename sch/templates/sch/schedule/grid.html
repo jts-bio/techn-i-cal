@@ -4,7 +4,7 @@
 
 {% block body %}
 
-<div hx-get="" hx-trigger="load delay:3s" hx-swap="innerHTML">
+<div>
 
     <a id="back-home" href="/">
         <div class="hstack">
@@ -43,7 +43,7 @@
             class="py-2.5 px-5 mr-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-blue-700 focus:text-blue-700 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-600 dark:hover:text-white dark:hover:bg-yellow-900 inline-flex items-center"
             hx-get="/sch/spinner/"
             hx-trigger="click"
-            hx-target="#indicator"]>
+            hx-target="#indicator">
         + Random PTO Requests </button>
         </a>
         <a  id="DeletePtoConfl"
@@ -69,11 +69,12 @@
 
     {#--- TOAST ALERT ---#}
     {% #toast-wrapper %}
-        {% #bs-toast  title="ALERT" time="2 min. ago" %} 
+        {% #toast  title="ALERT" %} 
             <p class="text-2xs jbm">
                 THIS SCHEDULE LOOKS LIKE IT COULD BE IMPROVED.<br>
-                Want the SolveBot to take a look?</p>
-        {% /bs-toast %}
+                Want the SolveBot to take a look?
+            </p>
+        {% /toast %}
     {% /toast-wrapper %}
 
     <div class="overflow-x-auto">

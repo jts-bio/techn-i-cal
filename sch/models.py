@@ -249,6 +249,15 @@ class EmployeeClass (models.Model):
 #* === === MODELS === === *#
 # ============================================================================
 class Shift (ComputedFieldsModel) :
+    """
+    model <<< SHIFT >>>
+    
+        hours               ---> 10.0
+        on_days_display     ---> "Sun Mon Tue Wed Thu Fri Sat"
+        ppd_ids             ---> 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+        
+    
+    """
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
     cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
@@ -437,22 +446,14 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 53
         return int (self.date.strftime('%U'))
     
-    # @computed(models.CharField(max_length=20,blank=True), depends=[('self',['date'])])
-    # def weekId (self) :
-    #     w = int(self.date.strftime('%U'))
-    #     year = self.date.year -1 if w is 0 else self.date.year 
-    #     return f'{year}-W{w}'
+    
     
     @computed(models.IntegerField(), depends=[('self',['date'])])
     def iperiod (self) -> int:
         # range 0 -> 27
         return int (self.date.strftime('%U')) // 2
     
-    # @computed(models.CharField(max_length=20,blank=True), depends=[('self',['date'])])
-    # def periodId (self):
-    #     p = int(self.date.strftime('%U')) // 2
-    #     year = self.date.year -1 if p is 0 else self.date.year 
-    #     return f'{year}-P{p}'
+    
 
     @computed(models.IntegerField(), depends=[('self',['date'])])
     def ppd_id (self) -> int:
@@ -472,11 +473,6 @@ class Workday (ComputedFieldsModel) :
         # range 0 -> 41
         return (self.date - dt.date(2022,9,4)).days % 42
     
-    # @computed(models.CharField(max_length=20,blank=True), depends=[('self',['date'])])
-    # def scheduleId (self):
-    #     s = int(self.date.strftime('%U')) // 6
-    #     year = self.date.year -1 if s is 0 else self.date.year 
-    #     return f'{year}-S{s}'
     
     @property
     def weekday (self) -> str :

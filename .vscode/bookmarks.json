@@ -4,7 +4,7 @@
 			"path": "sch/views.py",
 			"bookmarks": [
 				{
-					"line": 184,
+					"line": 182,
 					"column": 14,
 					"label": "WORKDAY--fillableBy"
 				}
@@ -14,22 +14,7 @@
 			"path": "sch/models.py",
 			"bookmarks": [
 				{
-					"line": 440,
-					"column": 6,
-					"label": "Workday.weedId"
-				},
-				{
-					"line": 452,
-					"column": 0,
-					"label": ""
-				},
-				{
-					"line": 475,
-					"column": 5,
-					"label": "Workday__scheduleId"
-				},
-				{
-					"line": 763,
+					"line": 759,
 					"column": 8,
 					"label": ""
 				}
@@ -44,7 +29,7 @@
 					"label": "Week URLs"
 				},
 				{
-					"line": 72,
+					"line": 80,
 					"column": 0,
 					"label": "Employee URLs"
 				}

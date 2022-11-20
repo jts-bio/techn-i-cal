@@ -175,7 +175,7 @@
         <div class="py-2 px-3 bg-gray-100 rounded-t-lg border-b border-gray-200 dark:border-gray-600 dark:bg-gray-700">
             <h3 class="font-semibold text-gray-900 dark:text-white">Message from ShiftSwap bot</h3>
         </div>
-        <div class="py-2 px-3">
+        <div class="py-2 px-3"> 
             <p>{% for message in messages %} {{message}} <br>{% endfor %}</p>
         </div>
         <div data-popper-arrow></div>
@@ -223,18 +223,21 @@
 </div>
 
 <div 
-class='flex flex-wrap justify-between'>
+    class='flex flex-wrap justify-between'>
+    
     {% for emp in weekly_percents %} {# emp.week_percent / emp.week_hours / emp.employee #}
-        
         {% if emp.week_percent > 100 %} 
-            {% #warn_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /warn_badge %} 
+                <div _="on hover add .highlight to .pharmer-gray in <body/>" >
+                        {% #warn_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /warn_badge %} 
+                </div>
         {% endif %}
+
         {% if emp.week_percent < 85 %}  
-            {% #alert_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /alert_badge %} 
+                        {% #alert_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /alert_badge %} 
         {% endif %}
-            
     {% endfor %}
 </div>
+
 
 <script>
     function showLoader () {
@@ -244,10 +247,13 @@ class='flex flex-wrap justify-between'>
     }
 </script>
 
-<div class="hstack" style="justify-content:space-between;">
+
+
+
+<div class="scrolling-wrapper-flexbox" style="justify-content:space-between;" >
     {% for day in workdays %}
     <div 
-    class="panel g-1 inline-flex relative vstack p-3 text-sm font-medium text-center text-white" 
+    class="panel card g-1 inline-flex relative vstack p-3 text-sm font-medium text-center text-white" 
     style="height:560px;">
 
         {#~~ PTO REQUEST POPOVER ~~#}
@@ -273,6 +279,8 @@ class='flex flex-wrap justify-between'>
     </div>
     {% endfor %}
 </div>
+
+
 
 <div class="panel w-fc mt-10" style="width:100%;background-color:#abf2;">
     <div class="hstack">
@@ -328,7 +336,7 @@ class='flex flex-wrap justify-between'>
 
 </div>
 
-
+<script src="https://unpkg.com/hyperscript.org"></script>
 <script src="https://unpkg.com/htmx.org@1.8.2" integrity="sha384-+8ISc/waZcRdXCLxVgbsLzay31nCdyZXQxnsUy++HJzJliTzxKWr0m1cIEMyUzQu" crossorigin="anonymous"></script>
 
 

@@ -3,21 +3,23 @@
 
 {% block style %}
 
-<style>
-    .html {
-        background-image: url("https://cdn.discordapp.com/attachments/1024277464945537044/1033275938437333062/jsteinbecker_silk_fabric_ultra_realism_8K_48MP_Wide_Lens_Nikon__59420d64-e175-4847-bd06-be3978573cc6.png");
-        background-repeat: repeat;
-        background-size: 20%;
-    }
-</style>
+    <style>
+        .html {
+            background-image: url("https://cdn.discordapp.com/attachments/1024277464945537044/1033275938437333062/jsteinbecker_silk_fabric_ultra_realism_8K_48MP_Wide_Lens_Nikon__59420d64-e175-4847-bd06-be3978573cc6.png");
+            background-repeat: repeat;
+            background-size: 20%;
+        }
+    </style>
     
 {% endblock style %}
 
 
 {% block content %}
+    <div class="text text-center">
+        <h2 class='text-2xl h2'> {{employee}} </h2>
+        <h3 class="text-xl h3"> Templated Scheduling </h3>
+    </div>
 
-    <h2>{{employee}}</h2>
- 
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
@@ -31,18 +33,7 @@
         <input type="submit" value="Submit" />
     </form>    
 
-    <form method="post">
-        {% csrf_token %}
-        {{ formset.management_form }}
-            
-        <div class="panel grid-7-by-2">
-            {% for i in range42 %}
-            <label for="{{i}}"></label><input type="checkbox" name="form-{{i}}" id="{{i}}">
-            {% endfor %}
-        </div>
-
-        <input type="submit" value="Submit" />
-    </form>    
+    
 
 {% endblock content %}
 

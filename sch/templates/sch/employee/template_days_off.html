@@ -19,12 +19,14 @@
 
 {% block content %}
 
+<script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+
 {#---HEADING---#}
 <h1>Templated Days Off</h1>
 <h2>{{employee}}</h2>
 
 {#---MATCH COWORKER BUTTON---#}
-<a href="match/" class="btn btn-neutral"><div class="hstack">
+<a href="match/" class=""><div class="hstack rounded-sm bg-gray-900 w-fc py-2 m-2 hover:bg-gray-600 px-1 border border-white">
     <div>{% robotIcon %}</div>
     <div>Match Template of Coworker</div>
 </div></a>
@@ -42,9 +44,16 @@
         <div class="lg">THU</div>
         <div class="lg">FRI</div>
         <div class="lg">SAT</div>
+
         {% for form in formset %}
-        {{ form.as_div }}
+            <div>
+                <div  _="on load 
+                            if next <input:checked/>
+                            add .green-glow to next <label/>">
+                {{ form.as_div }}</div>
+            </div>
         {% endfor %}
+
     </div>
 
     <input type="submit" value="Submit" />

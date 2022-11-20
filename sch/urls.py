@@ -33,6 +33,34 @@ urlpatterns = [
     path('pay-period/<int:year>/<int:period>/fill-template/', views.PERIOD.periodFillTemplates, name='periodFillTemplate'),
     path('pay-period/<int:year>/<int:period>/preferences/', views.PERIOD.periodPrefBreakdown, name='prefs-pay-period'),
 
+    
+    
+    
+    #? ==== PTO Requests ==== ?#
+    path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
+    
+    #? ==== DOCS ==== ?#
+    path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
+]
+
+shift_patterns = [
+    
+    #? ==== Shifts ==== ?#
+    path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
+    path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
+    path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
+    path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
+    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), 
+    path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
+    path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
+    path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
+    path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
+]
+urlpatterns += shift_patterns
+
+
+slot_patterns = [
+    
     #? ==== Slots ==== ?#
     path('day/<slug:date>/<str:shift>/new/', views.SLOT.SlotCreateView.as_view(), name='slot-new'),
     path('day/<slug:date>/<str:shift>/new/ot-allowed/', views.SLOT.SlotCreateView_OtOveride.as_view(), name='slot-new-ot-override'),
@@ -45,28 +73,8 @@ urlpatterns = [
     path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
     path('sst-by-day/', views.SST.sstDayView, name="sst-day-view"),
     
-    
-
-    #? ==== Shifts ==== ?#
-    path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
-    path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
-    path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
-    path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
-    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), 
-    path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
-    path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
-    path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
-    path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
-
-    
-    #? ==== PTO Requests ==== ?#
-    path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
-    
-    #? ==== DOCS ==== ?#
-    path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
 ]
-
-
+urlpatterns += slot_patterns
 
 employee_patterns = [
     
@@ -115,20 +123,38 @@ urlpatterns += schedule_patterns
 
 
 test_patterns = [
-    path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps, name="test1"),
-    path('test/<slug:workday>/<str:shift>/i-s/',views.TEST.possibleInterWeekSlotSwaps,name="test2"),
-    path('test/<slug:slotA>/<slug:slotB>/make-swap/',views.TEST.makeSwap,name="InterWeek Swap"),
-    path('spinner/',views.TEST.spinner,name="spinner"),
-    path('predict-streak/<str:employee>/<slug:workday>/', actions.PredictBot.predict_createdStreak, name="predict-streak"),
+    path('test/<slug:workday>/<str:shift>/',
+         views.TEST.allOkIntraWeekSwaps,            name="test1"),
+    path('test/<slug:workday>/<str:shift>/i-s/',
+        views.TEST.possibleInterWeekSlotSwaps,      name="test2"),
+    path('test/<slug:slotA>/<slug:slotB>/make-swap/',
+        views.TEST.makeSwap,                        name="InterWeek Swap"),
+    path('spinner/',
+        views.TEST.spinner,                         name="spinner"),
+    path('predict-streak/<str:employee>/<slug:workday>/', 
+        actions.PredictBot.predict_createdStreak,   name="predict-streak"),
 ]
 urlpatterns += test_patterns
 
 
 
 htmx_patterns = [
-    path('htmx/alert/<str:title>/<str:msg>/', views.HTMX.alertView ,    name="htmxAlert"),
-    path('htmx/spinner/', views.HTMX.spinner, name='spinner-view'),
-    path('htmx/form/rphShift-choices/', views.HTMX.rphShiftChoices, name = "rph-shift-choices"),
-    path('htmx/form/cphtShift-choices/', views.HTMX.cphtShiftChoices, name = "cpht-shift-choices"),
+    path('htmx/alert/<str:title>/<str:msg>/', 
+         views.HTMX.alertView ,         name="htmxAlert"),
+    path('htmx/spinner/', 
+         views.HTMX.spinner,            name='spinner-view'),
+    path('htmx/prog/<int:progress>/', 
+         views.HTMX.radProgress ,       name= 'radial-progress'),
+    path('htmx/form/rphShift-choices/', 
+         views.HTMX.rphShiftChoices,    name = "rph-shift-choices"),
+    path('htmx/form/cphtShift-choices/', 
+         views.HTMX.cphtShiftChoices,   name = "cpht-shift-choices"),
 ]
 urlpatterns += htmx_patterns
+
+hyperPatterns = [
+    path('hyper/hilight/',
+         views.HYPER.hilight , name='hyperscript-hilight',)
+    
+]
+urlpatterns += hyperPatterns

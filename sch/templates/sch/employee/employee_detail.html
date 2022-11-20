@@ -17,9 +17,10 @@
 
 
     <a href="/sch/employees/all/"><div class="hstack">{% backArrow %} All Employees</div></a>
-<div class="flex flex-col flex-grow center flex-center">
-    <h1 class="text-3xl text-center">{{ employee.name }}</h1>
-<div>
+
+    <div class="flex flex-col flex-grow center flex-center">
+        <h1 class="text-3xl text-center">{{ employee.name }}</h1>
+    <div>
 
     <a href="update">Edit Employee</a>
     <div class="hstack" style="align-items:flex-start;">
@@ -50,8 +51,12 @@
             </table>
         </div>
         <div class="panel w-fc">
-            <div style="float:right;"><a href="ssts/" class="btn btn-neutral btn-xs">Edit Shifts</a><br></div>
-            <div style="float:right;"><a href="template-days-off/" class="btn btn-info btn-xs">Edit Days Off Templating</a><br></div>
+
+            <div style="float:right;"><a href="ssts/" class="bg-blue-400 rounded p-2 hover:bg-blue-200 hover:text-blue-900 m-1">
+                Edit Shifts</a><br></div>
+            <div style="float:right;"><a href="template-days-off/" class="bg-gray-700 rounded p-2 hover:bg-gray-600 hover:text-gray-200 m-1">
+                Edit Days Off Templating</a><br></div>
+
             <h2 style="color:orange;font-size:18px;">Templating</h2>
             <p>Employee templated for {{sstHours}} hours / pay period.</p>
             <div class="hstack" style="justify-content:space-around;">

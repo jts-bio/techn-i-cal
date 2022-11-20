@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # "rest_framework",
     "django_tables2",
     "django.contrib.admin",
+    "django.contrib.admindocs",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",

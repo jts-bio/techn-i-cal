@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
+{% load tags %}
 
 
 {% block content %}
+
+<a href="/sch/employee/{{employee}}/template-days-off/">
+    <div class="hstack">
+        <div> {% backArrow %} </div>
+        <div> Back </div>
+    </div>
+</a>
 
 <div class="panel">
     <form method="post"> {% csrf_token %}
