@@ -107,15 +107,24 @@ urlpatterns += employee_patterns
 
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
-    path('schedule/current-schedule/', views.SCHEDULE.currentScheduleView, name='current-schedule'),
-    path('schedule/<int:year>/<int:sch>/', views.SCHEDULE.scheduleView, name='schedule'),
-    path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
-    path('schedule/<int:year>/<int:sch>/start/',views.HTMX.scheduleActiveLoad, name='sch-active-loading'),
-    path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots,name='sch-del-slots'),
-    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots,name='solve-sch-slots'),  
-    path('schedule/<int:year>/<int:sch>/generate-random-pto/',views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
-    path('schedule/<int:year>/<int:sch>/weekly-ot/', views.SCHEDULE.weeklyOTView, name='weekly-ot'),
-    path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', views.SCHEDULE.FX.removePtoConflictSlots, name='remove-pto-conflict-slots'),
+    path('schedule/current-schedule/', 
+         views.SCHEDULE.currentScheduleView,        name='current-schedule'),
+    path('schedule/<int:year>/<int:sch>/', 
+         views.SCHEDULE.scheduleView,               name='schedule'),
+    path('schedule/<int:year>/<int:sch>/solve/', 
+         views.SCHEDULE.solveScheduleLoader,        name='schedule-print'),
+    path('schedule/<int:year>/<int:sch>/start/',
+         views.HTMX.scheduleActiveLoad,             name='sch-active-loading'),
+    path('schedule/<int:year>/<int:sch>/delete-all-slots/', 
+        views.SCHEDULE.scheduleDelSlots,            name='sch-del-slots'),
+    path('schedule/<int:year>/<int:sch>/solve-slots/', 
+        views.SCHEDULE.solveScheduleSlots,          name='solve-sch-slots'),  
+    path('schedule/<int:year>/<int:sch>/generate-random-pto/',
+        views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
+    path('schedule/<int:year>/<int:sch>/weekly-ot/', 
+        views.SCHEDULE.weeklyOTView,                name='weekly-ot'),
+    path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', 
+        views.SCHEDULE.FX.removePtoConflictSlots,   name='remove-pto-conflict-slots'),
 
 ]
 urlpatterns += schedule_patterns

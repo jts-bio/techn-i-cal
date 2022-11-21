@@ -67,25 +67,31 @@ class EmployeeWeeklyHoursTable (tables.Table):
 
 class ShiftListTable (tables.Table) :
     """
-    Summary for ALL SHIFTS
+    SHIFT LIST TABLE
+        - Summary for ALL SHIFTS
     
+    example 
+    ---------------------------------------------------
+    ```
     ---------------------------------
     name| hours   | IV?  | Group
     ---------------------------------
     MI  |  10 hrs |  X   |  CPhT
     RS  |  10 hrs |      |  RPh
     ---------------------------------
+    ```
     """
-    name  = tables.columns.LinkColumn ("shift", args=[A("name")])
-    hours = tables.columns.Column (verbose_name="Hours", attrs={"td": {"class": "small"}})
-    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?")
-    group = tables.columns.Column (verbose_name="Group")
+    name  = tables.columns.LinkColumn    ("shift", args=[A("name")])
+    hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
+    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900"}})
+    on_days_display = tables.columns.Column(verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
+    group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
     
     class Meta:
         model           = Shift
         fields          = ['name','start','hours', 'is_iv','on_days_display',]
         template_name   = 'django_tables2/bootstrap.html'
-        attrs           = {"class":"table table-xl"}
+        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
 
         
 class ShiftsWorkdayTable (tables.Table):
@@ -105,15 +111,16 @@ class ShiftsWorkdaySmallTable (tables.Table):
 
     class Meta:
         model           = Shift
-        fields          = ['name','employee']
+        fields          = [ 'name', 'employee' ]
         template_name   = 'django_tables2/bootstrap.html'
-        attrs           = {"class":"table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
+        
+        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
         
     def render_employee(self, value, record):
         if record.cls == "RPh":
-            return format_html("<span class='pharmer-gray'>{} <span class='xs'>{}</span></span>", value, record.cls)
+            return format_html("<span class='pharmer-gray {}'> {} <span class='xs'>{}</span></span>",record.employee.strip().replace(" ","-"), value, record.cls)
         elif record.cls == "CPhT":
-            return format_html('<span class="tech-gray">{} <span class="xs">{}</span></span>', value, record.cls)
+            return format_html('<span class="tech-gray {}"> {} <span class="xs">{}</span></span>',record.employee.strip().replace(" ","-"), value, record.cls)
 
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS

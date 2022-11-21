@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% load cache %}
+
 {% load render_table from django_tables2 %}
 {% load tags %}
 
@@ -152,15 +154,28 @@
     {% endif %}
 
     {% if pto_requests %}
-    <div class="vstack light-button" style="align-items:center;
+        <div _="on click call 
+                alert('{% for pto in pto_requests %} {{pto.weekday_display}} {{pto.employee}} {% endfor %}')"
+             class="vstack light-button" 
+             style="align-items:center;
                     border:1px solid #aaa3;
                     padding:10px 20px 10px 20px;
                     border-radius:6px;gap:1px;">
-        <span style="padding:0px;margin:0px;">
-            {{pto_requests|length}} PTO requests</span>
-        <span style="font-size:9px;letter-spacing:1.5px;">
-            CLICK TO MANAGE</span>
-    </div>
+
+            <span style="padding:0px;margin:0px;">
+                {{pto_requests|length}} PTO requests
+            </span>
+
+            <span style="font-size:9px;letter-spacing:1.5px;">
+                CLICK TO MANAGE
+            </span>
+
+        </div>
+
+        <div id="ptoReqPopover" class="hidden"> 
+            {{ pto_requests }}
+        </div>
+
     {% endif %}
 
     {% if messages %}{% if "popover" in messages.tags %}
@@ -222,20 +237,34 @@
 
 </div>
 
-<div 
-    class='flex flex-wrap justify-between'>
+{#---SECTION  //  WEEKLY HOURS WARN & ALERT BADGES---#}
+<div class='flex flex-wrap justify-between'>
     
-    {% for emp in weekly_percents %} {# emp.week_percent / emp.week_hours / emp.employee #}
-        {% if emp.week_percent > 100 %} 
-                <div _="on hover add .highlight to .pharmer-gray in <body/>" >
-                        {% #warn_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /warn_badge %} 
-                </div>
-        {% endif %}
+        {% for emp in weekly_percents %} {# emp.week_percent / emp.week_hours / emp.employee #}
 
-        {% if emp.week_percent < 85 %}  
-                        {% #alert_badge %} {{emp.employee}} ({{emp.week_percent}}%) {% /alert_badge %} 
-        {% endif %}
-    {% endfor %}
+            {#---WARN BADGES for Overtime---#}
+            {% if emp.week_percent > 100 %} 
+                    <button _="on click 
+                                    add .bg-orange-900 .text-white .text-lg to  .{{emp.employeeSlug}} then
+                                wait 3s
+                                    then remove .bg-orange-900 .text-white .text-lg from .{{emp.employeeSlug}} end">
+
+                        {% #warn_badge %}    {{emp.employee}} ({{emp.week_percent}}%)     {% /warn_badge %} 
+                    </button>
+            {% endif %}
+
+            {#---ALERT BADGES for Underscheduled---#}
+            {% if emp.week_percent < 85 %}  
+                    <button _="on click 
+                                    add .bg-red-900 .text-white .text-lg to  .{{emp.employeeSlug}} then
+                                wait 3s
+                                    then remove .bg-red-900 .text-white .text-lg from .{{emp.employeeSlug}} end">
+                                    
+                        {% #alert_badge %}     {{emp.employee}} ({{emp.week_percent}}%)     {% /alert_badge %} 
+                    </button>
+            {% endif %}
+
+        {% endfor %}
 </div>
 
 
@@ -271,7 +300,7 @@
             <div class="bg-gray-200 text-blue-700 rounded-xl px-4" style="background-color:darkslateblue;color:black;">
                 <div class="hstack">
                     {% favoriteIcon '20px' '20px' '#fff' %}
-                    <div>{{day.prefScore}}%</div>
+                    <div> {{day.prefScore}}% </div>
                 </div>
             </div>
         </div>

@@ -18,10 +18,10 @@
 {% block content %}
 
     
-
-<table class="table table-compact table-xs">
+<div class="panel bg-indigo-900 w-fc center">
+<table class="table table-center">
     <thead>
-        <tr>
+        <tr class='py-2'>
         <th class="right-line">Employee</th>
         <th>Sunday</th>
         <th>Monday</th>
@@ -36,9 +36,9 @@
         {% for emp in empls %}
         <tr>
             <td class="right-line">{{emp}}</td>
-            <td class="cell-glow">{% if emp.week.0 %}{{emp.week.1.0}}{%else%}{%endif%}</td>
-            <td class="cell-glow">{% if emp.week.1 %}{{emp.week.2.0}}{%else%}{%endif%}</td>
-            <td class="cell-glow">{% if emp.week.2 %}{{emp.week.0.0}}{%else%}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.0 %}{{emp.week.0.0}}{%else%}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.1 %}{{emp.week.1.0}}{%else%}{%endif%}</td>
+            <td class="cell-glow">{% if emp.week.2 %}{{emp.week.2.0}}{%else%}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.3 %}{{emp.week.3.0}}{%else%}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.4 %}{{emp.week.4.0}}{%else%}{%endif%}</td>
             <td class="cell-glow">{% if emp.week.5 %}{{emp.week.5.0}}{%else%}{%endif%}</td>
@@ -47,6 +47,6 @@
         {% endfor %}
     </tbody>
 </table>
-
+</div>
     
 {% endblock content %}

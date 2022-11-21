@@ -329,6 +329,7 @@ class Employee (ComputedFieldsModel) :
     trade_one_offs  = models.BooleanField(default=True)
     cls             = models.CharField(choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=4)
     evening_pref    = models.BooleanField(default=False)
+    slug            = models.SlugField(blank=True,null=True)
     
 
     def __str__(self) :
@@ -396,7 +397,29 @@ class Employee (ComputedFieldsModel) :
             string = string[7:]
         segs += [string]
         return segs
-        
+    
+    def tdo_idList (self):
+        """A list of SD_ID values for the employees TDOs"""
+        return list(self.templated_days_off.values_list('sd_id',flat=True))
+    
+    def tdo_weekend_idList (self):
+        """A subset of employees tdo_idList filtered to only include days that are weekends"""
+        weekend = []
+        allList = self.tdo_idList()
+        for i in allList:
+            if i % 7 == 0 or i % 7 == 6:
+                weekend += [i]
+        return weekend
+    
+    def getCoworkersOnSameWeekend (self):
+        """
+        Returns Employee objects which match their TDO pattern on Weekend Days
+        """
+        weekend_group = []
+        for emp in Employee.objects.all():
+            if emp.tdo_weekend_idList() == self.tdo_weekend_idList():
+                weekend_group += [emp.pk]
+        return Employee.objects.filter(pk__in=weekend_group)
     
     def ftePercForWeek (self, year, iweek):
         if self.fte == 0:
@@ -417,6 +440,12 @@ class Employee (ComputedFieldsModel) :
     def info_printWeek(self,year,week):
             slots = list(Slot.objects.filter(employee=self,workday__date__year=year,workday__iweek=week).values_list('shift__name',flat=True))
             return f'{self.name}: {slots}'
+        
+    def save (self, *args, **kwargs):
+        slugString = self.name.strip().replace(" ","-")
+        self.slug = slugString
+        super(*args,**kwargs).save()
+        
     
        
     objects = EmployeeManager.as_manager()
@@ -595,6 +624,15 @@ class Workday (ComputedFieldsModel) :
         if self.who_can_fill == None:
             return None 
         return self.who_can_fill(shift).count()
+    
+    def template_exceptions (self):
+        templates = ShiftTemplate.objects.filter(ppd_id=self.sd_id)
+        ptoReqs   = PtoRequest.objects.filter(workday=self.date)
+        excepts = []
+        for templ in templates:
+            if ptoReqs.filter(employee=templ.employee).exists():
+                excepts.append(templ)
+        return excepts
         
     
     objects = WorkdayManager.as_manager()
@@ -649,10 +687,10 @@ class Week (ComputedFieldsModel) :
 # ============================================================================
 class Slot (ComputedFieldsModel) :
     # fields: workday, shift, employee
-    workday  = models.ForeignKey("Workday",  on_delete=models.CASCADE)
-    shift    = models.ForeignKey( Shift,     on_delete=models.CASCADE)
-    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
-    empl_sentiment = models.SmallIntegerField (default=50)
+    workday        = models.ForeignKey("Workday",  on_delete=models.CASCADE)
+    shift          = models.ForeignKey( Shift,     on_delete=models.CASCADE)
+    employee       = models.ForeignKey("Employee", on_delete=models.CASCADE, null=True, blank=True)
+    empl_sentiment = models.SmallIntegerField ()   
     
     class Meta:
         constraints = [
@@ -758,6 +796,23 @@ class Slot (ComputedFieldsModel) :
             return False
     
     def fillableBy (self):
+        """ 
+        returns Employees that could fill this slot 
+        
+        BASED ON
+        ------------------------------------------------
+            - training, 
+            - not in conflicting slots 
+                - on day before, 
+                - day of, or 
+                - day after
+                
+                
+        EXAMPLE
+        ------------------------------------------------
+        ```s.fillableBy() 
+        >>>   [<Employee: Josh, Brianna, Sabrina...>]```
+        """
         trained = Employee.objects.filter(shifts_trained=self.shift)
         otherShiftToday = self.siblings_day.values('employee')
         can_fill = trained.exclude(pk__in=otherShiftToday)
@@ -790,9 +845,39 @@ class Slot (ComputedFieldsModel) :
             slots = Slot.objects.filter(workday=self.workday.nextWD(), shift__start__hour__lt=10) | Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
         return slots
     
+    def save (self, *args, **kwargs):
+        self._save_empl_sentiment ()
+        super().save(*args, **kwargs)
+        
+    def _save_empl_sentiment (self):
+        #fill in employee from template
+        if ShiftPreference.objects.filter(employee=self.employee,shift=self.shift):
+            sc = { -2:0,   -1:25,   0:50,   1:75,   2:100 }
+            self.empl_sentiment = sc[ShiftPreference.objects.filter(employee=self.employee,shift=self.shift).first().score]
+        else:
+            self.empl_sentiment = 50
+        if self.is_turnaround :
+            self.empl_sentiment -= 35
+        if self.is_preturnaround :
+            self.empl_sentiment -= 35
+        if self.isOverStreakPref:
+            self.empl_sentiment -= 20
+        if self.shouldBeTdo:
+            self.empl_sentiment = 0
+        
+        
+        
+        
+    
     objects = SlotManager.as_manager()
 # ============================================================================
 class ShiftTemplate (models.Model) :
+    """
+    Fields:
+            -  shift
+            -  employee
+            -  ppd_id 
+    """
     # fields: name, start, duration 
     shift       = models.ForeignKey(Shift, on_delete=models.CASCADE)
     employee    = models.ForeignKey(Employee, on_delete=models.CASCADE, null=True, blank=True)
@@ -825,6 +910,11 @@ class ShiftTemplate (models.Model) :
         unique_together = ['shift', 'ppd_id']
 # ============================================================================
 class TemplatedDayOff (models.Model) :
+    """
+    Fields:
+            -  employee
+            -  sd_id (0-41)
+    """
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     ppd_id   = models.IntegerField(null=True) 
     sd_id    = models.IntegerField()

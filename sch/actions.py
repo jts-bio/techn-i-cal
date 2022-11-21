@@ -138,10 +138,9 @@ class ScheduleBot:
             ).values_list('employee__name',flat=True)))
         return nfs
     
-    def performSolvingFunctionOnce (year, week):
+    def performSolvingFunctionOnce (self, year, week):
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
         if len(wds) == 0:
-            raise Exception
             return False
         for day in wds:
             day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
@@ -201,9 +200,13 @@ class ScheduleBot:
             else: 
                 rand = random.randint(0,int(empl.count()-1))
                 empl = empl[rand]
-                newslot = Slot.objects.create(workday=day, shift=shift, employee=empl)
-                newslot.save()
+                
+                s = Slot.objects.filter(workday=day, shift=shift)
+                if s.exists():
+                    s.employee = empl
+                    s.save()
                 return True
+        return True
     
     def getWhoCanFillShiftOnWorkday (shift, workday):
         """
@@ -343,17 +346,18 @@ class ScheduleBot:
         
         return overall_pref
        
-    def streakPrefOk (workday) -> EmployeeManager :
+    def streakPrefOk (workday) :
         output = []
         empls = Employee.objects.all()
         for empl in empls:
             if PredictBot.predict_streak(empl,workday) <= empl.streak_pref:
                 output.append (empl.pk)
+                
         return Employee.objects.filter(pk__in=output)
     
-    # ==== SCHEDULE =====
     
-    def solveSchedule (yr,sch):
+    
+    def solveSchedule (self,yr,sch):
         
         wds = Workday.objects.filter(date__year=yr,ischedule=sch)
         
@@ -364,7 +368,7 @@ class ScheduleBot:
         empties = ScheduleActions.emptyUsuallyTemplatedSlots(0,yr,sch)
         
         for empty in empties:
-            employees = Employee.objects.can_fill_shift_on_day(shift=slot[1],workday=slot[0])
+            employees = Employee.objects.can_fill_shift_on_day(shift=empty.shift,workday=wds.get(date=empty.workday))
             
             employee_lowest_fte_percent = [emp.ftePercForWeek(slot[0].date.year,slot[0].iweek) for emp in employees]
         
@@ -473,7 +477,7 @@ class ScheduleBot:
         week_nums = wds.values('iweek').distinct()
         
         for i in week_nums :
-            ScheduleBot.performSolvingFunctionOnce (yr, i['iweek'])
+            ScheduleBot().performSolvingFunctionOnce (yr, i['iweek'])
          
 class EmployeeBot:
     
@@ -658,9 +662,9 @@ class ResolveBot:
 class ScheduleActions:
     def emptyUsuallyTemplatedSlots (self, year, sch):
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
-        tdos = TemplatedDayOff.objects.all()
+        tmpls = ShiftTemplate.objects.all()
         empty = []
-        for tdo in tdos:
-            if slots.filter(workday__sd_id=tdo.sd_id).exists() == False:
-                empty += [tdo]
+        for t in tmpls:
+            if slots.filter(workday__sd_id=t.ppd_id).exists() == False:
+                empty += [t]
         return empty

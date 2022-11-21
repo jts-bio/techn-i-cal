@@ -34,6 +34,7 @@
         {% nDaysAway wd.date %}
       </div>
       
+      {#---WORKDAY BASIC INFO TABLE---#}
       <div>
         <table>
           <tr>
@@ -60,7 +61,15 @@
             <th>PAY PERIOD</th>
             <td>
               <a href="/sch/pay-period/{{wd.date.year}}/{{wd.iperiod}}">
-                PP-{{ wd.iperiod }}
+                PD-{{ wd.iperiod }}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <th>SCHEDULE ID</th>
+            <td>
+              <a href="/sch/schedule/{{wd.date.year}}/{{wd.ischedule}}/">
+                SCH-{{ wd.ischedule }}
               </a>
             </td>
           </tr>
@@ -71,6 +80,7 @@
         </table>
       </div>
     </div>
+
     <div class="panel">
       {# --- WORKDAY SHIFT TABLE --- #}
         {% include 'sch/workday/shiftTable.html' %}

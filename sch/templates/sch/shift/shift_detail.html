@@ -70,13 +70,15 @@
     <div class="panel">
         <h2>Preferences by Employee</h2>
         {% for pref in prefs %}
-        <div>
-            {% if pref.score == -2 %}<span class="jbm" style="color:coral;">{% endif %}
-            {% if pref.score == -1 %}<span class="jbm" style="color:orange;">{% endif %}
-            {% if pref.score == 0 %} <span class="jbm" style="color:gray;">{% endif %}
-            {% if pref.score == 1 %} <span class="jbm" style="color:aquamarine;">{% endif %}
-            {% if pref.score == 2 %} <span class="jbm" style="color:greenyellow;">{% endif %}
-                {{pref.employee}}</span>
+        <div class="vstack">
+            <a href="{{ pref.employee.url }}">
+                {% if pref.score == -2 %}<span class="jbm" style="color:coral;">{% endif %}
+                {% if pref.score == -1 %}<span class="jbm" style="color:orange;">{% endif %}
+                {% if pref.score == 0 %} <span class="jbm" style="color:gray;">{% endif %}
+                {% if pref.score == 1 %} <span class="jbm" style="color:aquamarine;">{% endif %}
+                {% if pref.score == 2 %} <span class="jbm" style="color:greenyellow;">{% endif %}
+                    {{pref.employee}}</span>
+            </a>
         </div>
         {% endfor %}
     </div>

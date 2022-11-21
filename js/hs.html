@@ -1,0 +1,49 @@
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+
+		<meta name="viewport" 
+			  content="width=device-width, initial-scale=1.0">
+
+		<meta http-equiv="X-UA-Compatible" 
+			  content="ie=edge">
+
+        <title> HYPERSCRIPT Playground </title>
+
+        <style>
+
+        </style>
+    </head> 
+
+
+    <body>
+
+
+        <div class="vstack">
+            <div class="slot" 
+                _="on turnRed add .red">
+                JOSH  
+            </div>
+            <div class="slot"
+                _="on turnRed add .red"> 
+                MOLLY <span> RPh </span> 
+            </div>
+            <div class="slot">
+                MOLLY
+            </div>
+        </div>
+
+        <button type='button' 
+                _=  "on click
+                        set x to my innerHTML
+                        if it's innerHTML contains x send turnRed to <div.slot/> 
+                     end" 
+                title="Submit">
+                MOLLY  
+        </button>
+
+        <script src="https://unpkg.com/hyperscript.org"></script>
+    </body>
+
+
+</html>

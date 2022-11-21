@@ -253,11 +253,11 @@ class PERIOD :
 class WEEK:
     class WeekView (ListView):
 
-        model = Workday
-        template_name = 'sch/week/week.html'
+        model               =  Workday
+        template_name       = 'sch/week/week.html'
         context_object_name = 'workdays'
 
-        def get_context_data(self, **kwargs):
+        def get_context_data  (self, **kwargs):
             context = super().get_context_data(**kwargs)
             context['title']      = 'Week'
             context['year']       = self.kwargs['year']
@@ -302,8 +302,7 @@ class WEEK:
                 day.prefScore = prefScore
                 weekprefScore.append(prefScore)
             
-            context['ptos'] = PtoRequest.objects.filter(workday__in=context['workdays'])
-            print(context['ptos'])
+            context['ptos'] = PtoRequest.objects.filter(workday__in=dates)
                                     
             if len(weekprefScore) != 0:
                 weekprefScore = sum(weekprefScore) / len(weekprefScore)
@@ -337,23 +336,27 @@ class WEEK:
                     context['unfavorables'], reverse=True)}
             _week = WEEK.GET()
             context['weekly_percents'] = _week.getPercentsWorkedWeek(year,week)
-            context['turnarounds'] = _week.getTurnarounds(year,week)
+            context['turnarounds']     = _week.getTurnarounds(year,week)
+            
+            context['week_pto_reqs'] = PtoRequest.objects.filter(workday__in=context['workdays'])
+            
 
             return context
 
-        def get_queryset(self):
+        def get_queryset  (self):
             return Workday.objects.filter(date__year=self.kwargs['year'], iweek=self.kwargs['week']).order_by('date')
 
-        def get_day_table(self, workday):
+        def get_day_table  (self, workday):
             shifts              = Shift.objects.on_weekday(weekday=workday.iweekday).order_by('cls')
             slots               = Slot.objects.filter(workday=workday)
             sftAnnot            = shifts.annotate(employee=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__name')))
+            sftAnnot            = sftAnnot.annotate(employeeSlug=Subquery(slots.filter(shift=OuterRef('pk')).values('employee__slug')))
             # annotate if employee slot is turnaround
             sftAnnot            = sftAnnot.annotate(
                                     is_turnaround=Subquery(
                                         slots.filter(shift=OuterRef('pk'), 
                                         employee__name=OuterRef('employee')).values('is_turnaround')))
-            sftAnnot            = sftAnnot.order_by('start','name','employee')
+            sftAnnot            = sftAnnot.order_by('start','name','employee','employeeSlug')
             return ShiftsWorkdaySmallTable(sftAnnot, order_by=("cls"))
 
         def render_day_table(self, workday):
@@ -363,9 +366,13 @@ class WEEK:
             return Employee.objects.all().annotate(
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
-
+            
         def get_unfavorables (self):
-            nfs = tally(list(Slot.objects.filter(shift__start__hour__gte=10,workday__in=self.object_list).values_list('employee__name',flat=True)))
+            nfs = tally(
+                list(Slot.objects.filter(
+                    shift__start__hour__gte=10,workday__in=self.object_list).values_list ('employee__name', flat=True)) )
+            # sort nfs by value:
+            nfs = {i : nfs[i] for i in sorted(nfs, key=nfs.get)}
             return nfs
 
     class GET: 
@@ -409,7 +416,7 @@ class WEEK:
                 s.append((int(d.perc_worked*100),d.worked_hours,d.name,css))
             s.sort()
             # turn into Dict of {name: {'worked':workedH, 'perc_fte_w':perc}}
-            return [{'employee':e[2], 'week_hours':e[1],'week_percent':e[0],'css':e[3]} for e in s]
+            return [{'employeeSlug':e[2].replace(' ','-'),'employee':e[2], 'week_hours':e[1],'week_percent':e[0],'css':e[3]} for e in s]
         
         def solvableUnfilledWeekSlots (self,year,iweek):
             wds = Workday.objects.filter(date__year=year,iweek=iweek)
@@ -441,11 +448,18 @@ class WEEK:
         return render(request, 'sch/week/weekly-hours.html', context)
         
     def weekHoursTable (request,year,week):
-        wds= Workday.objects.filter(date__year=year,iweek=week)
+        """WEEK HOURS TABLE """
+        wds   = Workday.objects.filter(date__year=year,iweek=week)
         empls = Employee.objects.all()
         for empl in empls:
             empl.week = [wds.filter(iweekday=i, slot__employee=empl).order_by('iweekday').values_list('slot__shift__name',flat=True) for i in range(7)]
-        return render (request,'sch/week/week-hours-table.html', context={'empls': empls,'wds': wds, 'seven': range(7)})
+        
+        context= {
+            'empls' : empls,
+            'wds'   : wds, 
+            'seven' : range(7),
+        }
+        return render (request,'sch/week/week-hours-table.html', context)
              
     def weekFillTemplates(request,year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
@@ -475,9 +489,10 @@ class WEEK:
     def solve_week_slots (request, year, week):
         fx = True 
         n = 0
-        while fx == True and n < 200 :
-            fx = ScheduleBot.performSolvingFunctionOnce(year,week)
+        while fx == True and n < 50 :
+            ScheduleBot.performSolvingFunctionOnce (0,year,week)
             n += 1
+            print(n)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
     
     def make_preference_swaps (request, year, week):
@@ -720,6 +735,10 @@ class SHIFT :
         return HttpResponse(resp)
 
     class ShiftListView (ListView):
+        """SHIFT LIST VIEW 
+        
+        template_name: `templates/sch/shift/shift_list.html`
+        """
         model           = Shift
         template_name   = 'sch/shift/shift_list.html'
 
@@ -1061,6 +1080,17 @@ class EMPLOYEE:
        
     ### TPL-DAY-OFF-BREAKDOWN 
     def tdoBreakdownView (request):
+        """TDO BREAKDOWN VIEW
+        ===========================
+        ```flowrate.herokuapp.com/sch/day-off-breakdown/```
+        
+        Breakdown Template Days Off
+        ----------------------------
+        Breakdown Template Days Off 
+        
+            TDOs (Template Days Off) are days off that are predefined for employees that have scheduled shifts
+        """
+        
         context = {}
         context['days'] = tally(list(TemplatedDayOff.objects.all().values_list('ppd_id',flat=True)))
         context['employees'] = Employee.objects.all()
@@ -1323,6 +1353,17 @@ class EMPLOYEE:
         return render(request,'sch/employee/coworker-select.html',context)
     ### COWORKER
     def coWorkerView (request, nameA, nameB):
+        """ COWORKER VIEW
+        =======================================================
+        
+        Description
+        -----------------------------------------------------------------------
+            From the Base employees view, looks at Slots that co-occur with slots of another specified employee.
+            
+        URLs 
+        -----------------------------------------------------------------------
+            flowrate.herokuapp.com/sch/employees/`<employeeName>`/co-worker/`<otherEmployeeName>`/
+        """
         emp1 = Employee.objects.get(name=nameA)
         emp2 = Employee.objects.get(name=nameB)
         
@@ -1734,21 +1775,28 @@ class SCHEDULE:
         
     class DO:
         
-        def generateRandomPtoRequest(request,year,sch):
-            emp = Employee.objects.all()[random.randint(0,Employee.objects.all().count())]   
-            print("-"*35)
-            print("Employee Selected:{}".format(emp))
-            amount = random.randint(1,6)
+        @csrf_exempt
+        def generateRandomPtoRequest ( request, year: int, sch: int )  :
+            """
+            GENERATE RANDOM PTO REQUEST
+            -----------------------------------------------------
+            **Action View**
+            
+            """
+            
+            emp      = Employee.objects.all()[random.randint(0,Employee.objects.all().count())] 
+            amount   = random.randint(1,6)
             startDay = Workday.objects.filter(date__year=year,ischedule=sch)[random.randint(0,Workday.objects.filter(date__year=year,ischedule=sch).count())]
+            
             i = 0
+            # while loop will repeat 1-6 times based on Randomizer
             while i < amount:
                 if not PtoRequest.objects.filter(employee=emp, workday=startDay.date+dt.timedelta(days=i)).exists():
                     pto = PtoRequest.objects.create(employee=emp, workday=startDay.date+dt.timedelta(days=i))
                     pto.save()
-                    print("   Created PtoRequest for ", startDay.date+dt.timedelta(days=i))
-                    i += 1
-            print()
-            return HttpResponseRedirect('/sch/schedule/{}/{}'.format(year,sch))
+                    i  += 1
+                    
+            return HttpResponseRedirect ('/sch/schedule/{}/{}'.format(year,sch) )
             
     def scheduleView (request, year, sch):
         context = {}
@@ -1763,11 +1811,16 @@ class SCHEDULE:
             empl.schedule = schedule
             
         context['employees'] = employees
-        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
-        context['weekendlist'] = [0,6]
+        
+        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch).order_by('date')
+        context['day0'] = context['days'].first()
+        context['dayN'] = context['days'].last()
+        
+        context['weekendlist']  = [0,6]
         context['unfavorables'] = ScheduleBot.get_unfavorables(year,sch)
+        
         context['year'] = year
-        context['sch'] = sch
+        context['sch']  = sch
         
         context['conflicted'] = SCHEDULE.tdosConflictedSlots(year,sch)
         te = 0
@@ -1838,7 +1891,7 @@ class SCHEDULE:
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
     def solveScheduleSlots (request,year,sch):
-        ScheduleBot.solveSchedule(year,sch)
+        ScheduleBot.solveSchedule(0,year,sch)
         print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")
         for slot in SCHEDULE.tdosConflictedSlots(year,sch):
             slot.delete()

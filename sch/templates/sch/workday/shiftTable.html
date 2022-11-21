@@ -30,9 +30,12 @@
                         Click to attempt Turnaround Resolution</div>
                     </td>
                 {% else %}
-                    <td><div class="hstack"><span>{{shift.assignment}}</span>
-                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc"><div class="hstack" style="font-size:9px;">
-                            {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
+                    <td><div class="hstack">
+                        <a href='/sch/employee/{{shift.assignment}}/'>{{shift.assignment}}</a>
+                        <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc">
+                            <div class="hstack" style="font-size:9px;">
+                                {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
+                            </div>
                         </div></div>
                     </td>
                 {% endif %}
@@ -86,7 +89,7 @@
                     </td>
                 {% else %}
                     <td><div class="hstack">
-                        <span>{{shift.assignment}}</span>
+                        <a href='/sch/employee/{{shift.assignment}}/'>{{shift.assignment}}</a>
                         <div class="rounded border-gray-600 border-2 p-1 m-0 w-fc">
                             <div class="hstack" style="font-size:9px;">
                             {%favoriteIcon '10px' '10px' %}{{shift.prefScore}}</div>
