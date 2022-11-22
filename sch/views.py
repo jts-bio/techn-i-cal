@@ -1800,9 +1800,18 @@ class SCHEDULE:
             
     def scheduleView (request, year, sch):
         context = {}
+        
+        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
+        
+        if sch == 8:
+            context['days'] = context['days'].union (Workday.objects.filter(date__year=year+1,ischedule=None))
+        context['day0']     = context['days'].first ()
+        context['dayN']     = context ['days'].last ()
+        
         employees = Employee.objects.all().order_by('cls','name')
+        
         for empl in employees:
-            schedule = Workday.objects.filter(date__year=year,ischedule=sch).annotate(
+            schedule = Workday.objects.filter(pk__in=context['days'].values('pk')).annotate(
                 emplShift=Subquery(Slot.objects.filter(employee=empl.pk, workday=OuterRef('pk')).values('shift__name')[:1])).annotate(
                     ptoReq=Subquery(PtoRequest.objects.filter(employee=empl.pk, workday=OuterRef('date')).values('employee__name')[:1])).annotate(
                     streakPref=Subquery(Employee.objects.filter(pk=empl.pk).values('streak_pref')[:1])).annotate(
@@ -1812,9 +1821,7 @@ class SCHEDULE:
             
         context['employees'] = employees
         
-        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch).order_by('date')
-        context['day0'] = context['days'].first()
-        context['dayN'] = context['days'].last()
+        
         
         context['weekendlist']  = [0,6]
         context['unfavorables'] = ScheduleBot.get_unfavorables(year,sch)

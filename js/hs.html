@@ -11,38 +11,32 @@
         <title> HYPERSCRIPT Playground </title>
 
         <style>
-
+            .red {
+                color: red;
+            }
+            .orange {
+                color: orange;
+            }
         </style>
     </head> 
 
 
     <body>
 
-
-        <div class="vstack">
-            <div class="slot" 
-                _="on turnRed add .red">
-                JOSH  
-            </div>
-            <div class="slot"
-                _="on turnRed add .red"> 
-                MOLLY <span> RPh </span> 
-            </div>
-            <div class="slot">
-                MOLLY
-            </div>
+        <div _="on load for ele in me
+                    if ele.x > 1 add .red">
+            <div x="6">Josh</div>
+            <div x="1">Molly</div>
+            <div x="2">Mary</div>
         </div>
 
-        <button type='button' 
-                _=  "on click
-                        set x to my innerHTML
-                        if it's innerHTML contains x send turnRed to <div.slot/> 
-                     end" 
-                title="Submit">
-                MOLLY  
-        </button>
+        <output>
+
+        </output>
+       
 
         <script src="https://unpkg.com/hyperscript.org"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/hyperscript/1.4.0/hyperscript.js"></script>
     </body>
 
 

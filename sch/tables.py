@@ -25,12 +25,9 @@ class EmployeeTable (tables.Table):
             'fte', 
             'fte_14_day',
             'streak_pref',
-            'avg_shift_pref_score',
-            'templated_days'
-            'templated_days_off',
             ]
         template_name   = 'django_tables2/semantic.html'
-        attrs           = {"class":"table table-compact table-xs"}
+        attrs           = { "class" : "table table-auto table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
         sort_by         = ('name',)
 
     def render_fte(self, value):

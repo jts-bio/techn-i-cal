@@ -30,32 +30,33 @@
         
     </table>
 </div>
-
-<table class="table table-compact table-2xs">
-    {% for emp in posEmpls %} {% if emp == bestFill %}
-        <tr>
-            <th><span class="text-yellow-200 text-xs bg-yellow-900 rounded-full pr-1 pl-2">{{ emp }}</span></th>
-            <td><div class="vstack" style="gap:0px;">
-                <span>{{emp.weeklyPercent}}x</span>
-                <span class="text-3xs" style="font-size:9px;">STD. WEEKLY HOURS</span>
-            </div></td>
-            <td>{{emp.weeklyHours}} hrs.</td>
-            <td>{{emp.periodHours}} hrs.</td>
-        </tr>
-    {% else %}
-        <tr>
-            <th>{{emp}}</th>
-            <td><div class="vstack" style="gap:0px;">
-                <span>{{emp.weeklyPercent}}x</span>
-                <span class="text-3xs" style="font-size:9px;">STD. WEEKLY HOURS</span>
-            </div></td>
-            <td>{{emp.weeklyHours}} hrs</td>
-            <td>{{emp.periodHours}}</td>
-        </tr>
-        {% endif %}
-    {% endfor %}
-</table>
-
+<div>
+    <h2 class="text-xl text-amber-300 bg-amber-800 rounded-full px-4">Suggestion:</h2>
+    <table class="table table-compact table-2xs">
+        {% for emp in posEmpls %} {% if emp == bestFill %}
+            <tr>
+                <th><span class="text-yellow-200 text-xs bg-yellow-900 rounded-full pr-1 pl-2">{{ emp }}</span></th>
+                <td><div class="vstack" style="gap:0px;">
+                    <span>{{emp.weeklyPercent}}x</span>
+                    <span class="text-3xs" style="font-size:9px;">STD. WEEKLY HOURS</span>
+                </div></td>
+                <td>{{emp.weeklyHours}} hrs.</td>
+                <td>{{emp.periodHours}} hrs.</td>
+            </tr>
+        {% else %}
+            <tr>
+                <th>{{emp}}</th>
+                <td><div class="vstack" style="gap:0px;">
+                    <span>{{emp.weeklyPercent}}x</span>
+                    <span class="text-3xs" style="font-size:9px;">STD. WEEKLY HOURS</span>
+                </div></td>
+                <td>{{emp.weeklyHours}} hrs</td>
+                <td>{{emp.periodHours}}</td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+</div>
 
 <div class="panel">
     <h3>Need More or Different Options to fill this slot?</h3>

@@ -40,14 +40,13 @@
                             W-{{week.0.date__year }}-{{week.0.iweek}}
                         </a></td>
                         <td>
-                            {{ week.1 }}
+                            <div class="w-full text-center">{{ week.1 }}</div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>    
             </table>     
             
-            {% render_table weekTable %}
             
         </div>
     </div>

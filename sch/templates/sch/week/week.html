@@ -98,7 +98,7 @@
     <div class="vstack" style="align-items:center;">
         <h1 class="text-3xl"> Week {{week_num}} </h1>
         <a href="/sch/pay-period/{{year}}/{{pay_period}}/">
-            <h2 class="btn btn-xs btn-coral"> PAY PERIOD {{pay_period}} </h2>
+            <h2 class="bg-amber-700 rounded-lg px-7 my-2 w-fc hover:bg-amber-400 hover:text-black"> PAY PERIOD {{pay_period}} </h2>
         </a>
     </div>
 
@@ -245,9 +245,9 @@
             {#---WARN BADGES for Overtime---#}
             {% if emp.week_percent > 100 %} 
                     <button _="on click 
-                                    add .bg-orange-900 .text-white .text-lg to  .{{emp.employeeSlug}} then
+                                    add .bg-orange-700 .text-white .text-lg to  .{{emp.employeeSlug}} then
                                 wait 3s
-                                    then remove .bg-orange-900 .text-white .text-lg from .{{emp.employeeSlug}} end">
+                                    then remove .bg-orange-700 .text-white .text-lg from .{{emp.employeeSlug}} end">
 
                         {% #warn_badge %}    {{emp.employee}} ({{emp.week_percent}}%)     {% /warn_badge %} 
                     </button>
@@ -256,9 +256,9 @@
             {#---ALERT BADGES for Underscheduled---#}
             {% if emp.week_percent < 85 %}  
                     <button _="on click 
-                                    add .bg-red-900 .text-white .text-lg to  .{{emp.employeeSlug}} then
+                                    add .bg-red-700 .text-white .text-lg to  .{{emp.employeeSlug}} then
                                 wait 3s
-                                    then remove .bg-red-900 .text-white .text-lg from .{{emp.employeeSlug}} end">
+                                    then remove .bg-red-700 .text-white .text-lg from .{{emp.employeeSlug}} end">
                                     
                         {% #alert_badge %}     {{emp.employee}} ({{emp.week_percent}}%)     {% /alert_badge %} 
                     </button>
