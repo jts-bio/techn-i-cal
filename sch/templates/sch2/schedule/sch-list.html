@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+    <table class="table">
+        <tr>
+            <th>Schedule</th>
+            <th>Version</th>
+            <th>Start Date</th>
+            <th>Slots Filled</th>
+        </tr>
+        {% for sch in schedules %}
+            <tr>
+                <td><a href="{{sch.url}}">{{sch.year}}-Schedule {{sch.number}}</a></td>
+                <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
+                <td>{{sch.start_date}}</td>
+                <td>{{sch.nFilled}}</td>
+            </tr>
+        {% endfor %}
+
+    </table>table-lg
+    
+{% endblock content %}
+    

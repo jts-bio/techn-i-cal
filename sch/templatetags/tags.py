@@ -150,3 +150,7 @@ def figCard (title="", figure="",unit="",percComplete="", tot=""):
 @register.inclusion_tag('datePicker.html')
 def datePicker ():
     return {}
+
+@register.simple_tag
+def showPercent (floating):
+    return int(floating*100)

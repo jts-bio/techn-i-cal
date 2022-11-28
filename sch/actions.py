@@ -30,27 +30,26 @@ class WorkdayActions:
         4. Dont fill an employee into a turnaround 
         #TODO Dont fill if employee is working a different shift that day
         """
-        templs = ShiftTemplate.objects.filter(ppd_id=workday.sd_id) # type: ignore
-
-        shifts = Shift.objects.filter(occur_days__contains=workday.iweekday) # type: ignore
-        for shift in shifts:
-            # dont overwrite existing slots:
-            if Slot.objects.filter(workday=workday, shift=shift).exists()==False:
-                if templs.filter(shift=shift).exists():
-                    # dont fill if templated employee has a PTO request for day
-                    if PtoRequest.objects.filter(employee=templs.get(shift=shift).employee, workday=workday.date).exists()==False:
-                        # avoid creating a turnaround
-                        if shift.start < dt.time(12):
-                            if Slot.objects.filter(workday=workday.prevWD(), employee=templs.get(shift=shift).employee, shift__start__gt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.get_or_create(workday=workday, shift=shift)
-                                slot[0].employee = templs.get(shift=shift).employee
-                                slot[0].save()
-                        # avoid creating a preturnaround
-                        elif shift.start > dt.time(12):
-                            if Slot.objects.filter(workday=workday.nextWD(), employee=templs.get(shift=shift).employee, shift__start__lt=dt.time(12)).exists()==False:
-                                slot = Slot.objects.get_or_create(workday=workday, shift=shift)
-                                slot[0].employee = employee=templs.get(shift=shift).employee
-                                slot[0].save()
+        templs = ShiftTemplate.objects.filter(ppd_id=workday.sd_id)
+        slots  = workday.slots.all()
+        for templ in templs :
+            day = workday.date
+            shiftLen = templ.shift.hours 
+            empl = templ.employee
+            empl_weekHours = workday.week.empl_needed_hrs(empl)
+            
+            slot = slots.filter(shift=templ.shift).first()
+            if slot.employee != None :
+                break
+            if shiftLen > empl_weekHours : 
+                break
+            if PtoRequest.objects.filter(employee=empl, workday=day).exists():
+                break
+            else:
+                slot.employee = templ.employee
+                slot.save()
+            
+            
 
     def identifySwaps (workday) :
         """

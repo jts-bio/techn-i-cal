@@ -1,0 +1,63 @@
+{% load compress %}
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" 
+			  content="width=device-width, initial-scale=1.0">
+		<meta http-equiv="X-UA-Compatible" 
+			  content="ie=edge">
+
+		<title> FlowRate {% block title %}{% endblock %} </title>
+		
+		{% compress css %}
+		{# --- FONTS --- #}
+			<link 
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css?family=Nanum+Gothic+Coding">
+			<link 
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css?family=Dosis">
+			<link 
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css?family=JetBrains+Mono">
+		
+			<style> 
+				{% include 'my.css' %} 
+				<link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
+			</style>
+
+			{% block style %} {% endblock %}
+			{% comment %} <link href="https://cdn.jsdelivr.net/npm/daisyui@2.31.0/dist/full.css" 
+			      rel="stylesheet" 
+				  type="text/css"/> {% endcomment %}
+			<link rel="stylesheet" 
+			       href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css">
+			
+		{% endcompress %}
+		
+	
+	</head>
+
+	<body>
+
+				{% block content %}
+				{% endblock %}
+				
+				{# TAILWINDCSS #}
+				<script src="https://cdn.tailwindcss.com"></script>
+				{# FLOWBITE #}
+				<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
+				{# HTMX #}
+				<script src="https://unpkg.com/htmx.org@1.8.2"></script>
+				{# HYPERSCRIPT #}
+				<script src="https://unpkg.com/hyperscript.org"></script>
+			
+	</body>
+
+
+</html>

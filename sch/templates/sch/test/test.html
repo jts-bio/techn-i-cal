@@ -2,15 +2,18 @@
 
 {% block content %}
 
-{{empA}} {{shiftA}}
+    {{empA}} {{shiftA}}
 
-<div class="text-lg">All Slots:</div>
-<div>{{empA_allSlots}}</div>
+    <div class="text-lg">
+        All Slots: </div>
+    <div> {{ empA_allSlots }} </div>
 
-<div class="text-lg">Potential:</div>
-{% for p in potential %}
-    <div>{{p}}</div>
-{% endfor %}
+    <div class="text-lg">
+        Potential: </div>
+        
+    {% for p in potential %}
+        <div> {{ p }} </div>
+    {% endfor %}
 
 {% endblock content %}
     

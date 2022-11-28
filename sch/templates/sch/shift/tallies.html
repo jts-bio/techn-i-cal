@@ -18,14 +18,19 @@
     {% for empl in employees %}
         {% if empl.tally != 0 %}
         <div class="panel w-40" style="gap:9px;">
-        <div class="vstack">
-            <div>{{empl.name}}</div>
-            <div class="badge badge-rounded badge-xs font-bold">{{empl.tally}}</div>
-            <progress class="progress" id="{{empl.name}}-progress" value="{{empl.tally}}" max="{{total}}">{{empl.tally}}</progress>
-        </div></div>
+            <div class="vstack">
+                <div>{{empl.name}}</div>
+                <div class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
+                    <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full"
+                         style="width:{{emply.tallyPerc}}%"> {{ empl.tally }}
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endif %}
     {% endfor %}
 </div>
     
 {% endblock content %}
     
+  

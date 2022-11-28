@@ -37,9 +37,15 @@
 
         <button class="btn btn-lg hover:bg-yellow-700" 
             hx-confirm="By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data."
-            hx-post="start/">
-            <div class="vstack"><span class="font-extrabold">SOLVE</span><span class="font-light"> Start Solution</span> </div>
-              
+            hx-post="start/"
+            _="on click 
+                    alert ('By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data')
+               then post to start/ 
+               then set my innerHTML to 'Solving...'" >
+            <div class="vstack">
+                <span class="font-extrabold">SOLVE</span>
+                <span class="font-light text-xs italic"> Start Solution</span> 
+            </div>
         </button>
 
         <div 

@@ -11,5 +11,6 @@
     "explorerExclude.backup": {},
     "python.linting.enabled": false,
     "editor.tabCompletion": "on",
-    "diffEditor.codeLens": true
+    "diffEditor.codeLens": true,
+    "python.analysis.typeCheckingMode": "off"
 }

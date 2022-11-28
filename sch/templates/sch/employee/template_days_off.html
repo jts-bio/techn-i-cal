@@ -47,10 +47,9 @@
 
         {% for form in formset %}
             <div>
-                <div  _="on load 
-                            if next <input:checked/>
-                            add .green-glow to next <label/>">
-                {{ form.as_div }}</div>
+                
+                {{ form.as_div }}
+                
             </div>
         {% endfor %}
 

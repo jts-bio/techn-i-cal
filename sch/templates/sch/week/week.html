@@ -245,10 +245,16 @@
             {#---WARN BADGES for Overtime---#}
             {% if emp.week_percent > 100 %} 
                     <button _="on click 
-                                    add .bg-orange-700 .text-white .text-lg to  .{{emp.employeeSlug}} then
-                                wait 3s
-                                    then remove .bg-orange-700 .text-white .text-lg from .{{emp.employeeSlug}} end">
-
+                                add .bg-amber-700 .ring-2 .ring-amber-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-amber-700 .ring-2 .ring-amber-200 .text-white from .{{emp.employeeSlug}} then wait 400ms
+                                add .bg-amber-700 .ring-2 .ring-amber-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-amber-700 .ring-2 .ring-amber-200 .text-white from .{{emp.employeeSlug}} then wait 400ms
+                                add .bg-amber-700 .ring-2 .ring-amber-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-amber-700 .ring-2 .ring-amber-200 .text-white from .{{emp.employeeSlug}} 
+                                end">
                         {% #warn_badge %}    {{emp.employee}} ({{emp.week_percent}}%)     {% /warn_badge %} 
                     </button>
             {% endif %}
@@ -256,10 +262,16 @@
             {#---ALERT BADGES for Underscheduled---#}
             {% if emp.week_percent < 85 %}  
                     <button _="on click 
-                                    add .bg-red-700 .text-white .text-lg to  .{{emp.employeeSlug}} then
-                                wait 3s
-                                    then remove .bg-red-700 .text-white .text-lg from .{{emp.employeeSlug}} end">
-                                    
+                                add .bg-rose-700 .ring-2 .ring-rose-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-rose-700 .ring-2 .ring-rose-200 .text-white from .{{emp.employeeSlug}} then wait 400ms
+                                add .bg-rose-700 .ring-2 .ring-rose-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-rose-700 .ring-2 .ring-rose-200 .text-white from .{{emp.employeeSlug}} then wait 400ms
+                                add .bg-rose-700 .ring-2 .ring-rose-200 .text-white to  .{{emp.employeeSlug}} then
+                                wait 700ms
+                                then remove .bg-rose-700 .ring-2 .ring-rose-200 .text-white from .{{emp.employeeSlug}} 
+                                end">
                         {% #alert_badge %}     {{emp.employee}} ({{emp.week_percent}}%)     {% /alert_badge %} 
                     </button>
             {% endif %}
@@ -304,7 +316,7 @@
                 </div>
             </div>
         </div>
-
+        {{ day.pto.count }}
     </div>
     {% endfor %}
 </div>
@@ -351,9 +363,9 @@
     <h2 class="text-2xl font-bold">Unfavorable Shifts</h2>
     <div class="hstack" style="flex-wrap: wrap;justify-content:space-around;">
     {% for count,empls in unfavorables.items %}
-    <div style='width:22%'>
-        {% iconCard2 count  empls  %}
-    </div>
+        <div style='width:22%'>
+            {% iconCard2 count  empls  %}
+        </div>
     {% endfor %}
     </div>
         
@@ -361,12 +373,21 @@
 
 </div>
 
+<div>{{weekObj}}</div>
+<div>
+    <h1 class="text-xl">Unfavorables</h1>
+    {{weekObj.unfavorables}}
+</div>
+<div>
+    <h1 class="text-xl">Week Sentiment by Employee</h1>
+    {{weekObj.empl_week_sentiment}}
+</div>
 
 
 </div>
 
 <script src="https://unpkg.com/hyperscript.org"></script>
-<script src="https://unpkg.com/htmx.org@1.8.2" integrity="sha384-+8ISc/waZcRdXCLxVgbsLzay31nCdyZXQxnsUy++HJzJliTzxKWr0m1cIEMyUzQu" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/htmx.org@1.8.2"></script>
 
 
 

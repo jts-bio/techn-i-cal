@@ -23,6 +23,8 @@ from django.conf.urls.static import static
 from sch.models import Shift, Slot, Employee, Workday
 from rest_framework import routers, serializers, viewsets
 
+from flow.views import *
+
 def index(request=0):
     template = loader.get_template('index.html')
     context = {
@@ -30,11 +32,12 @@ def index(request=0):
     return HttpResponse(template.render(context, request))
 
 urlpatterns = [
-    
     path('' ,           index,  name='index'),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls ),
     path('sch/',        include('sch.urls'),    name='sch'),
     path('pds/',        include('pds.urls'),    name="pds"),
+    path('flow/',       include('flow.urls'),   name='flow'),
     
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+

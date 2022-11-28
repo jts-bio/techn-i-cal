@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    "flow.apps.FlowConfig",
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",

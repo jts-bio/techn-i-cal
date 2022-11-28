@@ -1,0 +1,17 @@
+
+<table class="table">
+    <thead>
+        <tr>
+            <td>Shift</td>
+            <td>Assignment</td>
+        </tr>
+    </thead>
+    <tbody>
+        {% for slot in workday.slots.all %}
+        <tr>
+            <td>{{slot.shift}}</td>
+            <td>{{slot.employee.name}}</td>
+        </tr>    
+        {% endfor %}
+    </tbody>
+</table>

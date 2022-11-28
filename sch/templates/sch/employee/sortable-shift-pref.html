@@ -1,0 +1,36 @@
+{% extends 'base.html' %}   
+{% load tags %}
+
+
+
+{% block blockname %}
+    
+
+    
+    <script>
+    htmx.onLoad(function(content) {
+        var sortables = content.querySelectorAll(".sortable");
+        for (var i = 0; i <s sortables.length; i++) {
+        var sortable = sortables[i];
+        new Sortable(sortable, {
+            animation: 150,
+            ghostClass: 'blue-background-class'
+        });
+        }
+    })
+    </script>
+
+    <div class="sortable">
+    {% for shift in shifts %}
+        <div class="panel">
+            <div class="vstack">
+                <div class="text-2xs">{{ shift.start }}</div>
+                <div class="text-sm">{{ shift.name }}</div>
+            </div>
+        </div>
+    {% endfor shift %}
+    
+
+
+
+{% endblock blockname %}

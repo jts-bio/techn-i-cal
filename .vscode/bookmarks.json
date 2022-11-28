@@ -1,37 +1,32 @@
 {
 	"files": [
 		{
-			"path": "sch/views.py",
-			"bookmarks": [
-				{
-					"line": 182,
-					"column": 14,
-					"label": "WORKDAY--fillableBy"
-				}
-			]
-		},
-		{
-			"path": "sch/models.py",
-			"bookmarks": [
-				{
-					"line": 797,
-					"column": 8,
-					"label": ""
-				}
-			]
-		},
-		{
 			"path": "sch/urls.py",
 			"bookmarks": [
 				{
-					"line": 18,
-					"column": 0,
-					"label": "Week URLs"
-				},
-				{
-					"line": 80,
+					"line": 93,
 					"column": 0,
 					"label": "Employee URLs"
+				}
+			]
+		},
+		{
+			"path": "templates/static/components.yaml",
+			"bookmarks": [
+				{
+					"line": 2,
+					"column": 4,
+					"label": "Slippers Components"
+				}
+			]
+		},
+		{
+			"path": "sch/views2.py",
+			"bookmarks": [
+				{
+					"line": 42,
+					"column": 0,
+					"label": "sched-day Popover"
 				}
 			]
 		}

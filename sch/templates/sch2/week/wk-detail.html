@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+
+{% block content %}
+
+    <nav>
+        <a href="fill-templates/" class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">FILL TEMPLATES</a>
+    </nav>
+
+    <h1 class="text-2xl text-amber-300">{{ week }}</h1>
+    <div class="flex flex-row">
+
+    {% for workday in workdays %}
+        <div class="panel">
+            <div 
+            class= "text-2xs text-bold text-amber-300">
+            {{ workday.weekday }}</div>
+
+            <h3 
+            class="text-lg"> 
+            {{ workday.date }} Schedule</h3>
+
+                <table>
+                    <th class="px-3">
+                        <tr class="px-3">Shift</tr>
+                        <tr class="px-3">Assigned to</tr>
+                    </th>
+                    {% for slot in workday.slots.all %}
+                        <tr>
+                            <td> {{ slot.shift.name }} </td>
+                            <td> {{ slot.employee }} </td>
+                        </tr>
+                    {% endfor slot %}
+                </table>
+
+            </div>
+        </div>
+        
+    {% endfor workday %}
+
+{% endblock content %}

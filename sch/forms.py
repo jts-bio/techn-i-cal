@@ -2,9 +2,15 @@ from django import forms
 from .models import PtoRequest, Slot, TemplatedDayOff, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
 from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
 
 TODAY = dt.date.today()
 
+class CreateUserForm (UserCreationForm):
+    class Meta :
+        model = User 
+        fields = '__all__'
 
 class ShiftForm (forms.ModelForm) :
     class Meta:
@@ -50,7 +56,9 @@ class SSTForm (forms.ModelForm) :
 class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','evening_pref'] 
+        fields = [
+            'name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','evening_pref'
+            ] 
         labels = {
             'fte_14_day': 'FTE (hrs/ 14 days)',
             'cls':'Employee Class',
@@ -67,7 +75,10 @@ class EmployeeForm (forms.ModelForm) :
 class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
-        fields = ['name','fte_14_day', 'streak_pref', 'shifts_trained', 'shifts_available', 'cls','evening_pref'] 
+        fields = [
+            'name', 'fte_14_day', 'streak_pref', 
+            'shifts_trained', 'shifts_available', 'cls', 'evening_pref', 'hire_date'
+            ] 
         labels = {
             'fte_14_day': 'FTE (hours per 14 days)',
             'cls': 'Employee Class',
@@ -201,20 +212,24 @@ class BulkWorkdayForm (forms.Form) :
 
 class SlotForm (forms.ModelForm):
 
-    employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), label='Employee', widget=forms.Select(attrs={'class': 'form-control'}))
-    shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), label='Shift', widget=forms.HiddenInput(), to_field_name='name')
-    workday     = forms.ModelChoiceField(queryset=Workday.objects.all(), label='Workday', widget=forms.HiddenInput(), to_field_name='slug')
+    employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), required=False ,widget=forms.Select(attrs={'class': 'form-control'}))
+    shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput(), to_field_name='name')
+    workday     = forms.ModelChoiceField(queryset=Workday.objects.all(),  widget=forms.HiddenInput(), to_field_name='slug')
 
     class Meta:
-        model = Slot
-        fields = ['employee', 'shift', 'workday']
+        model   = Slot
+        fields  = ['employee', 'shift', 'workday']
         
     def __init__(self, *args, **kwargs):
         super(SlotForm, self).__init__(*args, **kwargs)
-        shift = Shift.objects.get(name=self.initial['shift'])
-        workday = Workday.objects.get(slug=self.initial['workday'])
-        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday, method="available")
-        self.fields['employee'].label = shift.name 
+        self.fields['workday'].initial = self.initial.get('workday')
+        self.fields['shift'].initial = self.initial.get('shift')
+        self.fields['employee'].initial = self.initial.get('employee')
+        shift = self.initial.get('shift')
+        workday = self.initial.get('workday')
+        slot = Slot.objects.filter(shift=shift, workday=workday, schedule=workday.schedule)
+        self.fields['employee'].queryset = Slot.objects.get(workday=workday,shift=shift)._fillableBy()
+        
         
         
 class SlotForm_OtOveride (forms.ModelForm):
@@ -231,7 +246,7 @@ class SlotForm_OtOveride (forms.ModelForm):
         super(SlotForm_OtOveride, self).__init__(*args, **kwargs)
         shift = Shift.objects.get(name=self.initial['shift'])
         workday = Workday.objects.get(slug=self.initial['workday'])
-        self.fields['employee'].queryset = Employee.objects.can_fill_shift_on_day_ot_overide(shift=shift, workday=workday, method="available")
+        self.fields['employee'].queryset = Slot.objects.get(workday=workday,shift=shift).fillableBy()
         self.fields['employee'].label = shift.name
 class ClearWeekSlotsForm (forms.Form) :
     

@@ -1,27 +1,33 @@
 {% load tags %}
+
+{#---TOOLS PANEL---#}
+
+{#---FILL TEMPLATE BUTTON---#}
 <div>
-<a class="bg-slate-900 rounded-md p-2" 
-   style="float:right;" 
-   href="fill-template/" 
-   {%if wd.areTemplateSlotsFilled %} disabled {%endif%}>
-   <div class="hstack">
-    <div>{% fillTemplateIcon %}</div> 
-    <div>FILL TEMPLATE SLOTS </div>
-   </div>
-  
-</a>
+   <a class="bg-slate-900 rounded-md p-2" 
+      style="float:right;" 
+      href="fill-template/" 
+      {%if wd.areTemplateSlotsFilled %} disabled {%endif%}>
+      <div class="hstack">
+         <div>{% fillTemplateIcon %}</div> 
+         <div>FILL TEMPLATE SLOTS </div>
+      </div>
+   
+   </a>
 </div>
+
+{#---FIND TRADES BUTTOM---#}
 <div>
-<a class="bg-rose-900 rounded-md p-2 m-1" 
-   style="float:right;" 
-   href="run-swaps/" 
-   {%if wd.areTemplateSlotsFilled %} disabled {%endif%}>
-   <div class="hstack">
-    <div>{% shuffleIcon %}</div> 
-    <div>FIND TRADES </div>
-   </div>
-  
-</a>
+   <a class="bg-rose-900 rounded-md p-2 m-1" 
+      style="float:right;" 
+      href="run-swaps/" 
+      {%if wd.areTemplateSlotsFilled %} disabled {%endif%}>
+      <div class="hstack">
+         <div>{% shuffleIcon %}</div> 
+         <div>FIND TRADES </div>
+      </div>
+   </a>
 </div>
+{# end tools panel #}
 
 

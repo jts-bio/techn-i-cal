@@ -14,33 +14,40 @@ class EmployeeTable (tables.Table):
     Displays basic details about each employee
     """
     name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
-    avg_shift_pref_score = tables.columns.Column(verbose_name="Avg Shift Pref Score", accessor='avg_shift_pref_score')
-    templated_days = tables.columns.Column(verbose_name='Templated Days', accessor='templated_days')
-    templated_days_off = tables.columns.Column(verbose_name='Templated Days Off', accessor='templated_days_off')
+    avg_shift_pref_score = tables.columns.Column(
+        verbose_name="Avg Shift Pref Score", 
+        accessor='avg_shift_pref_score')
+    streak_pref = tables.columns.Column(
+        verbose_name='Streak Preference', 
+        accessor='streak_pref',
+        attrs={'td':{'class':'text-center'}})
+    templated_days = tables.columns.Column(
+        verbose_name='Templated Days', 
+        accessor='templated_days',
+        attrs={'td':{'class':'text-center'}})
+    templated_days_off = tables.columns.Column(
+        verbose_name='Templated Days Off', 
+        accessor='templated_days_off',
+        attrs={'td':{'class':'text-center'}})
 
     class Meta:
         model           = Employee
-        fields          = [
-            'name', 
-            'fte', 
-            'fte_14_day',
-            'streak_pref',
-            ]
+        fields          = ['name', 'fte' ]
         template_name   = 'django_tables2/semantic.html'
         attrs           = { "class" : "table table-auto table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
         sort_by         = ('name',)
 
     def render_fte(self, value):
-        return f'{value:.3f}FTE'
-    
-    def render_fte_14_day(self, value):
-        return f'({value} hrs/ 2 weeks)'
+        return f' {value:.3f}FTE '
     
     def render_avg_shift_pref_score(self, value):
         return f'{value:.0f}'
     
     def render_templated_days(self, record):
         return len(record.templated_days)
+    
+    def render_streak_pref(self,record):
+        return "%s-in-a-row" % record.streak_pref
     
     def render_templated_days_off(self,record):
         return f'{" ".join([st.symb for st in record.templated_days_off])}'
@@ -89,8 +96,7 @@ class ShiftListTable (tables.Table) :
         fields          = ['name','start','hours', 'is_iv','on_days_display',]
         template_name   = 'django_tables2/bootstrap.html'
         attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
-
-        
+      
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY
     display ALL SHIFTS for a given day
@@ -122,7 +128,7 @@ class ShiftsWorkdaySmallTable (tables.Table):
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS
     """
-    date       = tables.columns.LinkColumn("workday", args=[A("date")])
+    date       = tables.columns.LinkColumn("workday", args=[A("schedule__id"),A("slug")])
     n_unfilled = tables.columns.Column(verbose_name="Unfilled Shifts")
     days_away  = tables.columns.Column(verbose_name="Days Away")  
 
@@ -179,8 +185,6 @@ class WeekListTable (tables.Table):
 
     
 class PtoListTable (tables.Table):
-
-    workday = tables.columns.LinkColumn("workday", args=[A("workday")])
 
     class Meta:
         model           = PtoRequest

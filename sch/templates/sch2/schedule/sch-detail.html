@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+    <div class="panel text text-center">
+        <h1 class="text-3xl text-amber-600 text-bold">
+        {{schedule.year}}-Schedule {{schedule.number}}</h1> 
+        <h3 class="text-lg text-amber-300 text-light">
+        VERSION {{schedule.version}}</h3>
+    </div>
+
+    <div class="panel">
+    {% for period in schedule.periods.all %}
+
+        <h3 
+        class="text-lg text-blue-700 text-semibold">
+        {{ period }}
+        </h3>
+
+        <div 
+        class="vstack">
+
+            {% for week in period.weeks.all %}
+            
+                {{ week }}
+                <div 
+                class="hstack">
+
+                    {% for workday in week.workdays.all %}
+
+                            <div class="panel"
+                                hx-get="/{{workday.slug}}/as-popover/"
+                                hx-trigger="hover"
+                                hx-target="#popover">
+                                {{workday}}
+                            </div>
+
+                            <div id="popover"></div>
+
+                    {% endfor workday %}
+
+                </div>
+            {% endfor week %}
+
+        </div>
+    {% endfor period %}
+    </div>
+    
+{% endblock content %}
+    
