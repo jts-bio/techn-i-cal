@@ -20,7 +20,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from django.conf.urls.static import static
-from sch.models import Shift, Slot, Employee, Workday
+from sch2.models import Shift, Slot, Employee, Workday
 from rest_framework import routers, serializers, viewsets
 
 from flow.views import *
@@ -35,7 +35,7 @@ urlpatterns = [
     path('' ,           index,  name='index'),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls ),
-    path('sch/',        include('sch.urls'),    name='sch'),
+    path('sch2/',        include('sch2.urls'),    name='sch2'),
     path('pds/',        include('pds.urls'),    name="pds"),
     path('flow/',       include('flow.urls'),   name='flow'),
     

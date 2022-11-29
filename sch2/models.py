@@ -85,6 +85,8 @@ class ShiftManager (models.QuerySet):
     def empl_is_trained (self, employee):
         empl = Employee.objects.get(name=employee)
         return self.filter(name__in=empl.shifts_trained.all())
+    
+    
 # ============================================================================
 class SlotManager (models.QuerySet):
     def empty (self):
@@ -121,19 +123,19 @@ class SlotManager (models.QuerySet):
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
 
-    def incompatible_slots (self, workday, shift):
-        if shift.start <= dt.time(10,0,0):
-            dayBefore = workday.prevWD()
+    def incompatible_slots (self):
+        if self.shift.start.hour <= 10 :
+            dayBefore = self.workday.prevWD()
             incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayBefore,shift__in=incompat_shifts)
             return incompat_slots
-        elif shift.start >= dt.time(20,0,0):
-            dayAfter = workday.nextWD()
+        elif self.shift.start >= dt.time(20,0,0):
+            dayAfter = self.workday.nextWD()
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(20,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
-        elif shift.start >= dt.time(10,0,0):
-            dayAfter = workday.nextWD()
+        elif self.shift.start >= dt.time(10,0,0):
+            dayAfter = self.workday.nextWD()
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
@@ -270,9 +272,6 @@ class WorkdayManager (models.QuerySet):
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
 # ============================================================================  
-class EmployeeClass (models.Model):
-    id          = models.CharField(max_length=5, primary_key=True)
-    class_name  = models.CharField(max_length=40)
 # ============================================================================
 #************************************#
 #* --- ---      MODELS      --- --- *#
@@ -297,19 +296,19 @@ class Shift (models.Model) :
     group           = models.CharField(max_length=10, choices=(('AM','AM'),('MD','MD'),('PM','PM'),('XN','XN')), null=True)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
+    
+    class Forms :
+        form = 'ShiftForm'
+        newFields = ( 'name', 'start', 'hours', 'cls', 'occur_days', 'is_iv' )
 
     def save (self, *args, **kwargs):
         if self.hours == None:
             self.hours = self._set_hours()
-        super(Shift, self).save(*args, **kwargs)
-        
+        super(Shift, self).save(*args, **kwargs) 
     def __str__(self) :
         return self.name
-
     def url(self):
         return reverse("shift", kwargs={"name": self.name})
-
-    
     def _set_hours (self):
         return self.duration.total_seconds() / 3600 - 0.5
 
@@ -348,18 +347,21 @@ class Shift (models.Model) :
 # ============================================================================
 class Employee (models.Model) :
     # fields: name, fte_14_day , shifts_trained, shifts_available 
+    initials        = models.CharField (max_length=3,primary_key=True)
     name            = models.CharField (max_length=100)
+    cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=4)
+    
     fte_14_day      = models.FloatField()
     fte             = models.SmallIntegerField()
+    
     shifts_trained  = models.ManyToManyField (Shift, related_name='trained')
     shifts_available= models.ManyToManyField (Shift, related_name='available')
+    hire_date       = models.DateField (default=dt.date(2018,4,11))
+    
     streak_pref     = models.IntegerField (default=3)
     trade_one_offs  = models.BooleanField (default=True)
-    cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=4)
-    evening_pref    = models.BooleanField (default=False)
-    slug            = models.CharField (blank=True,null=True)
-    hire_date       = models.DateField (default=dt.date(2018,4,11))
-    n_trained       = models.IntegerField (default=1)
+    time_pref       = models.CharField (max_length=3, choices=(('nt','night'),('dt','day'),('of','off')), null=True)
+    
 
     @property
     def yrs_experience (self):
@@ -470,21 +472,19 @@ class Employee (models.Model) :
 # ============================================================================
 class Workday (models.Model) :
     # fields: date, shifts 
-    date = models.DateField()
-    week = models.ForeignKey("week", on_delete=models.CASCADE, null=True, related_name='workdays')
-    period = models.ForeignKey("Period", on_delete=models.CASCADE, null=True,related_name='workdays')
-    schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE,null=True,related_name='workdays')
-    slug = models.CharField(max_length=10, null=True, blank=True)
-    slugid = models.CharField(primary_key=True, max_length=12, null=True, blank=True)
-    iweekday = models.IntegerField()
-    iweek    = models.IntegerField()
-    iperiod  = models.IntegerField()
-    ischedule= models.IntegerField()
-    ppd_id   = models.IntegerField()
-    sd_id    = models.IntegerField()  
+    date        = models.DateField()
+    week        = models.ForeignKey("week", on_delete=models.CASCADE, null=True, related_name='workdays')
+    period      = models.ForeignKey("Period", on_delete=models.CASCADE, null=True,related_name='workdays')
+    schedule    = models.ForeignKey("Schedule", on_delete=models.CASCADE,null=True,related_name='workdays')
+    slug        = models.CharField( max_length=26, primary_key=True)
+    iweekday    = models.IntegerField()
+    iweek       = models.IntegerField()
+    iperiod     = models.IntegerField()
+    ischedule   = models.IntegerField()
+    ppd_id      = models.IntegerField()
+    sd_id       = models.IntegerField()  
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def save (self, *args, **kwargs):
         actions = self.Actions()
         actions._set_iperiod()
         actions._set_iweek()
@@ -494,8 +494,8 @@ class Workday (models.Model) :
         actions._set_slug()
         actions._set_slugid()
         actions._set_ischedule()
-
-
+        super().save(*args, **kwargs)
+        
     __all__ = ['date','slug','iweekday','iweek','iperiod','ppd_id','weekday',
                'shifts',
                'filledSlots','n_slots',"n_emptySlots",'n_shifts','percFilled',
@@ -826,7 +826,7 @@ class Period (models.Model):
             hrs_needed = self.empl_needed_hrs(empl)
             output.update({empl:hrs_needed})
         return sortDict(output)
-
+# ============================================================================
 class Schedule (models.Model):
     year       = models.IntegerField(null=True,default=None)
     number     = models.IntegerField(null=True,default=None)
@@ -877,7 +877,6 @@ class Schedule (models.Model):
                         instance.slots.all()[sst.ppd_id].save()
                         print (f'ASSIGNED {sst.employee} to {self.slots.all()[sst.ppd_id]}')
             print (f'FINISHED TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
-        
         def fillSlots (self,instance):
             print (f'STARTING SCHEDULE FILL: {dt.datetime.now()}')
             instance.setSsts()
@@ -887,16 +886,22 @@ class Schedule (models.Model):
                 slot.fillWithBestChoice()
                 print(f'Filled Slots with slot.id={x} at {dt.datetime.now()}')
             print(f'Schedule-Wide Solution Completed at {dt.datetime.now()}')  
-        
+        def prevSchedule (self,instance):
+            s = Schedule.objects.filter(year=instance.year,number=instance.number-1)
+            if s.exists():
+                return s[0]
 # ============================================================================
-class Slot (ComputedFieldsModel) :
+class Slot (models.Model) :
     # fields: workday, shift, employee
     workday        = models.ForeignKey ("Workday",  on_delete=models.CASCADE, related_name='slots')
     shift          = models.ForeignKey ( Shift,     on_delete=models.CASCADE, related_name='slots')
     employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, blank=True, default=None, related_name='slots')
+    slug           = models.CharField (max_length=20,primary_key=True)
+    
     empl_sentiment      = models.SmallIntegerField (null=True, default=None)   
     conflicting_slots   = models.ManyToManyField   ("Slot", null=True, default=None)
     fillableByN         = models.SmallIntegerField (default=0)
+    
     week           = models.ForeignKey (Week, on_delete=models.CASCADE, null=True, related_name='slots')
     period         = models.ForeignKey (Period, on_delete=models.CASCADE, null=True, related_name='slots')
     schedule       = models.ForeignKey (Schedule, on_delete=models.CASCADE, null=True,related_name='slots')
@@ -905,7 +910,7 @@ class Slot (ComputedFieldsModel) :
     
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["workday", "shift"], name='Shift Duplicates on day'),
+            models.UniqueConstraint(fields=["workday", "shift", "schedule"], name='Shift Duplicates on day'),
             models.UniqueConstraint(fields=["workday", "employee"], name='Employee Duplicates on day')
         ]
     def template (self):
@@ -1156,7 +1161,7 @@ class ShiftTemplate (models.Model) :
         return reverse("shifttemplate", kwargs={"pk": self.pk})
 
     class Meta:
-        unique_together = ['shift', 'ppd_id']
+        unique_together = ['shift', 'sd_id']
 # ============================================================================
 class TemplatedDayOff (models.Model) :
     """
@@ -1187,16 +1192,16 @@ class TemplatedDayOff (models.Model) :
     class Meta:
         unique_together = ['employee','sd_id']
 # ============================================================================
-class PtoRequest (ComputedFieldsModel): 
+class PtoRequest (models.Model): 
     employee         = models.ForeignKey (Employee, on_delete=models.CASCADE)
     workday          = models.DateField (null=True, blank=True)
     dateCreated      = models.DateTimeField (auto_now_add=True)
-    status           = models.CharField (max_length=20, choices=PTO_STATUS_CHOICES, default='P')
-    manager_approval = models.BooleanField (default=False)
-    sd_id            = models.IntegerField (default=-1)
+    sd_id            = models.IntegerField ()
+    status           = models.CharField (max_length=5, 
+                        choices=(("DEN","Denied"),("APR","Approved"),("PND","Pending"),("CFL","Conflicted")), 
+                        default= "PND")
     #stands_respected = models.BooleanField(default=True)
 
-    @computed (models.BooleanField(), depends=[('self',['status'])])
     def stands_respected (self) -> bool:
         if Slot.objects.filter(workday__date=self.workday, employee=self.employee).count() > 0:
             return False
@@ -1226,27 +1231,22 @@ class SlotPriority (models.Model):
     class Meta:
         unique_together = ['iweekday', 'shift']     
 # ============================================================================
-class ShiftPreference (ComputedFieldsModel):
+class ShiftPreference (models.Model):
     """SHIFT PREFERENCE [model]
+    
     >>> employee <fkey> 
     >>> shift    <fkey>
-    >>> priority <str> SP/P/N/D/SD
-    >>> score    <int> -2/-1/0/1/2
+    >>> score    <int> 0 - 100
     """
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
-    priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')
-
-    @computed (models.IntegerField(), depends=[('self',['priority'])])
-    def score (self):
-        scoremap = { 'SP':2, 'P':1, 'N':0, 'D':-1, 'SD':-2 }
-        return scoremap[self.priority]
+    score    = models.IntegerField(default=50)
 
     class Meta:
         unique_together = ['employee', 'shift']
         
     def __str__ (self):
-        return f'<{self.employee} {self.shift}: {self.priority}>'
+        return f'{self.shift}: {self.employee}[{self.score}]'
     
     objects = ShiftPreferenceManager.as_manager()
 # ============================================================================

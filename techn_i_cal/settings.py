@@ -36,24 +36,23 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    "flow.apps.FlowConfig",
-    "pds.apps.PdsConfig",
-    "sch.apps.SchConfig",
-    "sch2.apps.Sch2Config",
-    "sch.templatetags.tags",
-    "slippers",
-    "computedfields",
-    "multiselectfield",
-    "compressor",
-    "django_tables2",
-    "django.contrib.admin",
-    "django.contrib.admindocs",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.staticfiles",
-]
+        "flow.apps.FlowConfig",
+        "pds.apps.PdsConfig",
+        "sch2.apps.Sch2Config",
+        "sch2.templatetags.tags",
+        "slippers",
+        "computedfields",
+        "multiselectfield",
+        "compressor",
+        "django_tables2",
+        "django.contrib.admin",
+        "django.contrib.admindocs",
+        "django.contrib.auth",
+        "django.contrib.contenttypes",
+        "django.contrib.sessions",
+        "django.contrib.messages",
+        "django.contrib.staticfiles",
+    ]
 
 MIDDLEWARE = [
     #"kolo.middleware.KoloMiddleware",
