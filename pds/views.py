@@ -7,4 +7,10 @@ from django.db.models import Q, F, Sum, Subquery,OuterRef
 
 
 
-        
+def testSortable (request):
+    template = 'pds/sort.html'
+    
+    context = {
+        'shifts': 'MI 7C 7P OP S EI EP 3 N'.split(" "),
+    }
+    return render(request, template, context)

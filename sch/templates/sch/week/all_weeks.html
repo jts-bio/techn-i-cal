@@ -37,7 +37,7 @@
                     {% for week in weeks %}
                     <tr>
                         <td><a href="/sch/week/{{week.0.date__year}}/{{week.0.iweek}}/">
-                            W-{{week.0.date__year }}-{{week.0.iweek}}
+                            {{week.0.date__year }}-W{{week.0.number}}
                         </a></td>
                         <td>
                             <div class="w-full text-center">{{ week.1 }}</div>

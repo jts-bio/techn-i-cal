@@ -7,6 +7,6 @@ from . import views
 
 urlpatterns = [
     
-    
+    path('sort/', views.testSortable, name='sort'),
     
 ]

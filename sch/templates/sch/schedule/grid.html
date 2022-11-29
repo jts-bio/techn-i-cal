@@ -14,10 +14,14 @@
     </a>
 
     {#---SCHEDULE VIEW NAVIGAtION---#}
-    <div class="hstack center-content space-around">
+    <div class="hstack" style="justify-content:space-between;align-items:center;width=90%;">
         <a href="{{prevSch_url}}">
             <div class="bg-indigo-400 text-indigo-800 rounded px-4 w-fc font-bold italic hover:bg-indigo-100 hover:rounded">PREVIOUS SCHEDULE</div>
         </a>
+
+        <div>
+            <h1 class="text-3xl h1 bg-indigo-900 px-4 m-2 rounded text-bold">{{schedule}}</h1>
+        </div>
 
         <a href="{{nextSch_url}}">
             <div class="bg-indigo-400 text-indigo-800 rounded px-4 w-fc font-bold italic hover:bg-indigo-100 hover:rounded">NEXT SCHEDULE</div>
@@ -27,7 +31,7 @@
     {#---TOOLBAR---#}
     <div class="panel" id="toolbar">
 
-        <div class="hstack">
+        <div class="hstack" style="justify-content:space-between;width=90%;align-items:center;">
         <a class ="btn" hx-get="delete-all-slots/" hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. ">
             Delete All Slots
         </a>
@@ -37,11 +41,13 @@
 
         <button class="btn btn-lg hover:bg-yellow-700" 
             hx-confirm="By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data."
-            hx-post="start/"
+            href="/sch/v2/schedule-solving/{{schedule.pk}}/"
+         {% comment %}
             _="on click 
                     alert ('By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data')
-               then post to start/ 
-               then set my innerHTML to 'Solving...'" >
+               then go to /sch/v2/schedule-solving/{{schedule.pk}}/ "
+         {% endcomment %}
+               >
             <div class="vstack">
                 <span class="font-extrabold">SOLVE</span>
                 <span class="font-light text-xs italic"> Start Solution</span> 
@@ -157,7 +163,7 @@
     <tr>
         <th>Unfilled Shifts</th>
         {% for dy in unfilled  %}
-            <td>{% for uf in dy %} {{uf}}<br><br> {% endfor %}</td> 
+            <td>{% for uf in dy %} <span class="border m-1 border-gray-400 rounded m1"> {{uf.shift.name}}</span><br><br><br> {% endfor %}</td> 
         {% endfor %}   
     </tr>
     </table>
@@ -180,7 +186,9 @@
 </div>
 
 <div class="flex flex-wrap">
-    {% for c in conflicted %} {{c}} {% endfor %}
+    <div class="bg-blue-900 rounded border-blue-800 border-2 m-3">
+        CONFLICTED SLOTS: {{ conflicted.count }}
+    </div>
 </div>
 
 </div>

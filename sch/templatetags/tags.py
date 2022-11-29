@@ -21,6 +21,8 @@ def goToThisWeek ():
 #***** BADGE // N DAYS AWAY *****#
 @register.inclusion_tag("n_days_away.html")
 def nDaysAway (date):
+    if date == str:
+        date = dt.datetime.strptime(date, "%Y-%m-%d").date()
     today = dt.date.today()
     return {
         'n': (date - today).days

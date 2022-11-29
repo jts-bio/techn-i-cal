@@ -24,7 +24,9 @@
 
             {% for week in period.weeks.all %}
             
-                {{ week }}
+                <a href="{{week.url}}">
+                {{ week }}</a>
+                
                 <div 
                 class="hstack">
 
@@ -34,7 +36,10 @@
                                 hx-get="/{{workday.slug}}/as-popover/"
                                 hx-trigger="hover"
                                 hx-target="#popover">
-                                {{workday}}
+
+                                <a 
+                                href="{{workday.url}}">
+                                {{workday}}</a>
                             </div>
 
                             <div id="popover"></div>

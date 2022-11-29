@@ -40,17 +40,33 @@ def schDetailView (request, year, num, ver):
     }
     return render(request, 'sch2/schedule/sch-detail.html', context)
 
-def schDayPopover (request, year, num, ver, day):
-    schedule = Schedule.objects.get(year=year, number=num, version=ver)
-    workday = schedule.workdays.get(day=day)
+def schDayPopover (request, dayid):
+    workday = Workday.objects.get(pk=dayid)
+    schedule = workday.schedule
+    slots = workday.slots.all()
     
     context = {
         'workday' : workday,
     }
     return render(request, 'sch2/schedule/sch-day-popover2.html', context)    
 
-def weekView (request, year, week):
-    week = Week.objects.filter(year=year, number=week).first()
+def schActionSolveSlots (request, sched):
+    schedule = Schedule.objects.get(pk=sched)
+    schedule.setSsts()
+    schedule.fillSlots()
+    if schedule.slots.empty().count() > 30:
+        schedule.fillSlots()
+    return HttpResponseRedirect(schedule.url())
+
+def weekListView (request):
+    weeks = Week.objects.all()
+    context = {
+        'weeks': weeks,
+    }
+    return render(request, 'sch2/week/wk-list.html', context)
+
+def weekView (request, sch, prd, wk):
+    week = Week.objects.filter(schedule__slug=sch, number=wk).first()
     week.save()
     context = {
         'week'  : week,
@@ -58,8 +74,8 @@ def weekView (request, year, week):
     }
     return render(request, 'sch2/week/wk-detail.html', context)
 
-@csrf_exempt
-def weekView__set_ssts (request, year, week):
+
+def weekView__set_ssts (request, weekid):
     """
     If SST exists and filling employee is appropriate, Slot is filled.
     Exceptions that will result in no change:
@@ -67,9 +83,23 @@ def weekView__set_ssts (request, year, week):
         - empl would go overtime 
         - empl in conflicting slot
     """
-    if request.method == "POST":
-        week = Week.objects.filter(year=year, number=week).first()
-        for day in week.workdays.all():
-            for slot in day.slots.all():
-                slot.set_sst()
-        return HttpResponseRedirect(reverse_lazy('wk-details', kwargs={'year': year, 'week': week.number}))
+    
+    log = []
+    
+    week = Week.objects.get(pk=weekid)
+    for slot in week.slots.all():
+        msg = slot.set_sst()
+        slot.save()
+        log += [msg]
+    print(log)
+    return HttpResponseRedirect (week.url())
+
+def dayView (request, sch, prd, wk, day):
+    """
+    DAY DETAIL VIEW
+    """
+    workday = Workday.objects.get(schedule__slug=sch, slug=day)
+    context = {
+        'wd' : workday,
+    }
+    return render(request, 'sch/workday/workday_detail.html', context)

@@ -46,7 +46,7 @@
           <tr>
             <th>WEEK</th>
             <td>
-              <a href="/sch/week/{{wd.date.year}}/{{wd.iweek}}/">
+              <a href="{{wd.week.url}}">
                 WK-{{ wd.iweek }}
               </a>
             </td>
@@ -75,7 +75,7 @@
           </tr>
           <tr>
             <th>SHIFTS</th>
-            <td>{{shifts|length}}</td>
+            <td>{{ shifts|length }}</td>
           </tr>
         </table>
       </div>

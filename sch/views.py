@@ -121,7 +121,7 @@ class WORKDAY :
             # Context = wd, shifts, sameWeek, slots, slotdeet
             return context
         
-        def get_object(self):
+        def get_object(self,**kwargs):
             return Workday.objects.get(slug=self.kwargs['slug'])
 
     class WorkdayPtoRequest (FormView):
@@ -270,19 +270,26 @@ class PERIOD :
         return HttpResponseRedirect(f'/sch/pay-period/{year}/{period}/')
 
 class WEEK:
-    class WeekView (ListView):
+    class WeekView (DetailView):
 
         model               =  Week
         template_name       = 'sch/week/week.html'
         context_object_name = 'workdays'
+        
 
         def get_context_data  (self, **kwargs):
+            
+            ### URL : /sch2/week/schid/<week>/
+            
             context = super().get_context_data(**kwargs)
-            context['title']      = 'Week'
-            context['year']       = self.kwargs['year']
-            year                  = self.kwargs['year']
-            context['week_num']   = self.kwargs['week']
-            week                  = self.kwargs['week']
+            context['title']      = f"Week {self.kwargs['wk']}"
+            
+            year = self.get_object().workdays.first().date.year
+            context['year']       = year
+            year                  = year
+            context['week_num']   = self.kwargs['wk']
+            week                  = self.kwargs['wk']
+            week = int(week)
 
             if week not in [0,1,52,53]:
                 context['nextWeek'] = week + 1
@@ -304,16 +311,22 @@ class WEEK:
                 context['prevWeek'] = 52
                 context['nextYear'] = year
                 context['prevYear'] = year - 1
+                
+            week = self.get_object()
 
-            dates = Workday.objects.filter(date__year=year,iweek=week).values('date')
+            dates = week.workdays.all()
+            
             context['hrsTable']   = [(
                 empl, #0
                 Slot.objects.empls_weekly_hours(year, week, empl), #1
                 PtoRequest.objects.filter(workday__in=dates,employee=empl).count() #2
                 ) for empl in Employee.objects.all()]
             
-            weekprefScore  = sum(week.slots.exclude(employee=None).values_list('empl_sentiment',flat=True)) / len(week.slots.exclude(employee=None))
-            
+            if len(week.slots.exclude(employee=None)) != 0:
+                weekprefScore  = sum(week.slots.exclude(employee=None).values_list('empl_sentiment',flat=True)) / len(week.slots.exclude(employee=None))            
+            else:
+                weekprefScore = None
+                
             for day in context['workdays']:
                 day.table = self.render_day_table(day)
                 prefScore = sum(day.slots.exclude(employee=None).values_list('empl_sentiment',flat=True)) / len(day.slots.exclude(employee=None))
@@ -329,8 +342,10 @@ class WEEK:
                 context['weekprefScore'] = 0 
             
             total_unfilled = 0
+            
             for day in self.object_list:
                 total_unfilled += day.n_unfilled
+                
             context['total_unfilled'] = total_unfilled
             context['pay_period']   = context['workdays'].first().period
             context['pto_requests'] = PtoRequest.objects.filter( workday__week=week, status__in=['A','P'])
@@ -363,8 +378,8 @@ class WEEK:
 
             return context
 
-        def get_queryset  (self):
-            return Workday.objects.filter(date__year=self.kwargs['year'], iweek=self.kwargs['week']).order_by('date')
+        def get_object (self):
+            return Week.objects.get(schedule__slug=self.kwargs['sch'], number=self.kwargs['wk'])
 
         def get_day_table  (self, workday):
             shifts              = Shift.objects.on_weekday(weekday=workday.iweekday).order_by('cls')
@@ -1858,6 +1873,7 @@ class SCHEDULE:
     def scheduleView (request, year, sch):
         context = {}
         
+        context['schedule'] = Schedule.objects.get(year=year,number=sch)
         context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
         sched = Schedule.objects.get(year=year,number=sch)
         if sch == 8:

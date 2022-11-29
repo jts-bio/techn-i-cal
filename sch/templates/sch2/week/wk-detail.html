@@ -5,38 +5,43 @@
 {% block content %}
 
     <nav>
-        <a href="fill-templates/" class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">FILL TEMPLATES</a>
+        <a href="{{week.tpl_fill_url}}" class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">FILL TEMPLATES</a>
     </nav>
 
     <h1 class="text-2xl text-amber-300">{{ week }}</h1>
-    <div class="flex flex-row">
-
+    
+    <div class="hstack">
+        
     {% for workday in workdays %}
-        <div class="panel">
+    <div id="{{workday.slug}}">
+        <div 
+        class="panel"
+        hx-get="{{workday.url_tooltip}}"
+        hx-target="#{{workday.slug}}"
+        hx-trigger="mouseenter">
+
             <div 
             class= "text-2xs text-bold text-amber-300">
-            {{ workday.weekday }}</div>
+            {{ workday.weekday }}
+            </div>
 
             <h3 
             class="text-lg"> 
             {{ workday.date }} Schedule</h3>
 
                 <table>
-                    <th class="px-3">
-                        <tr class="px-3">Shift</tr>
-                        <tr class="px-3">Assigned to</tr>
-                    </th>
                     {% for slot in workday.slots.all %}
-                        <tr>
-                            <td> {{ slot.shift.name }} </td>
-                            <td> {{ slot.employee }} </td>
-                        </tr>
+                        <div> 
+                            <span class="text-amber-700 p-2">{{ slot.shift.name }}</span> 
+                            <span class="jbm text-xs"> {{ slot.employee }} </span>
+                        </div>
                     {% endfor slot %}
-                </table>
 
-            </div>
+                </table>
         </div>
-        
-    {% endfor workday %}
+    </div>
+    {% endfor workday %}        
+    </div>
+    
 
 {% endblock content %}

@@ -59,23 +59,23 @@
 
             <h2 style="color:orange;font-size:18px;">Templating</h2>
             <p class="text-xs text-sky-200 italic my-5" style="font-family:'Helvetica Neue';">{{employee}} is templated for {{sstHours}} hours / pay period.</p>
-            <div class="hstack" style="justify-content:space-around;">
-                <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+            <div class="hstack flex shrink" style="justify-content:space-around;">
+                <div class="shrink">SUN</div><div class="shrink">MON</div><div class="shrink">TUE</div><div class="shrink">WED</div><div class="shrink">THU</div><div class="shrink">FRI</div><div class="shrink">SAT</div>
             </div>
-            <div class="hstack">
+            <div class="hstack flex shrink">
                 {% for sst in SSTGrid %}
                 {% if sst.1 %}
-                    <div class="panel w-70" style="background-color:#5af7;border-color:#7bf;height:90px;width:70px;">
+                    <div class="panel w-70 shrink" style="background-color:#5af7;border-color:#7bf;height:90px;width:70px;">
                         <span style="font-size:9px;">Day {{sst.0}}</span><br>
                         <div class="-rotate-45"><span class="text-center" style="font-size:25px;font-style:italic;opacity:80%;padding-right:2px;">{{sst.1.0.shift}}</span></div>
                     </div>
                 {% elif sst.2 %}
-                    <div class="panel w-70 bg-zinc-900" style="height:90px;">
+                    <div class="panel w-70 bg-zinc-900 shrink" style="height:90px;">
                         <span style="font-size:9px">Day {{sst.0}}</span><br>
                         <span class="text-center">{% lockIcon '40px' '40px' %}</span>
                     </div>
                 {% else %}
-                    <div class="panel w-70" style="height:90px;width:70px;">
+                    <div class="panel w-70 shrink" style="height:90px;width:70px;">
                         <span class="small">N/A</span>
                     </div>
                 {% endif %}

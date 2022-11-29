@@ -39,12 +39,12 @@ INSTALLED_APPS = [
     "flow.apps.FlowConfig",
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
+    "sch2.apps.Sch2Config",
     "sch.templatetags.tags",
     "slippers",
     "computedfields",
     "multiselectfield",
     "compressor",
-    # "rest_framework",
     "django_tables2",
     "django.contrib.admin",
     "django.contrib.admindocs",
@@ -96,7 +96,7 @@ WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "NAME": BASE_DIR / "dbtest.sqlite3",
     }
 }
 

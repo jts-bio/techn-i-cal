@@ -27,12 +27,15 @@ workday_patterns = [
     path('day/<slug:date>/add-pto/', views.WORKDAY.WorkdayPtoRequest.as_view(), name='workdayAddPTO'),
     path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
     path('day/<slug:date>/run-swaps/', views.WORKDAY.runSwaps, name='run-swaps'),
+    
+    path('v2/<str:sch>/<int:prd>/<int:wk>/<str:day>/', views2.dayView, name='day-view2'),
+    path('workday/get-tooltip/', views2.schDayPopover, name='workday-detail-popover'),
 ]
 urlpatterns += workday_patterns
 
 week_patterns = [
     #? ==== Week ==== ?#
-    path('week/<int:year>/<int:week>/', views.WEEK.WeekView.as_view(), name='week'),
+    
     path('week/day-table-frag/<str:workday>/', views.WEEK.dayTableFragment, name='dayTableFragment'),
     path('week/<int:year>/<int:week>/unfilled-slots/', views.WEEK.WeeklyUnfilledSlotsView.as_view(), name='week-unfilled-slots'),
     path('week/<int:year>/<int:week>/fill-template/', views.WEEK.weekFillTemplates, name='weekFillTemplate'),
@@ -45,8 +48,10 @@ week_patterns = [
     path('week/<int:year>/<int:week>/table/', views.WEEK.weekHoursTable, name='weeks-table'),
     path('week/<int:year>/<int:iweek>/get-empty-slots/', views.WEEK.GET.solvableUnfilledWeekSlots, name='get-empty-slots'),
     
-    path('<int:schid>/week/<int:week>/', views2.weekView, name='xweek'),
-    path('<int:schid>/week/<int:week>/fill-templates/', views2.weekView__set_ssts, name='xweekFillTemplate'),
+    path('week/<str:sch>/<str:prd>/<str:wk>/', views.WEEK.WeekView.as_view(), name='week'),
+    path('v2/<str:sch>/<str:prd>/<str:wk>/', views2.weekView, name='xweek'),
+    path('weeksolve/<int:weekid>/solve/fill-templates/', views2.weekView__set_ssts, name='xweekFillTemplate'),
+    path('weeklist/', views2.weekListView, name='xweek-list'),
 ]
 urlpatterns += week_patterns
 
@@ -147,10 +152,12 @@ schedule_patterns = [
     
     path('v2/schedule/list/', 
          views2.schListView,                       name='sch-list'),
-    path('v2/S<int:year>-<int:num><str:ver>/',
+    path('v2/<int:year>-<int:num><str:ver>/',
          views2.schDetailView,                     name='sch'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
          views2.schDayPopover, name="sch-day-popover"),
+    path('v2/schedule-solving/<str:sched>/',
+         views2.schActionSolveSlots,              name='sch-solve-slots'),
 ]
 urlpatterns += schedule_patterns
 
@@ -184,7 +191,6 @@ urlpatterns += htmx_patterns
 
 hyperPatterns = [
     path('hyper/hilight/',
-         views.HYPER.hilight , name='hyperscript-hilight',)
-    
+         views.HYPER.hilight , name='hyperscript-hilight',) 
 ]
 urlpatterns += hyperPatterns

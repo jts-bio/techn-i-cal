@@ -129,6 +129,9 @@ class PayPeriodActions:
 
 class ScheduleBot:
     
+    def generate_schedule (year, sch):
+        pass
+    
     def get_unfavorables (year, sch):
         nfs = tally(list(
             Slot.objects.filter(
@@ -524,18 +527,18 @@ class ShiftPrefBot :
                     
 class ExportBot :
     
-    def exportWeek (year,week):
-        workdays = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
-        employees = Employee.objects.all()
-        # Workdays will be Columns, Employees will be rows. Cell Values are shift names.
-        # Create pandas DataFrame:
-        df = pd.DataFrame(columns=workdays.values_list('date', flat=True))
-        for emp in employees:
-            df.loc[emp.name] = ''
-        for i, workday in enumerate(workdays):
-            for sl in Slot.objects.filter(workday=workday):
-                df.loc[sl.employee.name][i] = sl.shift.name
-        print(df)
+    # def exportWeek (year,week):
+    #     workdays = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
+    #     employees = Employee.objects.all()
+    #     # Workdays will be Columns, Employees will be rows. Cell Values are shift names.
+    #     # Create pandas DataFrame:
+    #     df = pd.DataFrame(columns=workdays.values_list('date', flat=True))
+    #     for emp in employees:
+    #         df.loc[emp.name] = ''
+    #     for i, workday in enumerate(workdays):
+    #         for sl in Slot.objects.filter(workday=workday):
+    #             df.loc[sl.employee.name][i] = sl.shift.name
+    #     print(df)
         
     def exportPeriod(year,payperiod):
         workdays = Workday.objects.filter(date__year=year,iperiod=payperiod).order_by('date')
@@ -659,6 +662,7 @@ class ResolveBot:
         return random.randint(0,len(List))
         
 class ScheduleActions:
+    
     def emptyUsuallyTemplatedSlots (self, year, sch):
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
         tmpls = ShiftTemplate.objects.all()
