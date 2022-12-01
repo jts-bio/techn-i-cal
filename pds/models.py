@@ -26,4 +26,3 @@ class Compound(models.Model):
     def __str__(self):
         return f'{" ".join(self.drugs)} in {self.diluent}'
     
-    

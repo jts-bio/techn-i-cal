@@ -21,22 +21,36 @@
             class="text-lg"> 
             {{ workday.date }} Schedule</h3>
 
-                <table>
+                <table class='x-overflow-scroll'>
                     <th class="px-3">
-                        <tr class="px-3">Shift</tr>
-                        <tr class="px-3">Assigned to</tr>
+                        <tr><span class="text-2xs text-gray-399 px-3">Shift</span></tr>
+                        <tr><span class="text-2xs text-gray-300 px-3">Assigned to</span></tr>
                     </th>
                     {% for slot in workday.slots.all %}
                         <tr>
                             <td> {{ slot.shift.name }} </td>
                             <td> {{ slot.employee }} </td>
                         </tr>
-                    {% endfor slot %}
+                    {% endfor %}
                 </table>
 
-            </div>
+            
         </div>
         
-    {% endfor workday %}
+    {% endfor %}
+    </div>
+    
+    <div>
+
+    {% regroup slots by employee as slotCount %}
+
+    {% for empl in slotCount %}
+        <p> {{ empl.grouper }} </p> 
+        {% for slot in empl.list %}
+            <span class='bg-blue-600 text-white text-xs italic px-2 rounded-lg'>{{ slot }}</span>
+        {% endfor %}     
+    {% endfor slot %}
+    
+    </div>
 
 {% endblock content %}

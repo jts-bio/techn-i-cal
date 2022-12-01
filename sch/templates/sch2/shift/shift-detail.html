@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+
+{% block style %}
+    <style>
+        .local-button { }
+    </style>
+{% endblock style %}
+    
+
+{% block content %}
+
+        <div class="text text-center panel">
+            <h1 class="text-3xl">{{shift}}</h1>
+            <h3 class="text-md">{{shift.cls}} Shift</h3>
+        </div>
+
+        <div class="panel">
+        <h2 class="text-lg">Summary</h2>
+        <table class="table">
+            <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
+            <tr><th>Duration</th><td>{{shift.duration}}</td></tr>
+            <tr><th>Occurs on</th><td>{{shift.occur_days}}</td></tr>
+            <tfoot>
+            <tr>
+                <td><span class="text-xs italic">{{shift.trained.all.count}} Trained Employees</span></td>
+                <td><span><a 
+                    href="{% url 'sch:shift-training-update' shift.cls shift.pk %}" 
+                    class="bg-gray-400 border-2 border-gray-400 text-gray-800 hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 hover:border-amber-400 hover:ring-amber-600">
+                    Manage
+                    </a></span>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+        </div>
+    
+{% endblock content %}
+    

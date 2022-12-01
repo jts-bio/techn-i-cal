@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+<head>
+    <style>
+        {% include 'sch/css/_wikitable.css' %}
+    </style>
+
+</head>
+
+<!----------------------------
+TEMPLATE VARIABLES
+    *   workday
+------------------------------>
+
+{% block content %}
+    
+
+    
+    <div class="panel text center-text">
+        <a href="{{workday.prevWD.url}}"> {%backArrow%} </a>
+        <h1 class="text-3xl"> {{workday}} </h1>
+        <a href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
+    </div>
+    <div class="panel">
+        <table class="wikitable">
+            <thead>
+                <tr>
+                    <th>Week</th><th>Pay Period</th><th>Schedule</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>{{workday.week.number}}</td><td>{{workday.period.number}}</td><td>{{workday.schedule.number}}</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+
+
+    {% endblock content %}

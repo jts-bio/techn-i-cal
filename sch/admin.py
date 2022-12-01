@@ -30,8 +30,8 @@ class SlotAdmin(admin.ModelAdmin):
 
 @admin.register(ShiftTemplate)
 class ShiftTemplateAdmin(admin.ModelAdmin):
-    fields          = ['shift','employee','ppd_id']
-    list_display    = ['shift','employee','ppd_id']
+    fields          = ['shift','employee','sd_id']
+    list_display    = ['shift','employee','sd_id']
 
 @admin.register(PtoRequest)
 class PtoRequestAdmin(admin.ModelAdmin):
@@ -41,5 +41,5 @@ class PtoRequestAdmin(admin.ModelAdmin):
 
 @admin.register(TemplatedDayOff)
 class TmplDayOffAdmin(admin.ModelAdmin):
-    fields          = ['employee','ppd_id','sd_id']
-    list_display    = ['employee','ppd_id','sd_id']
+    fields          = ['employee', 'sd_id']
+    list_display    = ['employee', 'sd_id']

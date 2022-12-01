@@ -23,10 +23,15 @@ import datetime as dt
 
 
 def index(request):
+    
+    if request.user == None:
+        return HttpResponseRedirect(reverse_lazy("user-register-form"))
+    
     today   = dt.date.today()
     wd      = Workday.objects.get(date=today)
     shifts  = wd.shifts
     context = {
+        'user'  : request.user,
         'wd'    : wd, 
         'shifts': shifts,
     }
@@ -905,9 +910,6 @@ class EMPLOYEE:
             context['ppdays']       = range(14)
             context['ssts']         = ShiftTemplate.objects.filter(employee=self.object) 
             context['sstHours']     = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
-            context['SSTGrid']      = [(day, 
-                                        ShiftTemplate.objects.filter(employee=self.object, ppd_id=day), 
-                                        TemplatedDayOff.objects.filter(employee=self.object, sd_id=day)) for day in range(42)] # type: ignore    
             context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
             context['ptoReqsExist'] = PtoRequest.objects.filter(employee=self.object).exists()
             context['multiplesOf7m1'] = [ i*7-1 for i in range(6) ]
@@ -917,12 +919,12 @@ class EMPLOYEE:
                 'date_to'  : dt.date.today() - dt.timedelta( days=int(dt.date.today().strftime("%w")) ) + dt.timedelta(days=42)
             }
             
-            context['unfavorables'] = EmployeeBot.get_emplUpcomingUnfavorables(self.object.name)
+            
 
             return context
 
         def get_object(self):
-            return Employee.objects.get(name=self.kwargs['name'])
+            return Employee.objects.get(slug=self.kwargs['name'])
 
         def employeeSstGrid (employee):
             ssts = ShiftTemplate.objects.filter(employee=employee)
@@ -1054,7 +1056,7 @@ class EMPLOYEE:
                     shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
                     shiftPreference.save()
                     print(shiftPreference,'didntexist')
-            return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
+            return HttpResponseRedirect(reverse_lazy('sch:v2-employee-detail', kwargs={'name': name}))
         
         initData = [
             {'employee':employee, 'shift': s} for s in trainedFor
@@ -1069,7 +1071,6 @@ class EMPLOYEE:
         context['emplPrefs'] = ShiftPreference.objects.filter(employee=employee)
         
         return render(request, 'sch/employee/shift_preferences_form.html', context)
-       
     ### TPL-DAY-OFF-BREAKDOWN 
     def tdoBreakdownView (request):
         """TDO BREAKDOWN VIEW
@@ -1084,7 +1085,7 @@ class EMPLOYEE:
         """
         
         context = {}
-        context['days'] = tally(list(TemplatedDayOff.objects.all().values_list('ppd_id',flat=True)))
+        context['days'] = tally(list(TemplatedDayOff.objects.all().values_list('sd_id',flat=True)))
         context['employees'] = Employee.objects.all()
         context['tdos'] = TemplatedDayOff.objects.all()
         return render(request,'sch/tdo/all.html', context)
@@ -1096,7 +1097,6 @@ class EMPLOYEE:
             'shifts': shifts,
         }
         return render(request,'sch/employee/sortable-shift-pref.html', context)
-    
     ### SFT-SLOT-TMPL
     class EmployeeSstsView (FormView):
         """Display the 2 week template for a single employee,
@@ -1136,38 +1136,38 @@ class EMPLOYEE:
                 if formset.is_valid():
                     for form in formset:
                         shift = form.cleaned_data['shift']
-                        ppdid = form.cleaned_data['ppd_id']
+                        sdid = form.cleaned_data['sd_id']
                         employee = form.cleaned_data['employee']
                         if shift == None:
-                            if ShiftTemplate.objects.filter(ppd_id=ppdid, employee=employee).exists():
-                                sst = ShiftTemplate.objects.get(ppd_id=ppdid, employee=employee)
+                            if ShiftTemplate.objects.filter(sd_id=sdid, employee=employee).exists():
+                                sst = ShiftTemplate.objects.get(sd_id=sdid, employee=employee)
                                 sst.delete()
                         if shift != None:
-                            if ShiftTemplate.objects.filter(ppd_id=ppdid,employee=employee).exists():
+                            if ShiftTemplate.objects.filter(sd_id=sdid,employee=employee).exists():
                                 pass
                             else:
-                                sft = ShiftTemplate.objects.create(ppd_id=ppdid,employee=employee, shift=shift)
+                                sft = ShiftTemplate.objects.create(sd_id=sdid,employee=employee, shift=shift)
                                 sft.save()
                             
-                return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': name}))
+                return HttpResponseRedirect(reverse_lazy('sch:v2-employee-detail', kwargs={'name': name}))
                 
         context = {}
         context['employee'] = employee
         context['template_slots'] = ShiftTemplate.objects.filter(employee=employee)
         
         formset = formset_factory(SstEmployeeForm, extra=0)
-        sts = [ShiftTemplate.objects.filter(employee=employee, ppd_id=i).exists() for i in range(42)]
+        sts = [ShiftTemplate.objects.filter(employee=employee, sd_id=i).exists() for i in range(42)]
         sts2 = []
         i = 0
         for s in sts:
             if s == True:
-                sts2.append(ShiftTemplate.objects.get(ppd_id=i, employee=employee).shift)
+                sts2.append(ShiftTemplate.objects.get(sd_id=i, employee=employee).shift)
                 i += 1
             else:
                 sts2.append(None)
                 i += 1
         
-        initial = [{'ppd_id': i,'employee':employee, 'shift': sts2[i]} for i in range(42)]
+        initial = [{'sd_id': i,'employee':employee, 'shift': sts2[i]} for i in range(42)]
         
         formset    = formset (initial=initial)
         context['formset']  = formset

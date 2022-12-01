@@ -41,15 +41,15 @@ class SSTForm (forms.ModelForm) :
     
     class Meta:
         model = ShiftTemplate
-        fields = ['shift', 'ppd_id', 'employee']
+        fields = ['shift', 'sd_id', 'employee']
         labels = {
             'shift': 'Shift',
-            'ppd_id': 'sD ID',
+            'sd_id': 'sD ID',
             'employee': 'Employee',
         }
         widgets = {
             'shift': forms.HiddenInput(),
-            'ppd_id' : forms.HiddenInput(),
+            'sd_id' : forms.HiddenInput(),
             'employee': forms.Select(attrs={'class': 'form-control'}),
         }
 
@@ -71,7 +71,6 @@ class EmployeeForm (forms.ModelForm) :
             'cls': forms.RadioSelect(),
         }
         
-
 class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
@@ -95,7 +94,7 @@ class SstEmployeeForm (forms.Form):
     
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), required=False)
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
-    ppd_id   = forms.IntegerField(widget=forms.HiddenInput(),required=False)
+    sd_id    = forms.IntegerField(widget=forms.HiddenInput(),required=False)
 
     def __init__(self, *args, **kwargs):
         super(SstEmployeeForm, self).__init__(*args, **kwargs)
@@ -107,30 +106,30 @@ class SstEmployeeForm (forms.Form):
             trained_shifts = Shift.objects.none()
         try:
             wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
-            self.fields['shift'].label = wds[self.initial.get('ppd_id')]
+            self.fields['shift'].label = wds[self.initial.get('sd_id')]
         except:
             pass
         if employee:
             other_empls = Employee.objects.exclude(pk=employee.pk)
         else:
             other_empls = Employee.objects.all()
-        occupied_ssts = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id'),employee__in=other_empls).values('shift')
-        ppd_id_proxy = self.initial.get('ppd_id') 
-        if ppd_id_proxy is None:
-            ppd_id_proxy = 0
+        occupied_ssts = ShiftTemplate.objects.filter(sd_id=self.initial.get('sd_id'),employee__in=other_empls).values('shift')
+        sd_id_proxy = self.initial.get('sd_id') 
+        if sd_id_proxy is None:
+            sd_id_proxy = 0
         else:
-            ppd_id_proxy = int(ppd_id_proxy) % 7
+            sd_id_proxy = int(sd_id_proxy) % 7
         if employee:
-            shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=ppd_id_proxy)
+            shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=sd_id_proxy)
         else:
             shiftList = Shift.objects.none()
-        if TemplatedDayOff.objects.filter(ppd_id=self.initial.get('ppd_id'), employee=employee).exists():
+        if TemplatedDayOff.objects.filter(sd_id=self.initial.get('ppd_id'), employee=employee).exists():
             shiftList = Shift.objects.none()
 
         self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]      # type: ignore
 
-        if ShiftTemplate.objects.filter(employee=employee, ppd_id=self.initial.get('ppd_id')).exists():
-            self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, ppd_id=self.initial.get('ppd_id')).shift.id
+        if ShiftTemplate.objects.filter(employee=employee, sd_id=self.initial.get('sd_id')).exists():
+            self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, sd_id=self.initial.get('sd_id')).shift.id
             # add css class to self.fields['shift'] object
         
 
@@ -222,8 +221,8 @@ class SlotForm (forms.ModelForm):
         
     def __init__(self, *args, **kwargs):
         super(SlotForm, self).__init__(*args, **kwargs)
-        self.fields['workday'].initial = self.initial.get('workday')
-        self.fields['shift'].initial = self.initial.get('shift')
+        self.fields['workday'].initial  = self.initial.get('workday')
+        self.fields['shift'].initial    = self.initial.get('shift')
         self.fields['employee'].initial = self.initial.get('employee')
         shift = self.initial.get('shift')
         workday = self.initial.get('workday')

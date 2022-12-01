@@ -1,22 +1,36 @@
-{% extends 'base.html' %}
+<!--
+SCHEDULE DETAIL VIEW 
+``view.scheduleDetail``
 
+-->
+
+{% extends 'base.html' %}
+{% load slippers %}
 
 
 {% block content %}
 
     <div class="panel text text-center">
         <h1 class="text-3xl text-amber-600 text-bold">
-        {{schedule.year}}-Schedule {{schedule.number}}</h1> 
+
+                    {{schedule.year}}-Schedule {{schedule.number}}
+                    
+        </h1> 
         <h3 class="text-lg text-amber-300 text-light">
-        VERSION {{schedule.version}}</h3>
+        
+                    VERSION {{schedule.version}}
+                    
+        </h3>
     </div>
 
     <div class="panel">
+
     {% for period in schedule.periods.all %}
 
-        <h3 
-        class="text-lg text-blue-700 text-semibold">
-        {{ period }}
+        <h3 class="text-lg text-blue-700 text-semibold">
+                    
+                    {{ period }}
+
         </h3>
 
         <div 
@@ -24,18 +38,24 @@
 
             {% for week in period.weeks.all %}
             
-                {{ week }}
+                <a href="{{week.url}}">{{week}}</a>
+
                 <div 
                 class="hstack">
 
                     {% for workday in week.workdays.all %}
 
-                            <div class="panel"
-                                hx-get="/{{workday.slug}}/as-popover/"
-                                hx-trigger="hover"
-                                hx-target="#popover">
-                                {{workday}}
+                            <div class="panel" hx-get="/{{workday.slug}}/as-popover/"
+                                 hx-trigger="hover"  hx-target="#popover">
+                                                       
+                                                        {{workday}}
+
                             </div>
+                            {% #basic_popover title=workday.date subtitle=workday.weekday desc=workday.days_away link=workday.url %}
+                                {% for slot in workday.slots.all %}
+                                    {% basic_popover_child title=slot.shift  value=slot.employee icon='! ' %}
+                                {% endfor %}
+                            {% /basic_popover %}
 
                             <div id="popover"></div>
 

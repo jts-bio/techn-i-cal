@@ -7,7 +7,7 @@
 <h1 style="font-size: 36px;">{{employee}}</h1>
 <h3 style="font-size: 18px;font-family:'JetBrains Mono';opacity:85%;">SHIFT PREFERENCE FORM</h3>
 
-<form method="post"> {% csrf_token %}
+<form method="POST"> {% csrf_token %}
 
 {{ formset.management_form }}
 

@@ -481,7 +481,9 @@ class ScheduleBot:
 class EmployeeBot:
     
     def get_emplUpcomingUnfavorables (employeeName):
-        td = Workday.objects.get(date=dt.date.today())
+        td = Workday.objects.filter(date=dt.date.today())
+        if td.exists() == False:
+            return None
         week0 = td.iweek
         weeks = range(week0, week0 + 6)
         return Slot.objects.filter(workday__iweek__in=weeks,workday__date__year=td.date.year, shift__start__hour__gte=10, employee__name=employeeName)

@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.core.serializers import serialize
 from django.db.models import Count
 from django.urls import reverse_lazy
 from django.views.generic.detail import DetailView
@@ -25,13 +26,14 @@ import datetime as dt
 #### LIST OF SCHEDULES ####
 #-------------------------#
 def schListView (request):
+    
     schedules = Schedule.objects.all()
     context = {
         'schedules': schedules
     }
     return render(request, 'sch2/schedule/sch-list.html', context)
 
-def schDetailView (request, year, num, ver):
+def schDetailView (request, year, num, ver ):
     
     schedule = Schedule.objects.get(year=year, number=num, version=ver)
     
@@ -49,11 +51,12 @@ def schDayPopover (request, year, num, ver, day):
     }
     return render(request, 'sch2/schedule/sch-day-popover2.html', context)    
 
-def weekView (request, year, week):
-    week = Week.objects.filter(year=year, number=week).first()
+def weekView (request, week):
+    week = Week.objects.filter(pk=week).first()
     week.save()
     context = {
         'week'  : week,
+        'slots' : week.slots.filled().order_by('employee__name'),
         'workdays': week.workdays.all(),
     }
     return render(request, 'sch2/week/wk-detail.html', context)
@@ -73,3 +76,60 @@ def weekView__set_ssts (request, year, week):
             for slot in day.slots.all():
                 slot.set_sst()
         return HttpResponseRedirect(reverse_lazy('wk-details', kwargs={'year': year, 'week': week.number}))
+
+def workdayDetail (request, slug):
+    
+    html_template = 'sch2/workday/wd-detail.html'
+    workday = Workday.objects.get(slug=slug)
+    
+    context = {
+        'workday': workday,
+    }
+    return render(request, html_template, context)
+
+def shiftDetailView (request, cls, name):
+    html_template = 'sch2/shift/shift-detail.html'
+    shift = Shift.objects.get(cls=cls,name=name)
+    context = {
+        'shift':shift
+    }
+    return render(request, html_template, context)
+
+def shiftTrainingFormView (request, cls, sft):
+    if request.method == 'POST':
+        json = request.POST.dict()
+        return JsonResponse(json,safe=False)
+    html_template = 'sch2/shift/shift-training.html'
+    shift = Shift.objects.get(cls=cls,pk=sft)
+    empls = Employee.objects.filter(cls=shift.cls).order_by('name')
+    context = {
+        'shift': shift,
+        'empls': empls,
+    }
+    return render(request, html_template, context)
+
+class ScheduleMaker :
+    
+    def generate_schedule (self, year, number):
+        """
+        GENERATE SCHEDULE
+        ===========================================
+        args: 
+            - ``year``
+            - ``number``
+        -------------------------------------------
+        """
+        yeardates = []
+        for date in SCH_STARTDATE_SET:
+            if date.year == year:
+                yeardates.append(date)
+        yeardates.sort()
+        n = Schedule.objects.filter(year=year,number=number).count()
+        version = "ABCDEFGHIJKLMNOPQRST"[n-1]
+        print(yeardates)
+        start_date = yeardates[number - 1]
+        sch = Schedule.objects.create(start_date=start_date, version=version, number=number, year=year)
+        sch.save()
+        for slot in sch.slots.all():
+            slot.save()
+        return sch, f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] "

@@ -1,0 +1,38 @@
+0 :
+  name: Josh            
+  fte_14_day : 50   
+  fte : 0.625           
+  shifts_trained : [MI,7C,7P,S,OP,EI,EP,"3","N"]
+  shifts_available : [MI,7C,7P,S,OP,EI,EP,"3","N"]
+  streak_pref : 3 
+  trade_one_offs : True
+  cls : CPhT     
+  evening_pref : False
+  slug : JTS          
+  hire_date : 2018-04-11 
+
+1 :
+  name: Molly            
+  fte_14_day : 80   
+  fte : 1.0          
+  shifts_trained : [I,PC,S,M,C,E,"3","N"]
+  shifts_available : [I,PC,S,M,C,E,"3","N"]
+  streak_pref : 4 
+  trade_one_offs : True
+  cls : RPh     
+  evening_pref : False
+  slug : MSM          
+  hire_date : 2017-07-11 
+
+2 :
+  name: Brittanie            
+  fte_14_day : 80   
+  fte : 1.0          
+  shifts_trained : [I,PC,S,M,C,E,"3","N"]
+  shifts_available : [I,PC,S,M,C,E,"3","N"]
+  streak_pref : 4 
+  trade_one_offs : True
+  cls : RPh     
+  evening_pref : False
+  slug : MSM          
+  hire_date : 2017-07-11 

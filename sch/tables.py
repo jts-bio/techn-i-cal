@@ -13,7 +13,7 @@ class EmployeeTable (tables.Table):
     Base Table for All Employees
     Displays basic details about each employee
     """
-    name = tables.columns.LinkColumn('employee-detail', args=[A('name')])
+    name = tables.columns.LinkColumn('sch:v2-employee-detail', args=[A('name')])
     avg_shift_pref_score = tables.columns.Column(
         verbose_name="Avg Shift Pref Score", 
         accessor='avg_shift_pref_score')
@@ -85,7 +85,7 @@ class ShiftListTable (tables.Table) :
     ---------------------------------
     ```
     """
-    name  = tables.columns.LinkColumn    ("shift", args=[A("name")])
+    name  = tables.columns.LinkColumn    ("sch:shift-detail", args=[A("cls"),A("name")])
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
     is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900"}})
     on_days_display = tables.columns.Column(verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
@@ -128,7 +128,7 @@ class ShiftsWorkdaySmallTable (tables.Table):
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS
     """
-    date       = tables.columns.LinkColumn("workday", args=[A("schedule__id"),A("slug")])
+    date       = tables.columns.LinkColumn("sch:v2-workday-detail", args=[A("slug")])
     n_unfilled = tables.columns.Column(verbose_name="Unfilled Shifts")
     days_away  = tables.columns.Column(verbose_name="Days Away")  
 

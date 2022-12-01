@@ -3,6 +3,15 @@ from django.contrib import admin
 from . import views, actions, views2
 
 
+"""
+URLS FOR THE SCHEDULE APP WITHIN FLOWRATE
+
+``site.com/sch/ ...`
+
+"""
+
+app_name = "sch"
+
 urlpatterns = [
     path('', views.index, name='index'),
     #? ==== PTO Requests ==== ?#
@@ -11,22 +20,22 @@ urlpatterns = [
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
 ]
 
+
 user_patterns = [
-    path('user/register/',
-         views.registerView,        name='user-register-form'),
-    path('user/login/', 
-         views.registerView,        name='user-login-form')
+    path('user/register/', views.registerView,        name='user-register-form'),
+    path('user/login/', views.registerView,           name='user-login-form')
 ]
 urlpatterns += user_patterns
 
 workday_patterns = [
     #? ==== Workday ==== ?#
-    path('day/all/', views.WORKDAY.WorkdayListView.as_view(), name='workday-list'),
-    path('day/<int:schid>/<slug:slug>/', views.WORKDAY.WorkDayDetailView.as_view(), name='workday'),
+    path('workday-list-view/all/', views.WORKDAY.WorkdayListView.as_view(), name='v2-workday-list'),
+    path('v1/workday-detail/<str:slug>/', views.WORKDAY.WorkDayDetailView.as_view(), name='v1-workday-detail'),
     path('day/<slug:date>/fill-template/', views.workdayFillTemplate, name='workdayFillTemplate'),
     path('day/<slug:date>/add-pto/', views.WORKDAY.WorkdayPtoRequest.as_view(), name='workdayAddPTO'),
     path('days/new/', views.WORKDAY.WorkdayBulkCreateView.as_view(), name='workday-new'),
     path('day/<slug:date>/run-swaps/', views.WORKDAY.runSwaps, name='run-swaps'),
+    path('v2/workday-detail/<str:slug>/',views2.workdayDetail, name='v2-workday-detail')
 ]
 urlpatterns += workday_patterns
 
@@ -45,7 +54,7 @@ week_patterns = [
     path('week/<int:year>/<int:week>/table/', views.WEEK.weekHoursTable, name='weeks-table'),
     path('week/<int:year>/<int:iweek>/get-empty-slots/', views.WEEK.GET.solvableUnfilledWeekSlots, name='get-empty-slots'),
     
-    path('<int:schid>/week/<int:week>/', views2.weekView, name='xweek'),
+    path('v2/week-detail/<int:week>/', views2.weekView, name='v2-week-detail'),
     path('<int:schid>/week/<int:week>/fill-templates/', views2.weekView__set_ssts, name='xweekFillTemplate'),
 ]
 urlpatterns += week_patterns
@@ -63,9 +72,9 @@ shift_patterns = [
     #? ==== Shifts ==== ?#
     path('shifts/all/', views.SHIFT.ShiftListView.as_view(), name='shift-list'),
     path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
-    path('shift/<str:name>/', views.SHIFT.ShiftDetailView.as_view() , name='shift'),
+    path('v2/shift/<str:cls>/<str:name>/', views2.shiftDetailView, name='shift-detail'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
-    path('shift/<str:name>/trained/update', views.SHIFT.trainedShiftView,name='shift-trained-update'), 
+    path('v2/shift/<str:cls>/<str:sft>/trained/update/', views2.shiftTrainingFormView,name='shift-training-update'), 
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
@@ -96,7 +105,7 @@ employee_patterns = [
     path("employees/cpht/", views.EMPLOYEE.EmployeeListViewCpht.as_view(), name='cpht-list'),
     path("employees/rph/", views.EMPLOYEE.EmployeeListViewRph.as_view(), name='rph-list'),
     path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
-    path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='employee-detail'),
+    path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='v2-employee-detail'),
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
     path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
     path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
@@ -120,9 +129,9 @@ urlpatterns += employee_patterns
 
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
-    path('schedule/all/',
+    path('schedule-list/all/',
          views.SCHEDULE.scheduleListView,           name='schedule-list'),
-    path('schedule/<int:year>-<int:number>/',
+    path('schedule-detail/<str:slug>/',
          views.SCHEDULE.scheduleDetailView,         name='schedule-detail'),
     path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',
          views.SCHEDULE.scheduleSlotModalView,      name='schedule-slot-modal'),
@@ -148,7 +157,7 @@ schedule_patterns = [
     path('v2/schedule/list/', 
          views2.schListView,                       name='sch-list'),
     path('v2/S<int:year>-<int:num><str:ver>/',
-         views2.schDetailView,                     name='sch'),
+         views2.schDetailView,                     name='v2-schedule-detail'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
          views2.schDayPopover, name="sch-day-popover"),
 ]
