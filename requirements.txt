@@ -29,7 +29,7 @@ google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
 grpcio==1.47.0
 gunicorn==20.1.0
-heroku==0.1.1
+heroku
 h5py==3.7.0
 idna==3.3
 ipykernel==6.15.1
