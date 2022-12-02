@@ -1,6 +1,0 @@
-name: techn-i-cal
-packages:
-- path: sch
-- path: flow
-- path: pds
-- path: techn_i_cal

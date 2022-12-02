@@ -14,8 +14,10 @@ app_name = "sch"
 
 urlpatterns = [
     path('', views.index, name='index'),
+    
     #? ==== PTO Requests ==== ?#
     path('pto-requests/all/', views.PTO.PtoManagerView.as_view(), name='pto-request-list'),
+    
     #? ==== DOCS ==== ?#
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
 ]
@@ -55,7 +57,9 @@ week_patterns = [
     path('week/<int:year>/<int:iweek>/get-empty-slots/', views.WEEK.GET.solvableUnfilledWeekSlots, name='get-empty-slots'),
     
     path('v2/week-detail/<int:week>/', views2.weekView, name='v2-week-detail'),
-    path('<int:schid>/week/<int:week>/fill-templates/', views2.weekView__set_ssts, name='xweekFillTemplate'),
+    path('v2/week/<int:week>/fill-templates/', views2.weekView__set_ssts, name='v2-week-fill-templates'),
+    path('v2/week-detail/<int:week>/delete-all-slots/', views2.weekView__clear_slots, name="v2-week-clear-slots"),
+    path('v2/current-week/', views2.currentWeek, name='v2-current-week'),
 ]
 urlpatterns += week_patterns
 
@@ -74,11 +78,12 @@ shift_patterns = [
     path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
     path('v2/shift/<str:cls>/<str:name>/', views2.shiftDetailView, name='shift-detail'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
-    path('v2/shift/<str:cls>/<str:sft>/trained/update/', views2.shiftTrainingFormView,name='shift-training-update'), 
+    path('v2/shift/<str:cls>/<str:sft>/trained/update/', views2.shiftTrainingFormView, name='shift-training-update'), 
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
     path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
+    
 ]
 urlpatterns += shift_patterns
 
@@ -122,21 +127,19 @@ employee_patterns = [
     path('day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
     path('evening-fractions/', views.EMPLOYEE.eveningFractionView,name='pm-fractions'),
     
-    path('employee/<str:name>/sort-shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-shifts'),
+    path('employee/<str:name>/sort-shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-sortable'),
     
 ]
 urlpatterns += employee_patterns
 
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
-    path('schedule-list/all/',
-         views.SCHEDULE.scheduleListView,           name='schedule-list'),
-    path('schedule-detail/<str:slug>/',
-         views.SCHEDULE.scheduleDetailView,         name='schedule-detail'),
-    path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',
-         views.SCHEDULE.scheduleSlotModalView,      name='schedule-slot-modal'),
+    path('v2/generate-schedule/<int:year>/<int:n>/', views2.generate_schedule_view, name='v2-generate-schedule'),
+    path('schedule-list/all/', views.SCHEDULE.scheduleListView,  name='schedule-list'),
+    path('schedule-detail/<str:slug>/',views.SCHEDULE.scheduleDetailView, name='schedule-detail'),
+    path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',views.SCHEDULE.scheduleSlotModalView, name='schedule-slot-modal'),
     path('schedule/current-schedule/', 
-         views.SCHEDULE.currentScheduleView,        name='current-schedule'),
+         views2.currentSchedule,                    name='v2-current-schedule'),
     path('schedule/<int:year>/<int:sch>/', 
          views.SCHEDULE.scheduleView,               name='schedule'),
     path('schedule/<int:year>/<int:sch>/solve/', 
@@ -160,6 +163,8 @@ schedule_patterns = [
          views2.schDetailView,                     name='v2-schedule-detail'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
          views2.schDayPopover, name="sch-day-popover"),
+    path('v2/schedule-solve/<int:schId>/', 
+         views2.scheduleSolve,                    name='v2-schedule-solve'),
 ]
 urlpatterns += schedule_patterns
 
@@ -193,7 +198,9 @@ urlpatterns += htmx_patterns
 
 hyperPatterns = [
     path('hyper/hilight/',
-         views.HYPER.hilight , name='hyperscript-hilight',)
+         views.HYPER.hilight , name='hyperscript-hilight'),
+    path('testing/layout/',
+         views2.mytest, name='test-layout')
     
 ]
 urlpatterns += hyperPatterns

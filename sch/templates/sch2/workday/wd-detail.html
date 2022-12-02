@@ -35,6 +35,32 @@ TEMPLATE VARIABLES
         </table>
     </div>
 
+    <div class="panel">
+        {% regroup workday.slots.all by cls as slots_list %}
+
+        {% for cls in slots_list %}
+            <h2>{{cls.grouper}}</h2>
+
+            <table class="wikitable">
+                <thead>
+                    <tr>
+                        <th>Shift</th><th></th><th>Employee</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for slot in cls.list %}
+                        <tr>
+                            <td>{{slot.shift}}</td>
+                            <td></td>
+                            <td>{{slot.employee}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        {% endfor %}
+    </div>
+
 
 
     {% endblock content %}

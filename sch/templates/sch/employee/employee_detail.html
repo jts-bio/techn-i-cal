@@ -37,7 +37,7 @@
                 <tr>
                     <th>
                         Trained Shifts <br>
-                        <a href="shift-tallies/" class="small">View Tallies</a>
+                        <a href="{{ employee.url__tallies }}" class="small">View Tallies</a>
                     </th>
                     <td>
                     {% for shift in sfts_trained %} {% if shift in sfts_avail %}
@@ -93,6 +93,7 @@
                 <a href="generate-schedule/"><div class="hstack">{% plusIcon %}<span> Generate Schedule</span></div></a>
                 <a href="shift-preferences/"><div class="hstack">{% favoriteIcon %}<span>Shift Preferences</span></div></a>
                 <a href="coworker/">         <div class="hstack">{% teamIcon %}<span>Coworker Views</span></div></a>
+                <a href="{% url 'sch:employee-sortable' employee.name %}">Sort Shift Preferences</a>
             </div>
             <div class="panel w-fc">
                 <div class="hstack"><span> {% vacationIcon %}</span><h2 style="font-size:22px;color:orange;">PTO Requests</h2></div>

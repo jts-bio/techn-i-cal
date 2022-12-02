@@ -2,35 +2,39 @@
 {% load tags %}
 
 
+{% block head %}
 
-{% block blockname %}
+{% endblock head %}
     
 
-    
-    <script>
+{% block content %}
+<script>
     htmx.onLoad(function(content) {
         var sortables = content.querySelectorAll(".sortable");
         for (var i = 0; i <s sortables.length; i++) {
         var sortable = sortables[i];
         new Sortable(sortable, {
             animation: 150,
-            ghostClass: 'blue-background-class'
+            ghostClass: 'bg-blue-800'
         });
         }
     })
-    </script>
+</script>
 
-    <div class="sortable">
+
+    <div class="sortable yt-expander">
     {% for shift in shifts %}
         <div class="panel">
             <div class="vstack">
-                <div class="text-2xs">{{ shift.start }}</div>
+                <div class="text-2xs">{{ shift }}</div>
                 <div class="text-sm">{{ shift.name }}</div>
             </div>
         </div>
     {% endfor shift %}
-    
+    </div>
 
+    <div class="yt-expander">
+        <div>{{shifts}}</div>
+    </div>
 
-
-{% endblock blockname %}
+{% endblock content %}

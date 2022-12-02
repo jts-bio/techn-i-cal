@@ -947,6 +947,24 @@ class EMPLOYEE:
 
         def get_object(self):
             return Employee.objects.get(name=self.kwargs['name'])
+        
+        def post (self, request, name):
+            form = EmployeeEditForm(request.POST)
+            print (request, request.POST)
+            if form.is_valid():
+                # form.save()
+                e = Employee.objects.get(name=name)
+                e.name          = form.cleaned_data['name']
+                e.cls           = form.cleaned_data['cls']
+                e.streak_pref   = form.cleaned_data['streak_pref']
+                e.fte_14_day    = form.cleaned_data['fte_14_day']
+                e.shifts_trained.set(form.cleaned_data['shifts_trained'])
+                e.shifts_available.set(form.cleaned_data['shifts_available'])
+                e.save()
+                return HttpResponseRedirect(e.url())
+                
+        
+        
 
     ### SCH-FORM
     class EmployeeScheduleFormView (FormView):
@@ -1322,8 +1340,9 @@ class EMPLOYEE:
             context = super().get_context_data(**kwargs)
             context['employee'] = self.object
             # annotate Shifts with the count of slots the employee has worked with that shift
-            context['shifts'] = Shift.objects.annotate(slot_count=Count('slot__employee', filter=Q(slot__employee=context['employee'])))
-            
+            context['shifts'] = Shift.objects.annotate(
+                            slot_count=Count('slots__employee', filter=Q(slots__employee=context['employee']))
+                        )
             sd = ShiftPreference.objects.filter(employee=context['employee'], score=-2).values_list('shift', flat=True)
             d = ShiftPreference.objects.filter(employee=context['employee'], score=-1).values_list('shift', flat=True)
             n = ShiftPreference.objects.filter(employee=context['employee'], score=0).values_list('shift', flat=True)

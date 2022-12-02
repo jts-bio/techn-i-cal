@@ -23,6 +23,14 @@ SCHEDULE DETAIL VIEW
         </h3>
     </div>
 
+    <div class="panel w-full text- text-center">
+    
+            <a href="{{ schedule.url__solve }}"
+                class="bg-slate-800 hover:bg-slate-600 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
+            SOLVE</a>
+    
+    </div>
+
     <div class="panel">
 
     {% for period in schedule.periods.all %}
@@ -45,16 +53,17 @@ SCHEDULE DETAIL VIEW
 
                     {% for workday in week.workdays.all %}
 
-                            <div class="panel" hx-get="/{{workday.slug}}/as-popover/"
-                                 hx-trigger="hover"  hx-target="#popover">
-                                                       
-                                                        {{workday}}
+                            {% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
+                                
+                                <div>{{ workday.days_away }} days away </div>
 
-                            </div>
-                            {% #basic_popover title=workday.date subtitle=workday.weekday desc=workday.days_away link=workday.url %}
                                 {% for slot in workday.slots.all %}
-                                    {% basic_popover_child title=slot.shift  value=slot.employee icon='! ' %}
+
+                                        {% basic_popover_child title=slot.shift  value=slot.employee %}
+                                        
                                 {% endfor %}
+                                <div> {{ workday.percent }}% FILLED</div>
+
                             {% /basic_popover %}
 
                             <div id="popover"></div>

@@ -1,6 +1,22 @@
-<div data-popover-target="popover-{{ title|slugify }}" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-        {{ title }}
-</div>
+<a   href="{{ link }}"
+     data-popover-target="popover-{{ title|slugify }}" 
+     type="button" 
+     class="text-white 
+        {% if score > 80 %}
+            bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none 
+            focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center 
+            dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800
+        {% elif score > 50 %} 
+            bg-amber-700 hover:bg-amber-800 focus:ring-4 focus:outline-none 
+            focus:ring-amber-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center 
+            dark:bg-amber-600 dark:hover:bg-amber-700 dark:focus:ring-amber-800
+        {% elif score < 50 %}
+            bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none 
+            focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center 
+            dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800
+        {% endif %} ">
+    {{ title }}
+</a>
 
 <div data-popover id="popover-{{ title|slugify }}" role="tooltip" class="inline-block absolute z-10 w-80 text-sm font-light text-gray-500 bg-white rounded-lg border border-gray-200 shadow-sm transition-opacity duration-300 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-600 opacity-0 invisible" style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate3d(47.5px, 285.5px, 0px);" data-popper-placement="bottom">
     <div class="p-3">
@@ -12,21 +28,22 @@
             </div>
             <div>
                 <p class="mb-1 text-base font-semibold leading-none text-gray-900 dark:text-white">
-                    <a href="{{link}}" class="hover:underline">{{ title }}</a>
+
+                    <a href="{{ link }}" class="hover:underline">
+                        
+                        {{ title }}
+                        
+                    </a>
                 </p>
                 <p class="mb-3 text-sm font-normal">
+
                     {{ subtitle }}
+
                 </p>
                 <p class="mb-4 text-sm font-light">{{ desc }}</p>
-                <ul class="text-sm font-light">
-                    {{children}}
+                <ul class="text-xs font-light">
+                    {{ children }}
                 </ul>
-                <div class="flex">
-                    <button type="button" class="inline-flex justify-center items-center py-2 px-5 mr-2 w-full text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"><svg class="mr-2 w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path></svg>Like page</button>
-                    <button class="inline-flex items-center py-2 px-2 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 shrink-0 focus:outline-none hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700" type="button"> 
-                        <svg class="w-4 h-4" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"></path></svg>
-                    </button>
-                </div>
             </div>
         </div>
     </div>

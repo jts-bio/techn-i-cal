@@ -72,22 +72,39 @@ class EmployeeForm (forms.ModelForm) :
         }
         
 class EmployeeEditForm (forms.ModelForm) :
+    
+    shifts_trained = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset = Shift.objects.all()
+    )
+    shifts_available = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset = Shift.objects.all()
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super(EmployeeEditForm, self).__init__(*args, **kwargs)
+        empClass = self.instance.cls
+        self.fields['shifts_trained'].queryset = Shift.objects.filter(cls=empClass)
+        self.fields['shifts_available'].queryset = Shift.objects.filter(cls=empClass)   
     class Meta:
         model = Employee
         fields = [
-            'name', 'fte_14_day', 'streak_pref', 
-            'shifts_trained', 'shifts_available', 'cls', 'evening_pref', 'hire_date'
+            'name',             'fte_14_day',   
+            'streak_pref',      'shifts_trained',   
+            'shifts_available', 'cls', 
+            'evening_pref',     'hire_date'
             ] 
         labels = {
-            'fte_14_day': 'FTE (hours per 14 days)',
-            'cls': 'Employee Class',
-            'evening_pref': "Prefers PM"
+            'fte_14_day'    : 'FTE (hours per 14 days)',
+            'cls'           : 'Employee Class',
+            'evening_pref'  : "Prefers PM"
         }
         widgets = {
-            'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}),
+            'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
             'shifts_available': forms.CheckboxSelectMultiple(),
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls'  : forms.RadioSelect(),
+            'cls'             : forms.Select(),
         }
 
 class SstEmployeeForm (forms.Form):

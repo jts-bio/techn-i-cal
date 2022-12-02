@@ -54,15 +54,17 @@ def schDayPopover (request, year, num, ver, day):
 def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
+    
+  
     context = {
         'week'  : week,
         'slots' : week.slots.filled().order_by('employee__name'),
         'workdays': week.workdays.all(),
+
     }
     return render(request, 'sch2/week/wk-detail.html', context)
 
-@csrf_exempt
-def weekView__set_ssts (request, year, week):
+def weekView__set_ssts (request, week):
     """
     If SST exists and filling employee is appropriate, Slot is filled.
     Exceptions that will result in no change:
@@ -71,11 +73,17 @@ def weekView__set_ssts (request, year, week):
         - empl in conflicting slot
     """
     if request.method == "POST":
-        week = Week.objects.filter(year=year, number=week).first()
+        week = Week.objects.filter(pk=week).first()
         for day in week.workdays.all():
             for slot in day.slots.all():
                 slot.set_sst()
-        return HttpResponseRedirect(reverse_lazy('wk-details', kwargs={'year': year, 'week': week.number}))
+        return HttpResponseRedirect(week.url())
+
+def weekView__clear_slots (request, week):
+    if request.method == "POST":
+        week = Week.objects.filter(pk=week).first()
+        week.slots.filled().update(employee=None)
+    return HttpResponseRedirect(week.url())
 
 def workdayDetail (request, slug):
     
@@ -89,18 +97,26 @@ def workdayDetail (request, slug):
 
 def shiftDetailView (request, cls, name):
     html_template = 'sch2/shift/shift-detail.html'
+    
     shift = Shift.objects.get(cls=cls,name=name)
+    _= [int(sft) for sft in shift.occur_days]
+    days = ",".join(["SMTWRFS"[d] for d in _])
+    
     context = {
-        'shift':shift
+        'shift' :shift,
+        'days'  : days,
     }
     return render(request, html_template, context)
 
 def shiftTrainingFormView (request, cls, sft):
+    
+    shift = Shift.objects.get (cls=cls, pk=sft)
     if request.method == 'POST':
         json = request.POST.dict()
-        return JsonResponse(json,safe=False)
+        print (json)
+        return HttpResponseRedirect (shift.url())
+    
     html_template = 'sch2/shift/shift-training.html'
-    shift = Shift.objects.get(cls=cls,pk=sft)
     empls = Employee.objects.filter(cls=shift.cls).order_by('name')
     context = {
         'shift': shift,
@@ -108,6 +124,22 @@ def shiftTrainingFormView (request, cls, sft):
     }
     return render(request, html_template, context)
 
+
+def currentWeek (request):
+    workday = Workday.objects.filter(date=dt.date.today()).first()
+    week = Week.objects.filter(workdays=workday).first()
+    return HttpResponseRedirect (week.url())
+
+def currentSchedule (request):
+    workday = Workday.objects.filter(date=dt.date.today()).first()
+    schedule = Schedule.objects.filter(workdays=workday).first()
+    return HttpResponseRedirect (schedule.url())
+
+def scheduleSolve (request, schId):
+    sch = Schedule.objects.get(id=schId)
+    bot = sch.Actions()
+    bot.fillSlots(sch)
+    return HttpResponseRedirect(sch.url())
 class ScheduleMaker :
     
     def generate_schedule (self, year, number):
@@ -133,3 +165,10 @@ class ScheduleMaker :
         for slot in sch.slots.all():
             slot.save()
         return sch, f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] "
+    
+def mytest (request):
+    return render(request, 'sch/test/layout.html', {})
+
+def generate_schedule_view (request,year,num):
+    generate_schedule(year,num)
+    return HttpResponseRedirect (reverse('sch:schedule-list'))

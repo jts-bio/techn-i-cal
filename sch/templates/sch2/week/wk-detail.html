@@ -5,13 +5,27 @@
 {% block content %}
 
     <nav>
-        <a href="fill-templates/" class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">FILL TEMPLATES</a>
+        <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
+              method="POST"> {% csrf_token %}
+        <input type="submit"
+            class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded" 
+            value="FILL TEMPLATES"/>
+        </form>
+        
+        <form action="{% url 'sch:v2-week-clear-slots' week.pk %}"
+              method="POST"> {% csrf_token %}
+        <input type="submit"
+        hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."
+            class="bg-rose-200 text-rose-600 hover:bg-rose-500 hover:text-rose-100" 
+            value="CLEAR SLOTS IN WEEK"/>
+        </form>
     </nav>
 
     <h1 class="text-2xl text-amber-300">{{ week }}</h1>
     <div class="flex flex-row">
 
     {% for workday in workdays %}
+    <a href="{{workday.url}}">
         <div class="panel">
             <div 
             class= "text-2xs text-bold text-amber-300">
@@ -34,8 +48,11 @@
                     {% endfor %}
                 </table>
 
+                <div>{{ workday.percent }}% Filled</div>
+
             
         </div>
+    </a>
         
     {% endfor %}
     </div>
@@ -53,4 +70,5 @@
     
     </div>
 
+    
 {% endblock content %}

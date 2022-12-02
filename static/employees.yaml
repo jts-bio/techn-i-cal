@@ -32,7 +32,7 @@
   shifts_available : [I,PC,S,M,C,E,"3","N"]
   streak_pref : 4 
   trade_one_offs : True
-  cls : RPh     
+  cls : CPhT     
   evening_pref : False
   slug : MSM          
   hire_date : 2017-07-11 

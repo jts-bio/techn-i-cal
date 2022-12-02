@@ -15,18 +15,19 @@
     
 
 {% block content %}
-    <a href="{{employee.url}}">{% backArrow %}</a>
-    <h1 class="text-3xl text-center">{{employee}}</h1>
+    <a href="{{ employee.url }}"> {% backArrow %} </a>
+    <h1 class="text-3xl text-center"> {{ employee }} </h1>
+
 <div class="hstack">
     <div class="panel">
     <table>
         {% for shift in shifts %}
         <tr>
             <th>
-                {{shift.name}}
+                {{ shift.name }}
             </th>
             <td style="width:45px;">
-                {{shift.slot_count}}
+                {{ shift.slot_count }}
             </td>
         </tr>
         {% endfor %}

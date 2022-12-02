@@ -23,8 +23,8 @@
 
         <div class="flex flex-col text-center">
             
-            <div class="vstack py-22">
-                <div style="font-size:60px;font-family:'JetBrains Mono';letter-spacing:2px;color:#fff6;font-style:italic;line-height:120%">
+            <div class="vstack">
+                <div style="font-size:50px;font-family:'JetBrains Mono';letter-spacing:2px;color:#fff6;font-style:italic;line-height:120%">
                     PHARMACY SCHEDULING
                 </div>
 
@@ -39,7 +39,7 @@
         </div>
     
 
-        <div class="flex flex-col lg:flex lg:flex-row g-2 m-5 space-x-32">
+        <div class="sm:flex sm:flex-col lg:flex lg:flex-row g-2 m-5 space-x-32">
 
             {% #dense-card title='Schedules' img='/static/img/GoldBlackBackground.jpg' link='/sch/v2/schedule/list' %}
                 
@@ -61,14 +61,16 @@
         
 
     {% #toggle-section title="View Messages" %} 
-       <div> "No Messages to display" </div> 
+
+       <div> 
+            THERE ARE EMPTY SLOTS COMING UP SOON. 
+            SEE THEM IN 
+            <a href="{% url 'sch:v2-current-schedule'">IN THE SCHEDULE VIEW</a>
+       </div> 
+
     {%/toggle-section%}
 
-    {% #radio-panel-wrapper prompt="Select 3rd Largest City of Ukraine" %}
-        {% radio-panel-item option="Odesa" note="Southwest Ukraine" %}
-        {% radio-panel-item option="Dnipro" note="Central Ukraine" %}
-        {% radio-panel-item option="Kharkiv" note=  pmo "Northeast Ukraine" %}
-    {% /radio-panel-wrapper %}
+
 
     
     {% include 'sch/comp/display/carousel.html' %}

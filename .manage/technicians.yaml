@@ -1,17 +1,20 @@
 - name: Josh
+  cls: CPhT
   fte:  0.625
-  shifts_trained:   [MI,7C,7P,S,OP,EI,EP,3,N]
-  shifts_avaliable: [MI,7C,7P,S,OP,EI,EP,3,N]
+  shifts_trained: &ALLSHIFTS [MI,7C,7P,S,OP,EI,EP,3,N] 
+  shifts_avaliable: *ALLSHIFTS
 
 - name: Brittanie
+  cls: CPhT
   fte:  1
   shifts_trained:   [MI,7C,7P,S,OP,EI,EP,3,N]
   shifts_avaliable: [OP]
 
-- name:
-  fte:
-  shifts_trained:
-  shifts_avaliable:
+- name: Trisha
+  cls: CPhT
+  fte: 0.5
+  shifts_trained: *ALLSHIFTS
+  shifts_avaliable: *ALLSHIFTS
 
 - name:
   fte:
