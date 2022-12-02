@@ -25,10 +25,14 @@ SCHEDULE DETAIL VIEW
 
     <div class="panel w-full text- text-center">
     
-            <a href="{{ schedule.url__solve }}"
+            <div data-hx-get="{{ schedule.url__solve }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." hx-trigger="click"
                 class="bg-slate-800 hover:bg-slate-600 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
-            SOLVE</a>
+            SOLVE</div>
     
+            <a data-hx-get="{{ schedule.url__clear }}" hx-confirm="Verify You are clearing the Assignments of All Employees on this Schedule Draft."
+                class="bg-slate-800 hover:bg-slate-600 text-red-200 hover:text-red-400 hover:ring-2 hover:ring-yellow-300">
+            CLEAR</a>
+            
     </div>
 
     <div class="panel">

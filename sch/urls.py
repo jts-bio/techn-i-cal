@@ -161,6 +161,8 @@ schedule_patterns = [
          views2.schListView,                       name='sch-list'),
     path('v2/S<int:year>-<int:num><str:ver>/',
          views2.schDetailView,                     name='v2-schedule-detail'),
+    path('v2/schedule/<int:schId>/clearSlots/', 
+         views2.scheduleClearAllView,               name='v2-schedule-clear'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
          views2.schDayPopover, name="sch-day-popover"),
     path('v2/schedule-solve/<int:schId>/', 

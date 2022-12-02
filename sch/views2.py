@@ -140,6 +140,11 @@ def scheduleSolve (request, schId):
     bot = sch.Actions()
     bot.fillSlots(sch)
     return HttpResponseRedirect(sch.url())
+
+def scheduleClearAllView (request, schId):
+    sch = Schedule.objects.get(pk=schId)
+    sch.slots.filled().update(employee=None)
+    return HttpResponseRedirect (sch.url())
 class ScheduleMaker :
     
     def generate_schedule (self, year, number):

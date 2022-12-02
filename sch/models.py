@@ -123,7 +123,9 @@ class SlotManager (models.QuerySet):
             if i.is_preturnaround:
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
-
+    def unfavorables (self):
+        ufs = [i.pk for i in self if i.is_unfavorable]
+        return Slot.objects.filter(pk__in=ufs)
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
@@ -139,8 +141,7 @@ class SlotManager (models.QuerySet):
             dayAfter = workday.nextWD()
             incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
-            return incompat_slots
-        
+            return incompat_slots        
     def belowAvg_sftPrefScore (self):
         query = self.annotate(
             score = ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
@@ -161,7 +162,6 @@ class SlotManager (models.QuerySet):
         
         # 4 -- return only slots whose shift pref score is less than 0
         return query.filter(change__lte=0)
-    
     def streaks (self, employee):
         return self.filter(employee=employee, is_terminal=True)
     
@@ -347,8 +347,8 @@ class Shift (models.Model) :
 class Employee (models.Model) :
     # fields: name, fte_14_day , shifts_trained, shifts_available 
     name            = models.CharField (max_length=100)
-    fte_14_day      = models.FloatField()
-    fte             = models.FloatField()
+    fte_14_day      = models.FloatField(default=80)
+    fte             = models.FloatField(default=1)
     shifts_trained  = models.ManyToManyField (Shift, related_name='trained')
     shifts_available= models.ManyToManyField (Shift, related_name='available')
     streak_pref     = models.IntegerField (default=3)
@@ -358,6 +358,9 @@ class Employee (models.Model) :
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
 
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        self.fte = self.fte_14_day / 80
     def url__tallies (self):
         return reverse("sch:employee-shift-tallies", kwargs={"name":self.name})
     def url__update (self):
@@ -864,6 +867,8 @@ class Schedule (models.Model):
         return url
     def url__solve (self):
         return reverse('sch:v2-schedule-solve', args=[self.pk])
+    def url__clear (self):
+        return reverse('sch:v2-schedule-clear', args=[self.pk])
     def __str__ (self):
         return f"S{self.year}-{self.number}{self.version}"
     def unfavorableRatio (self,employee):
@@ -903,18 +908,21 @@ class Schedule (models.Model):
                     slot.save()
                     keeptrying -= 1
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA OPTION-MAPPING ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
+        def deleteSlots (self,instance):
+            instance.slots.all().update(employee=None)
+            
 # ============================================================================
 class Slot (models.Model) :
     # fields: workday, shift, employee
     workday        = models.ForeignKey ("Workday",  on_delete=models.CASCADE, null=True, related_name='slots')
-    shift          = models.ForeignKey ( Shift,     on_delete=models.CASCADE, null=True, related_name='slots')
+    shift          = models.ForeignKey ( "Shift",     on_delete=models.CASCADE, null=True, related_name='slots')
     employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, blank=True, default=None, related_name='slots')
     empl_sentiment = models.SmallIntegerField (null=True, default=None)   
-    week           = models.ForeignKey (Week, on_delete=models.CASCADE, null=True, related_name='slots')
-    period         = models.ForeignKey (Period, on_delete=models.CASCADE, null=True, related_name='slots')
-    schedule       = models.ForeignKey (Schedule, on_delete=models.CASCADE, null=True,related_name='slots')
-    is_turnaround  = models.BooleanField(default=False)
-    is_terminal    = models.BooleanField(default=False)
+    week           = models.ForeignKey ("Week", on_delete=models.CASCADE, null=True, related_name='slots')
+    period         = models.ForeignKey ("Period", on_delete=models.CASCADE, null=True, related_name='slots')
+    schedule       = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True,related_name='slots')
+    is_turnaround  = models.BooleanField (default=False)
+    is_terminal    = models.BooleanField (default=False)
     
     class Meta:
         constraints = [
@@ -941,12 +949,12 @@ class Slot (models.Model) :
     def get_absolute_url (self):
         return reverse("slot", kwargs={"slug": self.slug})
     @property
-    def prefScore        (self) :
+    def prefScore         (self) :
         if ShiftPreference.objects.filter(shift=self.shift, employee=self.employee).exists() :
             return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
         else:
             return 0
-    def _set_is_turnaround    (self) :
+    def _set_is_turnaround(self) :
         if not self.employee:
             return False
         if self.shift.start > dt.time(12,0):
@@ -979,7 +987,7 @@ class Slot (models.Model) :
                 return True
             else:
                 return False
-    def turnaround_pair  (self) :
+    def turnaround_pair   (self) :
         self.save()
         if self.is_turnaround :
             return Slot.objects.get(employee=self.employee,workday=self.workday.prevWD())
@@ -987,7 +995,12 @@ class Slot (models.Model) :
             return Slot.objects.get(employee=self.employee,workday=self.workday.nextWD())
         else:
             return None
-    def _set_is_terminal      (self) :
+    def is_unfavorable  (self):
+        if self.employee:
+            if self.shift in self.employee.unfavorable_shifts():
+                return True
+        return False
+    def _set_is_terminal  (self) :
         if Slot.objects.filter(workday=self.workday.nextWD(), employee=self.employee).exists() :
             return False
         else:
