@@ -136,7 +136,7 @@ schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
     path('v2/generate-schedule/<int:year>/<int:n>/', views2.generate_schedule_view, name='v2-generate-schedule'),
     path('schedule-list/all/', views.SCHEDULE.scheduleListView,  name='schedule-list'),
-    path('schedule-detail/<str:slug>/',views.SCHEDULE.scheduleDetailView, name='schedule-detail'),
+    path('schedule-detail/<str:slug>/',views.SCHEDULE.scheduleView, name='v1-schedule-detail'),
     path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',views.SCHEDULE.scheduleSlotModalView, name='schedule-slot-modal'),
     path('schedule/current-schedule/', 
          views2.currentSchedule,                    name='v2-current-schedule'),
@@ -164,9 +164,11 @@ schedule_patterns = [
     path('v2/schedule/<int:schId>/clearSlots/', 
          views2.scheduleClearAllView,               name='v2-schedule-clear'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
-         views2.schDayPopover, name="sch-day-popover"),
+         views2.schDayPopover,                      name="sch-day-popover"),
     path('v2/schedule-solve/<int:schId>/', 
-         views2.scheduleSolve,                    name='v2-schedule-solve'),
+         views2.scheduleSolve,                      name='v2-schedule-solve'),
+    path('v2/schedule-solve-alg-2/<int:schId>/', 
+         views.SCHEDULE.solveScheduleSlots,         name='v2-schedule-solve-alg2'),
 ]
 urlpatterns += schedule_patterns
 

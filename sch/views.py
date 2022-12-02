@@ -1874,15 +1874,12 @@ class SCHEDULE:
             }
         return render(request, modal_html, context)
     
-    def scheduleView (request, year, sch):
+    def scheduleView (request, slug):
         context = {}
-        
-        context['days'] = Workday.objects.filter(date__year=year,ischedule=sch)
-        sched = Schedule.objects.get(year=year,number=sch)
-        if sch == 8:
-            context['days'] = context['days'].union (Workday.objects.filter(date__year=year+1,ischedule=None))
-        context['day0']     = context['days'].first ()
-        context['dayN']     = context ['days'].last ()
+        sched = Schedule.objects.get(slug=slug)
+        year = sched.year
+        sch = sched.number
+        context['days'] = sched.workdays.all()
         
         employees = Employee.objects.all().order_by('cls','name')
         
@@ -1896,9 +1893,7 @@ class SCHEDULE:
             empl.schedule = schedule
             
         context['employees'] = employees
-        
-        
-        
+
         context['weekendlist']  = [0,6]
         context['unfavorables'] = ScheduleBot.get_unfavorables(year,sch)
         
@@ -1924,6 +1919,8 @@ class SCHEDULE:
         else :
             context['prevSch_url']    = f'/sch/schedule/{year-1}/8'
             context['nextSch_url']    = f'/sch/schedule/{year}/{sch+1}/'
+            
+        context['schedule'] = sched
         
         return render(request, 'sch/schedule/grid.html', context)
     
@@ -1973,8 +1970,11 @@ class SCHEDULE:
         url_pattern = '/sch/schedule/<int:year>/<int:sch>/solve/'
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
-    def solveScheduleSlots (request,year,sch):
-        ScheduleBot.solveSchedule(0,year,sch)
+    def solveScheduleSlots (request,schId):
+        ScheduleBot.solveSchedule(0,schId)
+        schedule = Schedule.objects.get(pk=schId)
+        year = schedule.year 
+        sch = schedule.number
         print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")
         for slot in SCHEDULE.tdosConflictedSlots(year,sch):
             slot.delete()
@@ -1986,7 +1986,7 @@ class SCHEDULE:
                 slot.delete()
             slot.save()
         SCHEDULE.solvePart2(request,year,sch)
-        return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
+        return HttpResponseRedirect(schedule.url())
         
     def solvePart2 (request,year,sch):
         emptySlots = []
@@ -2000,7 +2000,7 @@ class SCHEDULE:
             
     def breakupLongStreaks (request,year,sch):
         print("RUNNING PROCESS *** BREAKUP-LONG-STREAKS")
-        nUnfilled_initial = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
+        nUnfilled_initial = sum([wd.emptySlots.count() for wd in Workday.objects.filter(date__year=year,ischedule=sch)])
         print(f"N-UNFILLED INITIAL: {nUnfilled_initial}")
         slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
         oneOverStreak = []
@@ -2012,9 +2012,9 @@ class SCHEDULE:
             if not ShiftTemplate.objects.filter(ppd_id=slot.workday.sd_id, employee=slot.employee).exists():
                 print(f"DELETING SLOT : {slot}")
                 slot.delete()
-        for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch):
+        for wd in Workday.objects.filter(date__year=year, ischedule=sch):
             wd.save()
-        nUnfilled_final = sum([wd.emptySlots.count() for wd in Workday.objects.filter(workday__date__year=year,workday__ischedule=sch)])
+        nUnfilled_final = sum([wd.emptySlots.count() for wd in Workday.objects.filter(date__year=year,ischedule=sch)])
         print(f"N-UNFILLED FINAL: {nUnfilled_final}")
 
     def tdosConflictedSlots (year, sch):

@@ -30,7 +30,7 @@ class WorkdayActions:
         4. Dont fill an employee into a turnaround 
         #TODO Dont fill if employee is working a different shift that day
         """
-        templs = ShiftTemplate.objects.filter(ppd_id=workday.sd_id)
+        templs = ShiftTemplate.objects.filter(sd_id=workday.sd_id)
         slots  = workday.slots.all()
         for templ in templs :
             day = workday.date
@@ -141,23 +141,17 @@ class ScheduleBot:
         wds = Workday.objects.filter(date__year=year, iweek=week).order_by('date')
         if len(wds) == 0:
             return False
-        for day in wds:
-            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
-            day.slots     = Slot.objects.filter(workday=day)
-        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
-        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
-        # sort this list by the number of employees who could fill the slot
-        unfilledSlots.sort(key=lambda x: x[2])
-        if len(unfilledSlots) == 0:
-            return False
+        unfilledSlots = Slot.objects.filter(week__number=week,schedule__year=year,employee=None)
 
         attempting_slot = 0
         
-        while attempting_slot < 5 :
+        while attempting_slot < 5 and attempting_slot > 0:
             
             if len(unfilledSlots) <= attempting_slot:
                 return True
-            slot = unfilledSlots[attempting_slot-1]
+            
+            slot = unfilledSlots [attempting_slot-1]
+            
             
             # for each slot, assign the employee who has the least number of other slots they could fill
             day = slot[0]
@@ -165,7 +159,7 @@ class ScheduleBot:
             
             # pull out employees with no guaranteed hours
             prn_empls     = Employee.objects.filter(fte=0)
-            empl          = Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
+            empl          = Employee.objects.can_fill_shift_on_day(shift=shift,cls=shift.cls, workday=day).annotate(n_slots=Count('slot')).order_by('n_slots')
             incompat_empl = Slot.objects.incompatible_slots(workday=day,shift=shift).values('employee')
             
             # don't schedule on opposite weekends 
@@ -211,7 +205,7 @@ class ScheduleBot:
         """
         Returns a list of employees who can fill a shift on a workday.
         """
-        return Employee.objects.can_fill_shift_on_day(shift=shift, workday=workday)
+        return Employee.objects.can_fill_shift_on_day(shift=shift, cls=shift.cls,workday=workday)
     
     def getMinSolutionsSlot (year,week=0,period=0):
         """
@@ -356,9 +350,12 @@ class ScheduleBot:
     
     
     
-    def solveSchedule (self,yr,sch):
+    def solveSchedule (self,schId):
+        sched = Schedule.objects.get(pk=schId)
+        yr = sched.year
+        sch = sched.number
         
-        wds = Workday.objects.filter(date__year=yr,ischedule=sch)
+        wds = sched.workdays.all()
         
         for day in wds:
             WorkdayActions.fillDailySST(day)
@@ -367,42 +364,50 @@ class ScheduleBot:
         empties = ScheduleActions.emptyUsuallyTemplatedSlots(0,yr,sch)
         
         for empty in empties:
-            employees = Employee.objects.can_fill_shift_on_day(shift=empty.shift,workday=wds.get(date=empty.workday))
+            wd = sched.workdays.get(sd_id= empty.sd_id)
+            employees = Employee.objects.can_fill_shift_on_day(shift=empty.shift ,cls=empty.shift.cls,workday=wd)
             
-            employee_lowest_fte_percent = [emp.ftePercForWeek(slot[0].date.year,slot[0].iweek) for emp in employees]
+            employee_lowest_fte_percent = [emp.ftePercForWeek(wd.date.year,wd.iweek) for emp in employees]
+            onday = wd.slots.all().values('employee').distinct()
+            employees = employees.exclude(pk__in=onday)
         
             if len(employees) != 0:
                # select lowest fte
                 index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
                 empl      = employees[index]
-                newSlot   = Slot.objects.create(workday=slot[0],shift=slot[1],employee=empl)
-                newSlot.save() 
+                Slot.objects.filter(workday__sd_id=empty.sd_id,shift=empty.shift).update(employee=empl)
+                
             
         
         if len(wds) == 0:
             return False
         
-        for day in wds:
-            day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
-            day.slots     = Slot.objects.filter(workday=day)
+        # for day in wds:
+        #     day.getshifts = Shift.objects.on_weekday(day.iweekday).exclude(slot__workday=day)
+        #     day.slots     = Slot.objects.filter(workday=day)
         
-        # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
-        unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
-        
-        # sort this list by the number of employees who could fill the slot
-        unfilledSlots.sort (key=lambda x: x[2])
-        
-        for slot in unfilledSlots:
-            employees = Employee.objects.can_fill_shift_on_day(shift=slot[1],workday=slot[0])
+        # # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
+        # unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, cls=shift.cls, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        nCanFill = []
+        unfilledSlots = sched.slots.empty()
+        for s in unfilledSlots:
+            n = s._fillableBy().count()
+            nCanFill.append((s,n)) 
             
-            employee_lowest_fte_percent = [emp.ftePercForWeek(slot[0].date.year,slot[0].iweek) for emp in employees]
+        
+        
+        
+        for slot, n_count in nCanFill:
+            employees = Employee.objects.can_fill_shift_on_day(shift=slot.shift, cls=slot.shift.cls,workday=slot.workday)
+            
+            employee_lowest_fte_percent = [emp.ftePercForWeek(slot.workday.date.year,slot.week.number) for emp in employees]
         
             if len(employees) != 0:
                # select lowest fte
                 index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
                 empl      = employees[index]
-                newSlot   = Slot.objects.create(workday=slot[0],shift=slot[1],employee=empl)
-                newSlot.save() 
+                Slot.objects.filter(workday=slot.workday,shift=slot.shift).update(employee=empl)
+               
                 
         for slot in Slot.objects.filter(is_turnaround=True, workday__iweekday__in=[1,2,3,4,5]):
         
@@ -662,10 +667,10 @@ class ResolveBot:
         
 class ScheduleActions:
     def emptyUsuallyTemplatedSlots (self, year, sch):
-        slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch)
+        slots = Slot.objects.filter(workday__date__year=year,workday__ischedule=sch,employee=None)
         tmpls = ShiftTemplate.objects.all()
         empty = []
         for t in tmpls:
-            if slots.filter(workday__sd_id=t.ppd_id).exists() == False:
+            if slots.filter(workday__sd_id=t.sd_id).exists() == False:
                 empty += [t]
         return empty

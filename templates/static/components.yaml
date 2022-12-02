@@ -2,7 +2,7 @@
 
 components:
 
-    basic_popover   : 'sch/comp/popovers/basic.html'   # --title --subtitle --desc  *children
+    basic_popover       : 'sch/comp/popovers/basic.html'   # --title --subtitle --desc  *children
     basic_popover_child : 'sch/comp/popovers/basic-child.html' # --title --icon --value
 
     accordion       : 'sch/doc/accordion.html'

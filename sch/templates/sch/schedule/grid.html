@@ -28,16 +28,19 @@
     <div class="panel" id="toolbar">
 
         <div class="hstack">
-        <a class ="btn" hx-get="delete-all-slots/" hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. ">
+            <div class ="btn" 
+               hx-get="{{schedule.url__clear}}" 
+               hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. "
+               href="{% url 'sch:v1-schedule-detail' schedule.slug %}">
             Delete All Slots
-        </a>
+            </div>
         <div class="spinner"></div>
 
         
 
         <button class="btn btn-lg hover:bg-yellow-700" 
             hx-confirm="By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data."
-            hx-post="start/"
+            hx-get="{% url 'sch:v2-schedule-solve-alg2' schedule.pk %}"
             _="on click 
                     alert ('By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data')
                then post to start/ 

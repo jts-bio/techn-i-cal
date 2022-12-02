@@ -192,8 +192,8 @@ class EmployeeManager (models.QuerySet):
         return Employee.objects.annotate(
                 hours=Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum('hours')))
             )
-    def can_fill_shift_on_day (self, shift, workday, method="available"):
-        shift = Shift.objects.get(name=shift)
+    def can_fill_shift_on_day (self, shift,cls, workday, method="available"):
+        shift = Shift.objects.get(name=shift,cls=cls)
         shift_len = shift.hours
         
         if method == "available":
@@ -376,7 +376,7 @@ class Employee (models.Model) :
     def url(self):
         return reverse("sch:v2-employee-detail", kwargs={"name": self.name})
     def weekly_hours (self, year, iweek):
-        return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('hours'))['hours']
+        return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def weekly_hours_perc (self,year, iweek):
         """
         Returns the ratio of hours worked to hours scheduled.
@@ -867,6 +867,8 @@ class Schedule (models.Model):
         return url
     def url__solve (self):
         return reverse('sch:v2-schedule-solve', args=[self.pk])
+    def url__solve_b (self):
+        return reverse('sch:v2-schedule-solve-alg2', args=[self.pk])
     def url__clear (self):
         return reverse('sch:v2-schedule-clear', args=[self.pk])
     def __str__ (self):
@@ -923,6 +925,7 @@ class Slot (models.Model) :
     schedule       = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True,related_name='slots')
     is_turnaround  = models.BooleanField (default=False)
     is_terminal    = models.BooleanField (default=False)
+    streak         = models.SmallIntegerField (null=True, default=None)
     
     class Meta:
         constraints = [
@@ -1015,7 +1018,7 @@ class Slot (models.Model) :
         otherShifts    = self.siblings_day.values('shift')
         otherEmployees = self.siblings_day.values('employee')
         return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)           
-    def streak (self):
+    def _streak (self):
         # count the streak of slots in a row this employee has had
         i = 1
         while Slot.objects.filter(workday__date=self.workday.date - dt.timedelta(days=i),employee=self.employee).exists():
@@ -1126,6 +1129,10 @@ class Slot (models.Model) :
         
         return
     def save (self, *args, **kwargs):
+        if self.employee:
+            self.streak = self._streak()
+        if self.employee == None: 
+            self.streak = None
         super().save(*args, **kwargs)
         self.post_save()
     def post_save (self):
