@@ -21,9 +21,13 @@ SCHEDULE DETAIL VIEW
                     VERSION {{schedule.version}}
                     
         </h3>
+
+        <div class="text-xs text-gray-300 italic">
+            {{ schedule.slots.filled.count }} / {{ schedule.slots.all.count }} SLOTS ASSIGNED 
+        </div>
     </div>
 
-    <div class="panel w-full text- text-center">
+    <div class="panel w-full text- text-center x-overflow-scroll">
     
             <div data-hx-get="{{ schedule.url__solve }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." hx-trigger="click"
                 class="bg-slate-800 hover:bg-slate-600 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
@@ -34,6 +38,8 @@ SCHEDULE DETAIL VIEW
             CLEAR</a>
             
     </div>
+
+  
 
     <div class="panel">
 
@@ -60,13 +66,14 @@ SCHEDULE DETAIL VIEW
                             {% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
                                 
                                 <div>{{ workday.days_away }} days away </div>
+                                <div class="flex flex-wrap">
+                                    {% for slot in workday.slots.all %}
 
-                                {% for slot in workday.slots.all %}
-
-                                        {% basic_popover_child title=slot.shift  value=slot.employee %}
-                                        
-                                {% endfor %}
-                                <div> {{ workday.percent }}% FILLED</div>
+                                            {% basic_popover_child title=slot.shift  value=slot.employee %}
+                                            
+                                    {% endfor %}
+                                </div>
+                                <div class="text-xs mt-5"> {{ workday.percent }}% FILLED</div>
 
                             {% /basic_popover %}
 
