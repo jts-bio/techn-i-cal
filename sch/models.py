@@ -101,8 +101,10 @@ class SlotManager (models.QuerySet):
             return self.filter(workday=workday, shift=shift).annotate(
                 employee= F('employee__name'),workday= F('workday__date')
                 )
-        else:
-            return self.filter(workday=workday, shift=shift).annotate(
+    def add_one(x: int) -> int:
+        print("Adding one to {}".format(x))
+        return x + 1
+        return self.filter(workday=workday, shift=shift).annotate(
                 employee= None, workday= F('workday__date')
                 )
     def empls_weekly_hours (self, year, week, employee):
@@ -840,6 +842,14 @@ class Schedule (models.Model):
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
     
+    
+    def __init__(self, *args, **kwargs):
+        super(Schedule, self).__init__(*args, **kwargs)
+        self.__nochanges = self.pk
+        self.__post_init__(*args, **kwargs)
+    def __post_init__ (self, *args, **kwargs):
+        count = Schedule.objects.filter
+        self.slug = f"{self.year}-S{self.number}{self.version}"
     @property
     def week_start_dates (self):
         return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
@@ -866,24 +876,24 @@ class Schedule (models.Model):
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
                 p.save()
-    def url (self) :
+    def url     (self) :
         url = reverse('sch:v2-schedule-detail', args=[self.slug])
         return url
-    def url__solve (self):
+    def url__solve  (self):
         return reverse('sch:v2-schedule-solve', args=[self.pk])
-    def url__solve_b (self):
+    def url__solve_b    (self):
         return reverse('sch:v2-schedule-solve-alg2', args=[self.slug])
-    def url__clear (self):
+    def url__clear  (self):
         return reverse('sch:v2-schedule-clear', args=[self.pk])
     def url__previous (self):
         if self.number == 1:
             return Schedule.objects.filter(year=self.year-1,version=self.version).first()
         return Schedule.objects.get(year=self.year,number=self.number-1,version=self.version)
-    def url__next(self):
+    def url__next   (self):
         if self.number == Schedule.objects.filter(year=self.year,version=self.version).last():
             return Schedule.objects.filter(year=self.year+1,version=self.version).first()
         return Schedule.objects.get(year=self.year,number=self.number+1,version=self.version)
-    def __str__ (self):
+    def __str__     (self):
         return f"S{self.year}-{self.number}{self.version}"
     def unfavorableRatio (self,employee):
         slots = self.slots.filter(employee=employee)
@@ -891,7 +901,7 @@ class Schedule (models.Model):
             return 0
         unfavorable = self.slots.filter(employee=employee,shift__in=employee.unfavorable_shifts())
         return unfavorable.count()/slots.count()
-    def repr_status (self):
+    def repr_status     (self):
         return ["Working Draft","Final","Discarded"][self.status]
     class Actions :
         def fillTemplates (self,instance,**kwargs):

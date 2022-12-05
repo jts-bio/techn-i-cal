@@ -33,9 +33,9 @@ def schListView (request):
     }
     return render(request, 'sch2/schedule/sch-list.html', context)
 
-def schDetailView (request, slug ):
+def schDetailView (request, pk ):
     
-    schedule = Schedule.objects.get(slug=slug)
+    schedule = Schedule.objects.get(pk=pk)
     
     context = {
         'schedule' :  schedule,

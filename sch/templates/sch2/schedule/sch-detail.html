@@ -13,7 +13,7 @@ SCHEDULE DETAIL VIEW
     <div class="panel text text-center">
         <h1 class="text-3xl text-amber-600 text-bold">
 
-                    {{schedule.year}}-Schedule {{schedule.number}}
+                {{schedule.year}}-Schedule {{schedule.number}}
                     
         </h1> 
         <h3 class="text-lg text-amber-300 text-light">
@@ -23,8 +23,25 @@ SCHEDULE DETAIL VIEW
         </h3>
 
         <div class="text-xs text-gray-300 italic">
-            {{ schedule.slots.filled.count }} / {{ schedule.slots.all.count }} SLOTS ASSIGNED 
-        </div>
+
+        <output id="weather" 
+                name="weather"
+                _="on load 
+                    remove @hidden from #WarnLowCount when my value 
+                    is < 200"
+                    value="{{ schedule.slots.filled.count }}">
+            {{ schedule.slots.filled.count }} 
+            / {{ schedule.slots.all.count }} 
+            SLOTS ASSIGNED 
+        </output>
+
+        <div 
+            id="WarnLowCount" 
+            hidden>
+        WARNING! 
+        LOW COVERAGE!
+        </div> 
+
     </div>
 
     <div><a href="{% url 'sch:v1-schedule-detail' schedule.slug %}">ALTERNATE VIEW</a></div>
@@ -71,23 +88,15 @@ SCHEDULE DETAIL VIEW
                 class="hstack">
 
                     {% for workday in week.workdays.all %}
+                    
+                     <div hx-get =  "{% url 'sch:lazy-popover-load' workday.pk %}"
+                        hx-trigger ="load">
 
-                            {% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
-                                
-                                <div>{{ workday.days_away }} days away </div>
-                                
-                                <div class="flex flex-wrap">
-                                    {% for slot in workday.slots.all %}
-
-                                            {% basic_popover_child title=slot.shift  value=slot.employee %}
-                                            
-                                    {% endfor %}
-                                </div>
-                                <div class="text-xs mt-5"> {{ workday.percent }}% FILLED</div>
-
-                            {% /basic_popover %}
-
-                            <div id="popover"></div>
+                                <img class="htmx-indicator"
+                                    width="180"
+                                    src="/static/img/spinner.svg"/>
+                    </div>
+                            
 
                     {% endfor workday %}
 

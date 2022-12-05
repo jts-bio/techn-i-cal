@@ -1,0 +1,8 @@
+@startuml 
+
+Shift 
+AbstractWorkdayTimeBlock 
+
+
+@enduml
+

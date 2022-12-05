@@ -134,7 +134,7 @@ schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
     path('v2/generate-schedule/<int:year>/<int:n>/', views2.generate_schedule_view, name='v2-generate-schedule'),
     path('schedule-list/all/', views.SCHEDULE.scheduleListView,  name='schedule-list'),
-    path('schedule-detail/<str:slug>/',views.SCHEDULE.scheduleView, name='v1-schedule-detail'),
+    path('schedule-detail/<str:pk>/',views.SCHEDULE.scheduleView, name='v1-schedule-detail'),
     path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',views.SCHEDULE.scheduleSlotModalView, name='schedule-slot-modal'),
     path('schedule/current-schedule/', views2.currentSchedule, name='v2-current-schedule'),
     path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
@@ -145,11 +145,12 @@ schedule_patterns = [
     path('schedule/<int:year>/<int:sch>/weekly-ot/', views.SCHEDULE.weeklyOTView,name='weekly-ot'),
     path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', views.SCHEDULE.FX.removePtoConflictSlots,   name='remove-pto-conflict-slots'),
     path('v2/schedule/list/', views2.schListView, name='sch-list'),
-    path('v2/schedule/<str:slug>/', views2.schDetailView,name='v2-schedule-detail'),
+    path('v2/schedule/<str:pk>/', views2.schDetailView,name='v2-schedule-detail'),
     path('v2/schedule/<int:schId>/clearSlots/', views2.scheduleClearAllView, name='v2-schedule-clear'),
     path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',views2.schDayPopover, name="sch-day-popover"),
     path('v2/schedule-solve/<int:schId>/', views2.scheduleSolve,name='v2-schedule-solve'),
     path('v2/schedule-solve-alg-2/<str:slug>/',views.SCHEDULE.solveScheduleSlots,name='v2-schedule-solve-alg2'),
+    path('v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/' , views.SCHEDULE.FX.lazy_popover_load , name='lazy-popover-load'),
 ]
 urlpatterns += schedule_patterns
 

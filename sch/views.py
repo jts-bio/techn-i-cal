@@ -1813,6 +1813,12 @@ class SCHEDULE:
                 
             return HttpResponse (slot_trades)
         
+        def lazy_popover_load (request, schSlug, wdSlug):
+            sch = Schedule.objects.get(slug=schSlug)
+            wd = sch.workdays.get(slug=wdSlug)
+
+            return render (request, 'sch/workday/popover_detail.html', {'workday':wd})
+        
     class DO:
         
         @csrf_exempt
@@ -1895,9 +1901,9 @@ class SCHEDULE:
             }
         return render(request, modal_html, context)
     
-    def scheduleView (request, slug):
+    def scheduleView (request, pk):
         context = {}
-        sched = Schedule.objects.get(slug=slug)
+        sched = Schedule.objects.get(pk=pk)
         year = sched.year
         sch = sched.number
         context['days'] = sched.workdays.all()

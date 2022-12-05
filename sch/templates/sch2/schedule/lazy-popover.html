@@ -1,0 +1,16 @@
+{% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
+                                
+                <div>{{ workday.days_away }} days away </div>
+                
+                <div class="flex flex-wrap">
+                    {% for slot in workday.slots.all %}
+
+                            {% basic_popover_child title=slot.shift  value=slot.employee %}
+                            
+                    {% endfor %}
+                </div>
+                <div class="text-xs mt-5"> {{ workday.percent }}% FILLED</div>
+
+            {% /basic_popover %}
+
+            <div id="popover"></div>
