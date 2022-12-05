@@ -1,0 +1,26 @@
+
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+        <section class="text text-center">
+
+            <h1 class="text-3xl">{{week.slug}} WEEKLY SHIFT ASSIGNMENTS POTENTIAL ASSIGNMENTS</h1>
+
+            
+            {% for day in in  week.workdays.all %}
+                    
+                <div class="panel">
+                    <h3 class="capitalize italic text-sm text-slate-300">{{day.date}}</h3>
+                </div>
+
+            {% endfor %}
+                
+        </section>
+
+
+    
+{% endblock content %}
+    

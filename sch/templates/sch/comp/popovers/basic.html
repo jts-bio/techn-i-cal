@@ -18,7 +18,19 @@
     {{ title }}
 </a>
 
-<div data-popover id="popover-{{ title|slugify }}" role="tooltip" class="inline-block absolute z-10 w-80 text-sm font-light text-gray-500 bg-white rounded-lg border border-gray-200 shadow-sm transition-opacity duration-300 dark:text-gray-400 dark:bg-gray-800 dark:border-gray-600 opacity-0 invisible" style="position: absolute; inset: 0px auto auto 0px; margin: 0px; transform: translate3d(47.5px, 285.5px, 0px);" data-popper-placement="bottom">
+<div 
+data-popover id="popover-{{ title|slugify }}" 
+data-popover-trigger="" 
+role="tooltip" 
+class="inline-block absolute z-10 w-80 text-sm 
+        font-light text-gray-500 bg-white rounded-lg 
+        border border-gray-200 shadow-sm transition-opacity 
+        duration-300 dark:text-gray-400 dark:bg-gray-800 
+        dark:border-gray-600 opacity-0 invisible" 
+style="position: absolute; inset: 0px auto auto 0px; margin: 0px; 
+        transform: translate3d(47.5px, 285.5px, 0px);" 
+data-popper-placement="bottom">
+
     <div class="p-3">
         <div class="flex">
             <div class="mr-3 shrink-0">
@@ -27,9 +39,9 @@
             </a>
             </div>
             <div>
-                <p class="mb-1 text-base font-semibold leading-none text-gray-900 dark:text-white">
+                <p class="mb-1 text-base font-semibold shrink leading-none text-gray-900 dark:text-white">
 
-                    <a href="{{ link }}" class="hover:underline">
+                    <a href="{{ link }}" class="hover:underline bg-slate-700">
                         
                         {{ title }}
                         

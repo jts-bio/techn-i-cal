@@ -22,12 +22,12 @@
                         </td>
                         
                         {% with empl.shifts_trained.filter as trained %}
-                        <td><input type="checkbox" name="{{empl}}-trained"
+                        <td><input type="checkbox" name="{{empl.slug}}-trained"
                                         {% if trained %}   checked   {% endif %}/></td> 
                         {% endwith %}
 
                         {% with empl.shifts_available.filter as available %}
-                        <td><input type="checkbox" name="{{empl}}-available" 
+                        <td><input type="checkbox" name="{{empl.slug}}-available" 
                                         {% if available %}  checked   {% endif %}/></td> 
                         {% endwith %}
                 </tr>

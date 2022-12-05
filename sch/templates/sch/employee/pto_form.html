@@ -1,0 +1,29 @@
+
+
+
+
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+        <div>
+            <h2>{{employee}}</h2>
+            <h3>{{days.first.date.year}}</h3>
+            
+            <div class="panel"
+                _="on load if <input:checkbox/> in me has @checked:true
+                then add .bg-green-300 to me 
+                end">
+                    {% for day in days %}
+                        <label for="id_{{day}}">{{day}} ({{day}})</label>
+                        <input class="checkbox text-3xl" type="checkbox" name="id_{{day}}" id="id_{{day}}">
+                    {% endfor %}
+            </div>
+        </div>
+    
+{% endblock content %}
+
+
+    

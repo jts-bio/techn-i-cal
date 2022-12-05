@@ -1,14 +1,17 @@
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Count
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from django.views.generic.edit import UpdateView, DeleteView, FormView
+from django.views.generic import View
 from django.forms import formset_factory
 from django.contrib import messages, admin
-from django.contrib.auth.forms import UserCreationForm 
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
+from django_require_login.decorators import public
+from django.contrib.auth.models import User
 
 
 from .models import *
@@ -25,7 +28,7 @@ import datetime as dt
 def index(request):
     
     if request.user == None:
-        return HttpResponseRedirect(reverse_lazy("user-register-form"))
+        return HttpResponseRedirect(reverse_lazy("login-view"))
     
     today   = dt.date.today()
     wd      = Workday.objects.get(date=today)
@@ -35,14 +38,17 @@ def index(request):
         'wd'    : wd, 
         'shifts': shifts,
     }
-    return render ( request, 'static/index.html', context )
+    return render ( request, 'index.html', context )
+
+
+    
 
 def registerView (request) :
     template_html = 'sch/user/register.html'
-    form = UserCreationForm()
     
     if request.method == "POST":
-        form = UserCreationForm(request.POST)
+        form = AuthenticationForm(request.POST)
+        print(form.data)
         if form.is_valid():
             form.save()
             return HttpResponseRedirect('/sch/')
@@ -57,7 +63,6 @@ def day_changer (request, date):
     template_html   = 'sch/workday/dayChanger.html'
     
     return render (request, template_html, {'workday': workday})
-
 
 class WORKDAY :
     class WorkdayListView (ListView):
@@ -113,7 +118,7 @@ class WORKDAY :
             unfilled            = Shift.objects.filter(occur_days__contains=self.object.iweekday).exclude(pk__in=slots.values('shift'))
             # ANNOTATION FOR # OF TECHS WHO COULD FILL SHIFTS SLOT 
             for sft in unfilled:
-                sft.n_can_fill  = Employee.objects.can_fill_shift_on_day(shift=sft, workday=self.object).values('pk').count()
+                sft.n_can_fill  = Employee.objects.can_fill_shift_on_day(shift=sft, cls=sft.cls,workday=self.object).values('pk').count()
             context['unfilled'] = unfilled
 
             context['ptoReqs']  = PtoRequest.objects.filter(workday=self.object.date, status__in=['P','A']).values('employee__name')
@@ -205,7 +210,6 @@ def workdayFillTemplate(request, date):
     workday = Workday.objects.get(date=date)
     WorkdayActions.fillDailySST(workday)
     return HttpResponseRedirect(f'/sch/day/{date}/')
-
 
 class DOCUMENTATION:
     def weekly (request):
@@ -681,7 +685,9 @@ class SHIFT :
 
         def get_context_data(self, **kwargs):
             context                  = super().get_context_data(**kwargs)
-            context ['shift']        = self.object # type: ignore
+            context ['shift']        = self.object 
+            
+            context ['empls_trained'] = Employee.objects.filter(shifts_trained=self.object).order_by('name')
 
             sstsA = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7)] 
             context ['sstsA'] = sstsA
@@ -804,9 +810,9 @@ class SHIFT :
         
         return render(request, 'sch/shift/tallies.html', context)
         
-    def trainedShiftView(request, name):
+    def trainedShiftView(request, cls, sft):
         context = {}
-        shift = Shift.objects.get(name=name)
+        shift = Shift.objects.get(cls=cls, name=sft)
         shiftClass = shift.cls
         context['shift'] = shift
         TrainedEmployeeShiftFormSet = formset_factory(TrainedEmployeeShiftForm, extra=0 )
@@ -814,30 +820,36 @@ class SHIFT :
         if request.method == 'POST':
             formset = TrainedEmployeeShiftFormSet(request.POST)
             if formset.is_valid():
+                print('Formset VALID')
                 for form in formset:
                     employee = form.cleaned_data.get('employee')
-                    if form['is_trained'].value() == 'True':
-                        if shift not in employee.shifts_trained:
+                    print(employee, form['is_trained'].value())
+                    if form['is_trained'].value() == True:
+                        print('is true!')
+                        if shift not in employee.shifts_trained.all():
                             employee.shifts_trained.add(shift)
-                    if form['is_trained'].value() == 'False':
-                        if shift in employee.shifts_trained:
+                            print(f'added to {employee}')
+                            employee.save()
+                    if form['is_trained'].value() == False:
+                        if shift in employee.shifts_trained.all():
+                            employee.shifts_trained.all()
                             employee.shifts_trained.remove(shift)
                             employee.save()
-                    if form['is_available'].value() == 'True':
-                        if shift not in employee.shifts_available:
+                    if form['is_available'].value() == True:
+                        if shift not in employee.shifts_available.all():
                             employee.shifts_available.add(shift) 
                             employee.save()
-                    if form['is_available'].value() == 'False':
-                        if shift in employee.shifts_available:
+                    if form['is_available'].value() == False:
+                        if shift in employee.shifts_available.all():
                             employee.shifts_available.remove(shift)
                             employee.save()
-                return HttpResponseRedirect(f'/sch/shift/{name}/')
+                return HttpResponseRedirect(reverse('sch:shift-detail' , args=[cls, sft]))
             if formset.is_valid() == False:
                 print(formset.errors)
         initData = [
             {
-                'is_trained' : em.shifts_trained.filter(name=name).exists(),
-                'is_available' : em.shifts_available.filter(name=name).exists(),
+                'is_trained' : em.shifts_trained.filter(cls=cls,name=sft).exists(),
+                'is_available' : em.shifts_available.filter(cls=cls,name=sft).exists(),
                 'employee' : em,
                 'shift' : shift,
             } for em in Employee.objects.filter(cls=shiftClass).order_by('name')
@@ -847,6 +859,7 @@ class SHIFT :
         return render(request, 'sch/shift/trained_available_emps.html', context)
                         
 class EMPLOYEE:
+    
     
     class ANNO:
         nShiftsTrained = Employee.objects.annotate(n_shifts_trained=Count('shifts_trained')).order_by('n_shifts_trained').values_list('name','n_shifts_trained')
@@ -889,12 +902,37 @@ class EMPLOYEE:
     class EmployeeCreateView (FormView):
         template_name   = 'sch/employee/employee_form.html'
         form_class      = EmployeeForm
-        fields          = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'employee_class']
+        fields          = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls']
         success_url     = '/sch/employees/all/'
 
         def form_valid(self, form):
             form.save() # type: ignore
             return super().form_valid(form)
+        
+    class TechnicianCreateView (EmployeeCreateView):
+        form_class = TechnicianForm
+        
+    class PharmacistCreateView (EmployeeCreateView):
+        form_class = PharmacistForm
+        
+    class EmployeePtoFormView (View):
+        template_name   = 'sch/employee/pto_form.html'
+        def get (self, request, empl, year, num):
+            employee = Employee.objects.get(pk=empl)
+            yeardates = []
+            for date in SCH_STARTDATE_SET:
+                if date.year == year:
+                    yeardates.append(date)
+            yeardates.sort()
+            
+            sch_date = yeardates[num]
+            days = [(sch_date + dt.timedelta(days=i)).strftime("%Y-%m-%d") for i in range(42)]
+            
+            context = {
+                'employee' : employee,
+                'days'     : days,
+            }
+            return render(request, self.template_name, context)
 
     ### DETAIL
     class EmployeeDetailView (DetailView):
@@ -950,9 +988,12 @@ class EMPLOYEE:
         
         def post (self, request, name):
             form = EmployeeEditForm(request.POST)
+            print (form.errors)
+            print (form.data)
+        
             print (request, request.POST)
             if form.is_valid():
-                # form.save()
+                
                 e = Employee.objects.get(name=name)
                 e.name          = form.cleaned_data['name']
                 e.cls           = form.cleaned_data['cls']
@@ -961,7 +1002,7 @@ class EMPLOYEE:
                 e.shifts_trained.set(form.cleaned_data['shifts_trained'])
                 e.shifts_available.set(form.cleaned_data['shifts_available'])
                 e.save()
-                return HttpResponseRedirect(e.url())
+            return HttpResponseRedirect(e.url())
                 
         
         
@@ -974,17 +1015,16 @@ class EMPLOYEE:
         success_url     = '/sch/employees/all/'
 
         def form_valid(self, form):
-            date_from = form.cleaned_data['date_from']
-            date_to = form.cleaned_data['date_to']
+            schedule = form.cleaned_data['schedule']
             employee = form.cleaned_data['employee']
-            return HttpResponseRedirect(f'{date_from.slug}/{date_to.slug}/')
+            return HttpResponseRedirect(reverse('sch:v2-employee-schedule', 
+                                                args=[employee.slug, schedule.slug]))
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             employee = Employee.objects.get(name=self.kwargs['name'])
-            date_from = Workday.objects.filter(iweekday=0, date__lt=dt.date.today()).latest('date')
-            date_to   = Workday.objects.get(date=date_from.date + dt.timedelta(days=28))
-            context['form'] = EmployeeScheduleForm(initial={'employee': employee, 'date_from': date_from, 'date_to': date_to})
+            schedule = Schedule.objects.get(workdays__date=dt.date.today())
+            context['form'] = EmployeeScheduleForm(initial={'employee': employee,'schedule': schedule})
             context['employee'] = employee
             return context
 
@@ -996,20 +1036,18 @@ class EMPLOYEE:
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             employee = Employee.objects.get(name=self.kwargs['name'])
-            date_from = dt.datetime.strptime(self.kwargs['date_from'], '%Y-%m-%d').date()
-            date_to   = dt.datetime.strptime(self.kwargs['date_to'], '%Y-%m-%d').date()
-            context['employee'] = employee
-            context['date_from'] = date_from
-            context['date_to'] = date_to
-            slots = Slot.objects.filter(employee=employee, workday__date__gte=date_from, workday__date__lte=date_to)
-            ptoReqs = PtoRequest.objects.filter(employee=employee)
             
+            context['employee'] = employee
+            ptoReqs = PtoRequest.objects.filter(employee=employee)
+            schedule = Schedule.objects.get(slug=self.kwargs['sch'])
+            slots = schedule.slots.filter(employee=employee)
             days = [{
                 'date':i.strftime("%Y-%m-%d"),
-                'slot':slots.filter(workday__date=i).first(),
-                'ptoReq':ptoReqs.filter(workday=i).first()
-                } for i in (date_from + dt.timedelta(n) for n in range((date_to-date_from).days))]
+                'slot': slots.filter(workday__date=i)
+                } for i in (schedule.workdays.all().values_list('date',flat=True))]
+            
             context['days'] = days
+            
             return context
     
     ### SHIFT-PREF-FORM
@@ -1093,7 +1131,7 @@ class EMPLOYEE:
     def tdoBreakdownView (request):
         """TDO BREAKDOWN VIEW
         ===========================
-        ```flowrate.herokuapp.com/sch/day-off-breakdown/```
+        ``flowrate.herokuapp.com/sch/day-off-breakdown/``
         
         Breakdown Template Days Off
         ----------------------------
@@ -1145,7 +1183,7 @@ class EMPLOYEE:
         
     def employeeSstsView (request, name):
         
-        employee= Employee.objects.get(name=name)
+        employee= Employee.objects.get(slug=name)
         
         if request.method == 'POST':
                 formset = formset_factory(SstEmployeeForm, extra=0)
@@ -1197,7 +1235,7 @@ class EMPLOYEE:
             form_class = EmployeeTemplatedDaysOffForm
             success_url = '/sch/employees/all/' 
             
-            employee = Employee.objects.get(name=name)
+            employee = Employee.objects.get(slug=name)
             
             if request.method == "POST":
                 formset = formset_factory(EmployeeTemplatedDaysOffForm,extra=0)
@@ -1207,7 +1245,6 @@ class EMPLOYEE:
                     print('VALID')
                     for form in formset:
                         if form.cleaned_data.get('is_templated_off') == False:
-                            print("hello!")
                             if TemplatedDayOff.objects.filter(employee=employee, sd_id=form.cleaned_data.get('sd_id')).exists():
                                 tdo = TemplatedDayOff.objects.get(employee=employee, sd_id=form.cleaned_data.get('sd_id'))
                                 tdo.delete()
@@ -1835,7 +1872,6 @@ class SCHEDULE:
         }
         return render(request, template_html, context)
     
-
     def scheduleSlotModalView (request, year, number,version, workday, shift):
         """
         SCHEDULE SLOT MODAL VIEW
@@ -1903,12 +1939,12 @@ class SCHEDULE:
         context['conflicted'] = SCHEDULE.tdosConflictedSlots(year,sch)
 
         
-        tempty = sched.slots.all().filter(employee=None).count()
-        ttotal = sched.slots.all().exclude(employee=None).count() + tempty
+        tempty = sched.slots.empty().count()
+        ttotal = sched.slots.all().count() + tempty
         context['percComplete'] = f'{int(100-round(tempty / ttotal, 2) * 100)}%'
         context['nEmpty'] = tempty
         context['tot'] = ttotal
-        context['unfilled'] = [wd.emptySlots for wd in Workday.objects.filter(date__year=year,ischedule=sch)]
+        context['unfilled'] = sched.slots.empty()
         
         if sch > 1:
             context['prevSch_url']    = f'/sch/schedule/{year}/{sch-1}/'
@@ -1925,11 +1961,10 @@ class SCHEDULE:
         return render(request, 'sch/schedule/grid.html', context)
     
     def currentScheduleView (request):
-        today       = dt.date.today()
-        today_wd    = Workday.objects.get(date=today)
-        year        = today_wd.date.year 
-        sch         = today_wd.ischedule 
-        return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/')
+        today       = Workday.filter(date=dt.date.today()).first()
+        
+        
+        return HttpResponseRedirect(reverse('sch:v2-schedule-detail',args=[today.schedule.slug] ))
     
     def weeklyOTView (request, year, sch):
         weeks = Workday.objects.filter(date__year=year,ischedule=sch).values_list('iweek',flat=True).distinct()
@@ -1970,9 +2005,9 @@ class SCHEDULE:
         url_pattern = '/sch/schedule/<int:year>/<int:sch>/solve/'
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
-    def solveScheduleSlots (request,schId):
-        ScheduleBot.solveSchedule(0,schId)
-        schedule = Schedule.objects.get(pk=schId)
+    def solveScheduleSlots (request,slug):
+        ScheduleBot.solveSchedule(0,slug)
+        schedule = Schedule.objects.get(slug=slug)
         year = schedule.year 
         sch = schedule.number
         print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")

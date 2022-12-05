@@ -154,3 +154,12 @@ def datePicker ():
 @register.simple_tag
 def showPercent (floating):
     return int(floating*100)
+
+
+@register.simple_tag
+def sumSlotHours (slots):
+    total = 0
+    for slot in slots:
+        total += slot.shift.hours 
+    return total
+    

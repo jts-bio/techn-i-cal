@@ -65,7 +65,13 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_require_login.middleware.LoginRequiredMiddleware",
 ]
+
+LOGIN_URL = 'login-view'
+LOGOUT_REDIRECT_URL = 'sch:index'
+
+REQUIRE_LOGIN_PUBLIC_NAMED_URLS = (LOGIN_URL, LOGOUT_REDIRECT_URL)
 
 ROOT_URLCONF = "techn_i_cal.urls"
 

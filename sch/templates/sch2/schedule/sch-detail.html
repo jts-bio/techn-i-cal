@@ -29,23 +29,21 @@ SCHEDULE DETAIL VIEW
 
     <div><a href="{% url 'sch:v1-schedule-detail' schedule.slug %}">ALTERNATE VIEW</a></div>
 
-    <div class="panel w-full text- text-center x-overflow-scroll">
+    <div class="panel text text-center x-overflow-scroll flex flex-col">
     
-            <a href="{{ schedule.url__solve }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
+            <a hx-get="{{ schedule.url__solve }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
                 hx-trigger="click"
-                class="bg-slate-800 hover:bg-slate-600 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
-            SOLVE (ALGORITHYM A) </a>
+                class="bg-slate-800 hover:bg-slate-600 border-green-200 rounded m-1 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
+            SOLVE (Quasi-algorithmic method) </a>
 
-            <a href="{{ schedule.url__solve_b }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
+            <a hx-get="{{ schedule.url__solve_b }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
                 hx-trigger="click"
-                class="bg-slate-800 hover:bg-slate-600 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
-            SOLVE (ALGORITHYM B) </a>
-
-
+                class="bg-slate-800 hover:bg-slate-600 border-green-200 rounded m-1 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
+            SOLVE (Machine Learning method) </a>
     
             <a href="{{ schedule.url__clear }}" 
                 hx-confirm="Verify You are clearing the Assignments of All Employees on this Schedule Draft."
-                class="bg-slate-800 hover:bg-slate-600 text-red-200 hover:text-red-400 hover:ring-2 hover:ring-yellow-300">
+                class="bg-slate-800 hover:bg-slate-600 border-red-200 rounded m-1 text-red-200 hover:text-red-400 hover:ring-2 hover:ring-yellow-300">
             CLEAR</a>
             
     </div>
@@ -77,6 +75,7 @@ SCHEDULE DETAIL VIEW
                             {% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
                                 
                                 <div>{{ workday.days_away }} days away </div>
+                                
                                 <div class="flex flex-wrap">
                                     {% for slot in workday.slots.all %}
 

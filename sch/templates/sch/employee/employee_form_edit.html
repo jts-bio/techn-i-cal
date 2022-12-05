@@ -15,7 +15,7 @@
 {% block content %}
     {# ---EMPLOYEE FORM EDIT--- #}
     <h1>{{employee}}</h1>
-    <h2>Edit Employee</h2>
+    <h4>Currently editing...</h4>
    
 
     <form method="post"> {% csrf_token %}
@@ -23,6 +23,19 @@
             {{ form.as_table }}
         </table>
         <input type="submit" value="Update">
+
+        {% for shift in shifts %}
+                <div class="bg-gray-600 rounded-md py-2 px-6">
+                        <input 
+                            type="checkbox" 
+                            name="checkbox-{{shift}}" 
+                            id="checkbox-{{shift}}" 
+                            checked
+                            _="on load if I am checked add .bg-green-200 .border-green-500 to my parent <div>">
+                </div>
+        {% endfor %}
+       
+
     </form>
 
 {% endblock %}

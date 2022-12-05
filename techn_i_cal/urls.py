@@ -13,8 +13,10 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, reverse
 from django.template import loader
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -22,22 +24,74 @@ from django.conf import settings
 from django.conf.urls.static import static
 from sch.models import Shift, Slot, Employee, Workday
 from rest_framework import routers, serializers, viewsets
+import datetime as dt
+from django_require_login.decorators import  public
+from django.contrib.auth.models import User
+from .forms import LoginForm
+from django.contrib import messages
+from django.contrib.auth import login, authenticate, logout
+
+
 
 from flow.views import *
 
-def index(request=0):
+@public
+def index(request):
     template = loader.get_template('index.html')
+
+    if request.method == "POST":
+        print("post")
+        if request.POST.get("token"):
+            token_field = request.POST.get("token")
+            print(token_field)
+            return HttpResponseRedirect(reverse('sch:index'))
+        
+    
     context = {
     }
     return HttpResponse(template.render(context, request))
 
+@public
+def loginView (request):
+    template = loader.get_template('sch/login.html')
+
+    if request.method == "POST":
+        print("post")
+        if request.POST.get("username"): 
+            username = request.POST.get("username")
+            password = request.POST.get("password")
+
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                return HttpResponseRedirect(reverse('sch:index'))
+            else:
+                return HttpResponseRedirect(reverse('tech:login'))
+
+    form = LoginForm()
+    context = {
+        'form': form
+    }
+    return HttpResponse(template.render(context, request))
+
+def logoutView (request):
+    user = request.user
+    logout(request)
+    msg = messages.info(request, f'{user} Logged out.')
+    return HttpResponseRedirect(reverse('index'), messages=msg)
+
+
+
 urlpatterns = [
     path('' ,           index,  name='index'),
+    path('login/',     loginView, name='login-view'),
+    path('logout/',     logoutView, name='logout-view'),
+    path('accounts/', include('django.contrib.auth.urls')),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
-    path('admin/',      admin.site.urls ),
+    path('admin/',      admin.site.urls,            name='admin'),
     path('sch/',        include('sch.urls'),    name='sch'),
     path('pds/',        include('pds.urls'),    name="pds"),
     path('flow/',       include('flow.urls'),   name='flow'),
-    
+
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 

@@ -32,23 +32,18 @@ class WorkdayActions:
         """
         templs = ShiftTemplate.objects.filter(sd_id=workday.sd_id)
         slots  = workday.slots.all()
-        for templ in templs :
-            day = workday.date
-            shiftLen = templ.shift.hours 
-            empl = templ.employee
-            empl_weekHours = workday.week.empl_needed_hrs(empl)
-            
-            slot = slots.filter(shift=templ.shift).first()
-            if slot.employee != None :
-                break
-            if shiftLen > empl_weekHours : 
-                break
-            if PtoRequest.objects.filter(employee=empl, workday=day).exists():
-                break
-            else:
-                slot.employee = templ.employee
-                slot.save()
-            
+        for slot in slots:
+            slot.set_sst()
+        # for slot in slots.empty():
+        #     if templs.filter(sd_id=slot.sd_id).exists():
+        #         # check if employee is on PTO? 
+        #         empl = templs.get(shift=slot.shift,sd_id=slot.sd_id).employee
+        #         if PtoRequest.objects.filter(employee=empl, date=workday.date).exists()==False:
+        #             slot.employee = empl
+        #             slot.save()
+
+                
+                        # insert employee + shift into slot
             
 
     def identifySwaps (workday) :
@@ -351,7 +346,7 @@ class ScheduleBot:
     
     
     def solveSchedule (self,schId):
-        sched = Schedule.objects.get(pk=schId)
+        sched = Schedule.objects.get(slug=schId)
         yr = sched.year
         sch = sched.number
         
@@ -500,7 +495,7 @@ class EmployeeBot:
             workday__ischedule=sch,workday__date__year=year,employee__name=employeeName).values_list('shift__hours',flat=True)))
         
     def empScheduleHoursByWeek (employeeName,year,sch):
-        first_day   = Workday.objects.filter(date__year=year,ischedule=sch).first()
+        first_day   = Workday.objects.filter(date__year=year,schedule__number=sch).first()
         week_nums   = range(first_day.iweek, first_day.iweek + 6)
         week_totals = []
         for week in week_nums:

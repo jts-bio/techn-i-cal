@@ -29,7 +29,7 @@
                     </span>
                 </td>
                 <td><span><a 
-                    href="{% url 'sch:shift-training-update' shift.cls shift.pk %}" 
+                    href="{% url 'sch:shift-training-update' shift.cls shift.name %}" 
                     class="bg-gray-400 border-2 border-gray-400 text-gray-800 
                            hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 
                            hover:border-amber-400 hover:ring-amber-600">
@@ -39,6 +39,21 @@
             </tr>
             </tfoot>
         </table>
+
+        <div class="panel">
+                <h3 class="text-lg">
+                    {{shift.trained.all.count}} Trained Employees: 
+                </h3>
+                {% for employee in shift.trained.all %}
+                    <span 
+                        class="text-2xs uppercase px-3 font-light {%cycle 'text-slate-100' 'text-slate-400' %}"> 
+                        {{employee}} 
+                    </span>
+                {% endfor %}
+        
+        </div>
+
+
         </div>
     
 {% endblock content %}

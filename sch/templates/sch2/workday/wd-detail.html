@@ -17,29 +17,38 @@ TEMPLATE VARIABLES
     
 
     
-    <div class="panel text center-text">
-        <a href="{{workday.prevWD.url}}"> {%backArrow%} </a>
-        <h1 class="text-3xl"> {{workday}} </h1>
-        <a href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
+    
+    <div class="vstack center items-center">
+        <div class="hstack text center-text">
+            <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
+            <h1 class="text-3xl"> {{workday}} </h1>
+            <a class="ml-20" href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
+        </div>
+        <div class="hstack">
+            <a href="{{workday.week.url}}" class="rounded-md p-5 hover:bg-blue-800 text text-center vstack text-center">
+                <div class="text-2xs text-gray-400">WEEK</div>
+                <div class="text-xl text-blue-200">{{workday.week.number}}</div>
+            </a>
+            <a href="{{workday.period.url}}" class="rounded-md p-5 hover:bg-indigo-800 text text-center vstack text-center"">
+                <div class="text-2xs text-gray-400">PAY PERIOD</div>
+                <div class="text-xl text-indigo-200">{{workday.period.number}}</div>
+            </a>
+            <a href="{{workday.schedule.url}}" class="rounded-md p-5 hover:bg-purple-800 text text-center vstack text-center">
+                <div class="text-2xs text-gray-400">SCHEDULE</div>
+                <div class="text-xl text-purple-200">{{workday.schedule.number}}</div>
+            </a>
+        </div>
     </div>
-    <div class="panel">
-        <table class="wikitable">
-            <thead>
-                <tr>
-                    <th>Week</th><th>Pay Period</th><th>Schedule</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr><td>{{workday.week.number}}</td><td>{{workday.period.number}}</td><td>{{workday.schedule.number}}</td></tr>
-            </tbody>
-        </table>
+
+    <div class="bg-blue-900 bg-opacity-40 rounded-lg m-5 px-12 py-2">
+        <a href="{% url 'sch:v1-workday-detail' workday.slug %}">VIEW ALERNATE LAYOUT</a>
     </div>
 
     <div class="panel">
         {% regroup workday.slots.all by cls as slots_list %}
 
         {% for cls in slots_list %}
-            <h2>{{cls.grouper}}</h2>
+
 
             <table class="wikitable">
                 <thead>
@@ -52,7 +61,11 @@ TEMPLATE VARIABLES
                         <tr>
                             <td>{{slot.shift}}</td>
                             <td></td>
-                            <td>{{slot.employee}}</td>
+                            {% if slot.employee %}
+                                <td>{{slot.employee}}</td>
+                            {% else%}
+                                <td></td>
+                            {% endif %}
                         </tr>
                     {% endfor %}
                 </tbody>

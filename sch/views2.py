@@ -33,12 +33,12 @@ def schListView (request):
     }
     return render(request, 'sch2/schedule/sch-list.html', context)
 
-def schDetailView (request, year, num, ver ):
+def schDetailView (request, slug ):
     
-    schedule = Schedule.objects.get(year=year, number=num, version=ver)
+    schedule = Schedule.objects.get(slug=slug)
     
     context = {
-        'schedule': schedule,
+        'schedule' :  schedule,
     }
     return render(request, 'sch2/schedule/sch-detail.html', context)
 
@@ -54,13 +54,10 @@ def schDayPopover (request, year, num, ver, day):
 def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
-    
-  
     context = {
         'week'  : week,
         'slots' : week.slots.filled().order_by('employee__name'),
         'workdays': week.workdays.all(),
-
     }
     return render(request, 'sch2/week/wk-detail.html', context)
 
@@ -112,10 +109,34 @@ def shiftTrainingFormView (request, cls, sft):
     
     shift = Shift.objects.get (cls=cls, pk=sft)
     if request.method == 'POST':
-        json = request.POST.dict()
-        print (json)
+        # if there is a dict key in the form of 'employee-trained' and it to the list trained:
+        trained = []
+        for i in request.POST:
+            tagless = i[:-8]
+            if i.replace("-trained","") == tagless:
+                e = Employee.objects.get(slug=tagless)
+                trained.append(e)
+        available = []
+        for i in request.POST:
+            tagless = i[:-10]
+            if i.replace("-available","") == tagless:
+                e = Employee.objects.get(slug=tagless)
+                available.append(e)
+        for employee in Employee.objects.all():
+            if employee in trained:
+                if shift not in employee.shifts_trained.all():
+                    employee.shifts_trained.add(shift)
+            if employee not in trained:
+                if shift in employee.shifts_trained.all():
+                    employee.shifts_trained.remove(shift)
+            if employee in available:
+                if shift not in employee.shifts_available.all():
+                    employee.shifts_available.add(shift)
+            if employee not in available:
+                if shift in employee.shifts_available.all():
+                    employee.shifts_available.remove(shift)
         return HttpResponseRedirect (shift.url())
-    
+     
     html_template = 'sch2/shift/shift-training.html'
     empls = Employee.objects.filter(cls=shift.cls).order_by('name')
     context = {

@@ -4,6 +4,15 @@
 
 {% block body %}
 
+<script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
+
+<p id="first">Hello</p>
+<p id="second">World</p>
+<button class="btn primary" _="on click set my.innerText to #first.innerText + ' ' + #second.innerText">
+Concat
+</button>
+
+
 <div>
 
     <a id="back-home" href="/">
@@ -15,11 +24,11 @@
 
     {#---SCHEDULE VIEW NAVIGAtION---#}
     <div class="hstack center-content space-around">
-        <a href="{{prevSch_url}}">
+        <a href="{{ schedule.url__previous }}">
             <div class="bg-indigo-400 text-indigo-800 rounded px-4 w-fc font-bold italic hover:bg-indigo-100 hover:rounded">PREVIOUS SCHEDULE</div>
         </a>
 
-        <a href="{{nextSch_url}}">
+        <a href="{{ schedule.url__next }}">
             <div class="bg-indigo-400 text-indigo-800 rounded px-4 w-fc font-bold italic hover:bg-indigo-100 hover:rounded">NEXT SCHEDULE</div>
         </a>
     </div>
@@ -31,8 +40,10 @@
             <div class ="btn" 
                hx-get="{{schedule.url__clear}}" 
                hx-confirm="Please verify: You will delete all {{ tot }} shift assignments for the current schedule for pharmacists and technicians. "
+               hx-swap="none"
                href="{% url 'sch:v1-schedule-detail' schedule.slug %}">
             Delete All Slots
+
             </div>
         <div class="spinner"></div>
 
@@ -40,7 +51,8 @@
 
         <button class="btn btn-lg hover:bg-yellow-700" 
             hx-confirm="By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data."
-            hx-get="{% url 'sch:v2-schedule-solve-alg2' schedule.pk %}"
+            hx-get="{% url 'sch:v2-schedule-solve-alg2' schedule.slug %}"
+            hx-swap="none"
             _="on click 
                     alert ('By confirming, the algorithm will take control of the 696 slots in this Schedule and attempt solutions, which will involve manipulating & deleting existing data')
                then post to start/ 
@@ -82,21 +94,24 @@
     </div>
     {#---ALERTS---#}
     <div id="messages-container">
-        {% if messages %}{% for msg in messages %}
+        {% if messages %} 
+        {% for msg in messages %}
             {{message}}
-        {% endfor %}{% endif %}
+        {% endfor %}
+        {% endif %}
     </div>
 
     {#--- TOAST ALERT ---#}
     {% #toast-wrapper %}
-        <div class="m-2">
+        <a href="{% url 'sch:v2-schedule-detail' schedule.slug %}"
+         class="m-2">
             {% #toast  title="ALERT" %} 
                 <p class="text-2xs jbm">
-                    THIS SCHEDULE LOOKS LIKE IT COULD BE IMPROVED.<br>
-                    Want the SolveBot to take a look?
+                    AN ALTERNATE VIEW FOR SCHEDULES IS AVAILABLE<br>
+                    Click here to view.
                 </p>
             {% /toast %}
-        </div>
+        </a>
     {% /toast-wrapper %}
 
     <div class="overflow-x-auto">
@@ -117,7 +132,7 @@
     {% for empl in employees %}
     <tr>
         <th>
-            <a href="/sch/employee/{{ empl }}/generate-schedule/{{ day0.slug }}/{{ dayN.slug }}/"> {{ empl }} </a>
+            <a href="{% url 'sch:v2-employee-schedule' empl.slug schedule.slug %}"> {{ empl }} </a>
         </th>
         {% for day in empl.schedule %}
             
@@ -136,7 +151,7 @@
                     <td style="background-color:#e3727233;">
                         <span> {{day.1}} <sub style="font-size:9px;opacity:50%;">{{day.2}}</sub></span>  
                         {% if day.4 < day.2 %}
-                        <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;">!!</span>
+                        <span style="color:black;background-color:#f3f314cc;border-radius:40px;box-shadow:1px 1px 3px black;"><super>!!</super></span>
                         {% endif %}
                     </td>
                 {% elif day.3 != None %}
@@ -159,8 +174,8 @@
     {% endfor %}
     <tr>
         <th>Unfilled Shifts</th>
-        {% for dy in unfilled  %}
-            <td>{% for uf in dy %} {{uf}}<br><br> {% endfor %}</td> 
+        {% for dy in schedule.workdays.all  %}
+            <td>{% for uf in dy.slots.unfilled %} {{uf}}<br><br> {% endfor %}</td> 
         {% endfor %}   
     </tr>
     </table>

@@ -22,7 +22,6 @@ urlpatterns = [
     path('docs/week/', views.DOCUMENTATION.weekly, name='docs-week'),  
 ]
 
-
 user_patterns = [
     path('user/register/', views.registerView,        name='user-register-form'),
     path('user/login/', views.registerView,           name='user-login-form')
@@ -78,7 +77,7 @@ shift_patterns = [
     path('shifts/all/overview/', views.SHIFT.shiftOverview, name='shift-overview'),
     path('v2/shift/<str:cls>/<str:name>/', views2.shiftDetailView, name='shift-detail'),
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
-    path('v2/shift/<str:cls>/<str:sft>/trained/update/', views2.shiftTrainingFormView, name='shift-training-update'), 
+    path('v2/shift/<str:cls>/<str:sft>/trained/update/', views.SHIFT.trainedShiftView, name='shift-training-update'), 
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
     path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
@@ -109,7 +108,8 @@ employee_patterns = [
     path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name='employee-list'),
     path("employees/cpht/", views.EMPLOYEE.EmployeeListViewCpht.as_view(), name='cpht-list'),
     path("employees/rph/", views.EMPLOYEE.EmployeeListViewRph.as_view(), name='rph-list'),
-    path("employees/new/", views.EMPLOYEE.EmployeeCreateView.as_view(), name='employee-new'),
+    path("employees/new-pharmacist/", views.EMPLOYEE.PharmacistCreateView.as_view(), name='create-rph'),
+    path("employees/new-technician/", views.EMPLOYEE.TechnicianCreateView.as_view(), name='create-cpht'),
     path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='v2-employee-detail'),
     path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
     path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
@@ -123,12 +123,12 @@ employee_patterns = [
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
     path('employee/<str:name>/generate-schedule/', views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name='employee-schedule-form'),
-    path('employee/<str:name>/generate-schedule/<slug:date_from>/<slug:date_to>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='employee-schedule'),
+    path('v2/employee/<str:name>/generate-schedule/<str:sch>/', views.EMPLOYEE.EmployeeScheduleView.as_view(), name='v2-employee-schedule'),
     path('day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
     path('evening-fractions/', views.EMPLOYEE.eveningFractionView,name='pm-fractions'),
     
     path('employee/<str:name>/sort-shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-sortable'),
-    
+    path('v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/', views.EMPLOYEE.EmployeePtoFormView.as_view(), name='employee-sortable-down'),
 ]
 urlpatterns += employee_patterns
 
@@ -138,43 +138,25 @@ schedule_patterns = [
     path('schedule-list/all/', views.SCHEDULE.scheduleListView,  name='schedule-list'),
     path('schedule-detail/<str:slug>/',views.SCHEDULE.scheduleView, name='v1-schedule-detail'),
     path('schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/',views.SCHEDULE.scheduleSlotModalView, name='schedule-slot-modal'),
-    path('schedule/current-schedule/', 
-         views2.currentSchedule,                    name='v2-current-schedule'),
-    path('schedule/<int:year>/<int:sch>/', 
-         views.SCHEDULE.scheduleView,               name='schedule'),
-    path('schedule/<int:year>/<int:sch>/solve/', 
-         views.SCHEDULE.solveScheduleLoader,        name='schedule-print'),
-    path('schedule/<int:year>/<int:sch>/start/',
-         views.HTMX.scheduleActiveLoad,             name='sch-active-loading'),
-    path('schedule/<int:year>/<int:sch>/delete-all-slots/', 
-        views.SCHEDULE.scheduleDelSlots,            name='sch-del-slots'),
-    path('schedule/<int:year>/<int:sch>/solve-slots/', 
-        views.SCHEDULE.solveScheduleSlots,          name='solve-sch-slots'),  
-    path('schedule/<int:year>/<int:sch>/generate-random-pto/',
-        views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
-    path('schedule/<int:year>/<int:sch>/weekly-ot/', 
-        views.SCHEDULE.weeklyOTView,                name='weekly-ot'),
-    path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', 
-        views.SCHEDULE.FX.removePtoConflictSlots,   name='remove-pto-conflict-slots'),
-    
-    path('v2/schedule/list/', 
-         views2.schListView,                       name='sch-list'),
-    path('v2/S<int:year>-<int:num><str:ver>/',
-         views2.schDetailView,                     name='v2-schedule-detail'),
-    path('v2/schedule/<int:schId>/clearSlots/', 
-         views2.scheduleClearAllView,               name='v2-schedule-clear'),
-    path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',
-         views2.schDayPopover,                      name="sch-day-popover"),
-    path('v2/schedule-solve/<int:schId>/', 
-         views2.scheduleSolve,                      name='v2-schedule-solve'),
-    path('v2/schedule-solve-alg-2/<int:schId>/', 
-         views.SCHEDULE.solveScheduleSlots,         name='v2-schedule-solve-alg2'),
+    path('schedule/current-schedule/', views2.currentSchedule, name='v2-current-schedule'),
+    path('schedule/<int:year>/<int:sch>/solve/', views.SCHEDULE.solveScheduleLoader, name='schedule-print'),
+    path('schedule/<int:year>/<str:slug>/',views.HTMX.scheduleActiveLoad,  name='sch-active-loading'),
+    path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots, name='sch-del-slots'),
+    path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots, name='solve-sch-slots'),  
+    path('schedule/<int:year>/<int:sch>/generate-random-pto/',views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
+    path('schedule/<int:year>/<int:sch>/weekly-ot/', views.SCHEDULE.weeklyOTView,name='weekly-ot'),
+    path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', views.SCHEDULE.FX.removePtoConflictSlots,   name='remove-pto-conflict-slots'),
+    path('v2/schedule/list/', views2.schListView, name='sch-list'),
+    path('v2/schedule/<str:slug>/', views2.schDetailView,name='v2-schedule-detail'),
+    path('v2/schedule/<int:schId>/clearSlots/', views2.scheduleClearAllView, name='v2-schedule-clear'),
+    path('v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/',views2.schDayPopover, name="sch-day-popover"),
+    path('v2/schedule-solve/<int:schId>/', views2.scheduleSolve,name='v2-schedule-solve'),
+    path('v2/schedule-solve-alg-2/<str:slug>/',views.SCHEDULE.solveScheduleSlots,name='v2-schedule-solve-alg2'),
 ]
 urlpatterns += schedule_patterns
 
 test_patterns = [
-    path('test/<slug:workday>/<str:shift>/',
-         views.TEST.allOkIntraWeekSwaps,            name="test1"),
+    path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps,            name="test1"),
     path('test/<slug:workday>/<str:shift>/i-s/',
         views.TEST.possibleInterWeekSlotSwaps,      name="test2"),
     path('test/<slug:slotA>/<slug:slotB>/make-swap/',

@@ -1,5 +1,5 @@
 from django import forms
-from .models import PtoRequest, Slot, TemplatedDayOff, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
+from .models import Schedule, PtoRequest, Slot, TemplatedDayOff, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
 from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
 from django.contrib.auth.forms import UserCreationForm
@@ -70,16 +70,45 @@ class EmployeeForm (forms.ModelForm) :
             'shifts_available': forms.CheckboxSelectMultiple(),
             'cls': forms.RadioSelect(),
         }
+   
+class TechnicianForm (EmployeeForm) : 
+    class Meta (EmployeeForm.Meta) :
+        model = Employee
+        fields = ['name', 'fte_14_day', 'cls', 'evening_pref']
+        widgets = {
+            'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cls': forms.HiddenInput()
+        }   
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fte_14_day'].label = "Hours/14 days"
+        self.fields['cls'].initial = 'CPhT'
+        
+class PharmacistForm (EmployeeForm) :
+    class Meta (EmployeeForm.Meta) :
+        model = Employee
+        fields = ['name', 'fte_14_day', 'cls', 'evening_pref']
+        widgets = {
+            'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
+            'cls': forms.HiddenInput()
+        }   
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['fte_14_day'].label = "Hours/14 days"
+        self.fields['cls'].initial = 'RPh'
+
         
 class EmployeeEditForm (forms.ModelForm) :
     
     shifts_trained = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
-        queryset = Shift.objects.all()
+        queryset = Shift.objects.all(),
+        required = False,
     )
     shifts_available = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
-        queryset = Shift.objects.all()
+        queryset = Shift.objects.all(),
+        required = False,
     )
     
     def __init__(self, *args, **kwargs):
@@ -201,25 +230,10 @@ class EmployeeMatchCoworkerTdosForm (forms.ModelForm):
         return cleaned_data
 
 class EmployeeScheduleForm(forms.Form):
+    schedule  = forms.ModelChoiceField(queryset=Schedule.objects.all())
     employee  = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-    date_from = forms.ModelChoiceField(queryset=Workday.objects.filter(iweekday=0))
-    date_to   = forms.ModelChoiceField(queryset=Workday.objects.filter(iweekday=0))
-
-    def __init__(self, *args, **kwargs):
-        super(EmployeeScheduleForm, self).__init__(*args, **kwargs)
         
-
-        self.fields['employee'].initial  = self.initial.get('employee')
-         # Set initial date_from as the last Sunday which occured 
-        self.fields['date_from'].initial = Workday.objects.filter(iweekday=0).exclude(date__gt=dt.date.today()).order_by('-date')[0]
-        self.fields['date_to'].initial   = Workday.objects.filter(iweekday=0).exclude(date__lt=dt.date.today()).order_by('-date')[4]
-
-    def clean(self):
-        cleaned_data = super(EmployeeScheduleForm, self).clean()
-        date_from = cleaned_data.get('date_from')
-        date_to = cleaned_data.get('date_to')
-        if date_from and date_to and date_from.date > date_to.date:
-            raise forms.ValidationError("Date from must be before date to.")
+    
 
 class BulkWorkdayForm (forms.Form) :
     

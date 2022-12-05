@@ -13,7 +13,7 @@ class EmployeeTable (tables.Table):
     Base Table for All Employees
     Displays basic details about each employee
     """
-    name = tables.columns.LinkColumn('sch:v2-employee-detail', args=[A('name')])
+    name = tables.columns.LinkColumn('sch:v2-employee-detail', args=[A('slug')])
     avg_shift_pref_score = tables.columns.Column(
         verbose_name="Avg Shift Pref Score", 
         accessor='avg_shift_pref_score')

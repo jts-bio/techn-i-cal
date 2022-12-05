@@ -62,7 +62,8 @@
     {% regroup slots by employee as slotCount %}
 
     {% for empl in slotCount %}
-        <p> {{ empl.grouper }} </p> 
+        <p> {{ empl.grouper }} <span class="bg-gray-200 text-gray-800 text-xs">{% sumSlotHours empl.list %}</span> </p> 
+        <div></div> 
         {% for slot in empl.list %}
             <span class='bg-blue-600 text-white text-xs italic px-2 rounded-lg'>{{ slot }}</span>
         {% endfor %}     

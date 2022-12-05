@@ -52,13 +52,24 @@
         </div>
         <div class="panel w-fc">
 
-            <div style="float:right;"><a href="ssts/" class="bg-blue-400 rounded p-2 hover:bg-blue-200 hover:text-blue-900 m-1">
-                Edit Shifts</a><br></div>
-            <div style="float:right;"><a href="template-days-off/" class="bg-gray-700 rounded p-2 hover:bg-gray-600 hover:text-gray-200 m-1">
-                Edit Days Off Templating</a><br></div>
+            <div style="float:right;">
+                <a  href="{% url 'sch:employee-edit-ssts' employee.slug %}" 
+                    class="bg-blue-400 rounded p-2 hover:bg-blue-200 hover:text-blue-900 m-1">
+                Edit Shifts
+                </a><br></div>
+
+            <div style="float:right;">
+                <a  href="{% url 'sch:employee-tdos' employee.slug %}" 
+                    class="bg-gray-700 rounded p-2 hover:bg-gray-600 hover:text-gray-200 m-1">
+                Edit Days Off Templating
+                </a><br></div>
 
             <h2 style="color:orange;font-size:18px;">Templating</h2>
-            <p class="text-xs text-sky-200 italic my-5" style="font-family:'Helvetica Neue';">{{employee}} is templated for {{sstHours}} hours / pay period.</p>
+
+            <p class="text-xs text-sky-200 italic my-5" style="font-family:'Helvetica Neue';">
+                {{employee}} is templated for {{sstHours}} hours / pay period.
+            </p>
+
             <div class="hstack" style="justify-content:space-around;">
                 <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
             </div>

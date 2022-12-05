@@ -10,17 +10,19 @@
             <th>Version</th>
             <th>Start Date</th>
             <th>Slots Filled</th>
+            <th>Draft Status</th>
         </tr>
         {% for sch in schedules %}
             <tr>
                 <td><a href="{{sch.url}}">{{sch.year}}-Schedule {{sch.number}}</a></td>
                 <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
                 <td>{{sch.start_date}}</td>
-                <td>{{sch.nFilled}}</td>
+                <td><span class="text-indigo-100 bg-indigo-700 border-indigo-200 border-1 px-4 rounded-full">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span></td>
+                <td>{{sch.repr_status}}</td>
             </tr>
         {% endfor %}
 
-    </table>table-lg
+    </table>
     
 {% endblock content %}
     

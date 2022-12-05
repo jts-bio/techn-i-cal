@@ -34,10 +34,14 @@
         <div class="panel w-fc">
             <div class="hstack" 
                 style="justify-content:space-between;">
-                <a href="/sch/employees/new/">
-                    {% newEmployee %}</a>
+
+                {% if rphActive %} <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
+                {% elif cphtActive %} <a href="{% url 'sch:create-cpht' %}"> {% newEmployee %} </a>
+                {% endif %}
+                
                 <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
-                    {{ employees|length }} Active </div>
+                    {{ employees|length }} Active 
+                </div>
             </div>
 
             {% render_table employeeTable %}
