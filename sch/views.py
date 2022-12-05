@@ -41,22 +41,7 @@ def index(request):
     return render ( request, 'index.html', context )
 
 
-    
 
-def registerView (request) :
-    template_html = 'sch/user/register.html'
-    
-    if request.method == "POST":
-        form = AuthenticationForm(request.POST)
-        print(form.data)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/sch/')
-    
-    context = {
-        'form': form
-    }
-    return render(request, template_html, context)
 
 def day_changer (request, date):
     workday         = Workday.objects.get(slug=date)
@@ -984,7 +969,7 @@ class EMPLOYEE:
         success_url     = '/sch/employees/all/'
 
         def get_object(self):
-            return Employee.objects.get(name=self.kwargs['name'])
+            return Employee.objects.get(slug=self.kwargs['name'])
         
         def post (self, request, name):
             form = EmployeeEditForm(request.POST)
@@ -994,7 +979,7 @@ class EMPLOYEE:
             print (request, request.POST)
             if form.is_valid():
                 
-                e = Employee.objects.get(name=name)
+                e = Employee.objects.get(slug=name)
                 e.name          = form.cleaned_data['name']
                 e.cls           = form.cleaned_data['cls']
                 e.streak_pref   = form.cleaned_data['streak_pref']

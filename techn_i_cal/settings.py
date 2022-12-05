@@ -37,7 +37,6 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    "flow.apps.FlowConfig",
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
@@ -100,12 +99,23 @@ WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'jsteinbecker/flowrate',
+        'USER': 'jsteinbecker',
+        'PASSWORD': 'v2_3wSCG_puqQZ4bwEh45RayhbBiaY4z',
+        'HOST': 'db.bit.io',
+        'PORT': '5432',
     }
 }
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
+#     }
+# }
 
 # DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 

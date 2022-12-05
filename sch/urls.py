@@ -23,8 +23,6 @@ urlpatterns = [
 ]
 
 user_patterns = [
-    path('user/register/', views.registerView,        name='user-register-form'),
-    path('user/login/', views.registerView,           name='user-login-form')
 ]
 urlpatterns += user_patterns
 

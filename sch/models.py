@@ -304,7 +304,7 @@ class Shift (models.Model) :
     """
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
-    cls             = models.CharField (max_length=5, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
+    cls             = models.CharField (max_length=20, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
     start           = models.TimeField()
     duration        = models.DurationField()
     hours           = models.FloatField() # audo set on save
@@ -365,7 +365,7 @@ class Employee (models.Model) :
     shifts_available= models.ManyToManyField (Shift, related_name='available')
     streak_pref     = models.IntegerField (default=3)
     trade_one_offs  = models.BooleanField (default=True)
-    cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=4)
+    cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=20)
     evening_pref    = models.BooleanField (default=False)
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
@@ -491,7 +491,7 @@ class Workday (models.Model) :
     week     = models.ForeignKey("week", on_delete=models.CASCADE, null=True, related_name='workdays')
     period   = models.ForeignKey("Period", on_delete=models.CASCADE, null=True,related_name='workdays')
     schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE,null=True,related_name='workdays')
-    slug     = models.CharField(max_length=10, null=True, blank=True)
+    slug     = models.CharField(max_length=30, null=True, blank=True)
     iweekday = models.IntegerField(default=-1)
     iweek    = models.IntegerField(default=-1)
     iperiod  = models.IntegerField(default=-1)
@@ -839,8 +839,6 @@ class Schedule (models.Model):
     status     = models.IntegerField(choices=list(enumerate("working,finished,discarded")),default=0)
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
-    created    = models.DateTimeField(default=dt.datetime.now(), editable=False)
-
     
     @property
     def week_start_dates (self):
@@ -941,8 +939,6 @@ class Slot (models.Model) :
     is_turnaround  = models.BooleanField (default=False)
     is_terminal    = models.BooleanField (default=False)
     streak         = models.SmallIntegerField (null=True, default=None)
-    
-    
     
     class Meta:
         constraints = [
@@ -1368,8 +1364,8 @@ def generate_schedule (year,number):
     version = "ABCDEFGHIJKLMNOP"[n_same]
 
     sch = Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
+    sch.slug = f'{sch.year}-{sch.number}-{sch.version}'
     sch.save()
-    
     
     for slot in sch.slots.all():
         slot.save()

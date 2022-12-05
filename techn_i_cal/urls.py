@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import include, path, reverse
 from django.template import loader
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from django.conf.urls.static import static
 from sch.models import Shift, Slot, Employee, Workday
@@ -33,7 +33,6 @@ from django.contrib.auth import login, authenticate, logout
 
 
 
-from flow.views import *
 
 @public
 def index(request):
@@ -44,7 +43,7 @@ def index(request):
         if request.POST.get("token"):
             token_field = request.POST.get("token")
             print(token_field)
-            return HttpResponseRedirect(reverse('sch:index'))
+            return HttpResponseRedirect(reverse('index'))
         
     
     context = {
@@ -64,7 +63,7 @@ def loginView (request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return HttpResponseRedirect(reverse('sch:index'))
+                return HttpResponseRedirect(reverse('index'))
             else:
                 return HttpResponseRedirect(reverse('tech:login'))
 
@@ -91,7 +90,6 @@ urlpatterns = [
     path('admin/',      admin.site.urls,            name='admin'),
     path('sch/',        include('sch.urls'),    name='sch'),
     path('pds/',        include('pds.urls'),    name="pds"),
-    path('flow/',       include('flow.urls'),   name='flow'),
 
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
