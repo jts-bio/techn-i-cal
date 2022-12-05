@@ -1,7 +1,11 @@
 
 {% extends 'base.html' %}
-
 {% for empl in allEmployees %}
-<form method="post">
-<label for="employee">{{empl}}</label>
-</form>
+
+    <form method="post">
+
+        <label for="employee">{{empl}}</label>
+
+    </form>
+
+{% endfor %}

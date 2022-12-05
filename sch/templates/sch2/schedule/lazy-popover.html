@@ -1,3 +1,10 @@
+<div hx-get = "{% url 'sch:lazy-popover-load' workday.schedule.slug workday.slug %}"
+                        hx-trigger ="mouseover">
+                                <img class="htmx-indicator"
+                                    width="180"
+                                    src="/static/img/spinner.svg"/>
+                    </div>
+
 {% #basic_popover title=workday.date   subtitle=workday.weekday    link=workday.url   score=workday.percent %}
                                 
                 <div>{{ workday.days_away }} days away </div>

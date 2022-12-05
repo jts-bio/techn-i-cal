@@ -469,6 +469,11 @@ class Employee (models.Model) :
             return self.shifts_available.filter(start__hour__lte=10)
         if not self.evening_pref:
             return self.shifts_available.filter(start__hour__gt= 10)
+    def favorable_shifts (self):
+        if self.evening_pref:
+            return self.shifts_available.filter(start__hour__gt=10)
+        if not self.evening_pref:
+            return self.shifts_available.filter(start__hour__lte=10)
     @property
     def get_TdoSlotConflicts (self):
         tdos = list(TemplatedDayOff.objects.filter(employee=self).values_list('pk',flat=True))
@@ -850,18 +855,13 @@ class Schedule (models.Model):
     def __post_init__ (self, *args, **kwargs):
         count = Schedule.objects.filter
         self.slug = f"{self.year}-S{self.number}{self.version}"
-    @property
-    def week_start_dates (self):
-        return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
-    @property
-    def payPeriod_start_dates (self):
-        return [self.start_date + dt.timedelta(days=i*14) for i in range(3)]             
     def save (self, *args, **kwargs) :
         if self.year == None :
             self.year = self.start_date.year
         if self.number == None :
             self.number = int (self.start_date.strftime("%U")) // 6
-        self.slug = f'{self.year}-S{self.number}{self.version}'
+        if self.slug == "":
+            self.slug = f'{self.year}-S{self.number}{self.version}'
         sameYrNum = Schedule.objects.filter(year=self.year,number=self.number)
         if sameYrNum.exists():
             n = sameYrNum.count()
@@ -876,15 +876,22 @@ class Schedule (models.Model):
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
                 p.save()
+    
+    @property
+    def week_start_dates (self):
+        return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
+    @property
+    def payPeriod_start_dates (self):
+        return [self.start_date + dt.timedelta(days=i*14) for i in range(3)]             
     def url     (self) :
-        url = reverse('sch:v2-schedule-detail', args=[self.slug])
+        url = reverse('sch:v2-schedule-detail',  kwargs={'schId':self.slug})
         return url
     def url__solve  (self):
-        return reverse('sch:v2-schedule-solve', args=[self.pk])
+        return reverse('sch:v2-schedule-solve',  kwargs={'schId':self.slug})
     def url__solve_b    (self):
-        return reverse('sch:v2-schedule-solve-alg2', args=[self.slug])
+        return reverse('sch:v2-schedule-solve-alg2', kwargs={'schId':self.slug})
     def url__clear  (self):
-        return reverse('sch:v2-schedule-clear', args=[self.pk])
+        return reverse('sch:v2-schedule-clear',  kwargs={'schId':self.slug})
     def url__previous (self):
         if self.number == 1:
             return Schedule.objects.filter(year=self.year-1,version=self.version).first()
@@ -1350,7 +1357,13 @@ class SchedulingMax (models.Model):
 
 
 
-
+class ShiftSortPreference (models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
+    score    = models.IntegerField(default=0)
+    class Meta:
+        unique_together = ['employee', 'shift']
+    
 
 def generate_schedule (year,number):
     """

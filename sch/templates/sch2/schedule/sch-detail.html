@@ -44,7 +44,7 @@ SCHEDULE DETAIL VIEW
 
     </div>
 
-    <div><a href="{% url 'sch:v1-schedule-detail' schedule.slug %}">ALTERNATE VIEW</a></div>
+    <div><a href="{% url 'sch:v1-schedule-detail' schedule.pk %}">ALTERNATE VIEW</a></div>
 
     <div class="panel text text-center x-overflow-scroll flex flex-col">
     
@@ -89,13 +89,7 @@ SCHEDULE DETAIL VIEW
 
                     {% for workday in week.workdays.all %}
                     
-                     <div hx-get =  "{% url 'sch:lazy-popover-load' workday.pk %}"
-                        hx-trigger ="load">
-
-                                <img class="htmx-indicator"
-                                    width="180"
-                                    src="/static/img/spinner.svg"/>
-                    </div>
+                     
                             
 
                     {% endfor workday %}

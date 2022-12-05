@@ -82,14 +82,15 @@ def logoutView (request):
 
 
 urlpatterns = [
-    path('' ,           index,  name='index'),
-    path('login/',     loginView, name='login-view'),
-    path('logout/',     logoutView, name='logout-view'),
+    path('' ,           index,          name='index'),
+    path('login/',     loginView,       name='login-view'),
+    path('logout/',     logoutView,         name='logout-view'),
     path('accounts/', include('django.contrib.auth.urls')),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
-    path('admin/',      admin.site.urls,            name='admin'),
+    path('admin/',      admin.site.urls,      name='admin'),
     path('sch/',        include('sch.urls'),    name='sch'),
     path('pds/',        include('pds.urls'),    name="pds"),
+    path('flow/',     include('flow.urls'),    name='flow'),
 
-] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

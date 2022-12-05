@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- jsDelivr :: Sortable :: Latest (https://www.jsdelivr.com/package/npm/sortablejs) -->
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+<script src="https://unpkg.com/htmx.org@1.8.4" integrity="sha384-wg5Y/JwF7VxGk4zLsJEcAojRtlVp1FKKdGy1qN+OMtdq72WRvX/EdRdqg/LOhYeV" crossorigin="anonymous"></script>
+<script>
+
+    htmx.onLoad(function(content) {
+        var sortables = content.querySelectorAll(".sortable");
+        for (var i = 0; i < sortables.length; i++) {
+        var sortable = sortables[i];
+        new Sortable(sortable, {
+            animation: 150,
+            ghostClass: 'blue-background-class'
+        });
+        }
+    })
+
+</script>
+{% endblock %}
+
+    
+{%block content %}
+
+
+
+<div class="hstack center items-center text-center">
+
+    <h1> {{employee.name}} Shift Preferences</h1>
+    <p>Drag to sort your shift preferences from most preferable on top, to least at bottom.</p>
+    <div class="vstack">
+    <div class="htmx-indicator">Updating...</div>
+    <p>If applicable, your shifts occuring during 
+        your preferred work hours window will
+        appear in navy.</p>
+
+    <form method="post" action=""> 
+        {% csrf_token %}
+
+            <div class="sortable bg-slate-900 text-indigo-200 rounded-lg w-40 mx-10">
+                {% for shift in employee.favorable_shifts %}
+                        <div class="border-2 rounded px-2 border-slate-700 shadow shadow-black shandow-md">
+                        <input type='hidden' name='{{shift}}' value='{{shift.pk}}'/> {{shift.name }} </div>
+                {% endfor %}
+            </div>
+            </div>
+            <div class="vstack">
+            <div class="htmx-indicator">Updating...</div>
+            <p>and your 'unpreferable' shifts occuring outside 
+                of your preferred work hours will appear 
+                in yellow.</p>
+            <div class="sortable bg-yellow-700 text-yellow-50 rounded-lg w-40 mx-10" 
+                hx-post="sart-unfavorables/" hx-trigger="end">
+
+                {% for shift in employee.unfavorable_shifts %}
+                        <div class="border-2 rounded px-2 bg-yellow-500 border-slate-700 shadow shadow-black shandow-md">
+                        <input type='hidden' name='{{shift}}' value='{{shift.pk}}'/> {{shift.name }} </div>
+                {% endfor %}
+            </div>
+            </div>
+
+        </div>
+    
+    <div class="hstack m-40 w-full">
+        <a href="{{ employee.url }}"  
+            class="px-32 py-2 shadow-yellow rounded-lg bg-blue-900 border border-yellow-400 text-yellow-300 hover:bg-blue-600 hover:text-yellow-100">
+            Cancel</a>
+        <input 
+            type="submit" 
+            class="px-32 py-2 bg-yellow-700 rounded-lg border border-blue-200 text-yellow-300 hover:bg-yellow-400 hover:text-blue-900"
+            value="Submit"/>
+    </div>
+
+
+</form>
+</div>
+{% endblock %}
+

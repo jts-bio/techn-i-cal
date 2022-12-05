@@ -104,7 +104,7 @@
                 <a href="generate-schedule/"><div class="hstack">{% plusIcon %}<span> Generate Schedule</span></div></a>
                 <a href="shift-preferences/"><div class="hstack">{% favoriteIcon %}<span>Shift Preferences</span></div></a>
                 <a href="coworker/">         <div class="hstack">{% teamIcon %}<span>Coworker Views</span></div></a>
-                <a href="{% url 'sch:employee-sortable' employee.name %}">Sort Shift Preferences</a>
+                <a href="{% url 'flow:employee-sort-shift-prefs' employee.slug %}">Sort Shift Preferences</a>
             </div>
             <div class="panel w-fc">
                 <div class="hstack"><span> {% vacationIcon %}</span><h2 style="font-size:22px;color:orange;">PTO Requests</h2></div>

@@ -1817,7 +1817,7 @@ class SCHEDULE:
             sch = Schedule.objects.get(slug=schSlug)
             wd = sch.workdays.get(slug=wdSlug)
 
-            return render (request, 'sch/workday/popover_detail.html', {'workday':wd})
+            return render (request, 'sch2/schedule/sch-day-popover.html', {'workday':wd})
         
     class DO:
         
@@ -1901,9 +1901,9 @@ class SCHEDULE:
             }
         return render(request, modal_html, context)
     
-    def scheduleView (request, pk):
+    def scheduleView (request, schId):
         context = {}
-        sched = Schedule.objects.get(pk=pk)
+        sched = Schedule.objects.get(pk=schId)
         year = sched.year
         sch = sched.number
         context['days'] = sched.workdays.all()
@@ -1996,9 +1996,9 @@ class SCHEDULE:
         url_pattern = '/sch/schedule/<int:year>/<int:sch>/solve/'
         return HttpResponseRedirect(f'/sch/schedule/{year}/{sch}/solve-slots/')
     
-    def solveScheduleSlots (request,slug):
-        ScheduleBot.solveSchedule(0,slug)
-        schedule = Schedule.objects.get(slug=slug)
+    def solveScheduleSlots (request,schId):
+        ScheduleBot.solveSchedule(0,schId)
+        schedule = Schedule.objects.get(slug=schId)
         year = schedule.year 
         sch = schedule.number
         print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")
@@ -2078,6 +2078,11 @@ class HTMX:
         context = {}
         context['shift_choices'] = Shift.objects.filter(cls='CPhT')
         return render (request, 'sch/forms/shiftChoices.html', context=context)
+    
+    def rank_shift_prefs (request, empl):
+        context = { 'empl': empl }
+        html_template='sch/alipine--drag-and-drop.html'
+        return render (request,html_template, context)
        
     @csrf_exempt 
     def scheduleActiveLoad (request,year,sch):
