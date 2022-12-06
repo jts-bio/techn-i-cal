@@ -109,10 +109,10 @@ DATABASES = {
         'HOST': 'db.bit.io',
         'PORT': '5432',
     },
-    "bu": {
-         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
+    # "bu": {
+    #      "ENGINE": "django.db.backends.sqlite3",
+    #     "NAME": BASE_DIR / "db.sqlite3",
+    # }
 }
     
     

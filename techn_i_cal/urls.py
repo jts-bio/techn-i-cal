@@ -73,11 +73,11 @@ def loginView (request):
     }
     return HttpResponse(template.render(context, request))
 
+@public
 def logoutView (request):
     user = request.user
     logout(request)
-    msg = messages.info(request, f'{user} Logged out.')
-    return HttpResponseRedirect(reverse('index'), messages=msg)
+    return HttpResponseRedirect(reverse('index'))
 
 
 
