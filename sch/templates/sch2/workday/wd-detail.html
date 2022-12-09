@@ -72,6 +72,10 @@ TEMPLATE VARIABLES
             </table>
 
         {% endfor %}
+
+        {% for pto in self.pto %}
+                {{ pto.employee }} {{ pto.status }}
+        {% endfor %}
     </div>
 
 

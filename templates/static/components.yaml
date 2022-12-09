@@ -18,6 +18,13 @@ components:
     wire-toast    : 'sch/comp/wireToast.html'
     bs-toast      : 'sch/comp/bs-toast.html'
 
+
+    # ======================== DROPDOWN  =========================
+
+    dropdown_button : 'sch/comp/dropdown-1/dd-button.html'  # --buttonTitle --children --emph_link --emph_name
+    dropdown_child  : 'sch/comp/dropdown-1/dd-child.html'   # --child.name --child_url 
+    dropdown_child_emph : 'sch/comp/dropdown-1/dd-child-emph.html' #--child_name --child_url
+
     # ======================== ICONS =========================
 
     icon-Date       : 'sch/icons/date.svg'

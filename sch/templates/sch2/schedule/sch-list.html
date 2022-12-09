@@ -4,6 +4,39 @@
 
 {% block content %}
 
+
+
+    <div class="float-right w-50">
+
+        {% #toggle-section title="New Schedule" %}
+            <div class="border-2 border-slate-300 rounded">
+                <div class="w-50 px-3 py-2 bg-gray-800 rounded">
+                    <h2 class="text-lg ">Generate New Schedule</h2>
+                </div>
+
+                <div class="px-3 py-2 bg-slate-700">
+                    <p class="w-56">
+                        Select the start date for a new schedule 
+                        to Generate. <span class="info"> Note, you can have 
+                        more than one schedule for the same date range 
+                        in order to test multiple scenarios. </span>
+                    </p>
+                </div>
+                
+
+
+                <form method="POST" class="pl-3" action=""> {% csrf_token %}
+                
+                    {{ new_schedule_form }}
+
+                    <input type="submit" value="Generate"/>
+                    
+                </form>
+            </div>
+        {% /toggle-section %}
+
+    </div>
+
     <table class="table">
         <tr>
             <th>Schedule</th>
@@ -14,11 +47,11 @@
         </tr>
         {% for sch in schedules %}
             <tr>
-                <td><a href="{{sch.url}}">{{sch.year}}-Schedule {{sch.number}}</a></td>
+                <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
                 <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
-                <td>{{sch.start_date}}</td>
+                <td>{{ sch.start_date }}</td>
                 <td><span class="text-indigo-100 bg-indigo-700 border-indigo-200 border-1 px-4 rounded-full">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span></td>
-                <td>{{sch.repr_status}}</td>
+                <td>{{ sch.status }}</td>
             </tr>
         {% endfor %}
 

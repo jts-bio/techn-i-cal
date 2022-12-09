@@ -163,3 +163,13 @@ def sumSlotHours (slots):
         total += slot.shift.hours 
     return total
     
+@register.inclusion_tag('employee_slot.html') 
+def get_employees_slot (workday, employee):
+    for slot in workday.slots.all():
+        if slot.employee == employee:
+            return {"class": "bg-blue-400 text-slate-900", 
+                    "weekday": slot.workday.weekday, 
+                    "shift": slot.shift}
+    return {"class": "bg-slate-700 text-slate-200 text-light", 
+                    "weekday": slot.workday.weekday, 
+                    "shift": "-"}

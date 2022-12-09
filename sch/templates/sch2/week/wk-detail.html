@@ -3,8 +3,11 @@
 
 
 {% block content %}
-
-    <nav>
+    <a href="{{week.schedule.url}}" class="hstack">
+        <div> {% backArrow %} </div>
+        <div> Schedule {{ week.schedule.number }}</div>
+    </a>
+    <div class="hstack bg-slate-800">
         <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
               method="POST"> {% csrf_token %}
         <input type="submit"
@@ -19,7 +22,7 @@
             class="bg-rose-200 text-rose-600 hover:bg-rose-500 hover:text-rose-100" 
             value="CLEAR SLOTS IN WEEK"/>
         </form>
-    </nav>
+    </div>
 
     <h1 class="text-2xl text-amber-300">{{ week }}</h1>
     <div class="flex flex-row">
@@ -36,14 +39,13 @@
             {{ workday.date }} Schedule</h3>
 
                 <table class='x-overflow-scroll'>
-                    <th class="px-3">
-                        <tr><span class="text-2xs text-gray-399 px-3">Shift</span></tr>
-                        <tr><span class="text-2xs text-gray-300 px-3">Assigned to</span></tr>
-                    </th>
                     {% for slot in workday.slots.all %}
                         <tr>
-                            <td> {{ slot.shift.name }} </td>
-                            <td> {{ slot.employee }} </td>
+                            <td class="text-indigo-300 px-2"> {{ slot.shift.name }} </td>
+                            <td> 
+                                {% if slot.employee %} {{ slot.employee }}
+                                {% else %} -- {% endif %} 
+                            </td>
                         </tr>
                     {% endfor %}
                 </table>
@@ -62,12 +64,22 @@
     {% regroup slots by employee as slotCount %}
 
     {% for empl in slotCount %}
-        <p> {{ empl.grouper }} <span class="bg-gray-200 text-gray-800 text-xs">{% sumSlotHours empl.list %}</span> </p> 
-        <div></div> 
+
+        <p> 
+        {{ empl.grouper }} 
+            <span class="bg-gray-200 text-gray-800 text-xs rounded-sm px-3 m-1"> 
+                {% sumSlotHours empl.list %}
+            </span> 
+        </p> 
+
+       
         {% for slot in empl.list %}
-            <span class='bg-blue-600 text-white text-xs italic px-2 rounded-lg'>{{ slot }}</span>
+            <span 
+            class='bg-blue-600 text-white text-xs italic px-2 rounded-lg'> 
+            {{ slot }} </span>
         {% endfor %}     
-    {% endfor slot %}
+
+    {% endfor %}
     
     </div>
 

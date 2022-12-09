@@ -141,7 +141,7 @@ schedule_patterns = [
     path('schedule/<int:year>/<str:slug>/',views.HTMX.scheduleActiveLoad,  name='sch-active-loading'),
     path('schedule/<int:year>/<int:sch>/delete-all-slots/', views.SCHEDULE.scheduleDelSlots, name='sch-del-slots'),
     path('schedule/<int:year>/<int:sch>/solve-slots/', views.SCHEDULE.solveScheduleSlots, name='solve-sch-slots'),  
-    path('schedule/<int:year>/<int:sch>/generate-random-pto/',views.SCHEDULE.DO.generateRandomPtoRequest, name='random-employee-pto'),
+    path('v2/schedule/generate-random-pto/<int:schpk>/',views.SCHEDULE.DO.generateRandomPtoRequest, name='gen-rand-pto'),
     path('schedule/<int:year>/<int:sch>/weekly-ot/', views.SCHEDULE.weeklyOTView,name='weekly-ot'),
     path('schedule/<int:year>/<int:sch>/del-pto-conflict-slots/', views.SCHEDULE.FX.removePtoConflictSlots,   name='remove-pto-conflict-slots'),
     path('v2/schedule/list/', views2.schListView, name='sch-list'),
@@ -151,32 +151,46 @@ schedule_patterns = [
     path('v2/schedule-solve/<str:schId>/', views2.scheduleSolve,name='v2-schedule-solve'),
     path('v2/schedule-solve-alg-2/<str:schId>/',views.SCHEDULE.solveScheduleSlots,name='v2-schedule-solve-alg2'),
     path('v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/' , views.SCHEDULE.FX.lazy_popover_load , name='lazy-popover-load'),
+    path('v2/generate-new-schedule/', views2.generate_schedule_form, name='generate-new-schedule'),
+    path('v2/schedule-empl-pto/<str:schId>/<str:empl>/',views2.pto_schedule_form, name="v2-schedule-empl-pto"),
 ]
 urlpatterns += schedule_patterns
 
 test_patterns = [
-    path('test/<slug:workday>/<str:shift>/',views.TEST.allOkIntraWeekSwaps,            name="test1"),
+    path('test/<slug:workday>/<str:shift>/',
+         views.TEST.allOkIntraWeekSwaps,            
+         name="test1"),
     path('test/<slug:workday>/<str:shift>/i-s/',
-        views.TEST.possibleInterWeekSlotSwaps,      name="test2"),
+        views.TEST.possibleInterWeekSlotSwaps,      
+        name="test2"),
     path('test/<slug:slotA>/<slug:slotB>/make-swap/',
-        views.TEST.makeSwap,                        name="InterWeek Swap"),
+        views.TEST.makeSwap,                        
+        name="InterWeek Swap"),
     path('spinner/',
-        views.TEST.spinner,                         name="spinner"),
+        views.TEST.spinner,                         
+        name="spinner"),
     path('predict-streak/<str:employee>/<slug:workday>/', 
-        actions.PredictBot.predict_createdStreak,   name="predict-streak"),
+        actions.PredictBot.predict_createdStreak,   
+        name="predict-streak"),
 ]
 urlpatterns += test_patterns
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', 
-         views.HTMX.alertView ,         name="htmxAlert"),
+         views.HTMX.alertView ,         
+         name="htmxAlert"),
     path('htmx/spinner/', 
-         views.HTMX.spinner,            name='spinner-view'),
+         views.HTMX.spinner,            
+         name='spinner-view'),
     path('htmx/prog/<int:progress>/', 
-         views.HTMX.radProgress ,       name= 'radial-progress'),
-    path('v2/employee/rank-shift-preferences/<str:empl>/', views.HTMX.rank_shift_prefs,  name ="rank-shift-prefs"),
+         views.HTMX.radProgress ,       
+         name= 'radial-progress'),
+    path('v2/employee/rank-shift-preferences/<str:empl>/', 
+         views.HTMX.rank_shift_prefs,  
+         name ="rank-shift-prefs"),
     path('htmx/form/cphtShift-choices/', 
-         views.HTMX.cphtShiftChoices,   name = "cpht-shift-choices"),
+         views.HTMX.cphtShiftChoices,   
+         name = "cpht-shift-choices"),
 ]
 urlpatterns += htmx_patterns
 

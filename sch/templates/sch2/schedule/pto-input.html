@@ -1,0 +1,31 @@
+
+
+{% extends 'base.html' %}
+{% load tags %}
+
+
+{% block content %}
+
+    <div class="vstack">
+        <h1 class="text-2xl">{{ schedule }}</h1>
+        <h3.text-lg> {{ employee.name }} PTO Request Map</h3>
+    </div>
+
+    <div class="panel">
+        <form method="POST"> {% csrf_token %}
+        <div class="grid grid-cols-7 gap-4">
+
+            {% for day in schedule.workdays.all %}
+            <div>
+                <label for="{{day.sd_id}}" class="text-xs">{{day.date}}</label>
+                <input type="checkbox" name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" id="{{day.sd_id}}-PtoCheckbox">
+            </div>
+            {% endfor %}
+
+        </div>
+        <input type="submit" value="Submit">
+        </form>
+    </div>
+    
+{% endblock content %}
+    

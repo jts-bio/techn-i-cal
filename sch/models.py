@@ -43,7 +43,7 @@ WEEKABCHOICES           = (
                 (1, 'B'),)
 TODAY                   = dt.date.today ()
 TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
-SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (200)]
+SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
 PRIORITIES              = (
                 ('L', 'Low'),
                 ('M', 'Medium'),
@@ -314,19 +314,32 @@ class Shift (models.Model) :
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
 
+    class Meta: 
+        
+        ordering = ['start']
+        
     def save (self, *args, **kwargs):
         if self.hours == None:
             self.hours = self._set_hours()
         super().save(*args, **kwargs)
-        
     def __str__(self) :
         return self.name
-
     def url(self):
         return reverse("sch:shift-detail", kwargs={"cls":self.cls, "name": self.name})
+    def prevUrl (self): 
+        """Get the url of the shift with the next lowest pk. If my pk is lowest, return my url."""
+        prev = Shift.objects.filter(cls=self.cls).filter(pk__lt=self.pk).order_by('-pk').first()
+        if prev:
+            return prev.url()
+        return self.url()
+    def nextUrl (self):
+        """Get the url of the shift with the next highest pk. If my pk is highest, return my url."""
+        next = Shift.objects.filter(cls=self.cls).filter(pk__gt=self.pk).order_by('pk').first()
+        if next:
+            return next.url()
+        return self.url()
     def _set_hours (self):
         return self.duration.total_seconds() / 3600 - 0.5
-
     @property
     def ppd_ids (self):
         """
@@ -343,7 +356,7 @@ class Shift (models.Model) :
         ids = list(self.occur_days)
         for i in self.occur_days:
             for x in [7,14,21,28,35]:
-                ids.append(str(int(i)+x))
+                ids.append(int(i)+x)
         return sorted(ids)
     def end (self):
         return (dt.datetime(2022,1,1,self.start.hour,self.start.minute) + self.duration).time()
@@ -352,8 +365,6 @@ class Shift (models.Model) :
         if sp:
             return sum(sp)/len(sp)
 
-
-   
 
     objects = ShiftManager.as_manager()
 # ============================================================================
@@ -508,6 +519,7 @@ class Workday (models.Model) :
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
         self.slug = self.date.strftime("%Y-%m-%d") + self.schedule.version
         self.sd_id= (self.date - TEMPLATESCH_STARTDATE).days % 42
         actions = self.Actions()
@@ -585,7 +597,8 @@ class Workday (models.Model) :
     def percFilled (self) :
         return self.filledSlots.count() / self.shifts.count()
     def percent (self):
-        return int(self.percFilled * 100)
+        decimal = self.slots.filled().count() / self.slots.all().count()
+        return int(decimal * 100)
     def url (self) :
         return reverse("workday", kwargs={"sch": self.schedule.pk,"slug": self.slug})
     def prevWD (self) :
@@ -653,6 +666,8 @@ class Workday (models.Model) :
             if ptoReqs.filter(employee=templ.employee).exists():
                 excepts.append(templ)
         return excepts
+    def pto (self):
+        return PtoRequest.objects.filter(workday=self.date)
     def save      (self, *args, **kwargs) :
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
@@ -684,7 +699,8 @@ class Week (models.Model) :
     schedule    = models.ForeignKey   ("Schedule", on_delete=models.CASCADE, null=True,related_name='weeks')
     start_date  = models.DateField    (blank=True, null=True)
     
-    
+    class Meta:
+        ordering = ['year','number','schedule__version']
     def ACTION__clearAllSlots (self):
         slots = self.slots.filled()
         slots.update(employee=None)
@@ -737,6 +753,8 @@ class Week (models.Model) :
         return self.slots.filter(employee__isnull=False).count()
     def nEmpty (self):
         return self.slots.filter(employee__isnull=True).count()
+    def percent (self):
+        return int((self.slots.filled().count() / self.slots.all().count()) * 100)
     @property
     def dates (self):
         return [self.start_date + dt.timedelta(days=i) for i in range(7)]  
@@ -748,7 +766,7 @@ class Week (models.Model) :
         return f'{self.year}_{self.iweek}'   
     def prevWeek (self) :
         try:
-            return Week.objects.get(year=self.year, iweek=self.iweek-1)
+            return Week.objects.get(year=self.year, number=self.number-1)
         except Week.DoesNotExist:
             # go back 1 year, and get the max iweek of that year.
             yearnew = self.year - 1
@@ -771,7 +789,7 @@ class Week (models.Model) :
     def n_options_for_slots (self):
         possibles = []
         for s in self.slots.all():
-            possibles += s.fillableBy()
+            possibles += s._fillableBy()
         return sortDict (tally (possibles))    
     def _print_fillByInfo (self):
         for s in self.slots.empty():
@@ -838,6 +856,8 @@ class Period (models.Model):
             hrs_needed = self.empl_needed_hrs(empl)
             output.update({empl:hrs_needed})
         return sortDict(output)
+    def percent (self):
+        return int((self.slots.filled().count() / self.slots.all().count()) * 100)
 # ============================================================================  
 class Schedule (models.Model):
     year       = models.IntegerField(null=True,default=None)
@@ -848,13 +868,8 @@ class Schedule (models.Model):
     slug       = models.CharField(max_length=20,default="")
     
     
-    def __init__(self, *args, **kwargs):
-        super(Schedule, self).__init__(*args, **kwargs)
-        self.__nochanges = self.pk
-        self.__post_init__(*args, **kwargs)
-    def __post_init__ (self, *args, **kwargs):
-        count = Schedule.objects.filter
-        self.slug = f"{self.year}-S{self.number}{self.version}"
+    def delete (self):
+        super().delete()
     def save (self, *args, **kwargs) :
         if self.year == None :
             self.year = self.start_date.year
@@ -876,7 +891,8 @@ class Schedule (models.Model):
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
                 p.save()
-    
+    def percent (self):
+        return int((self.slots.filled().count() / self.slots.all().count()) * 100)
     @property
     def week_start_dates (self):
         return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
@@ -901,7 +917,7 @@ class Schedule (models.Model):
             return Schedule.objects.filter(year=self.year+1,version=self.version).first()
         return Schedule.objects.get(year=self.year,number=self.number+1,version=self.version)
     def __str__     (self):
-        return f"S{self.year}-{self.number}{self.version}"
+        return f"{self.year}-S{self.number}{self.version}"
     def unfavorableRatio (self,employee):
         slots = self.slots.filter(employee=employee)
         if slots.count() == 0:
@@ -910,6 +926,8 @@ class Schedule (models.Model):
         return unfavorable.count()/slots.count()
     def repr_status     (self):
         return ["Working Draft","Final","Discarded"][self.status]
+    def pto_requests (self):
+        PtoRequest.objects.filter(workday=self.workdays.all().values('date'))
     class Actions :
         def fillTemplates (self,instance,**kwargs):
             print (f'STARTING TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
@@ -958,6 +976,7 @@ class Slot (models.Model) :
     streak         = models.SmallIntegerField (null=True, default=None)
     
     class Meta:
+        # ordering = ['shift__start']
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift"],    name='Shift Duplicates on day'),
             models.UniqueConstraint(fields=["workday", "employee"], name='Employee Duplicates on day')
@@ -1347,6 +1366,7 @@ class ShiftPreference (ComputedFieldsModel):
     objects = ShiftPreferenceManager.as_manager()
 # ============================================================================
 class SchedulingMax (models.Model):
+    
     employee   = models.ForeignKey(Employee, on_delete=models.CASCADE)
     year       = models.IntegerField()
     pay_period = models.IntegerField(null=True, blank=True)
@@ -1386,12 +1406,8 @@ def generate_schedule (year,number):
         n_same = Schedule.objects.filter(year=year, number=number).count()
     version = "ABCDEFGHIJKLMNOP"[n_same]
 
-    sch = Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
-    sch.slug = f'{sch.year}-{sch.number}-{sch.version}'
-    sch.save()
-    
-    for slot in sch.slots.all():
-        slot.save()
+    Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
+
   
 import random      
 def randomSlot ():

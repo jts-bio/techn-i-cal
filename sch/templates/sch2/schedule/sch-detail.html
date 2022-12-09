@@ -45,61 +45,70 @@ SCHEDULE DETAIL VIEW
     </div>
 
     <div><a href="{% url 'sch:v1-schedule-detail' schedule.pk %}">ALTERNATE VIEW</a></div>
-
-    <div class="panel text text-center x-overflow-scroll flex flex-col">
     
-            <a hx-get="{{ schedule.url__solve }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
-                hx-trigger="click"
-                class="bg-slate-800 hover:bg-slate-600 border-green-200 rounded m-1 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
-            SOLVE (Quasi-algorithmic method) </a>
-
-            <a hx-get="{{ schedule.url__solve_b }}" data-hx-confirm="Solving will take 2-3 minutes. Confirm to Continue." 
-                hx-trigger="click"
-                class="bg-slate-800 hover:bg-slate-600 border-green-200 rounded m-1 text-green-200 hover:text-green-400 hover:ring-2 hover:ring-green-300">
-            SOLVE (Machine Learning method) </a>
-    
-            <a href="{{ schedule.url__clear }}" 
-                hx-confirm="Verify You are clearing the Assignments of All Employees on this Schedule Draft."
-                class="bg-slate-800 hover:bg-slate-600 border-red-200 rounded m-1 text-red-200 hover:text-red-400 hover:ring-2 hover:ring-yellow-300">
-            CLEAR</a>
-            
+    <div>
+    <div class="float-right">
+            <form method="POST"> {% csrf_token %}
+            {{ actionDropdown }}
+                {# ACTIONS DROPDOWN BUTTON #} 
+                {#______SOLVE W/ALGORITHM___#}
+                {#______SOLVE w/MACH.LEARNING___#}
+                {#______DELETE SCHEDULE SLOTS___#}
+            </form> 
     </div>
-
-  
-
+    </div>
     <div class="panel">
+    
+    
 
     {% for period in schedule.periods.all %}
 
         <h3 class="text-lg text-blue-700 text-semibold">
                     
-                    {{ period }}
+        {{ period }}
 
         </h3>
 
         <div 
-        class="vstack">
+        class="sm:vstack lg:hstack">
 
             {% for week in period.weeks.all %}
-            
-                <a href="{{week.url}}">{{week}}</a>
+                <div class="vstack">
 
-                <div 
-                class="hstack">
-
+                <div><a href="{{week.url}}">{{week}}</a></div>
+                
+                <div class="hstack">
                     {% for workday in week.workdays.all %}
                     
+                    <a href="{{workday.url}}" class="bg-slate-200 rounded-full w-14 h-14 pt-3 text text-center items-center">
+                        <div class="text-2xs italic text-slate-700">{{workday.weekday}}</div>
+                        <div class="text-slate-900 font-bold jbm">{{workday.percent}}%</div>
+                    </a>
                      
-                            
+                     {% comment %} <div hx-get =  "{% url 'sch:lazy-popover-load' workday.pk %}"
+                        hx-trigger ="load">
 
+                                <img class="htmx-indicator"
+                                    width="180"
+                                    src="/static/img/spinner.svg"/>
+                    </div> {% endcomment %}
+                    
                     {% endfor workday %}
-
+                </div>
                 </div>
             {% endfor week %}
 
         </div>
     {% endfor period %}
     </div>
+
+    <form method="POST"> {% csrf_token %}
+        <h2>Access Employee PTO Management for this schedule</h2>
+            
+            {{ form }}
+
+        <button type="submit">SUBMIT</button>
+    </form>
     
-{% endblock content %}
+{% endblock content %} 
     

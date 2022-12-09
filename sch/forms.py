@@ -1,5 +1,5 @@
 from django import forms
-from .models import Schedule, PtoRequest, Slot, TemplatedDayOff, Workday, Shift, Employee, ShiftTemplate, SlotPriority, ShiftPreference, EmployeeClass
+from .models import *
 from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
 from django.contrib.auth.forms import UserCreationForm
@@ -97,7 +97,8 @@ class PharmacistForm (EmployeeForm) :
         self.fields['fte_14_day'].label = "Hours/14 days"
         self.fields['cls'].initial = 'RPh'
 
-        
+class EmployeeSelectForm (forms.Form):
+    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), required=True)
 class EmployeeEditForm (forms.ModelForm) :
     
     shifts_trained = forms.ModelMultipleChoiceField(
@@ -477,3 +478,10 @@ class EmployeeCoworkerSelectForm (forms.Form):
     
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select())
     
+START_DATE_SET = tuple((i,i.strftime("%Y-%m-%d")) for i in SCH_STARTDATE_SET)
+class GenerateNewScheduleForm (forms.Form):
+    
+    start_date = forms.ChoiceField(
+                            choices=START_DATE_SET, 
+                            label="Start Date"
+                            )

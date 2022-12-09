@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load tags %}
 
 
 {% block style %}
@@ -10,10 +11,19 @@
 
 {% block content %}
 
-        <div class="text text-center panel">
-            <h1 class="text-3xl">{{shift}}</h1>
-            <h3 class="text-md">{{shift.cls}} Shift</h3>
+        <div class="flex flex-row space-between center center-content">
+            <div class="hstack">
+                <a href="{{ shift.prevUrl }}"> 
+                    {% backArrow %} </a>
+                <div class="vstack">
+                    <h1 class="text-3xl">{{shift}}</h1>
+                    <h3 class="text-md">{{shift.cls}} Shift</h3>
+                </div>
+                <a href="{{ shift.nextUrl }}"> 
+                    {% forwardArrow %} </a>
+            </div>
         </div>
+
 
         <div class="panel">
             <h2 class="text-lg">Summary</h2>

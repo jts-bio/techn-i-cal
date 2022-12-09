@@ -1,0 +1,43 @@
+
+
+<div 
+    data-popover 
+    id="new-schedule-popover"
+    role="tooltip"
+    class="absolute z-20 invisible inline-block w-72 
+        border border-gray-300 text-sm font-light 
+        text-gray-600 rounded shadow-2xl shadow-white"
+    class="panel">
+
+    <div class="px-3 py-2 bg-gray-800 border-b border-gray-500 rounded">
+        <h2>Generate New Schedule</h2>
+    </div>
+    <div class="px-3 py-2">
+        <p>
+            Select the start date for a new schedule 
+            to Generate. <span class="info">Note, you can have 
+            more than one schedule for the same date range 
+            in order to test multiple scenarios.</span>
+        </p>
+    </div>
+    
+
+
+    <form method="POST" action=""> {% csrf_token %}
+    
+        <select name="select-start" id="new-schedule-start-select">
+        
+                <option value="" selected> Select a date </option>
+
+            {% for date in schStartDates %}
+                <option value="{{ date }}">{{ date }}</option>
+            {% endfor %}
+
+        </select>
+
+        <input type="submit" value="Generate"/>
+        
+    </form>
+
+    <div data-popper-arrow></div>
+</div>

@@ -28,8 +28,11 @@ input {
 
     
         {% for form in formset %}
-            <div class="panel">
-            <span class="text-indigo-900 bg-indigo-300 rounded-sm pr-2 pl-1 font-bold text-sm">{{form.initial.employee}}</span>
+            <div class="panel" 
+                     _="on click toggle @checked on <input/> in me">
+            <span class="text-indigo-900 bg-indigo-300 rounded-sm pr-2 pl-1 font-bold text-sm">
+                {{form.initial.employee}}
+            </span>
             {{form.as_div}}
             </div>
         {% endfor %}

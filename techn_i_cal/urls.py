@@ -24,10 +24,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from sch.models import Shift, Slot, Employee, Workday
 from rest_framework import routers, serializers, viewsets
+
 import datetime as dt
 from django_require_login.decorators import  public
 from django.contrib.auth.models import User
+
 from .forms import LoginForm
+
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 
@@ -65,7 +68,7 @@ def loginView (request):
                 login(request, user)
                 return HttpResponseRedirect(reverse('index'))
             else:
-                return HttpResponseRedirect(reverse('tech:login'))
+                return HttpResponseRedirect(reverse('login'))
 
     form = LoginForm()
     context = {
@@ -83,14 +86,14 @@ def logoutView (request):
 
 urlpatterns = [
     path('' ,           index,          name='index'),
-    path('login/',     loginView,       name='login-view'),
-    path('logout/',     logoutView,         name='logout-view'),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('login/',      loginView,      name='login-view'),
+    path('logout/',     logoutView,     name='logout-view'),
+    path('accounts/',   include('django.contrib.auth.urls')),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
-    path('admin/',      admin.site.urls,      name='admin'),
+    path('admin/',      admin.site.urls,            name='admin'),
     path('sch/',        include('sch.urls'),    name='sch'),
     path('pds/',        include('pds.urls'),    name="pds"),
-    path('flow/',     include('flow.urls'),    name='flow'),
+    path('flow/',       include('flow.urls'),   name='flow'),
 
 ] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

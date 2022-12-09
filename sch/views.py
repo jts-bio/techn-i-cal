@@ -721,7 +721,7 @@ class SHIFT :
 
     class ShiftListView (ListView):
         """SHIFT LIST VIEW 
-        
+        =====================================================
         template_name: `templates/sch/shift/shift_list.html`
         """
         model           = Shift
@@ -1822,7 +1822,7 @@ class SCHEDULE:
     class DO:
         
         @csrf_exempt
-        def generateRandomPtoRequest ( request, year: int, sch: int )  :
+        def generateRandomPtoRequest ( request, schpk )  :
             """
             GENERATE RANDOM PTO REQUEST
             -----------------------------------------------------
@@ -1832,7 +1832,8 @@ class SCHEDULE:
             
             emp      = Employee.objects.all()[random.randint(0,Employee.objects.all().count())] 
             amount   = random.randint(1,6)
-            startDay = Workday.objects.filter(date__year=year,ischedule=sch)[random.randint(0,Workday.objects.filter(date__year=year,ischedule=sch).count())]
+            sch      = Schedule.objects.get(pk=schpk)
+            startDay = sch.workdays.all()[random.randint(0,41)]
             
             i = 0
             # while loop will repeat 1-6 times based on Randomizer
@@ -1842,7 +1843,7 @@ class SCHEDULE:
                     pto.save()
                     i  += 1
                     
-            return HttpResponseRedirect ('/sch/schedule/{}/{}'.format(year,sch) )
+            return HttpResponseRedirect(reverse('sch:v1-schedule-detail',args=[sch.pk]))
     
     def scheduleListView (request):
         template_html = 'sch/schedule/sch_list.html'
@@ -1850,8 +1851,10 @@ class SCHEDULE:
         schedules = Schedule.objects.all()
         
         context = {
-            'schedules': schedules
+            'schedules': schedules,
+            'schStartDates': SCH_STARTDATE_SET
         }  
+        print(context["schStartDates"])
         return render(request, template_html, context)
     
     def scheduleDetailView (request, year, number):

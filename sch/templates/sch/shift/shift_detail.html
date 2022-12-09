@@ -25,10 +25,15 @@
     </div>
 
     <div class="center text-center">
-        <h1 class="text-3xl">{{ shift }}</h1>
+        <a href="{{ shift.prevURL }}"> {% leftArrow %} </a>
+
+        <h1 class="text-3xl"> {{ shift }} </h1>
+
+        <a href="{{ shifit.nextURL }}"> {% rightArrow %} </a>
     </div>
 
     <div class="hstack" style="align-items:start;">
+    
     <div class="panel w-fc" style="height:520px;">
         <h2>Shift Details</h2>
         <div class="vstack align-r w-fc">
@@ -107,9 +112,11 @@
     <div class="grid-7-by-2">
         {% for sst in ssts %}
         {% if sst.1 %}
-            <div class="panel" style="background-color:#5af7;border-color:#7bf;height:90px;width:125px;">
-                <span style="font-size:11px;">Day {{sst.0}}</span><br/>
-                <span class="lg" style="font-size:13px;color:#fff7">{{sst.1.0.employee}}</span>
+            <div 
+                class="panel" 
+                style="background-color:#5af7;border-color:#7bf;height:90px;width:125px;">
+                    <span style="font-size:11px;">Day {{sst.0}}</span><br/>
+                    <span class="lg" style="font-size:13px;color:#fff7">{{sst.1.0.employee}}</span>
             </div>
         {% else %}
             <div class="panel w-70" style="height:90px;width:125px;">

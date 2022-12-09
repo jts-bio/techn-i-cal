@@ -1,4 +1,5 @@
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
+from django.template.loader import render_to_string, get_template
 from django.views.decorators.csrf import csrf_exempt
 from django.core.serializers import serialize
 from django.db.models import Count
@@ -28,17 +29,58 @@ import datetime as dt
 def schListView (request):
     
     schedules = Schedule.objects.all()
+       
+    if request.method == "POST":
+        sd = request.POST.get("start_date") 
+        start_date = dt.date(int(sd[:4]),int(sd[5:7]),int(sd[8:]))
+        print(start_date)
+        i = 0
+        idate = start_date
+        while idate.year == start_date.year:
+            i += 1
+            idate = idate - dt.timedelta(days=42)
+        generate_schedule (year=start_date.year, number=i)
+        
+        return HttpResponseRedirect(reverse('sch:sch-list'))
+         
     context = {
-        'schedules': schedules
+        'schedules': schedules,
+        'new_schedule_form' : GenerateNewScheduleForm(), 
     }
     return render(request, 'sch2/schedule/sch-list.html', context)
 
-def schDetailView (request, schId ):
+def schDetailView (request, schId):
+    """
+    ---------- SCHEDULE DETAIL VIEW  ----------
+    """
     schedule = Schedule.objects.get(slug=schId)
     
-    context = {
-        'schedule' :  schedule,
+    action1 = {
+        'name':'Solve (Method B: machine-learning/training of schedule data)', 
+        'url': schedule.url__solve_b()
     }
+    action2 = {
+        'name': 'Solve (MethodA: Quasi-algorithmic approach [in progress])',
+        'url': schedule.url__solve()
+    }
+    actionDropdown = render_to_string('sch/comp/dropdown_btn.html',
+                     {
+                         'menuItems': [action1, action2],
+                         'deleteLink': schedule.url__clear(),
+                         })
+    
+    if request.method == "POST":
+        form = EmployeeSelectForm(request.POST)
+        if form.is_valid():
+            employee = form.cleaned_data['employee']
+            return HttpResponseRedirect(reverse('sch:v2-schedule-empl-pto', args=[schedule.pk, employee.pk]))
+    context = {
+        'schedule'      : schedule,
+        'actionDropdown': actionDropdown,
+        'employees'     : Employee.objects.all(),
+        'form'          : EmployeeSelectForm,
+    }
+    form = EmployeeSelectForm()
     return render(request, 'sch2/schedule/sch-detail.html', context)
 
 def schDayPopover (request, year, num, ver, day):
@@ -55,7 +97,7 @@ def weekView (request, week):
     week.save()
     context = {
         'week'  : week,
-        'slots' : week.slots.filled().order_by('employee__name'),
+        'slots' : week.slots.filled().order_by('employee'),
         'workdays': week.workdays.all(),
     }
     return render(request, 'sch2/week/wk-detail.html', context)
@@ -144,7 +186,6 @@ def shiftTrainingFormView (request, cls, sft):
     }
     return render(request, html_template, context)
 
-
 def currentWeek (request):
     workday = Workday.objects.filter(date=dt.date.today()).first()
     week = Week.objects.filter(workdays=workday).first()
@@ -156,13 +197,20 @@ def currentSchedule (request):
     return HttpResponseRedirect (schedule.url())
 
 def scheduleSolve (request, schId):
-    sch = Schedule.objects.get(id=schId)
+    sch = Schedule.objects.get(slug=schId)
     bot = sch.Actions()
     bot.fillSlots(sch)
     return HttpResponseRedirect(sch.url())
 
 def scheduleClearAllView (request, schId):
-    sch = Schedule.objects.get(pk=schId)
+    try:
+        sch = Schedule.objects.get(pk=schId)
+    except:
+        pass
+    try:
+        sch = Schedule.objects.get(slug=schId)
+    except:
+        pass
     sch.slots.filled().update(employee=None)
     return HttpResponseRedirect (sch.url())
 class ScheduleMaker :
@@ -194,6 +242,42 @@ class ScheduleMaker :
 def mytest (request):
     return render(request, 'sch/test/layout.html', {})
 
+def generate_schedule_form (request) :
+        html_template = 'sch2/schedule/generate-new-miniform.html'
+        TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
+        SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
+        print(SCH_STARTDATE_SET)
+        context = {  
+            "schStartDates": SCH_STARTDATE_SET,
+        }
+        return render(request, html_template, context)
+
 def generate_schedule_view (request,year,num):
     generate_schedule(year,num)
     return HttpResponseRedirect (reverse('sch:schedule-list'))
+
+def pto_schedule_form (request, schId, empl):
+    """ 
+    PTO Schedule Form View
+    --------------------------------------------------
+    >>> 'v2/schedule-empl-pto/<str:schId>/<str:empl>/
+    """
+    html_template = 'sch2/schedule/pto-input.html'
+    
+    if request.method == 'POST':
+        empl = Employee.objects.get(slug=empl)
+        sch = Schedule.objects.get(pk=schId)
+        pto_checked = list(request.POST.keys())[1:]
+        wds = sch.workdays.all().values('date')
+        PtoRequest.objects.filter(workday__in=wds,employee=empl).delete()
+        for pto in pto_checked:
+            pto = dt.date(int(pto[0:4]), int(pto[5:7]), int(pto[8:10]))
+            PtoRequest.objects.create(workday=pto, employee=empl )
+        
+        return HttpResponseRedirect (sch.url())
+    
+    context = {
+        'employee': Employee.objects.get(pk=empl),
+        'schedule': Schedule.objects.get(pk=schId),
+    }
+    return render(request, html_template, context)
