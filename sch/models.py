@@ -176,13 +176,16 @@ class SlotManager (models.QuerySet):
                     if not self.filter(employee=sst.employee):
                         unusual.append(slots.filter(shift=sst.shift).first())
         return self.filter(pk__in=[i.pk for i in unusual])
-
-                
+    def tdo_conflicts (self):
+        if self.employee:
+            tdos = TemplatedDayOff.objects.filter(employee=self.employee)
+            return self.filter(employee=self.employee, sd_id__in=[i.sd_id for i in tdos])
     def sch__pmSlots (self, year, sch):
         return self.objects.filter(workday__date__year=year,workday__ischedule=sch, shift__start__hour__gte=12)
     
     def tally_schedule_streaks (self, employee, year, schedule):
         return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))        
+
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -326,6 +329,10 @@ class Shift (models.Model) :
         return self.name
     def url(self):
         return reverse("sch:shift-detail", kwargs={"cls":self.cls, "name": self.name})
+    def url__template(self):
+        return reverse('sch:shift-template-view', args=[self.pk])
+    def url__tallies (self):
+        return reverse('sch:shift-tallies-view', args=[self.pk])
     def prevUrl (self): 
         """Get the url of the shift with the next lowest pk. If my pk is lowest, return my url."""
         prev = Shift.objects.filter(cls=self.cls).filter(pk__lt=self.pk).order_by('-pk').first()
@@ -357,14 +364,14 @@ class Shift (models.Model) :
         for i in self.occur_days:
             for x in [7,14,21,28,35]:
                 ids.append(int(i)+x)
-        return sorted(ids)
+        return ids
     def end (self):
         return (dt.datetime(2022,1,1,self.start.hour,self.start.minute) + self.duration).time()
     def avgSentiment (self):
         sp = ShiftPreference.objects.filter(shift=self).values('score')
         if sp:
             return sum(sp)/len(sp)
-
+        
 
     objects = ShiftManager.as_manager()
 # ============================================================================
@@ -868,8 +875,6 @@ class Schedule (models.Model):
     slug       = models.CharField(max_length=20,default="")
     
     
-    def delete (self):
-        super().delete()
     def save (self, *args, **kwargs) :
         if self.year == None :
             self.year = self.start_date.year
@@ -877,13 +882,6 @@ class Schedule (models.Model):
             self.number = int (self.start_date.strftime("%U")) // 6
         if self.slug == "":
             self.slug = f'{self.year}-S{self.number}{self.version}'
-        sameYrNum = Schedule.objects.filter(year=self.year,number=self.number)
-        if sameYrNum.exists():
-            n = sameYrNum.count()
-            if n:
-                self.version = "ABCDEFGHIJHIJKLMNOPQRST"[n-1]
-            else:
-                self.version = "A"
         super().save(*args, **kwargs)
         self.post_save()
     def post_save (self) :
@@ -926,8 +924,9 @@ class Schedule (models.Model):
         return unfavorable.count()/slots.count()
     def repr_status     (self):
         return ["Working Draft","Final","Discarded"][self.status]
+    @property
     def pto_requests (self):
-        PtoRequest.objects.filter(workday=self.workdays.all().values('date'))
+        return PtoRequest.objects.filter(workday__in=self.workdays.all().values('date'))
     class Actions :
         def fillTemplates (self,instance,**kwargs):
             print (f'STARTING TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
@@ -1253,6 +1252,7 @@ class Slot (models.Model) :
     
     objects      = SlotManager.as_manager()
     turnarounds  = TurnaroundManager.as_manager()
+            
 # ============================================================================
 class ShiftTemplate (models.Model) :
     """
@@ -1330,7 +1330,7 @@ class PtoRequest (ComputedFieldsModel):
     
     def save (self, *args, **kwargs):
         if self.sd_id == -1:
-            self.sd_id = Workday.objects.get(date=self.workday).sd_id
+            self.sd_id = Workday.objects.filter(date=self.workday).first().sd_id
         super().save(*args, **kwargs)
 # ============================================================================
 class SlotPriority (models.Model):
