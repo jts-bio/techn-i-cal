@@ -36,26 +36,39 @@
         {% /toggle-section %}
 
     </div>
-
-    <table class="table">
-        <tr>
-            <th>Schedule</th>
-            <th>Version</th>
-            <th>Start Date</th>
-            <th>Slots Filled</th>
-            <th>Draft Status</th>
-        </tr>
-        {% for sch in schedules %}
+    <div class="hidden md:block">
+        <table class="table">
             <tr>
-                <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
-                <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
-                <td>{{ sch.start_date }}</td>
-                <td><span class="text-indigo-100 bg-indigo-700 border-indigo-200 border-1 px-4 rounded-full">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span></td>
-                <td>{{ sch.status }}</td>
+                <th>Schedule</th>
+                <th>Version</th>
+                <th>Start Date</th>
+                <th>Slots Filled</th>
+                <th>Draft Status</th>
             </tr>
-        {% endfor %}
+            {% for sch in schedules %}
+                <tr>
+                    <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
+                    <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
+                    <td>{{ sch.start_date }}</td>
+                    <td><span class="text-indigo-100 bg-indigo-700 border-indigo-200 border-1 px-4 rounded-full">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span></td>
+                    <td>{{ sch.status }}</td>
+                </tr>
+            {% endfor %}
 
-    </table>
+        </table>
+    </div>
+
+    <div class="block md:hidden">
+        <div class="flex flex-row flex-wrap">
+            {% for sch in schedules %}
+            <div class="panel">
+                <h3 class="text-indigo-400 text-bold">Schedule {{sch.slug}}</h3>
+                <div class="text-xs">{{ sch.start_date }} </div>
+                <div>{{ sch.status }} </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
     
 {% endblock content %}
     

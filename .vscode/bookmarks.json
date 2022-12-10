@@ -19,16 +19,6 @@
 					"label": "Slippers Components"
 				}
 			]
-		},
-		{
-			"path": "sch/views2.py",
-			"bookmarks": [
-				{
-					"line": 85,
-					"column": 0,
-					"label": "sched-day Popover"
-				}
-			]
 		}
 	]
 }

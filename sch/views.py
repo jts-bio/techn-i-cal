@@ -774,24 +774,27 @@ class SHIFT :
         
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['template_slots'] = ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
-            context['shift'] = Shift.objects.get(name=self.kwargs['name'])
+            context['template_slots'] = ShiftTemplate.objects.filter(shift__pk=self.kwargs['sftId'])
+            context['shift'] = Shift.objects.get(pk=self.kwargs['sftId'])
             return context
 
         def get_queryset (self):
-            return ShiftTemplate.objects.filter(shift__name=self.kwargs['name'])
+            return ShiftTemplate.objects.filter(shift__pk=self.kwargs['sftId'])
     
-    def shiftTalliesView (request, name):
-        shift = Shift.objects.get(name=name)
+    def shiftTalliesView (request, shiftpk):
+        shift = Shift.objects.get(pk=shiftpk)
         context = {}
         
-        employees = Employee.objects.annotate(tally=Count('slot',filter=Q(slot__shift__name=shift)))
+        employees = Employee.objects.annotate(tally=Count('slots',filter=Q(slots__shift__name=shift)))
         for emp in employees: 
-            emp.save
+            emp.save()
         context['shift']     = shift
         context['employees'] = employees 
-        context['maxTally']  = max(list(employees.values_list('tally',flat=True))) + 1
-        
+        context['maxTally']  = max(list(employees.values_list('tally',flat=True))) 
+        employees = Employee.objects.annotate(
+                            tally=Count('slots',filter=Q(slots__shift__name=shift))).annotate(
+                            normalized=(F('tally')/context['maxTally'])*100
+                        )
         
         return render(request, 'sch/shift/tallies.html', context)
         
@@ -1710,9 +1713,14 @@ class PTO:
             context['table'] = PtoRequestTable(self.object_list)
             return context
 
-def shiftTemplate (request, shift):
+def shiftTemplate (request, shiftid):
+    """SHIFT TEMPLATE VIEW
+    ======================================
+    viewname
+    >>> sch:shift-template
+    """
     context               = {}
-    shift                 = Shift.objects.get(name=shift)
+    shift                 = Shift.objects.get(pk=shiftid)
     context['shift']      = shift
     context['dayrange']   = range(14)
     context['wd']         = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -1741,7 +1749,7 @@ def shiftTemplate (request, shift):
         return HttpResponseRedirect(f'/sch/shift/{shift.name}/')
 
     initData = [
-        {'ppd_id': i, 
+        {'sd_id': i, 
          'shift' : shift }  for i in range(42)
         ]
     

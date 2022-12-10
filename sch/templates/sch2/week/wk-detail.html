@@ -74,9 +74,18 @@
 
        
         {% for slot in empl.list %}
-            <span 
-            class='bg-blue-600 text-white text-xs italic px-2 rounded-lg'> 
-            {{ slot }} </span>
+            {% if slot.shouldBeTdo %}
+                <span class='bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
+            {% else %}
+                <span class='bg-blue-600 px-2 rounded-lg'>
+            {% endif %}
+                <span class='text-white italic text-xs'>
+                    {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+                </span>
+                <span class="text-xs text-indigo-200">
+                    {{ slot.shift }} 
+                </span>
+            </span>
         {% endfor %}     
 
     {% endfor %}

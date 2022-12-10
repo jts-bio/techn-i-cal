@@ -15,11 +15,17 @@
         <form method="POST"> {% csrf_token %}
         <div class="grid grid-cols-7 gap-4">
 
+            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+
             {% for day in schedule.workdays.all %}
-            <div>
-                <label for="{{day.sd_id}}" class="text-xs">{{day.date}}</label>
-                <input type="checkbox" name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" id="{{day.sd_id}}-PtoCheckbox">
-            </div>
+                <div>
+                    <label for="{{day.sd_id}}" class="text-xs">{{day.date}}</label>
+                    <input 
+                        type="checkbox" 
+                        name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
+                        id="{{day.sd_id}}-PtoCheckbox"
+                        {% if day.date in initial_pto_dates %} checked {% endif %}>
+                </div>
             {% endfor %}
 
         </div>

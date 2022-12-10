@@ -46,20 +46,25 @@
           <div class="p-2">
 
             {% for item in menuItems %}
-                <a
-                href="{{ item.url }}"
-                class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
-                role="menuitem"
+                <div
+                hx-get="{{ item.url }}"
+                hx-confirm="{{ item.confirm }}"
+                hx-swap="none"
+                class="block rounded-lg px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 
+                      hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
                 >
-                {{ item.name }}
-                </a>
+                    {{ item.name }} 
+                    <span class="text-blue-300 text-xs text-light"> {{item.note}} </span>
+                </div>
             {% endfor %}
 
           </div>
 
           <div class="p-2">
-            <form method="POST" action="{{ deleteLink }}">
-              {% csrf_token %}
+            <div hx-get="{{ deleteLink }}"
+              hx-confirm="Verify you will clear out slot assignments for this schedule."
+              hx-swap="none">
+              
               <button
                 type="submit"
                 class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-700 hover:bg-red-50 dark:text-red-500 dark:hover:bg-red-600/10"
@@ -80,9 +85,9 @@
                   />
                 </svg>
 
-                Delete
+                Clear Slots
               </button>
-            </form>
+            </div>
           </div>
         </div>
       </div>

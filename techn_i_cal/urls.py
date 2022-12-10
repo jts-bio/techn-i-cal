@@ -89,6 +89,7 @@ urlpatterns = [
     path('login/',      loginView,      name='login-view'),
     path('logout/',     logoutView,     name='logout-view'),
     path('accounts/',   include('django.contrib.auth.urls')),
+    path('grappelli/',  include('grappelli.urls')), # grappelli URLS
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls,            name='admin'),
     path('sch/',        include('sch.urls'),    name='sch'),

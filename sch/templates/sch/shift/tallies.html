@@ -4,8 +4,10 @@
 
 {% block content %}
 
-<a href="/sch/shift/{{shift}}/" class="hstack">
-    <div>{% backArrow %}</div><div>BACK</div>
+<a href="{{ shift.url }}" 
+   class="hstack">
+    <div> {% backArrow %} </div>
+    <div> BACK </div>
 </a>
 
 <div class="center text-center">

@@ -1,5 +1,5 @@
 from django.forms import modelformset_factory , widgets
-from .models import TemplatedDayOff
+from .models import TemplatedDayOff, PtoRequest
 
 EmployeeTDOFormset = modelformset_factory(
     TemplatedDayOff,fields=('employee','sd_id'),
@@ -8,3 +8,4 @@ EmployeeTDOFormset = modelformset_factory(
         'sd_id': widgets.CheckboxInput(),
     } 
     )
+

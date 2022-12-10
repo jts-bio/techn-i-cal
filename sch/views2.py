@@ -22,6 +22,7 @@ from .tables import *
 from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
 from django_tables2 import RequestConfig
 import datetime as dt
+import re
 
 #-------------------------#
 #### LIST OF SCHEDULES ####
@@ -49,6 +50,15 @@ def schListView (request):
     }
     return render(request, 'sch2/schedule/sch-list.html', context)
 
+def schDayPopover (request, year, num, ver, day):
+    schedule = Schedule.objects.get(year=year, number=num, version=ver)
+    workday = schedule.workdays.get(day=day)
+    
+    context = {
+        'workday' : workday,
+    }
+    return render(request, 'sch2/schedule/sch-day-popover2.html', context)    
+
 def schDetailView (request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
@@ -56,11 +66,15 @@ def schDetailView (request, schId):
     schedule = Schedule.objects.get(slug=schId)
     
     action1 = {
-        'name':'Solve (Method B: machine-learning/training of schedule data)', 
+        'name':'Solve: Method A',
+        'note':'(AI trained on Shift Scheduling data) ',
+        'confirm': 'Confirm you want the AI to solve the remaining slots of this schedule.',
         'url': schedule.url__solve_b()
     }
     action2 = {
-        'name': 'Solve (MethodA: Quasi-algorithmic approach [in progress])',
+        'name': 'Solve: Method B',
+        'note':'(Quasi-algorithmic approach [in progress])',
+        'confirm': "This method is under construction and may take upward of 5 minutes to complete. Verify to continue.",
         'url': schedule.url__solve()
     }
     actionDropdown = render_to_string('sch/comp/dropdown_btn.html',
@@ -82,15 +96,6 @@ def schDetailView (request, schId):
     }
     form = EmployeeSelectForm()
     return render(request, 'sch2/schedule/sch-detail.html', context)
-
-def schDayPopover (request, year, num, ver, day):
-    schedule = Schedule.objects.get(year=year, number=num, version=ver)
-    workday = schedule.workdays.get(day=day)
-    
-    context = {
-        'workday' : workday,
-    }
-    return render(request, 'sch2/schedule/sch-day-popover2.html', context)    
 
 def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
@@ -263,21 +268,30 @@ def pto_schedule_form (request, schId, empl):
     >>> 'v2/schedule-empl-pto/<str:schId>/<str:empl>/
     """
     html_template = 'sch2/schedule/pto-input.html'
+    empl = Employee.objects.get(pk=empl)
+    sch = Schedule.objects.get(pk=schId)
     
     if request.method == 'POST':
-        empl = Employee.objects.get(slug=empl)
-        sch = Schedule.objects.get(pk=schId)
+        
         pto_checked = list(request.POST.keys())[1:]
         wds = sch.workdays.all().values('date')
         PtoRequest.objects.filter(workday__in=wds,employee=empl).delete()
-        for pto in pto_checked:
-            pto = dt.date(int(pto[0:4]), int(pto[5:7]), int(pto[8:10]))
-            PtoRequest.objects.create(workday=pto, employee=empl )
-        
+        for pto_date_str in pto_checked:
+            YMD = re.findall('(\d+)-(\d+)-(\d+)', pto_date_str)[0]
+            pto_date = dt.date(int(YMD[0]),int(YMD[1]),int(YMD[2]))
+            pto_new = PtoRequest.objects.create(workday=pto_date, employee=empl )
+            pto_new.save()
+            
+            messages.success(request, f"{pto_new} created at {dt.datetime.now()}")
         return HttpResponseRedirect (sch.url())
     
     context = {
         'employee': Employee.objects.get(pk=empl),
         'schedule': Schedule.objects.get(pk=schId),
+        'initial_pto_dates': sch.pto_requests.filter(employee=empl).values_list('workday',flat=True),
     }
+    print(context)
     return render(request, html_template, context)
+
+def shift_templating_view (request, schId):
+    shift = Shift.objects.get(pk=schId)
