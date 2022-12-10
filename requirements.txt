@@ -16,6 +16,7 @@ django-compressor==4.1
 django-computedfields==0.2.1
 django-extensions==3.2.1
 django-fast-update==0.2.1
+django-grappelli==3.0.4
 django-multiselectfield==0.1.12
 django-sql-utils==0.6.1
 django-rest-framework

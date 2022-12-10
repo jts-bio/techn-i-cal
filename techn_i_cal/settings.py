@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "compressor",
     # "rest_framework",
     "django_tables2",
+    "grappelli",
     "django.contrib.admin",
     "django.contrib.admindocs",
     "django.contrib.auth",

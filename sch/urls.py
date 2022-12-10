@@ -77,9 +77,9 @@ shift_patterns = [
     path('shift/<str:name>/update/', views.SHIFT.ShiftUpdateView.as_view(), name='shift-update'),
     path('v2/shift/<str:cls>/<str:sft>/trained/update/', views.SHIFT.trainedShiftView, name='shift-training-update'), 
     path('shifts/new/', views.SHIFT.ShiftCreateView.as_view(), name='shift-new'),
-    path('shift/<str:shift>/template/', views.shiftTemplate, name='shift-template'),
     path('shift/<str:shift>/upcoming/',views.SHIFT.shiftComingUpView, name='shift-coming-up'),
-    path('shift/<str:name>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
+    path('shift-tallies/<str:shiftpk>/tallies/', views.SHIFT.shiftTalliesView , name='shift-tallies-view'),
+    path('shift-templates/<int:sftId>/', views.SHIFT.ShiftTemplateView.as_view(), name='shift-template-view'),
     
 ]
 urlpatterns += shift_patterns
