@@ -1603,56 +1603,6 @@ class SLOT:
                     turnarounds.append(ta.pk)
             return Slot.objects.filter(pk__in=turnarounds)
       
-def EmpSSTView (request, name):
-    
-    context                  = {}
-    employee                 = Employee.objects.get(name=name)
-    context['employee']      = employee
-    context['dayrange']      = range(42)
-    context['wd']            = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    on_days = range(14)
-    TmpSlotFormSet = formset_factory (SstEmployeeForm, extra=0)
-
-    
-    if request.method == 'POST':
-        TmpSlotFormSet = formset_factory(SstEmployeeForm)
-        formset        = TmpSlotFormSet(request.POST)
-        for form in formset:
-            if form.is_valid():
-                # Only create new SSTs on non empty forms
-                if form.cleaned_data['shift'] != None:
-                    shift = form.cleaned_data['shift']
-                    sd_id  = form.cleaned_data['sd_id']
-                    employee = form.cleaned_data['employee']
-                    if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
-                        sst = ShiftTemplate.objects.get(employee=employee, sd_id=sd_id)
-                        sst.shift = shift
-                        sst.save()
-                    else:
-                        sst = ShiftTemplate.objects.create(sd_id=sd_id,shift=shift, employee=employee)
-                        sst.save()
-                # Delete SSTs on empty forms (if they changed)
-                else:
-                    sd_id  = form.cleaned_data['sd_id']
-                    if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
-                        sst = ShiftTemplate.objects.get(employee=employee, sd_id=sd_id)
-                        sst.delete()
-            else:
-                print(form.errors)
-                    
-        return HttpResponseRedirect(f'/sch/employee/{employee.name}/')
-
-    initData = [ {'ppd_id': i, 'employee': employee } for i in on_days ]
-
-    formset = TmpSlotFormSet(initial=initData)
-
-    context = {
-        'employee': Employee.objects.get(name=employee), # type: ignore
-        'formset' : formset,
-        'idata'   : initData,
-
-    }
-    return render(request, 'sch/employee/employee_ssts_form.html', context)
 
 class SST:
     class sstUpdateView (UpdateView):
@@ -1679,6 +1629,58 @@ class SST:
         context['range'] = range(42)
         
         return render(request, 'sch/sst/day_view.html', context)
+    
+    def EmpSSTView (request, name):
+        
+        context                  = {}
+        employee                 = Employee.objects.get(name=name)
+        context['employee']      = employee
+        context['dayrange']      = range(42)
+        context['wd']            = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+        on_days = range(14)
+        TmpSlotFormSet = formset_factory (SstEmployeeForm, extra=0)
+
+        
+        if request.method == 'POST':
+            TmpSlotFormSet = formset_factory(SstEmployeeForm)
+            formset        = TmpSlotFormSet(request.POST)
+            for form in formset:
+                if form.is_valid():
+                    # Only create new SSTs on non empty forms
+                    if form.cleaned_data['shift'] != None:
+                        shift = form.cleaned_data['shift']
+                        sd_id  = form.cleaned_data['sd_id']
+                        employee = form.cleaned_data['employee']
+                        if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
+                            sst = ShiftTemplate.objects.get(employee=employee, sd_id=sd_id)
+                            sst.shift = shift
+                            sst.save()
+                        else:
+                            sst = ShiftTemplate.objects.create(sd_id=sd_id,shift=shift, employee=employee)
+                            sst.save()
+                    # Delete SSTs on empty forms (if they changed)
+                    else:
+                        sd_id  = form.cleaned_data['sd_id']
+                        if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
+                            sst = ShiftTemplate.objects.get(employee=employee, sd_id=sd_id)
+                            sst.delete()
+                else:
+                    print(form.errors)
+                        
+            return HttpResponseRedirect(f'/sch/employee/{employee.name}/')
+
+        initData = [ {'ppd_id': i, 'employee': employee } for i in on_days ]
+
+        formset = TmpSlotFormSet(initial=initData)
+
+        context = {
+            'employee': Employee.objects.get(name=employee), # type: ignore
+            'formset' : formset,
+            'idata'   : initData,
+
+        }
+        return render(request, 'sch/employee/employee_ssts_form.html', context)
+
 
 class PTO:
 
