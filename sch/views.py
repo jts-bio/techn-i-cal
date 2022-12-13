@@ -950,7 +950,7 @@ class EMPLOYEE:
             return context
 
         def get_object(self):
-            return Employee.objects.get(slug=self.kwargs['name'])
+            return Employee.objects.get(slug=self.kwargs['empId'])
 
         def employeeSstGrid (employee):
             ssts = ShiftTemplate.objects.filter(employee=employee)
@@ -1169,9 +1169,9 @@ class EMPLOYEE:
             form.save()
             return super().form_valid(form)
         
-    def employeeSstsView (request, name):
+    def employeeSstsView (request, empId):
         
-        employee= Employee.objects.get(slug=name)
+        employee= Employee.objects.get(pk=empId)
         
         if request.method == 'POST':
                 formset = formset_factory(SstEmployeeForm, extra=0)
@@ -1193,7 +1193,7 @@ class EMPLOYEE:
                                 sft = ShiftTemplate.objects.create(sd_id=sdid,employee=employee, shift=shift)
                                 sft.save()
                             
-                return HttpResponseRedirect(reverse_lazy('sch:v2-employee-detail', kwargs={'name': name}))
+                return HttpResponseRedirect(employee.url())
                 
         context = {}
         context['employee'] = employee
@@ -1217,20 +1217,18 @@ class EMPLOYEE:
         context['formset']  = formset
         return render(request, 'sch/employee/employee_ssts_form.html', context)
         
-    def employeeTemplatedDaysOffView(request, name ):
+    def employeeTemplatedDaysOffView(request, empId ):
         
             template_name = 'sch/employee/template_days_off.html'
             form_class = EmployeeTemplatedDaysOffForm
             success_url = '/sch/employees/all/' 
             
-            employee = Employee.objects.get(slug=name)
+            employee = Employee.objects.get(pk=empId)
             
             if request.method == "POST":
                 formset = formset_factory(EmployeeTemplatedDaysOffForm,extra=0)
                 formset = formset (request.POST)
-                print('POST ')
                 if formset.is_valid():
-                    print('VALID')
                     for form in formset:
                         if form.cleaned_data.get('is_templated_off') == False:
                             if TemplatedDayOff.objects.filter(employee=employee, sd_id=form.cleaned_data.get('sd_id')).exists():
@@ -1245,7 +1243,6 @@ class EMPLOYEE:
                                 templated_day_off = TemplatedDayOff.objects.create(employee=employee, sd_id=form.cleaned_data.get('sd_id'))
                                 templated_day_off.save()
                 else:
-                    print('NOT VALID')
                     print(formset.errors)
                         
                     return HttpResponseRedirect('/sch/day-off-breakdown/')
@@ -1387,7 +1384,7 @@ class EMPLOYEE:
             return context
             
         def get_object(self):
-            return Employee.objects.get(name=self.kwargs['name'])
+            return Employee.objects.get(pk=self.kwargs['empId'])
 
     def coWorkerSelectView (request, name):
         context = {}
@@ -1519,6 +1516,13 @@ class SLOT:
         def get_object(self):
             return Slot.objects.get(name=self.kwargs['name'])
 
+    def slot_admin_detail_view (request, slotId):
+        slot = Slot.objects.get(pk=slotId)
+        html_template = 'sch/slot/detail-admin.html'
+        context = {
+            'slot' : slot,
+        }
+        return render(request,html_template,context)
     class SlotDeleteView (DeleteView) : 
         model                                       = Slot
         template_name                               = 'sch/slot/slot_confirm_delete.html'

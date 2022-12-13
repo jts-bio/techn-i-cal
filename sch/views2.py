@@ -295,3 +295,12 @@ def pto_schedule_form (request, schId, empl):
 
 def shift_templating_view (request, schId):
     shift = Shift.objects.get(pk=schId)
+    
+class PeriodViews:
+    def detailView (request, prdId):
+        html_template = 'sch2/period/detail.html'
+        period = Period.objects.get(pk=prdId)
+        context = {
+            'period': period,
+        }
+        return render(request,html_template,context)

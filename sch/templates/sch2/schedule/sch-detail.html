@@ -63,11 +63,10 @@ SCHEDULE DETAIL VIEW
 
     {% for period in schedule.periods.all %}
 
-        <h3 class="text-lg text-blue-700 text-semibold">
-                    
-        {{ period }}
-
-        </h3>
+        <a  href="{{ period.url }}" 
+            class="text-lg text-blue-700 text-semibold">        
+            {{ period }}
+        </a>
 
         <div 
         class="sm:vstack lg:hstack">

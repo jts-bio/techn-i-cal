@@ -71,7 +71,10 @@ def YEAR_SCHDATES (year):
         if d.year == year:
             inYear.append(d)
     return inYear
-#* --- ---    Managers    --- --- *#
+
+#*--------------------------------*#
+#* --- ---    MANAGERS    --- --- *#
+#*--------------------------------*#
 # ============================================================================
 class ShiftManager (models.QuerySet):
 
@@ -394,7 +397,7 @@ class Employee (models.Model) :
         super().__init__(*args,**kwargs)
         self.fte = self.fte_14_day / 80
     def url__tallies (self):
-        return reverse("sch:employee-shift-tallies", kwargs={"name":self.name})
+        return reverse("sch:employee-shift-tallies", kwargs={"empId":self.pk})
     def url__update (self):
         return reverse("sch:employee-update", kwargs={"name":self.name})
     @property
@@ -406,7 +409,7 @@ class Employee (models.Model) :
     def _set_fte (self):
         return self.fte_14_day / 80
     def url(self):
-        return reverse("sch:v2-employee-detail", kwargs={"name": self.name})
+        return reverse("sch:v2-employee-detail", kwargs={"empId": self.pk})
     def weekly_hours (self, year, iweek):
         return Slot.objects.filter(workday__date__year=year,workday__iweek=iweek, employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def weekly_hours_perc (self,year, iweek):
@@ -613,13 +616,13 @@ class Workday (models.Model) :
         if sd != 0:
             return self.schedule.workdays.filter(sd_id=sd-1).first()
         else :
-            return self
+            return None
     def nextWD (self) :
         sd = self.sd_id
         if sd != 41:
             return self.schedule.workdays.filter(sd_id=sd+1).first()
         else :
-            return self
+            return None
     def prevURL (self) :
         return self.prevWD().url()
     def nextURL (self) :
@@ -673,6 +676,8 @@ class Workday (models.Model) :
             if ptoReqs.filter(employee=templ.employee).exists():
                 excepts.append(templ)
         return excepts
+    def wkd (self):
+        return self.weekday[:3]
     def pto (self):
         return PtoRequest.objects.filter(workday=self.date)
     def save      (self, *args, **kwargs) :
@@ -837,7 +842,9 @@ class Period (models.Model):
                 w = Week.objects.create(start_date=i,year=i.year,number=i.strftime("%U"),period=self,schedule=self.schedule)
                 w.save()  
     def url (self):
-        return self.schedule.url() + f"{self.number}/"
+        return reverse('sch:period-detail', args=[self.pk])
+    def url__fill_one_with_best (self):
+        pass  
     def __str__ (self):
         return f'PayPeriod {self.year}.{self.number}.{self.schedule.version}'
     def empl_needed_hrs (self,empl):
@@ -862,9 +869,21 @@ class Period (models.Model):
         for empl in empls:
             hrs_needed = self.empl_needed_hrs(empl)
             output.update({empl:hrs_needed})
-        return sortDict(output)
+        return sortDict(output,reverse=True)
     def percent (self):
         return int((self.slots.filled().count() / self.slots.all().count()) * 100)
+    class FillActions:
+        def fill_slot_with_lowest_hour_employee (self):
+            empl = self.needed_hours.keys()[0]
+            fillableSlots = []
+            for emptySlot in self.slots.filter(employee=None):
+                if empl in emptySlot.fillable_by():
+                    fillableSlots += [emptySlot]
+            selectedSlot = fillableSlots[random.randint(0,len(fillableSlots))]
+            selectedSlot.employee = empl
+            selectedSlot.save()
+            if selectedSlot.employee != None:
+                return "SUCCESS: FILLED VIA PayPeriod.FillActions.fill_slot_with_lowest_hour_employee"
 # ============================================================================  
 class Schedule (models.Model):
     year       = models.IntegerField(null=True,default=None)
@@ -981,11 +1000,8 @@ class Slot (models.Model) :
             models.UniqueConstraint(fields=["workday", "employee"], name='Employee Duplicates on day')
         ]
     def template (self):
-        tmp = ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
-        if tmp.exists():
-            return tmp[0]
-        else :
-            return None
+        return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
+        
     def slug    (self):
         return self.workday.slug + '-' + self.shift.name
     def start   (self):
@@ -996,9 +1012,10 @@ class Slot (models.Model) :
         return (self.shift.duration.total_seconds() - 1800) / 3600 
     def __str__ (self) :
         return str(self.workday.date.strftime('%y%m%d')) + '-' + str(self.shift) + " " + str(self.employee)
+    def streak__display (self):
+        return f"#{self.streak} of {self.siblings_streak().count()}"
     def get_absolute_url (self):
         return reverse("slot", kwargs={"slug": self.slug})
-    @property
     def prefScore         (self) :
         if ShiftPreference.objects.filter(shift=self.shift, employee=self.employee).exists() :
             return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
@@ -1039,9 +1056,9 @@ class Slot (models.Model) :
                 return False
     def turnaround_pair   (self) :
         self.save()
-        if self.is_turnaround :
+        if self.is_turnaround == True:
             return Slot.objects.get(employee=self.employee,workday=self.workday.prevWD())
-        if self.is_preturnaround :
+        if self.is_preturnaround == True:
             return Slot.objects.get(employee=self.employee,workday=self.workday.nextWD())
         else:
             return None
@@ -1058,9 +1075,21 @@ class Slot (models.Model) :
     @property   
     def siblings_day     (self) :
         return Slot.objects.filter(workday=self.workday).exclude(shift=self.shift)  
-    @property
+    def siblings_streak (self):
+        if self.employee == None:
+            return Slot.objects.none()
+        siblings = []
+        prevDay = self.workday.prevWD()
+        while Slot.objects.filter(workday=prevDay, employee=self.employee).exists() == True:
+            siblings += [Slot.objects.get(workday=prevDay, employee=self.employee).pk]
+            prevDay = prevDay.prevWD()
+        nextDay = self.workday.nextWD()
+        while Slot.objects.filter(workday=nextDay, employee=self.employee).exists() == True:
+            siblings += [Slot.objects.get(workday=nextDay, employee=self.employee).pk]
+            nextDay = nextDay.nextWD()
+        return Slot.objects.filter(pk__in=siblings)
     def tenable_trades (self):
-        primaryScore   = self.prefScore
+        primaryScore   = self.prefScore()
         primaryShift   = self.shift
         otherShifts    = self.siblings_day.values('shift')
         otherEmployees = self.siblings_day.values('employee')
@@ -1116,6 +1145,8 @@ class Slot (models.Model) :
         neededHrs = slot.week.needed_hours 
         neededHrs 
         return fillableBy
+    def fillable_by (self):
+        return self._fillableBy()
     def fillWithBestChoice(self):
         
         choices = self._fillableBy()
@@ -1123,9 +1154,9 @@ class Slot (models.Model) :
         if len(choices) != 0:
             sprefs = ShiftPreference.objects.filter(shift=self.shift, employee__in=choices, score__gte=1).order_by('-score')
         # sort the choices by the best prefScore score
-            if self.template():
-                if self.template().employee in choices:
-                    self.employee = self.template().employee
+            if self.template().exists() == True:
+                if self.template().first().employee in choices:
+                    self.employee = self.template().first().employee
                     self.save()
             else:
                 if sprefs.exists():
@@ -1187,7 +1218,7 @@ class Slot (models.Model) :
         self._save_empl_sentiment ()
         self.fillableByN = self._fillableBy().count()
     def url (self):
-        return self.workday.url() + f"{self.shift.name}/"
+        return reverse('sch:v2-slot-detail',args=[self.pk])
     def _save_empl_sentiment (self):
         if self.employee == None:
             self.empl_sentiment = None
@@ -1248,7 +1279,28 @@ class Slot (models.Model) :
 
         
         return {'can':can,'sameDay':already_on_day,'notTrained':not_trained,'notAvailable':not_available,'periodOvertime':no_fte_left,'weekOvertime':no_wk_hrs_left,'turnarounds':in_conflicting}
-            
+    def prevSameShift (self):
+        if self.workday.prevWD():
+            if self.workday.prevWD().slots.filter(shift=self.shift).exists() == True: 
+                return self.workday.prevWD().slots.get(shift=self.shift)
+        return None 
+    def nextSameShift (self):
+        if self.workday.nextWD():
+            if self.workday.nextWD().slots.filter(shift=self.shift).exists() == True: 
+                return self.workday.nextWD().slots.get(shift=self.shift)
+        return None 
+    def prevSameEmployee (self):
+        if self.employee != None:
+            if self.workday.prevWD():
+                if self.workday.prevWD().slots.filter(employee=self.employee).exists() == True: 
+                    return self.workday.prevWD().slots.get(employee=self.employee)
+        return None 
+    def nextSameEmployee (self):
+        if self.employee != None:
+            if self.workday.nextWD():
+                if self.workday.nextWD().slots.filter(employee=self.employee).exists() == True: 
+                    return self.workday.nextWD().slots.get(employee=self.employee)
+        return None 
     
     objects      = SlotManager.as_manager()
     turnarounds  = TurnaroundManager.as_manager()

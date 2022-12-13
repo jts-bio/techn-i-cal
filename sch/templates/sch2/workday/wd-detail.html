@@ -21,7 +21,7 @@ TEMPLATE VARIABLES
     <div class="vstack center items-center">
         <div class="hstack text center-text">
             <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
-            <h1 class="text-3xl"> {{workday}} </h1>
+            <h1 class="text-3xl"> <span class="bg-orange-400 rounded px-1 m-2 mr-3 text-slate-900 jbm">{{ workday.wkd }}</span>{{workday}} </h1>
             <a class="ml-20" href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
         </div>
         <div class="hstack">
@@ -49,27 +49,15 @@ TEMPLATE VARIABLES
 
         {% for cls in slots_list %}
 
-
-            <table class="wikitable">
-                <thead>
-                    <tr>
-                        <th>Shift</th><th></th><th>Employee</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for slot in cls.list %}
-                        <tr>
-                            <td>{{slot.shift}}</td>
-                            <td></td>
-                            {% if slot.employee %}
-                                <td>{{slot.employee}}</td>
-                            {% else%}
-                                <td></td>
-                            {% endif %}
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="grid grid-cols-2 w-fc">
+            {% for slot in cls.list %}
+                <a href="{{ slot.url }}">
+                    <span class="badge">{{ slot.shift }}</span>
+                    {% if slot.employee %}
+                    <span class="text-indigo-300 font-light">{{ slot.employee }}</span> {% else%}<span></span> {% endif %}
+                </a>
+            {% endfor %}
+            </div>
 
         {% endfor %}
 

@@ -25,8 +25,12 @@
     </div>
 
     <h1 class="text-2xl text-amber-300">{{ week }}</h1>
-    <div class="flex flex-row">
+    <a href="{% url 'sch:week-fillable-by' week.pk %}"
+        class="italic text-indigo-100 text-light hover:text-indigo-300 underline">Go to week's Fillable By View</a>
 
+    <div class="overflow-auto">
+    <div class="flex flex-row">
+    
     {% for workday in workdays %}
     <a href="{{workday.url}}">
         <div class="panel">
@@ -57,8 +61,9 @@
     </a>
         
     {% endfor %}
-    </div>
     
+     </div>
+    </div>
     <div>
 
     {% regroup slots by employee as slotCount %}
@@ -74,6 +79,7 @@
 
        
         {% for slot in empl.list %}
+        <a href="{{ slot.url }}">
             {% if slot.shouldBeTdo %}
                 <span class='bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
             {% else %}
@@ -86,6 +92,7 @@
                     {{ slot.shift }} 
                 </span>
             </span>
+        </a>
         {% endfor %}     
 
     {% endfor %}

@@ -42,6 +42,21 @@
 			padding-right: 15px;
 			margin: 5px;
 		}
+		input[type="password"] {
+			background-color: #fff2;
+			color: #dddd;
+			border: none;
+			border-radius: 5px;
+			padding: 5px;
+			padding-left: 15px;
+			padding-right: 15px;
+			margin: 5px;
+		}
+		input[type="checkbox"][disabled] {
+			background-color: #2d3443;
+			border: 2px solid rgb(91, 89, 94);
+		}
+		
 		select {
 			background-color: #aaa7!important;
 			font-size: 18px!important;
@@ -49,12 +64,19 @@
 			border: none;
 			border-radius: 5px!important;
 			padding: 5px;
-			padding-left: 15px;
-			padding-right: 15px;
+			padding-left: 15px!important;
+			padding-right: 15px!important;
 			margin: 5px;
 			margin-left: 15px;
 			justify-content: center!important;
 		}
+		select[disabled] {
+			background-color: #191a1d;
+			border: 2px solid rgb(31, 31, 31);	
+			color:hsl(0, 3%, 13%)!important;
+			
+		}
+	
 		.light-button:hover {
 			background-color: #ddd1;
 			color: #cdea;

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
-from . import views, actions, views2
+from . import views, actions, views2, viewsets
 
 
 """
@@ -11,6 +11,9 @@ URLS FOR THE SCHEDULE APP WITHIN FLOWRATE
 """
 
 app_name = "sch"
+
+
+# ================================ #
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -24,7 +27,6 @@ urlpatterns = [
 
 user_patterns = [
 ]
-urlpatterns += user_patterns
 
 workday_patterns = [
     #? ==== Workday ==== ?#
@@ -36,7 +38,6 @@ workday_patterns = [
     path('day/<slug:date>/run-swaps/', views.WORKDAY.runSwaps, name='run-swaps'),
     path('v2/workday-detail/<str:slug>/',views2.workdayDetail, name='v2-workday-detail')
 ]
-urlpatterns += workday_patterns
 
 week_patterns = [
     #? ==== Week ==== ?#
@@ -57,16 +58,15 @@ week_patterns = [
     path('v2/week/<int:week>/fill-templates/', views2.weekView__set_ssts, name='v2-week-fill-templates'),
     path('v2/week-detail/<int:week>/delete-all-slots/', views2.weekView__clear_slots, name="v2-week-clear-slots"),
     path('v2/current-week/', views2.currentWeek, name='v2-current-week'),
+    path('v2/week-fillable-by-view/<int:weekId>/', viewsets.WeekViews.all_slots_fillable_by_view, name='week-fillable-by'),
 ]
-urlpatterns += week_patterns
 
 pay_period_patterns = [
     #? ==== Pay Period ==== ?#
-    path('pay-period/<int:year>/<int:period>/', views.PERIOD.period_view, name='pay-period'),
+    path('v2/period/<str:prdId>/', views2.PeriodViews.detailView, name='period-detail'),
     path('pay-period/<int:year>/<int:period>/fill-template/', views.PERIOD.periodFillTemplates, name='periodFillTemplate'),
     path('pay-period/<int:year>/<int:period>/preferences/', views.PERIOD.periodPrefBreakdown, name='prefs-pay-period'),
 ]
-urlpatterns += pay_period_patterns
 
 shift_patterns = [
     
@@ -82,7 +82,6 @@ shift_patterns = [
     path('shift-templates/<int:sftId>/', views.SHIFT.ShiftTemplateView.as_view(), name='shift-template-view'),
     
 ]
-urlpatterns += shift_patterns
 
 slot_patterns = [
     
@@ -96,9 +95,11 @@ slot_patterns = [
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
     path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
     path('sst-by-day/', views.SST.sstDayView, name="sst-day-view"),
+    path('v2/slot/slot-admin/<str:slotId>/', views.SLOT.slot_admin_detail_view, name="v2-slot-detail"),
+    path('v2/slot/slot-clear-assignment/<str:slotId>/action/', viewsets.Actions.SlotActions.clear_employee, name='v2-clear-slot'),
+    path('v2/slot/slot-fill-with-best/<str:slotId>/action/', viewsets.Actions.SlotActions.fill_with_best, name='slot-action-fill-with-best'),
     
 ]
-urlpatterns += slot_patterns
 
 employee_patterns = [
     
@@ -108,15 +109,15 @@ employee_patterns = [
     path("employees/rph/", views.EMPLOYEE.EmployeeListViewRph.as_view(), name='rph-list'),
     path("employees/new-pharmacist/", views.EMPLOYEE.PharmacistCreateView.as_view(), name='create-rph'),
     path("employees/new-technician/", views.EMPLOYEE.TechnicianCreateView.as_view(), name='create-cpht'),
-    path('employee/<str:name>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='v2-employee-detail'),
-    path('employee/<str:name>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
-    path('employee/<str:name>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
-    path('employee/<str:name>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
-    path('employee/<str:name>/ssts/', views.EMPLOYEE.employeeSstsView, name='employee-edit-ssts'),   
+    path('employee/<str:empId>/', views.EMPLOYEE.EmployeeDetailView.as_view(), name='v2-employee-detail'),
+    path('employee/<str:empId>/shift-tallies/', views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name='employee-shift-tallies'),
+    path('employee/<str:empId>/shift-preferences/', views.EMPLOYEE.shift_preference_form_view, name='shift-preferences-form'),
+    path('employee/<str:empId>/update/', views.EMPLOYEE.EmployeeUpdateView.as_view(), name='employee-update'),
+    path('employee/<str:empId>/ssts/', views.EMPLOYEE.employeeSstsView, name='employee-edit-ssts'),   
     path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='employee-coworker'),
     path('employee/<str:name>/coworker/', views.EMPLOYEE.coWorkerSelectView, name='coworker-select'),
     path('employee/<str:nameA>/coworker/<str:nameB>/', views.EMPLOYEE.coWorkerView, name='coworker'),
-    path('employee/<str:name>/template-days-off/', views.EMPLOYEE.employeeTemplatedDaysOffView, name='employee-tdos'),
+    path('employee/<str:empId>/template-days-off/', views.EMPLOYEE.employeeTemplatedDaysOffView, name='employee-tdos'),
     path('employee/<str:name>/template-days-off/match/', views.EMPLOYEE.employeeMatchCoworkerTdosView, name='employee-days-off'),
     path('employee/<str:name>/pto-request/add/', views.EMPLOYEE.EmployeeAddPtoView.as_view(), name='employee-add-pto'),
     path('employee/<str:name>/pto-request/add-range/', views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name='employee-add-pto-range'),
@@ -128,7 +129,6 @@ employee_patterns = [
     path('employee/<str:name>/sort-shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-sortable'),
     path('v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/', views.EMPLOYEE.EmployeePtoFormView.as_view(), name='employee-sortable-down'),
 ]
-urlpatterns += employee_patterns
 
 schedule_patterns = [
     #? ==== SCHEDULE ==== ?#
@@ -154,7 +154,6 @@ schedule_patterns = [
     path('v2/generate-new-schedule/', views2.generate_schedule_form, name='generate-new-schedule'),
     path('v2/schedule-empl-pto/<str:schId>/<str:empl>/',views2.pto_schedule_form, name="v2-schedule-empl-pto"),
 ]
-urlpatterns += schedule_patterns
 
 test_patterns = [
     path('test/<slug:workday>/<str:shift>/',
@@ -173,7 +172,6 @@ test_patterns = [
         actions.PredictBot.predict_createdStreak,   
         name="predict-streak"),
 ]
-urlpatterns += test_patterns
 
 htmx_patterns = [
     path('htmx/alert/<str:title>/<str:msg>/', 
@@ -192,7 +190,6 @@ htmx_patterns = [
          views.HTMX.cphtShiftChoices,   
          name = "cpht-shift-choices"),
 ]
-urlpatterns += htmx_patterns
 
 hyperPatterns = [
     path('hyper/hilight/',
@@ -201,4 +198,22 @@ hyperPatterns = [
          views2.mytest, name='test-layout')
     
 ]
+
+
+
+
+
+
+
+
+urlpatterns += user_patterns
+urlpatterns += workday_patterns
+urlpatterns += week_patterns
+urlpatterns += pay_period_patterns
+urlpatterns += shift_patterns
+urlpatterns += slot_patterns
+urlpatterns += employee_patterns
+urlpatterns += schedule_patterns
+urlpatterns += test_patterns
+urlpatterns += htmx_patterns
 urlpatterns += hyperPatterns

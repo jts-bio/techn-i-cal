@@ -147,12 +147,14 @@ class SstEmployeeForm (forms.Form):
         super(SstEmployeeForm, self).__init__(*args, **kwargs)
 
         employee = self.initial.get('employee')
+        sd_id = self.initial.get('sd_id')
+        
         try:
             trained_shifts = employee.shifts_trained # type: ignore
         except:
             trained_shifts = Shift.objects.none()
         try:
-            wds = 'Sun-A Mon-A Tue-A Wed-A Thu-A Fri-A Sat-A Sun-B Mon-B Tue-B Wed-B Thu-B Fri-B Sat-B'.split(" ")
+            wds = 'Sun Mon Tue Wed Thu Fri Sat'.split(" ") * 7
             self.fields['shift'].label = wds[self.initial.get('sd_id')]
         except:
             pass
@@ -179,7 +181,9 @@ class SstEmployeeForm (forms.Form):
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, sd_id=self.initial.get('sd_id')).shift.id
             # add css class to self.fields['shift'] object
         
-
+        if TemplatedDayOff.objects.filter(employee=employee, sd_id=sd_id).exists():
+            self.fields['shift'].widget.attrs['disabled'] = True
+            self.fields['shift'].choices = [(0,"TDO")]
             
         self.fields['shift'].widget.attrs.update({'class': 'form-control'})
         
@@ -192,12 +196,19 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
     class Meta:
         model = TemplatedDayOff
         fields = ['is_templated_off', 'employee','sd_id']
-        labels = {
-            'sd_id': 'Day from month start',
-        }
-        widgets = {
-            'sd_id'   : forms.HiddenInput(),
-        }
+        labels =    {
+                  'sd_id': 'Day from month start',
+                }
+        widgets =   {
+                  'sd_id'   : forms.HiddenInput(),
+                }
+        
+    def __init__(self, *args, **kwargs):
+        super(EmployeeTemplatedDaysOffForm, self).__init__(*args, **kwargs)
+        sd_id = self.initial.get('sd_id')
+        employee = self.initial.get('employee')
+        if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
+            self.fields['is_templated_off'].widget.attrs['disabled'] = True
         
     # if checked and already existing: pass and don't error
     # if checked and not existing: create

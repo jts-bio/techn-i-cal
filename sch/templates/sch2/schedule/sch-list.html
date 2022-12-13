@@ -61,11 +61,12 @@
     <div class="block md:hidden">
         <div class="flex flex-row flex-wrap">
             {% for sch in schedules %}
-            <div class="panel">
+            <a  href="{{ sch.url }}"
+                class="panel hover:bg-slate-500 hover:ring-indigo-400 hover:ring">
                 <h3 class="text-indigo-400 text-bold">Schedule {{sch.slug}}</h3>
                 <div class="text-xs">{{ sch.start_date }} </div>
                 <div>{{ sch.status }} </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
     </div>

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    <div class="panel">
+    
+    <div class="text text-center">
+        <h1 class="text-2xl text-amber-700 jbm">
+        Slot Details [Admin View] </h1>
+
+        <h3 class="text-lg"> 
+        {{ slot }} </h3>
+    </div>
+
+    <div>
+        <span class="badge">Workday:</span>
+        <a href="{{ slot.workday.url }}">
+            {{ slot.workday.weekday }} {{ slot.workday }} </a>
+    </div>
+    <div>
+        <span class="badge">Employee:</span>
+        <a href="{{ slot.employee.url }}">{{ slot.employee }}</a>
+    </div>
+    <div>
+        <span class="badge">Shift:</span>
+        <a href="{{ slot.shift.url }}">{{ slot.shift }} </a>
+    </div>
+    <div>
+        <span class="badge">Is Turnaround? :</span>
+        <span> {{ slot.is_turnaround }} </span>
+    </div>
+    <div>
+        <span class="badge">Is Terminal? :</span>
+        <span> {{ slot.is_terminal }}</span>
+    </div>
+    <div>
+        <span class="badge">Streak: </span>
+        <span> {{ slot.streak__display }} </span>
+    </div>
+    <h3 class="text-lg text-indigo-300 jbm">
+        METHODS
+    </h3>
+    <div>
+        <span class="badge">Template: </span>
+        <span> {{ slot.template }} </span>
+    </div>
+    <div>
+        <span class="badge">Preference Score:</span>
+        <span> {{ slot.prefScore }} </span>
+    </div>
+    <div>
+        <span class="badge">Pre-turnaround/Post-turnaround?: </span>
+        <span> {{ slot.is_preturnaround }} / {{ slot.is_postturnaround }} </span>
+    </div>
+    <div>
+        <span class="badge">Turnaround Pair: </span>
+        <span> {{ slot.turnaround_pair }} </span>
+    </div>
+    <div>
+        <span class="badge">Is Unfavorable?: </span>
+        <span> {{ slot.is_unfavorable }} </span>
+    </div>
+    <div>
+        <span class="badge">Day-wide Siblings:</span>
+        {% for s in slot.siblings_day %}
+            <a href="{{ s.url }}" 
+               class="px-2 mx-1 text-slate-900 bg-amber-300 rounded-sm"> 
+            {{ s }} </a>
+        {% endfor %}
+    </div>
+    
+    <div>
+        <span class="badge">Tenable Trades:</span>
+        <span> {{ slot.tenable_trades }} </span>
+    </div>
+    
+    <div>
+        <span class="badge">Streak Siblings:</span>
+        {% for s in slot.siblings_streak %}
+        <a href="{{ s.url }}">
+            <span class="bg-slate-700 border border-slate-300 text-slate-100 text-light rounded-full mx-2 px-2">
+            {{s.shift }} 
+            <sub>{{ s.workday.date.month }}/{{ s.workday.date.day }}</sub>
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    
+    <div>
+        <span class="badge">Over Streak Preference: </span>
+        <span> {{ slot.isOverStreakPref }} </span>
+    </div>
+    <div>
+        <span class="badge">Should Be Day Off (via Template): </span>
+        {% if slot.shouldBeTdo %}
+            <span class="bg-red-500 px-2 rounded-full text-slate-900 ring-3 ring-red-300"> {{ slot.shouldBeTdo }} </span>
+            <form method="POST" 
+                  action="{% url 'sch:v2-clear-slot' slot.pk %}">{% csrf_token %}
+                <input type="submit" class="text-red-400 border rounded border-red-300 hover:bg-red-700 hover:text-white"
+                value="Click to clear this assignment">
+            </form>
+        {% else %}
+            <span class="text-green-500">⌽</span>
+        {% endif %}
+    </div>
+    
+    <div>
+        <span class="badge">Fillable By: </span>
+        {% for empl in slot.fillable_by %}
+            <span class="underline mx-1">{{ empl }} </span>
+        {% endfor %}
+    </div>
+
+    <div>
+        <span class="badge">OPTIONS-MAP:</span>
+        <span class="text-xs text-slate-600">{{ slot.createOptionsMap }} </span>
+    </div>
+
+    <div class="hstack">
+        <div class="panel">
+            <div class="grid grid-cols-3 text text-center w-fc">
+                <div class="text-xs text-slate-600">PREVIOUS DAY</div><div class="text-sm">SAME SHIFT</div><div class="text-xs text-slate-600">NEXT DAY</div>
+                <a {% if slot.prevSameShift %} href="{{slot.prevSameShift.url}}" {% endif %}>{{ slot.prevSameShift }} </a> 
+                <div class="jbm text-indigo-300">{{ slot.shift }}</div>
+                <a {% if slot.nextSameShift %} href="{{slot.nextSameShift.url}}" {% endif %}>{{ slot.nextSameShift }}</a>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="grid grid-cols-3 text text-center w-fc">
+                <div class="text-xs text-slate-600">PREVIOUS DAY</div><div class="text-sm">SAME EMPLOYEE</div><div class="text-xs text-slate-600">NEXT DAY</div>
+                <div>{{ slot.prevSameEmployee }} </div> <div class="jbm text-amber-300">{{ slot.employee }}</div><div>{{ slot.nextSameEmployee }}</div>
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" action="{% url 'sch:slot-action-fill-with-best' slot.pk %}"> {% csrf_token %}
+     <input 
+        type="submit" 
+        class="bg-slate-900 border-slate-600 text-slate-400 font-light mx-4 rounded"
+        value="Fill with Best Choice"/>
+    </form>
+    <form method="POST" action="{% url 'sch:v2-clear-slot' slot.pk %}"> {% csrf_token %}
+     <input 
+        type="submit" 
+        class="border-red-500 ring-red-300 ring text-red-400 font-light mx-4 rounded"
+        value="Clear Slot Assignment"/>
+    </form>
+    
+    
+    
+    </div> 
+    
+{% endblock content %}
