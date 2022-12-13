@@ -1025,8 +1025,7 @@ class Slot (models.Model) :
         elif self.shift.start > dt.time(12,0) :
             if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__lt=dt.time(12,0), employee=self.employee).count() > 0 :
                 return True
-            else:
-                return False
+        return False
     def is_postturnaround (self) :
         if not self.employee:
             return False
@@ -1035,13 +1034,12 @@ class Slot (models.Model) :
         elif self.shift.start < dt.time(18,0) :
             if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
                 return True
-            else:
-                return False
+        return False
     def turnaround_pair   (self) :
         self.save()
-        if self.is_turnaround :
+        if self.is_turnaround == True :
             return Slot.objects.get(employee=self.employee,workday=self.workday.prevWD())
-        if self.is_preturnaround :
+        if self.is_preturnaround == True:
             return Slot.objects.get(employee=self.employee,workday=self.workday.nextWD())
         else:
             return None
@@ -1058,6 +1056,19 @@ class Slot (models.Model) :
     @property   
     def siblings_day     (self) :
         return Slot.objects.filter(workday=self.workday).exclude(shift=self.shift)  
+    def siblings_streak (self):
+        if self.employee == None:
+            return Slot.objects.none()
+        siblings = []
+        prevDay = self.workday.prevWD()
+        while Slot.objects.filter(workday=prevDay, employee=self.employee).exists() == True:
+            siblings += [Slot.objects.get(workday=prevDay, employee=self.employee).pk]
+            prevDay = prevDay.prevWD()
+        nextDay = self.workday.nextWD()
+        while Slot.objects.filter(workday=nextDay, employee=self.employee).exists() == True:
+            siblings += [Slot.objects.get(workday=nextDay, employee=self.employee).pk]
+            nextDay = nextDay.nextWD()
+        return Slot.objects.filter(pk__in=siblings)
     @property
     def tenable_trades (self):
         primaryScore   = self.prefScore
@@ -1066,11 +1077,16 @@ class Slot (models.Model) :
         otherEmployees = self.siblings_day.values('employee')
         return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)           
     def _streak (self):
-        # count the streak of slots in a row this employee has had
-        i = 1
-        while Slot.objects.filter(workday__date=self.workday.date - dt.timedelta(days=i),employee=self.employee).exists():
-            i = i + 1
-        return i
+        if self.employee == None:
+            return 0
+        siblings = []
+        prevDay = self.workday.prevWD()
+        while Slot.objects.filter(workday=prevDay, employee=self.employee).exists() == True:
+            siblings += [Slot.objects.get(workday=prevDay, employee=self.employee).pk]
+            prevDay = prevDay.prevWD()
+        return len(siblings) + 1
+    def streak__display (self):
+        return f'(Slot {self.streak} of {self.siblings_streak().count()}'
     def isOverStreakPref (self):
         if not self.employee:
             return False
@@ -1116,6 +1132,8 @@ class Slot (models.Model) :
         neededHrs = slot.week.needed_hours 
         neededHrs 
         return fillableBy
+    def get_fillable_by (self):
+        return self._fillableBy()
     def fillWithBestChoice(self):
         
         choices = self._fillableBy()
@@ -1187,7 +1205,7 @@ class Slot (models.Model) :
         self._save_empl_sentiment ()
         self.fillableByN = self._fillableBy().count()
     def url (self):
-        return self.workday.url() + f"{self.shift.name}/"
+        return reverse('sch:v2-slot-detail', args=[self.pk])
     def _save_empl_sentiment (self):
         if self.employee == None:
             self.empl_sentiment = None
@@ -1268,7 +1286,7 @@ class ShiftTemplate (models.Model) :
 
 
     def __str__(self) :
-        return f'{self.shift.name} Template'
+        return f'{self.shift.name} SD-ID#{self.sd_id} ({self.employee})'
     @property
     def url(self):
         return reverse("shifttemplate", kwargs={"pk": self.pk})

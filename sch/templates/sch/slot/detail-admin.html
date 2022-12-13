@@ -1,0 +1,104 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    <div class="panel">
+    
+    <div class="text text-center">
+        <h1 class="text-2xl text-amber-700 jbm">
+        Slot Details [Admin View] </h1>
+
+        <h3 class="text-lg"> 
+        {{ slot }} </h3>
+    </div>
+
+    <div>
+        <span class="badge">Workday:</span>
+        <a href="{{ slot.workday.url }}">
+            {{ slot.workday.weekday }} {{ slot.workday }} </a>
+    </div>
+    <div>
+        <span class="badge">Is Turnaround? :</span>
+        <span> {{ slot.is_turnaround }} </span>
+    </div>
+    <div>
+        <span class="badge">Is Terminal? :</span>
+        <span> {{ slot.is_terminal }}</span>
+    </div>
+    <div>
+        <span class="badge">Streak: </span>
+        <span> {{ slot.streak }} </span>
+    </div>
+    <h3 class="text-lg text-indigo-300 jbm">
+        METHODS
+    </h3>
+    <div>
+        <span class="badge">Template: </span>
+        <span> {{ slot.template }} </span>
+    </div>
+    <div>
+        <span class="badge">Preference Score:</span>
+        <span> {{ slot.prefScore }} </span>
+    </div>
+    <div>
+        <span class="badge">Pre-turnaround/Post-turnaround?: </span>
+        <span> {{ slot.is_preturnaround }} / {{ slot.is_postturnaround }} </span>
+    </div>
+    <div>
+        <span class="badge">Turnaround Pair: </span>
+        <span> {{ slot.turnaround_pair }} </span>
+    </div>
+    <div>
+        <span class="badge">Is Unfavorable?: </span>
+        <span> {{ slot.is_unfavorable }} </span>
+    </div>
+    <div>
+        <span class="badge">Day-wide Siblings:</span>
+        {% for s in slot.siblings_day %}
+            <a href="{{ s.url }}" 
+               class="px-2 mx-1 text-slate-900 bg-amber-300 rounded-sm"> 
+            {{ s }} </a>
+        {% endfor %}
+    </div>
+    <div>
+        <span class="badge">Tenable Trades:</span>
+        <span> {{ slot.tenable_trades }} </span>
+    </div>
+    <div>
+        <span class="badge">Streak Siblings:</span>
+        {% for s in slot.siblings_streak %}
+            <span class="px-2 mx-1 text-slate-900 bg-indigo-500 rounded-full"> {{ s }} </span>
+        {% endfor %}
+    </div>
+    <div>
+        <span class="badge">Over Streak Preference: </span>
+        <span> {{ slot.isOverStreakPref }} </span>
+    </div>
+    <div>
+        <span class="badge">Should Be Day Off (via Template): </span>
+        {% if slot.shouldBeTdo %}
+            <span class="bg-red-500 px-2 rounded-full text-slate-900 ring-3 ring-red-300"> {{ slot.shouldBeTdo }} </span>
+            <form method="POST" 
+                  action="{% url 'sch:clear-slot-assignment' slot.pk %}">{% csrf_token %}
+                <input type="submit" class="text-red-400 border rounded border-red-300 hover:bg-red-700 hover:text-white"
+                value="Click to clear this assignment">
+            </form>
+        {% else %}
+            <span class="text-green-500">⌽</span>
+        {% endif %}
+    </div>
+    <div>
+        <span class="badge">Fillable By: </span>
+        {% for empl in slot.get_fillable_by %}
+            <span class="underline mx-1">{{ empl }} </span>
+        {% endfor %}
+    </div>
+    
+    
+    
+    </div>
+    
+{% endblock content %}
+    

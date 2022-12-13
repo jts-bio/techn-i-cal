@@ -1,6 +1,6 @@
 from django.urls import path, include
 from django.contrib import admin
-from . import views, actions, views2
+from . import views, actions, views2, viewsets
 
 
 """
@@ -96,6 +96,8 @@ slot_patterns = [
     path('turnarounds/', views.SLOT.SlotTurnaroundsListView.as_view(), name='turnarounds'),
     path('turnarounds/delete/', views.SLOT.deleteTurnaroundsView, name='turnarounds-delete'),
     path('sst-by-day/', views.SST.sstDayView, name="sst-day-view"),
+    path('v2/slot-admin-view/<str:slotPk>/', views.SLOT.newSlotView, name='v2-slot-detail'),
+    path('v2/slot-actions/clear-assignment/<str:slotPk>/', viewsets.Actions.SlotActions.clear_slot_assignment, name="clear-slot-assignment"),
     
 ]
 urlpatterns += slot_patterns
@@ -125,7 +127,7 @@ employee_patterns = [
     path('day-off-breakdown/', views.EMPLOYEE.tdoBreakdownView, name='day-off-breakdown'),
     path('evening-fractions/', views.EMPLOYEE.eveningFractionView,name='pm-fractions'),
     
-    path('employee/<str:name>/sort-shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-sortable'),
+    path('employee/<str:name>/shift-prefs/', views.EMPLOYEE.sortShiftPreferences, name='employee-sortable'),
     path('v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/', views.EMPLOYEE.EmployeePtoFormView.as_view(), name='employee-sortable-down'),
 ]
 urlpatterns += employee_patterns

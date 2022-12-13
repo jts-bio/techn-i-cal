@@ -8,6 +8,7 @@
     
 
 {% block content %}
+
 <script>
     htmx.onLoad(function(content) {
         var sortables = content.querySelectorAll(".sortable");
@@ -23,6 +24,7 @@
 
 
     <div class="sortable yt-expander">
+
     {% for shift in shifts %}
         <div class="panel">
             <div class="vstack">
@@ -31,10 +33,12 @@
             </div>
         </div>
     {% endfor shift %}
+    
     </div>
 
     <div class="yt-expander">
         <div>{{shifts}}</div>
     </div>
+
 
 {% endblock content %}

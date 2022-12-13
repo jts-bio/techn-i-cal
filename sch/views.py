@@ -40,9 +40,6 @@ def index(request):
     }
     return render ( request, 'index.html', context )
 
-
-
-
 def day_changer (request, date):
     workday         = Workday.objects.get(slug=date)
     template_html   = 'sch/workday/dayChanger.html'
@@ -253,7 +250,7 @@ class PERIOD :
             }
         return render(request,'sch/pay-period/prefs.html', context)
     
-    def periodFillTemplatesLanding (request,year,period):
+    def periodFillTemplatesLanding (request, year, period):
         return render(request, 'sch/pay-period/fill_templates_landing.html', {'year':year, 'period':period})
     
     def periodFillTemplates (request, year, period):
@@ -395,7 +392,7 @@ class WEEK:
             nfs = {i : nfs[i] for i in sorted(nfs, key=nfs.get)}
             return nfs
 
-    def dayTableFragment(request,workday):
+    def dayTableFragment(request, workday):
         workday = Workday.objects.get(slug=workday)
         context = {'workday':workday}
         template = 'sch/week/day-table-frag.html'
@@ -477,7 +474,7 @@ class WEEK:
                     'weeks': all_weeks,}
         return render(request, 'sch/week/weekly-hours.html', context)
         
-    def weekHoursTable (request,year,week):
+    def weekHoursTable (request, year, week):
         """WEEK HOURS TABLE """
         wds   = Workday.objects.filter(date__year=year,iweek=week)
         empls = Employee.objects.all()
@@ -491,13 +488,13 @@ class WEEK:
         }
         return render (request,'sch/week/week-hours-table.html', context)
              
-    def weekFillTemplates(request,year, week):
+    def weekFillTemplates (request, year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
         for day in days:
             WorkdayActions.fillDailySST(day) 
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
 
-    def all_weeks_view(request):
+    def all_weeks_view (request):
         weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
         for week in weeks:
             sums = []
@@ -634,7 +631,7 @@ def slotAdd_post (request, workday, shift):
     else:
         return HttpResponse('Error: Not a POST request')
 
-def slot(request, date, shift):
+def slot (request, date, shift):
     if Slot.objects.filter(workday__slug=date, shift__name=shift).exists():
         slot = Slot.objects.get(workday__slug=date, shift__name=shift)
         context = {
@@ -651,7 +648,7 @@ def slot(request, date, shift):
         }
         return render(request, 'sch2/slot/noSlot.html', context)
 
-def slotDelete(request, date, shift):
+def slotDelete (request, date, shift):
     slot = Slot.objects.get(workday__slug=date, shift__name=shift)
     slot.delete()
     return HttpResponseRedirect(f'/sch2/day/{date}/')
@@ -1456,6 +1453,14 @@ class SLOT:
             slot = Slot.objects.get(workday=workday,shift=shift)
             return JsonResponse(slot.fillableBy(),safe=False)
         
+    def newSlotView (request, slotPk):
+        slot = Slot.objects.get(pk=slotPk)
+        html_template = 'sch/slot/detail-admin.html'
+        context = {
+            'slot': slot,
+        }
+        return render(request, html_template, context)
+        
     def slotView (request, sch, date, shift) :
         slot = Slot.objects.get(schedule__pk=sch, workday__slug=date,shift__name=shift)
         
@@ -1874,7 +1879,7 @@ class SCHEDULE:
         }
         return render(request, template_html, context)
     
-    def scheduleSlotModalView (request, year, number,version, workday, shift):
+    def scheduleSlotModalView (request, year, number, version, workday, shift):
         """
         SCHEDULE SLOT MODAL VIEW
         This function generates the modal view of a schedule slot.
@@ -1898,7 +1903,7 @@ class SCHEDULE:
             }
         return render(request, modal_html, context)
 
-    def scheduleSlotModalView (request, year, number,version, workday, shift):
+    def scheduleSlotModalView (request, year, number, version, workday, shift):
         slot = Slot.objects.get(workday__date__year=year,schedule__number=number,schedule__version=version,
                                 workday__slug=workday,shift__name=shift)
         emp = slot.employee

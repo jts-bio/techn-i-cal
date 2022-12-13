@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<a href="/sch/shift/{{shift}}/">Go Back</a>
+<a href="{{ shift.url }}"> Go Back </a>
 
 <h1>{{shift}}</h1>
 <h4>Shift Templating</h4>
@@ -11,10 +11,14 @@
 <form method="post"> {% csrf_token %}
 {{ formset.management_form }}
 
-    <div class="panel grid-7-by-2">
-    {% for form in formset %}
-        {{ form.as_div }}
-    {% endfor %}
+    <div class="panel">
+    <div class="grid grid-cols-7">
+
+        {% for form in formset %}
+            {{ form.as_div }}
+        {% endfor %}
+        
+    </div>
     </div>
     <input type="submit" value="Submit">
 </form>
