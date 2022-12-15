@@ -52,6 +52,7 @@ class SSTForm (forms.ModelForm) :
             'sd_id' : forms.HiddenInput(),
             'employee': forms.Select(attrs={'class': 'form-control'}),
         }
+    
 
 class EmployeeForm (forms.ModelForm) :
     class Meta:
@@ -475,15 +476,24 @@ class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
     
 class TrainedEmployeeShiftForm (forms.Form):
     
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-    shift = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
-    is_trained = forms.BooleanField(required=False)
-    is_available = forms.BooleanField(required=False)
+    employee = forms.ModelChoiceField(
+                        queryset=Employee.objects.all(), 
+                        widget=forms.HiddenInput())
+    shift = forms.ModelChoiceField(
+                        queryset=Shift.objects.all(), 
+                        widget=forms.HiddenInput())
+    is_trained = forms.BooleanField(
+                        required=False)
+    is_available = forms.BooleanField(
+                        required=False)
     
     def __init__ (self, *args, **kwargs) :
         super(TrainedEmployeeShiftForm, self).__init__(*args, **kwargs)
         self.fields['is_trained'].label = 'Trained'
         self.fields['is_available'].label = 'Available'
+        
+        
+        
 
 class EmployeeCoworkerSelectForm (forms.Form):
     

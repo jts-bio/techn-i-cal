@@ -1,0 +1,33 @@
+{% extends 'base.html' %} {% load tags %} {% load django_tables2 %}
+
+<!-- STYLE -->
+{% block style %}
+
+<style>
+  ul.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 10px;
+    flex-direction: row;
+    gap: 30px;
+  }
+</style>
+
+{% endblock style %}
+
+<!--- --------- CONTENT ------------ -->
+{% block content %}
+
+<a href="{{ schedule.url }}" class="hstack">
+  <div>{% backArrow %}</div>
+  <div>Back</div>
+</a>
+
+<div
+  class="bg-slate-900 rounded-lg center center-text overscroll-x-auto my-7 mx-20"
+>
+  {% render_table schedule.slots.all %}
+</div>
+
+{% endblock content %}

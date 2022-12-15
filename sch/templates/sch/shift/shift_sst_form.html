@@ -1,23 +1,46 @@
 {% extends 'base.html' %}
+{% load tags %}
+
+
+
+{% block style %}
+
+        <style>
+
+            label {
+                @apply from-slate-300 to-slate-900 text-gradient-to-r text-xs !important;
+                font-weight: bold;
+                font-size: 0.8rem!important;
+            }
+
+        </style>
+    
+{% endblock style %}
+    
 
 
 {% block content %}
 
-<a href="/sch/shift/{{shift}}/">Go Back</a>
+        <a href="{% url 'sch:shift-detail' shift.cls shift.name %}" class="flex flex-row">
+            <div> {% backArrow %} </div>
+            <div class="ml-2">Back to Shifts</div>
+        </a>
 
-<h1>{{shift}}</h1>
-<h4>Shift Templating</h4>
+        <h1>{{shift}}</h1>
+        <h4>Shift Templating</h4>
 
-<form method="post"> {% csrf_token %}
-{{ formset.management_form }}
+        <form method="post"> {% csrf_token %}
+        {{ formset.management_form }}
 
-    <div class="panel grid-7-by-2">
-    {% for form in formset %}
-        {{ form.as_div }}
-    {% endfor %}
-    </div>
-    <input type="submit" value="Submit">
-</form>
+            <div class="panel grid-7-by-2">
+                    {% for form in formset %}   {{ form.as_div }}    {% endfor %}
+            </div>
+
+            <input 
+                class="btn btn-primary bg-slate-200 ring-slate-800 ring-offset-slate-200 text-green-900 w-2/3"
+                type="submit" 
+                value="Submit">
+        </form>
 
 {% endblock content %}
 

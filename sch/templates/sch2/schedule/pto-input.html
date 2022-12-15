@@ -18,18 +18,25 @@
             <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
 
             {% for day in schedule.workdays.all %}
-                <div>
+                <div id="panel-{{day.slug}}" class="rounded bg-slate-400">
                     <label for="{{day.sd_id}}" class="text-xs">{{day.date}}</label>
                     <input 
+                        _="on click @clickCount increment 1 end
+                            if @clickCount > 1 then
+                                @clickCount = 0
+                                @checked = not @checked
+                            end"
                         type="checkbox" 
                         name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
                         id="{{day.sd_id}}-PtoCheckbox"
-                        {% if day.date in initial_pto_dates %} checked {% endif %}>
+                        {% if day.date in initial_pto_dates %} 
+                            checked {% endif %}/>
                 </div>
+             
             {% endfor %}
 
         </div>
-        <input type="submit" value="Submit">
+        <input class="w-2/3 center border border-amber-400 rounded" type="submit" value="Submit">
         </form>
     </div>
     

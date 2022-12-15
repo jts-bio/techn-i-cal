@@ -1,7 +1,15 @@
-
-
 from .models import *
 from datetime import time
 
-Shift.objects.create(name="MI", start_time=time=(9, 0), end_time=time=(17, 0))
-User.objects.create (name="Josh", cls="CPhT", fte_14_hr=50, )
+class Images :
+    SILK_SEAMLESS_BKGD     = '/static/img/Silk_seamless_01.png'
+    RUBE_GOLDBERG_SEAMLESS = '/static/img/RubeGoldberg_seamless_01.png'
+    CERTIFICATE_SEAMLESS   = '/static/img/Certificate_seamless_1.png'
+
+
+    __all__ = [
+        SILK_SEAMLESS_BKGD,
+        RUBE_GOLDBERG_SEAMLESS,
+        CERTIFICATE_SEAMLESS,
+    ]
+

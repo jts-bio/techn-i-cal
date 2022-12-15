@@ -1,14 +1,25 @@
 {% extends 'base.html' %}
 
+{% block style %}
 
+<style>
+  body {
+    background-image: url('/static/img/ScienceExperiments_seamless_1.png');
+    background-repeat: repeat;
+    background-size: 40%;
+  }
+</style>
+
+{% endblock style %} 
 
 {% block content %}
 
 
 
-    <div class="float-right w-50">
+    <div class="float-right w-50 mt-3 mr-3">
 
         {% #toggle-section title="New Schedule" %}
+
             <div class="border-2 border-slate-300 rounded">
                 <div class="w-50 px-3 py-2 bg-gray-800 rounded">
                     <h2 class="text-lg ">Generate New Schedule</h2>
@@ -22,17 +33,13 @@
                         in order to test multiple scenarios. </span>
                     </p>
                 </div>
-                
-
 
                 <form method="POST" class="pl-3" action=""> {% csrf_token %}
-                
                     {{ new_schedule_form }}
-
                     <input type="submit" value="Generate"/>
-                    
                 </form>
             </div>
+
         {% /toggle-section %}
 
     </div>
@@ -45,6 +52,7 @@
                 <th>Slots Filled</th>
                 <th>Draft Status</th>
             </tr>
+
             {% for sch in schedules %}
                 <tr>
                     <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
@@ -60,14 +68,21 @@
 
     <div class="block md:hidden">
         <div class="flex flex-row flex-wrap">
+
             {% for sch in schedules %}
             <a  href="{{ sch.url }}"
                 class="panel hover:bg-slate-500 hover:ring-indigo-400 hover:ring">
-                <h3 class="text-indigo-400 text-bold">Schedule {{sch.slug}}</h3>
-                <div class="text-xs">{{ sch.start_date }} </div>
-                <div>{{ sch.status }} </div>
+                <h3 class="text-indigo-400 font-extrabold text-shadow">
+                    Schedule {{sch.slug}}</h3>
+                <div class="h-8 w-8 text-xs pt-2 ring ring-offset-2 text-slate-300 font-light text-center align-text rounded-full">
+                    {{ sch.percent }}%</div>
+                <div class="text-xs">
+                    {{ sch.start_date }} </div>
+                <div>
+                    {{ sch.status }} </div>
             </a>
             {% endfor %}
+
         </div>
     </div>
     

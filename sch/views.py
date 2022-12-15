@@ -15,11 +15,11 @@ from django.contrib.auth.models import User
 
 
 from .models import *
-from .xviews.week import *
 from .forms import *
 from .formsets import *
 from .actions import *
 from .tables import *
+from .data import Images
 from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
 from django_tables2 import RequestConfig
 import datetime as dt
@@ -33,15 +33,14 @@ def index(request):
     today   = dt.date.today()
     wd      = Workday.objects.get(date=today)
     shifts  = wd.shifts
+    
     context = {
         'user'  : request.user,
         'wd'    : wd, 
         'shifts': shifts,
+        'scheduleImg': Images.SCHEDULE_IMG_1,
     }
     return render ( request, 'index.html', context )
-
-
-
 
 def day_changer (request, date):
     workday         = Workday.objects.get(slug=date)
@@ -70,7 +69,6 @@ class WORKDAY :
 
         def get_queryset(self):
             return Workday.objects.filter(date__gte=dt.date.today()).order_by('date')
-
     class WorkDayDetailView (DetailView):
 
         model           = Workday
@@ -118,7 +116,6 @@ class WORKDAY :
         
         def get_object(self):
             return Workday.objects.get(slug=self.kwargs['slug'])
-
     class WorkdayPtoRequest (FormView):
         form_class = PTODayForm
         template_name = 'sch/workday/ptoRequest.html'
@@ -138,7 +135,6 @@ class WORKDAY :
             req = PtoRequest.objects.create( workday=workday,employee=employee,status='P')
             req.save()
             return super().form_valid(form)
-
     class WorkdayBulkCreateView (FormView):
         template_name = 'sch/workday/bulk_create.html'
         form_class = BulkWorkdayForm
@@ -149,7 +145,6 @@ class WORKDAY :
             date_to = form.cleaned_data['date_to']
             WorkdayActions.bulk_create(date_from, date_to) # type: ignore
             return super().form_valid(form)
-
     class ResolvePtoRequestFormView (FormView):
         model = Slot
         template_name = 'sch/workday/resolve_pto_request.html'
@@ -182,26 +177,24 @@ class WORKDAY :
 
         def get_success_url(self):
             return reverse_lazy('workday', kwargs={'slug': self.kwargs['date']})
-
-    def runSwaps (request, date):
+    def runSwaps            (request, date):
         workday = Workday.objects.get(slug=date)
         bestswap = ScheduleBot.best_swap(workday)
         if bestswap != None:
             ScheduleBot.perform_swap(*bestswap)
         return HttpResponseRedirect(reverse_lazy('workday', kwargs={'slug': date}))
-    
-def workdayFillTemplate(request, date):
-    # URL : /sch2/day/<date>/fill/
-    workday = Workday.objects.get(date=date)
-    WorkdayActions.fillDailySST(workday)
-    return HttpResponseRedirect(f'/sch/day/{date}/')
+    def workdayFillTemplate (request, date):
+        # URL : /sch2/day/<date>/fill/
+        workday = Workday.objects.get(date=date)
+        WorkdayActions.fillDailySST(workday)
+        return HttpResponseRedirect(f'/sch/day/{date}/')
 
 class DOCUMENTATION:
     def weekly (request):
         return render(request, 'sch/doc/week_functions.html')
 
 class PERIOD :
-    def period_view (request, year, period):
+    def period_view                 (request, year, period):
         # URL : /sch2/period/<year>/<week>/
         workdays  = Workday.objects.filter(date__year=year, iperiod=period)
         slots     = Slot.objects.filter(workday__in=workdays)
@@ -229,8 +222,7 @@ class PERIOD :
             }
         
         return render(request,'sch/pay-period/period.html', context)
-    
-    def periodPrefBreakdown (request, year, period):
+    def periodPrefBreakdown         (request, year, period):
         # URL : /sch2/period/<year>/<week>/prefs/
         workdays  = Workday.objects.filter(date__year=year, iperiod=period)
         slots     = Slot.objects.filter(workday__in=workdays)
@@ -252,11 +244,9 @@ class PERIOD :
             'employees' : employees,
             }
         return render(request,'sch/pay-period/prefs.html', context)
-    
-    def periodFillTemplatesLanding (request,year,period):
+    def periodFillTemplatesLanding  (request, year, period):
         return render(request, 'sch/pay-period/fill_templates_landing.html', {'year':year, 'period':period})
-    
-    def periodFillTemplates (request, year, period):
+    def periodFillTemplates         (request, year, period):
         # URL : /sch2/period/<year>/<week>/fill/
         workdays = Workday.objects.filter(date__year=year, iperiod=period)
         for workday in workdays:
@@ -394,19 +384,16 @@ class WEEK:
             # sort nfs by value:
             nfs = {i : nfs[i] for i in sorted(nfs, key=nfs.get)}
             return nfs
-
-    def dayTableFragment(request,workday):
+    def dayTableFragment    (request, workday):
         workday = Workday.objects.get(slug=workday)
         context = {'workday':workday}
         template = 'sch/week/day-table-frag.html'
         return render(request, template, context)
-    
-    def iweekView (request, year, week_n):
+    def iweekView           (request, year, week_n):
         week = Week.objects.get(year=year,number=week_n)
         week.empl_week_sentiment()
-
     class GET: 
-        def getPercentsWorkedWeek (self,year,week):
+        def getPercentsWorkedWeek   (self, year, week):
             """
             Get a DICT of percentFTE filled in a given week
             Suggested to fill next slot with employee at lowest FTE %
@@ -447,24 +434,14 @@ class WEEK:
             s.sort()
             # turn into Dict of {name: {'worked':workedH, 'perc_fte_w':perc}}
             return [{'employeeSlug':e[2].replace(' ','-'),'employee':e[2], 'week_hours':e[1],'week_percent':e[0],'css':e[3]} for e in s]
-        
-        def solvableUnfilledWeekSlots (self,year,iweek):
-            wds = Workday.objects.filter(date__year=year,iweek=iweek)
-            unsolved = [ wd.emptySlots for wd in wds ]
-            for wd in unsolved:
-                pass    # wd = [SlotMgr<S,S,S...> SlotMgr<S,S,S...>]
-            
-            return HttpResponse(slots,emps)
-        
-        def allEmplsWeeklyPercent (year,week):
+        def allEmplsWeeklyPercent   (year, week):
             wds = Workday.objects.filter(date__year=year,iweek=week)
             emps = Employee.objects.all().exclude(fte=0)
-            
-        def getTurnarounds (self,year,weekId):
+        def getTurnarounds          (self, year, weekId):
             slots = Slot.objects.filter(workday__date__year=year,workday__iweek=weekId,is_turnaround=True) | Slot.objects.filter(workday__date__year=year,workday__iweek=weekId,is_preturnaround=True) 
             return slots
 
-    def weeklyHoursView (request):
+    def weeklyHoursView     (request):
         """
         View for a djangotables2 to show weeks in columns 
         and employees in rows, with the employee 
@@ -476,8 +453,7 @@ class WEEK:
         context = {'table': table,
                     'weeks': all_weeks,}
         return render(request, 'sch/week/weekly-hours.html', context)
-        
-    def weekHoursTable (request,year,week):
+    def weekHoursTable      (request, year, week):
         """WEEK HOURS TABLE """
         wds   = Workday.objects.filter(date__year=year,iweek=week)
         empls = Employee.objects.all()
@@ -491,13 +467,12 @@ class WEEK:
         }
         return render (request,'sch/week/week-hours-table.html', context)
              
-    def weekFillTemplates(request,year, week):
+    def weekFillTemplates       (request, year, week):
         days = Workday.objects.filter(date__year=year, iweek=week)
         for day in days:
             WorkdayActions.fillDailySST(day) 
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-
-    def all_weeks_view(request):
+    def all_weeks_view          (request):
         weeks = Workday.objects.filter(date__gte=dt.date.today()).values('date__year','iweek').distinct()
         for week in weeks:
             sums = []
@@ -515,8 +490,7 @@ class WEEK:
         }
         
         return render(request, 'sch/week/all_weeks.html', context)
-    
-    def solve_week_slots (request, year, week):
+    def solve_week_slots        (request, year, week):
         fx = True 
         n = 0
         while fx == True and n < 50 :
@@ -524,8 +498,7 @@ class WEEK:
             n += 1
             print(n)
         return HttpResponseRedirect(f'/sch/week/{year}/{week}/')
-    
-    def make_preference_swaps (request, year, week):
+    def make_preference_swaps   (request, year, week):
         for empl in Employee.objects.all():
             print(empl.info_printWeek(year,week))
         workdays = Workday.objects.filter(date__year=year, iweek=week)
@@ -561,7 +534,6 @@ class WEEK:
         def get_success_url (self):
             # return to the WeekView
             return reverse_lazy('week', kwargs={'year': self.kwargs['year'], 'week': self.kwargs['week']})
-    
     def clearWeekSlots_LowPrefScoresOnly (request, year, week):
         # only switches slots that don't have the preferred employee
         WeekActions.delSlotsLowPrefScores(year,week)
@@ -749,14 +721,15 @@ class SHIFT :
     class ShiftUpdateView (UpdateView):
         model           = Shift
         template_name   = 'sch/shift/shift_form_edit.html'
-        fields          = ['name',
-                           'start',
-                           'duration',
-                           'occur_days',
-                           'is_iv',
-                           'cls',
-                           'group'
-                           ]
+        fields          = [
+                            'name',
+                            'start',
+                            'duration',
+                            'occur_days',
+                            'is_iv',
+                            'cls',
+                            'group'
+                        ]
         success_url     = '/sch/shifts/all/'
         
         def get_object(self):
@@ -766,20 +739,46 @@ class SHIFT :
         model           = Shift
         success_url     = reverse_lazy('shift-list')
     
-    class ShiftTemplateView (FormView):
-        template_name = 'sch/shift/shift_sst_form.html'
-        form_class = SSTForm
-        fields = ['ppd_id', 'employee']
-        success_url = '/sch/shifts/all/'
+    
+    def shiftTemplateView (request, sftId):
+        """
+        SHIFT TEMPLATE VIEW
+        =====================================================
+        Formset View for ShiftTemplates related to a Shift
         
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['template_slots'] = ShiftTemplate.objects.filter(shift__pk=self.kwargs['sftId'])
-            context['shift'] = Shift.objects.get(pk=self.kwargs['sftId'])
-            return context
+        args:
+            - sftId: Shift.pk
+        """
+        shift           = Shift.objects.get(pk=sftId)
+        html_template   = 'sch/shift/shift_sst_form.html'
+        SstFormSet      = formset_factory(SSTForm, extra=0)
+        
+        #---------- POST HANDLING
+        if request.method == 'POST':
+            formset = SstFormSet(request.POST)
+            if formset.is_valid():
+                formset.save()
+                return reverse('sch:shift-detail', kwargs={'name':shift.name})
+        
+        #----------- INITIAL DATA FORMATTING
+        initial = [{'shift':shift, 'sd_id':i, 'employee': None } for i in range(42)]
+        for ini in initial:
+            if ShiftTemplate.objects.filter(sd_id=ini['sd_id'],shift=shift).exists() == True:
+                ini['employee'] = ShiftTemplate.objects.get(sd_id=ini['sd_id'],shift=shift).employee
+        
+        formset = SstFormSet(initial=initial)
 
-        def get_queryset (self):
-            return ShiftTemplate.objects.filter(shift__pk=self.kwargs['sftId'])
+    
+        context = {
+            'formset': formset,
+            'shift': shift,
+        }
+        return render(request, html_template, context)
+            
+
+        
+
+        
     
     def shiftTalliesView (request, shiftpk):
         shift = Shift.objects.get(pk=shiftpk)
@@ -929,16 +928,26 @@ class EMPLOYEE:
         context_object_name = 'employees'
 
         def get_context_data(self, **kwargs):
-            context                 = super().get_context_data(**kwargs)
-            context['employee']     = self.object # type: ignore
-            context['sfts_trained'] = self.object.shifts_trained.all() # type: ignore
-            context['sfts_avail']   = self.object.shifts_available.all() # type: ignore
-            context['ppdays']       = range(14)
-            context['ssts']         = ShiftTemplate.objects.filter(employee=self.object) 
-            context['sstHours']     = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
-            context['ptoTable']     = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
-            context['ptoReqsExist'] = PtoRequest.objects.filter(employee=self.object).exists()
+            context                   = super().get_context_data(**kwargs)
+            context['employee']       = self.object # type: ignore
+            context['sfts_trained']   = self.object.shifts_trained.all() # type: ignore
+            context['sfts_avail']     = self.object.shifts_available.all() # type: ignore
+            context['ppdays']         = range(14)
+            context['ssts']           = ShiftTemplate.objects.filter(employee=self.object) 
+            context['sstHours']       = context['ssts'].aggregate(Sum('shift__hours'))['shift__hours__sum']
+            context['ptoTable']       = PtoListTable(PtoRequest.objects.filter(employee=self.object)) 
+            context['ptoReqsExist']   = PtoRequest.objects.filter(employee=self.object).exists()
             context['multiplesOf7m1'] = [ i*7-1 for i in range(6) ]
+            ssts = []
+            for i in range (42):
+                if ShiftTemplate.objects.filter(employee=self.object, sd_id=i).exists():
+                    ssts.append({"type":"SST", "shift": ShiftTemplate.objects.filter(employee=self.object, sd_id=i).first().shift})
+                elif TemplatedDayOff.objects.filter(employee=self.object, sd_id=i).exists():
+                    ssts.append({"type":"TDO", "shift": "Day Off"})
+                else:
+                    ssts.append({"type":"NONE", "shift": "None"})
+                    
+            context['allTemplateDays'] = ssts
             initial = {
                 'employee' : self.object,
                 'date_from': dt.date.today() - dt.timedelta( days=int(dt.date.today().strftime("%w")) ),
@@ -951,12 +960,6 @@ class EMPLOYEE:
 
         def get_object(self):
             return Employee.objects.get(slug=self.kwargs['empId'])
-
-        def employeeSstGrid (employee):
-            ssts = ShiftTemplate.objects.filter(employee=employee)
-            sstsA = [(day, ssts.filter(ppd_id=day)) for day in range(7)]
-            sstsB = [(day, ssts.filter(ppd_id=day)) for day in range(7,14)]
-            return (sstsA, sstsB)
 
         def form_valid(self, form):
             date_from = form.cleaned_data['date_from']
@@ -972,9 +975,9 @@ class EMPLOYEE:
         success_url     = '/sch/employees/all/'
 
         def get_object(self):
-            return Employee.objects.get(slug=self.kwargs['name'])
+            return Employee.objects.get(slug=self.kwargs['empId'])
         
-        def post (self, request, name):
+        def post (self, request, empId):
             form = EmployeeEditForm(request.POST)
             print (form.errors)
             print (form.data)
@@ -982,7 +985,7 @@ class EMPLOYEE:
             print (request, request.POST)
             if form.is_valid():
                 
-                e = Employee.objects.get(slug=name)
+                e = Employee.objects.get(pk=empId)
                 e.name          = form.cleaned_data['name']
                 e.cls           = form.cleaned_data['cls']
                 e.streak_pref   = form.cleaned_data['streak_pref']
@@ -1076,9 +1079,9 @@ class EMPLOYEE:
             print(request.POST)
             return HttpResponseRedirect(reverse_lazy('employee-detail', kwargs={'name': self.kwargs['name']}))
     
-    def shift_preference_form_view (request, name):
+    def shift_preference_form_view (request, empId):
         context = {}
-        employee = Employee.objects.get(name=name)
+        employee = Employee.objects.get(pk=empId)
         context['employee'] = employee
         prefFormset = formset_factory(EmployeeShiftPreferencesForm, extra=0)
         trainedFor = employee.shifts_trained.all()
@@ -1100,7 +1103,11 @@ class EMPLOYEE:
                     shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
                     shiftPreference.save()
                     print(shiftPreference,'didntexist')
-            return HttpResponseRedirect(reverse_lazy('sch:v2-employee-detail', kwargs={'name': name}))
+                    
+                msg_body = f"{employee} - {len(formset)} Shift Preferences successfully updated!"
+                messages.success(request, msg_body )
+                
+            return HttpResponseRedirect(employee.url())
         
         initData = [
             {'employee':employee, 'shift': s} for s in trainedFor
@@ -1140,11 +1147,21 @@ class EMPLOYEE:
         context = {
             'shifts': shifts,
         }
+        if request.method == "POST":
+            i = 0
+            for pref in list(request.POST.values())[1:]:
+                shift = Shift.objects.get(pk=pref)
+                ssp = ShiftSortPreference.objects.get_or_create(employee=employee,shift=shift)
+                ssp.score = i
+                i += 1
+                ssp.save()
         return render(request,'sch/employee/sortable-shift-pref.html', context)
     ### SFT-SLOT-TMPL
     class EmployeeSstsView (FormView):
-        """Display the 2 week template for a single employee,
-        and allow new/del SSTs"""
+        """
+        Display the 2 week template for a single employee,
+        and allow new/del SSTs
+        """
 
         template_name = 'sch/employee/employee_ssts_form.html'
         form_class    = SstEmployeeForm
@@ -1519,8 +1536,10 @@ class SLOT:
     def slot_admin_detail_view (request, slotId):
         slot = Slot.objects.get(pk=slotId)
         html_template = 'sch/slot/detail-admin.html'
+        images = Images.__all__
         context = {
             'slot' : slot,
+            'rotatingImagePath' : random.choice(images),
         }
         return render(request,html_template,context)
     class SlotDeleteView (DeleteView) : 
@@ -1603,7 +1622,7 @@ class SLOT:
             return Slot.objects.filter(pk__in=turnarounds)
       
 def EmpSSTView (request, name):
-    
+        
     context                  = {}
     employee                 = Employee.objects.get(name=name)
     context['employee']      = employee
@@ -1857,6 +1876,29 @@ class SCHEDULE:
                     
             return HttpResponseRedirect(reverse('sch:v1-schedule-detail',args=[sch.pk]))
     
+        def fillSlotsWithPrefTime (request, pk):
+            
+            if request.method == "POST":
+                schedule = Schedule.objects.get(pk=pk)
+                for slot in schedule.slots.empty():
+                    if slot.shift.group == 'AM':
+                        employees = slot._fillableBy().filter(evening_pref=False)
+                        if employees.exists():
+                            slot.employee = employees[0]
+                            slot.save()
+                            messages.success(request,"Success")
+                        else:
+                            messages.info(request,"No Available Employee -- Slot Skipped")
+                    if slot.shift.group == "PM":
+                        employees = slot._fillableBy().filter(evening_pref=True)
+                        if employees.exists():
+                            slot.employee = employees[0]
+                            slot.save()
+                            messages.success(request,"Success")
+                        else:
+                            messages.info(request,"No Available Employee -- Slot Skipped")
+                return HttpResponseRedirect(schedule.url())
+    
     def scheduleListView (request):
         template_html = 'sch/schedule/sch_list.html'
         
@@ -2073,6 +2115,8 @@ class SCHEDULE:
                 s = Slot.objects.get(pk=tdo.overlapped)
                 tdos_notblank.append(s)
         return tdos_notblank
+   
+    
     
 class HTMX:
     def radProgress (request, progress):

@@ -4,8 +4,8 @@
 {% block style %}
 
     <style>
-        .html {
-            background-image: url("https://cdn.discordapp.com/attachments/1024277464945537044/1033275938437333062/jsteinbecker_silk_fabric_ultra_realism_8K_48MP_Wide_Lens_Nikon__59420d64-e175-4847-bd06-be3978573cc6.png");
+        body {
+            background-image: url('/static/img/IsometricDrugVial_01.png');
             background-repeat: repeat;
             background-size: 20%;
         }
@@ -24,7 +24,7 @@
         {% csrf_token %}
         {{ formset.management_form }}
             
-        <div class="panel grid-7-by-2">
+        <div class="panel w-8/12 grid-7-by-2">
             {% for form in formset %}
             {{ form.as_div }}
             {% endfor %}

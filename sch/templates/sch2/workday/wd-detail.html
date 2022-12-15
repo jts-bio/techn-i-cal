@@ -60,10 +60,16 @@ TEMPLATE VARIABLES
             </div>
 
         {% endfor %}
-
-        {% for pto in self.pto %}
-                {{ pto.employee }} {{ pto.status }}
-        {% endfor %}
+        <h2 class="text-xl text-amber-400 mt-7 lg:mx-20">PTO REQUESTS</h2>
+        {% if workday.pto.count > 0 %}
+            <div class="flex ring ring-amber-300 flex-row flex-wrap lg:mx-20">
+            {% for pto in workday.pto %}
+                <div class="text-indigo-300 jbm text-xs mx-5"> {{ pto.employee }} </div>
+            {% endfor %}
+                </div>
+        {% else %}
+            <div>No PTO Requests recorded</div>
+        {% endif %}
     </div>
 
 
