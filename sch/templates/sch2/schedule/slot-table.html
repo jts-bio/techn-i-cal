@@ -24,8 +24,12 @@
   <div>Back</div>
 </a>
 
+<div class="w-full text text-center">
+  <h1 class="text-2xl text-amber-400"> Schedule {{ schedule.number }} ({{ schedule.year }})</h1>
+</div>
+
 <div
-  class="bg-slate-900 rounded-lg center center-text overscroll-x-auto my-7 mx-20"
+  class="bg-slate-900 rounded-lg center center-text overflow-x-auto my-7 mx-20"
 >
   {% render_table schedule.slots.all %}
 </div>

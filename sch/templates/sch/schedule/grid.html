@@ -173,7 +173,7 @@ Concat
     <tr>
         <th>Unfilled Shifts</th>
         {% for dy in schedule.workdays.all  %}
-            <td>{% for uf in dy.slots.unfilled %} {{uf}}<br><br> {% endfor %}</td> 
+            <td>{% for uf in dy.slots.empty %} {{uf.shift}}<br><br> {% endfor %}</td> 
         {% endfor %}   
     </tr>
     </table>

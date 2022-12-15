@@ -775,10 +775,14 @@ class SHIFT :
         }
         return render(request, html_template, context)
             
-
-        
-
-        
+    def shiftPrefScores (request, pk):
+        html_template = 'sch2/shift/shift-pref-scores.html'
+        shift = Shift.objects.get(pk=pk)
+        context = {
+            'shift':shift,
+        }
+        return render(request, html_template, context)
+                
     
     def shiftTalliesView (request, shiftpk):
         shift = Shift.objects.get(pk=shiftpk)

@@ -7,7 +7,7 @@
   body {
     background-image: url("{{ rotatingImagePath }}");
     background-repeat: repeat;
-    background-size: 44%%;
+    background-size: 44%;
   }
 </style>
 
@@ -46,10 +46,18 @@
     <span> {{ slot.is_terminal }}</span>
   </div>
   <div>
+    <span class="badge">Is One Off?</span>
+    <span> {{ slot.is_one_off }} </span>
+  </div>
+  <div>
     <span class="badge">Streak: </span>
     <span> {{ slot.streak__display }} </span>
   </div>
-  <h3 class="text-lg text-indigo-300 jbm">METHODS</h3>
+
+  <h3 class="text-lg text-indigo-300 jbm">
+    METHODS
+  </h3>
+
   <div>
     <span class="badge">Template: </span>
     <span> {{ slot.template.first.employee }} </span>
@@ -73,12 +81,11 @@
   <div>
     <span class="badge">Day-wide Siblings:</span>
     {% for s in slot.siblings_day %}
-    <a
-      href="{{ s.url }}"
-      class="px-2 mx-1 text-slate-900 bg-amber-300 rounded-sm"
-    >
-      {{ s }}
-    </a>
+      <a
+        href="{{ s.url }}"
+        class="px-2 mx-1 text-slate-900 bg-amber-300 rounded-sm">
+        {{ s }}
+      </a>
     {% endfor %}
   </div>
 

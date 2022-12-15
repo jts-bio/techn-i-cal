@@ -1,0 +1,14 @@
+
+table {
+    border          : collapse; 
+}
+
+td {
+    padding-left    : 7px; 
+    padding-right   : 7px;
+    font-family     : Inter, 'Helvetica Neue'; ;
+    letter-spacing  : 0.75px;
+    line-height     : 13px;
+    font-size       : 12px;
+    font-weight     : 100;
+}

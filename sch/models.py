@@ -93,18 +93,18 @@ class ShiftManager (models.QuerySet):
         return self.filter(name__in=empl.shifts_trained.all())
 # ============================================================================
 class SlotManager (models.QuerySet):
-    def empty (self):
+    def empty           (self):
         return self.filter(employee=None)
-    def filled (self):
+    def filled          (self):
         return self.exclude(employee=None)
-    def on_workday (self, workday):
+    def on_workday      (self, workday):
         return self.filter(workday=workday)
-    def ShiftDetail (self, workday, shift):
+    def ShiftDetail     (self, workday, shift):
         if self.filter(workday=workday, shift=shift).exists():
             return self.filter(workday=workday, shift=shift).annotate(
                 employee= F('employee__name'),workday= F('workday__date')
                 )
-    def add_one(x: int) -> int:
+    def add_one         (x: int) :
         print("Adding one to {}".format(x))
         return x + 1
         return self.filter(workday=workday, shift=shift).annotate(
@@ -116,19 +116,19 @@ class SlotManager (models.QuerySet):
             workday__date__year= year,
             employee= employee
             ).aggregate(hours=Sum('shift__hours'))
-    def turnarounds (self):
+    def turnarounds     (self):
         turnarounds = []
         for i in self.all():
             if i.is_turnaround:
                 turnarounds.append(i.pk)
         return self.filter(pk__in=turnarounds)
-    def preturnarounds (self):
+    def preturnarounds  (self):
         preturnarounds = []
         for i in self.all():
             if i.is_preturnaround:
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
-    def unfavorables (self):
+    def unfavorables    (self):
         ufs = [i.pk for i in self if i.is_unfavorable]
         return Slot.objects.filter(pk__in=ufs)
     def incompatible_slots (self, workday, shift):
@@ -167,9 +167,9 @@ class SlotManager (models.QuerySet):
         
         # 4 -- return only slots whose shift pref score is less than 0
         return query.filter(change__lte=0)
-    def streaks (self, employee):
+    def streaks         (self, employee):
         return self.filter(employee=employee, is_terminal=True)
-    def unusualFills (self):
+    def unusualFills    (self):
         unusual = []
         ssts = ShiftTemplate.objects.all()
         slots = self.filter(shift=Subquery(ssts.values('shift')), workday__sd_id=Subquery(ssts.values('sd_id'))).exclude(employee=None)
@@ -179,9 +179,9 @@ class SlotManager (models.QuerySet):
                     if not self.filter(employee=sst.employee):
                         unusual.append(slots.filter(shift=sst.shift).first())
         return self.filter(pk__in=[i.pk for i in unusual])
-    def sch__pmSlots (self, year, sch):
+    def sch__pmSlots    (self, year, sch):
         return self.objects.filter(workday__date__year=year,workday__ischedule=sch, shift__start__hour__gte=12)
-    def tdoConflicts (self):
+    def tdoConflicts    (self):
         conflicts = []
         for i in self:
             if i.shouldBeTdo:
@@ -637,16 +637,16 @@ class Workday (models.Model) :
     def nextURL (self) :
         return self.nextWD().url()
     @property
-    def days_away (self) :
+    def days_away           (self) :
         td = self.date - TODAY 
         return td.days
-    def related_slots (self) :
+    def related_slots       (self) :
         return Slot.objects.filter(workday=self)
     @property
-    def n_unfilled (self) :
+    def n_unfilled          (self) :
         return  self.n_shifts - self.related_slots().count()
     @property
-    def list_unpref_slots (self):
+    def list_unpref_slots   (self):
         return self.filledSlots.annotate(
                 score=Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'),shift=OuterRef('shift')).values('score'))
             ).filter(score__lt=0)
@@ -658,12 +658,12 @@ class Workday (models.Model) :
                 return False
         return True
     @property
-    def printSchedule (self):
+    def printSchedule   (self):
         for slot in self.slots.all() :
             print(slot.shift, slot.employee)
-    def hours (self):
+    def hours           (self):
         return Employee.objects.all().annotate(hours=Subquery(self.slots.exclude(employee=None).values('hours')))
-    def who_can_fill (self, shift):
+    def who_can_fill    (self, shift):
         if shift not in self.shifts:
             return None
         if Slot.objects.filter(workday=self,shift=shift).exists():
@@ -672,7 +672,7 @@ class Workday (models.Model) :
                 workday=self,shift=shift) | Employee.objects.filter(
                     pk=current.pk)
         return Employee.objects.can_fill_shift_on_day(workday=self,shift=shift)
-    def n_can_fill (self, shift):
+    def n_can_fill      (self, shift):
         if self.who_can_fill == None:
             return None 
         return len (self.who_can_fill(shift))
@@ -684,25 +684,25 @@ class Workday (models.Model) :
             if ptoReqs.filter(employee=templ.employee).exists():
                 excepts.append(templ)
         return excepts
-    def wkd (self):
+    def wkd             (self):
         return self.weekday[:3]
-    def pto (self):
+    def pto             (self):
         return PtoRequest.objects.filter(workday=self.date)
-    def save      (self, *args, **kwargs) :
+    def save            (self, *args, **kwargs) :
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
         super().save(*args,**kwargs)
         self.post_save()
-    def post_save (self):
+    def post_save       (self):
         for i in self.shifts:
             if not Slot.objects.filter(workday=self,shift=i).exists():
                 s = Slot.objects.create(workday=self,shift=i,week=self.week,period=self.period,schedule=self.schedule)
                 s.save()
-    def url (self):
+    def url             (self):
         return reverse('sch:v2-workday-detail', args=[self.slug])
-    def url_tooltip (self):
+    def url_tooltip     (self):
         return f'/sch/{self.slug}/get-tooltip/'
-    def __str__ (self) :
+    def __str__         (self) :
         return str(self.date.strftime('%Y %m %d'))
     
     objects = WorkdayManager.as_manager()
@@ -1001,6 +1001,8 @@ class Slot (models.Model) :
     is_terminal    = models.BooleanField (default=False)
     streak         = models.SmallIntegerField (null=True, default=None)
     
+    DETAIL_HTML_TEMPLATE = 'sch/'
+    
     class Meta:
         # ordering = ['shift__start']
         constraints = [
@@ -1072,6 +1074,11 @@ class Slot (models.Model) :
             return Slot.objects.get(employee=self.employee,workday=self.workday.nextWD())
         else:
             return None
+    def is_one_off        (self) :
+        if self.employee != None:
+            if self.prevSameEmployee() == None and self.nextSameEmployee() == None:
+                return True
+        return False
     def is_unfavorable  (self):
         if self.employee:
             if self.shift in self.employee.unfavorable_shifts():
@@ -1369,7 +1376,7 @@ class PtoRequest (ComputedFieldsModel):
         if Slot.objects.filter(workday__date=self.workday, employee=self.employee).count() > 0:
             return False
         return True
-    def __str__(self) :
+    def __str__          (self) :
         # ex: "<JOSH PTOReq: Sep5>"
         return f'<{self.employee} PTOReq>'
     @property

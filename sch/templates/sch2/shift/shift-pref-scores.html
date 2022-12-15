@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+    <div class="text text-center w-full">
+        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Preference Ratings</h1>
+    </div>
+    <div class="panel">
+        {% for rating in shift.shift_prefs.all %}
+            <div class="bg-slate-900 ring ring-slate-300 ring-offset-3 shadow shadow-lg w-20 h-20">
+                <div class="{{ rating.cssClasses }}"> {{ rating.score }} </div>
+                {{ rating.employee }}
+            </div>
+        {% endfor %}
+    </div>
+    
+{% endblock content %}
+    

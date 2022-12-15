@@ -69,16 +69,16 @@ def schDetailView(request, schId):
     schedule = Schedule.objects.get(slug=schId)
 
     action1 = {
-        "name": "Solve: Method A",
-        "note": "(AI trained on Shift Scheduling data) ",
+        "name":    "Solve: Method A",
+        "note":    "(AI trained on Shift Scheduling data) ",
         "confirm": "Confirm you want the AI to solve the remaining slots of this schedule.",
-        "url": schedule.url__solve_b(),
+        "url":      schedule.url__solve_b(),
     }
     action2 = {
-        "name": "Solve: Method B",
-        "note": "(Quasi-algorithmic approach [in progress])",
+        "name":    "Solve: Method B",
+        "note":    "(Quasi-algorithmic approach [in progress])",
         "confirm": "This method is under construction and may take upward of 5 minutes to complete. Verify to continue.",
-        "url": schedule.url__solve(),
+        "url":      schedule.url__solve(),
     }
     actionDropdown = render_to_string(
         "sch/comp/dropdown_btn.html",
