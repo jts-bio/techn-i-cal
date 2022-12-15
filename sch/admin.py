@@ -57,6 +57,17 @@ class OrganizationDepartments(admin.TabularInline):
     show_change_link = False
     ordering = ['name']
 
+class ShiftsAvailable(admin.TabularInline):
+    model = Employee.shifts_available.through
+    fields = ['shift', 'employee']
+    readonly_fields = ['shift', 'employee']
+    extra = 0
+    can_delete = False
+    show_change_link = True
+    ordering = ['shift__start']
+    
+
+
 
 # Unregister the provided model admin
 admin.site.unregister(User)
@@ -66,7 +77,7 @@ admin.site.unregister(User)
 class CustomUserAdmin(UserAdmin):
     fieldsets = [
         ("Personal info", {'fields': ['username', 'first_name', 'last_name', 'email', 'password']}),
-        ("Organization", {'fields': ['employee', 'organization']}),
+    
         ("Permissions", {'fields': ['is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions']}),
         ("Important dates", {'fields': ['last_login', 'date_joined']}),
     ]
@@ -124,13 +135,10 @@ class EmployeeAdmin(admin.ModelAdmin):
     fields          = [
                 'name',
                 'initials',
-                'user',
                 'fte_14_day',
                 'fte', 
                 'department',
                 'streak_pref',
-                'shifts_trained', 
-                'shifts_available',
                 'trade_one_offs', 
                 'cls', 
                 'time_pref',
@@ -138,12 +146,9 @@ class EmployeeAdmin(admin.ModelAdmin):
             ]
     list_display = ['name', 'initials', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
     
-    shifts_available = forms.ModelMultipleChoiceField(
-        queryset=Shift.objects.all(),
-        required=False,
-        widget=forms.widgets.CheckboxSelectMultiple(
-            attrs={'class': 'grid-cols-3'}
-        ))
+    inlines = [ShiftsAvailable, EmployeesTrained]
+    
+    
     
 
     

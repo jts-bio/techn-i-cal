@@ -21,17 +21,31 @@
         <div class="grid grid-cols-2 lg:grid-cols-3">
             {% for schedule in schedules %}
                 <a href="{% url 'sch:empl-schedule-detail' employee.slug schedule.slug  %}"
-                    class="relative bg-slate-300 m-10 w-40 h-12   
+                    class="relative bg-slate-300 m-10 w-44 h-32   
                         text-slate-800 font-light 
-                        rounded shadow shadow-lg">
+                        rounded shadow shadow-lg hover:ring">
                         <span class="text-black">Schedule # {{schedule.number }} - {{ schedule.year }}</span> 
                         <span class="text-2xs text-blue-900">{{ schedule.num_slots }}</span>
-                        <span class="text-2xs text-gray-600">
+                        <span class="text-xs text-gray-600 p-1">
                             (starts {{ schedule.start_date }})
                         </span>
+                            {% if schedule.employees_slot_hours_sum != None %}
+                            <div class="text-xs text-gray-600 p-1">
+                                {{ schedule.employees_slot_hours_sum }} hours
+                            </div>
+                            {% else %} 
+                            <div class="text-xs text-red-600 p-1">
+                                0 hours
+                            </div>
+                            {% endif %}
                         {% if schedule.status == 0 %}
                             <span class="absolute bg-amber-500 rounded text-amber-200 font-bold text-2xs px-2 py-1 m-1 top-1/2 -right-4">
                                 DRAFT
+                            </span>
+                        {% endif %}
+                        {% if schedule.status == 1 %}
+                            <span class="absolute bg-indigo-500 rounded text-purple-200 font-bold text-2xs px-2 py-1 m-1 top-1/2 -right-4">
+                                FINAL
                             </span>
                         {% endif %}
                 </a>

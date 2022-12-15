@@ -15,7 +15,6 @@ def create_turnaround(sender, instance, **kwargs):
                            early_slot=involved_slots.first(),
                            late_slot=involved_slots.last(),
                            )
-         turnaround.save()
          
          
 @receiver(post_save, sender=Slot)

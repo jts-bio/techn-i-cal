@@ -59,10 +59,19 @@ class TdoConflictsTable (tables.Table):
     class Meta:
         model = Slot
         fields = [
-        
             "employee",
             "actions"
-        ]
+            ]
+        
+        attrs = {
+            "class": "sm:text-lg sm:font-bold tracking-wide bg-zinc-900 p-4 rounded-lg shadow text-white bg-opacity-50",
+            "td" : {
+                "class": "font-thin text-lg"
+            }
+        }
+        
+        empty_text = "No entries found. Check the admin table for more details."
+        
         
     def render_actions (self, value, record):
         view_icon = '<i class="fas fa-magnifying-glass"></i>'
@@ -71,7 +80,7 @@ class TdoConflictsTable (tables.Table):
         
         del_icon = '<i class="fas fa-trash"></i>'
         hx_post_path = f"actions/clear-slot/{record.workday.slug}/{record.shift.name}/"
-        del_btn = format_html('<div class="btn btn-sm bg-red-600" hx-post="{}">{}Delete</a>', hx_post_path, del_icon)
+        del_btn = format_html(f'<span class="rounded-sm px-2 py-1 m-1 bg-rose-400 hover:bg-rose-600" hx-post="{hx_post_path}">{del_icon} Delete</span>')
         
         return format_html("{} {}", view_btn, del_btn)
 

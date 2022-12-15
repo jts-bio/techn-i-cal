@@ -49,15 +49,20 @@
           </div>
         </li>
           <li>
-            <div class="vstack">
+            <div class="vstack ">
 
               <a href="{% url 'sch:v2-current-week' %}"
-                class="font-light block py-2 pr-4 pl-3 text-gray-400 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
+                class="font-light block py-1 pr-4 pl-3 text-gray-400 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
               Current Week </a>
               
               <a href="{% url 'sch:v2-current-schedule' %}"
-                class="font-extrabold block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
+                class="font-extrabold block py-1 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
               Current Schedule </a>
+
+              <a href="{% url 'prd:preline-table' %}"
+                class="font-extrabold block py-1 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
+                PLT
+              </a>
               
             </div>
           </li>

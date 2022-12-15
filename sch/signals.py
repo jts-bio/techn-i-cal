@@ -24,7 +24,7 @@ def remove_employee_from_assignments_on_same_workday(sender, instance, **kwargs)
    if instance.employee != None:
       for assignment in instance.workday.slots.filter(employee=instance.employee).exclude(pk=instance.pk):
          assignment.employee = None
-         assignment.save()
+         
          
 @receiver(post_save, sender=Slot)
 def remove_fills_with_on_overtime(sender, instance, **kwargs):
@@ -35,7 +35,7 @@ def remove_fills_with_on_overtime(sender, instance, **kwargs):
       for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
          s.fills_with.remove(instance.employee)
 
-@receiver(pre_save, sender=Workday)
+@receiver(post_save, sender=Workday)
 def set_i_values(sender, instance, **kwargs):
    if instance.iweek == -1:
       instance.iweek = int(instance.date.strftime('%U'))

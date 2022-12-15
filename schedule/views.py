@@ -1141,11 +1141,13 @@ class Actions:
     def fill_undertime_slots(request, schId):
         """
         Fills slots with employees who are able to fill them.
+        Using 'Algorithm D'
         """
         sch = Schedule.objects.get(slug=schId)
         from .utils import get_all_undertime_triplets
         triplets = get_all_undertime_triplets(schId)
         n = 0
+        t_init = tz.now()
         for employee in triplets:
             i = 0
             for period_needed_hours in triplets[employee]:
@@ -1157,22 +1159,34 @@ class Actions:
                         for slot in period_slots:
                             if period_needed_hours > 0:
                                 if period_needed_hours >= slot.shift.hours:
-                                    slot.employee = employee
-                                    slot.save()
-                                    n += 1
-                                    period_needed_hours -= slot.shift.hours
+                                    if not slot.workday.slots.filter(employee=employee).exists():
+                                        slot.employee = employee
+                                        slot.save()
+                                        n += 1
+                                        period_needed_hours -= slot.shift.hours
                     if period_needed_hours > 0:
                         period_slots = sch.periods.all()[i].slots.filled_by_prn().filter(fills_with=employee)
                         if period_slots.count() > 0:
                             for slot in period_slots:
                                 if period_needed_hours > 0:
                                     if period_needed_hours >= slot.shift.hours:
-                                        slot.employee = employee
-                                        slot.save()
-                                        n += 1
-                                        period_needed_hours -= slot.shift.hours
+                                        if not slot.workday.slots.filter(employee=employee).exists():
+                                            slot.employee = employee
+                                            slot.save()
+                                            n += 1
+                                            period_needed_hours -= slot.shift.hours
                 i += 1
-        return HttpResponse(f"Filled {n} slots")
+        t_final = tz.now()
+        t_delta = t_final - t_init
+        sch.routine_log.events.add(
+            LogEvent(
+                "ALGORITHM-D",
+                "Fill Algorithm prioritizing the distribution of slots by degree of scheduled hours under the deserved amount",
+                {'n': n, 't_delta': t_delta.total_seconds(), 'user': request.user.username}
+            )
+        )
+        return HttpResponse(f"Filled {n} slots in {t_delta.total_seconds()} seconds")
+      
     
     def beta_solving_model (request, schId):
         from .solvers import solve_schedule

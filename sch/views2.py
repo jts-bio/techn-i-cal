@@ -556,8 +556,21 @@ class EmployeeChooseSchedule(View):
 
     def get(self, request, empId, **kwargs):
         employee = Employee.objects.get(pk=empId)
+        
+      
+    # Subquery to get the sum of hours for each employee and schedule
+        slots_sum = Slot.objects.filter(
+            employee=employee,
+            schedule_id=OuterRef('pk')
+        ).values('employee', 'schedule').annotate(total_hours=Sum('shift__hours')).values('total_hours')
+
+        # Annotate the Employee queryset with the employees_slot_hours_sum
+        schedules = Schedule.objects.annotate(
+            employees_slot_hours_sum=Subquery(slots_sum, output_field=models.FloatField())
+        )
+            
         context = {
             "employee": employee,
-            "schedules": employee.schedules.exclude(status=2).order_by('-start_date')
+            "schedules": schedules.exclude(status=2),
         }
         return render(request, self.template_name, context)
