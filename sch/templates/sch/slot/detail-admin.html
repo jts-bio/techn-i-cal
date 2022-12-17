@@ -30,8 +30,15 @@
     </a>
   </div>
   <div>
-    <span class="badge">Employee:</span>
+    <span class="badge">Employee: </span>
     <a href="{{ slot.employee.url }}">{{ slot.employee }}</a>
+  </div>
+  <div>
+    <span class="badge">Conflicts:</span>
+    {% if slot.conflicts %} 
+      <span class="text-red-200 bg-red-600 px-2 py-1 mx-2">
+        {% if slot.conflicts %} {{ slot.conflicts }} {% endif %}</span>
+    {% endif %}
   </div>
   <div>
     <span class="badge">Shift:</span>
@@ -80,11 +87,12 @@
   </div>
   <div>
     <span class="badge">Day-wide Siblings:</span>
-    {% for s in slot.siblings_day %}
+    {% for st in slot.siblings_day %}
       <a
-        href="{{ s.url }}"
+        href="{{ st.url }}"
         class="px-2 mx-1 text-slate-900 bg-amber-300 rounded-sm">
-        {{ s }}
+        {{ st.shift }} 
+        {% if st.employee %} {{ st.employee }} {% endif %}
       </a>
     {% endfor %}
   </div>

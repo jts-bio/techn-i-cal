@@ -1,39 +1,20 @@
 {% extends 'base.html' %}
-
+{% load tags %}
 
 {% block content %}
+
+    <a href="{{ period.schedule.url }}">
+        <div class="hstack">{% backArrow %} Back</div>
+    </a>
 
     <div class="panel">
 
         <h1 class="text-3xl h1">{{ period }}</h1>
 
-        {# ----- ACTION BUTTON: FILL 1 RANDSLOT BESTCHOICE ------ #}
-        <form method="POST" action="{{ period.url__fill_one_with_best }}">
-        <input class="rounded ring ring-pink-400 text-pink-300 hover:text-white hover:italic hover:ring-pink-700 hover:ring-3"
-            type="submit" 
-            value="Fill One Random, Empty Slot with Best Choice">   
-        </form>
-    
-        {#------- WARNINGS -------- #}
-        <div class="flex flex-wrap">
-            {# --- TURNAROUNDS --- #}
-            <div class="bg-slate-900 p-4 rounded ring flex-1">
-                <h3 class="text-lg jbm text-indigo-200">TURNAROUNDS</h3>
-                {{ period.slots.turnarounds.count }} 
-            </div>
-            <div class="bg-slate-900 p-4 rounded ring flex-1">
-                <h3 class="text-lg jbm text-indigo-200">TDO-CONFLICTS</h3>
-                {% with  period.slots.tdoConflicts as tdocs %}
-                {% if tdocs.count > 0 %} <span class="text-red-600">{{ tdocs.count }}</span> 
-                    <div class="flex flex-wrap">
-                        {% for tdoc in tdocs %} 
-                            <a class="ring m-2 ring-red-600 px-3 rounded text-red-100 font-light" href="{{ tdoc.url }}">{{ tdoc }}</a> 
-                        {% endfor %}
-                    </div>
-                {%else%}  {{ tdocs.count }} {% endif %}
-                {% endwith %}
-            </div>
-        </div>
+
+        {% include 'sch2/comps/stat-bar.html' %}
+
+
     </div>
     
 {% endblock content %}

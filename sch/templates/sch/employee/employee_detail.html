@@ -125,6 +125,7 @@
           <a href="{% url 'sch:employee-sort-shift-prefs' employee.slug %}"
             >Sort Shift Preferences</a
           >
+          {% if employee.shift_sort_prefs.exists %} {% for sft in employee.shift_sort_prefs.all %} <span class="text-2xs font-thin text-slate-500"> {{sft.shift}} </span>  {% endfor %} {% endif %}
         </div>
         <div class="panel w-fc">
           <div class="hstack">

@@ -21,7 +21,10 @@ class Actions:
                 slot = Slot.objects.get(pk=slotId)
                 slot.fillWithBestChoice()
                 slot.save()
-                messages.success(request, f'Success! {slot.workday}-{slot.shift} Assigned to {slot.employee} via [FILL-VIA-BESTCHOICE]')
+                msg = f"""Success! 
+                {slot.workday}-{slot.shift} Assigned to {slot.employee} 
+                via [FILL-VIA-BESTCHOICE]"""
+                messages.success(request,msg)
                 return HttpResponseRedirect(slot.workday.url())
             
     class PeriodActions:

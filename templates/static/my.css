@@ -58,7 +58,7 @@
 		}
 		
 		select {
-			background-color: #aaa7!important;
+			background: #888!important;
 			font-size: 18px!important;
 			color: #dddd!important;
 			border: none;
@@ -73,10 +73,15 @@
 		select[disabled] {
 			background-color: #001a1d!important;
 			border: 2px solid rgb(31, 31, 31);	
-			color: #777777aa!important;
+			color: #484848aa!important;
 			padding-right: 32px!important;
 		}
-	
+		select option {
+			background: #32362a!important;
+		}
+		select option[value="5"] {
+			background: #555555!important;
+		}
 		.light-button:hover {
 			background-color: #ddd1;
 			color: #cdea;

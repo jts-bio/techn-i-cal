@@ -1,11 +1,11 @@
 <!--
 SCHEDULE DETAIL VIEW 
-``view.scheduleDetail``
+::pypath::sch.views2.schDetailView
 
 -->
 
 {% extends 'base.html' %}
-{% load slippers %} {% load django_tables2 %}
+{% load slippers %} {% load django_tables2 %} {% load tags %}
 
 
 {% block style %}
@@ -71,17 +71,30 @@ SCHEDULE DETAIL VIEW
         </div>
     </div>
 
-    <div><a href="{% url 'sch:v1-schedule-detail' schedule.pk %}"> 
-        ALTERNATE VIEW </a></div>
-    <div 
-        class="float-left w-9 h-9 center text-center text mt-6 my-5 rounded-full border border-4        border-slate-500 font-light
-        {% if schedule.percent < 90 %} 
-            ring ring-offset-2 ring-amber-400 text-amber-200
-        {% else %} 
-            ring ring-offset-2 ring-green-200 text-green-400 
-        {% endif %}">
-{{ schedule.percent }}% 
-</div>
+    <div id="alt-view-linkbox">
+        <a  href="{% url 'sch:v2-schedule-as-empl-grid' schedule.slug %}" 
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+            VIEW AS EMPLOYEE GRID</a>
+        <a  href="{% url 'sch:v2-schedule-as-shift-grid' schedule.slug %}" 
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+            VIEW AS SHIFT GRID</a>
+    </div>
+        <div class="float-left w-9 h-9 center text-center 
+                    text mt-6 my-5 rounded-full 
+                    border border-4  border-slate-500 font-light
+                        {% if schedule.percent < 90 %} 
+                            ring ring-offset-2 ring-amber-400 text-amber-200
+                        {% else %} 
+                            ring ring-offset-2 ring-green-200 text-green-400 
+                        {% endif %}">
+        {{ schedule.percent }}% 
+    </div>
+    <div class="center center-items center-content">
+        <div id="progress-bar" class='center-self w-24'>
+            {% with schedule.percent as percentage %}
+            {% progressBar percentage 'amber' %} {% endwith %}
+        </div>
+    </div>
     <div>
     <div class="float-right">
             <form method="POST"> {% csrf_token %}
@@ -115,15 +128,13 @@ SCHEDULE DETAIL VIEW
             {% for week in period.weeks.all %}
                 <div class="vstack">
 
-                    <a  class="bg-slate-400 text-lg text-blue-700 font-light rounded ring mt-10 ring-slate-400 " 
+                    <a  class="week bg-slate-400 text-lg text-blue-700 font-light rounded ring mt-10 ring-slate-400 " 
                         href="{{week.url}}">
                         Week {{ week.number }} </a>
                     
                     <div class="grid grid-cols-7 gap-4">
                         {% for workday in week.workdays.all %}
-
                             {% include 'sch2/schedule/lazy-popover.html' %}
-                        
                         {% endfor workday %}
                     </div>
                 </div>
@@ -161,15 +172,19 @@ SCHEDULE DETAIL VIEW
         <div class="vstack center text text-center">
             <div class="h-9 w-9 border border-white rounded-full text-red-600">
                 {{ schedule.pto_requests.violated.count }} </div>
-            <div class="text-2xs text-red-800 italic font-light">
+            <a href="{% url 'sch:v2-schedule-pto-conflicts' schedule.slug %}" 
+            class="text-2xs text-red-800 italic font-light">
                 Violated
-            </div>
+            </a>
         </div>
     </div>
     
     <div class="font-extrabold text-amber-300">({{ schedule.pto_requests.violated.count }} violated)</div>
 
+    
+
 </div>
+
 
     
 {% endblock content %} 

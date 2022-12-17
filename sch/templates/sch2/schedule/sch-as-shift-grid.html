@@ -1,0 +1,43 @@
+
+
+{% extends 'base.html' %}
+{% load tags %}
+
+
+{% block content %}
+
+
+    <a href="{% url 'sch:v2-schedule-detail' schedule.slug %}" class="hstack">
+        <div>{% backArrow %}</div>
+        <div>Back</div>
+    </a>
+
+    <h2 class="text-xl text-slate-300 font-extrabold jbm">
+        Schedule {{ schedule.number }}, {{ schedule.year }}
+    </h2>
+
+    <div class="overscroll-x-auto overflow-x-auto">
+        <div id="schedule-grid">
+            <table>
+                <thead>
+                    <th></th>
+                    {% for workday in schedule.workdays.all %}
+                    <th class="text-2xs">{{ workday.date }}</th>
+                    {% endfor %}
+                </thead>
+                <tbody>
+                    {% for shift, assignments in schedule.as_shift_dict.items %}
+                        <tr>
+                            <th>{{ shift }}</th>
+                            {% for assignment in assignments %}
+                            <td><a class="bg-inherit font-light text-2xs text-slate-400" href="{{assignment.url|default:'#'}}">{{ assignment.employee|default:"." }}</a></td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock content %}
+    

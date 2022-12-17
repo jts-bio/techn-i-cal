@@ -2064,13 +2064,13 @@ class SCHEDULE:
         sch = schedule.number
         print(f"SOLVEBOT: MAIN PROCESS COMPLETED {dt.datetime.now()}")
         for slot in SCHEDULE.tdosConflictedSlots(year,sch):
-            slot.delete()
+            slot.employee = None
             print(f"{slot} : TDO-CONFLICT SLOT DELETED DURING SOLUTION")
         for slot in Slot.objects.filter(workday__date__year=year,workday__ischedule=sch):
             if slot.is_turnaround :
-                slot.delete()
+                slot.employee = None
             if slot.is_preturnaround :
-                slot.delete()
+                slot.employee = None
             slot.save()
         SCHEDULE.solvePart2(request,year,sch)
         return HttpResponseRedirect(schedule.url())
