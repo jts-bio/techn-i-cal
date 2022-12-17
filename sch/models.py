@@ -129,7 +129,7 @@ class SlotManager (models.QuerySet):
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
     def unfavorables    (self):
-        ufs = [i.pk for i in self if i.is_unfavorable]
+        ufs = [i.pk for i in self if i.is_unfavorable == True]
         return Slot.objects.filter(pk__in=ufs)
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
@@ -785,23 +785,17 @@ class Week (models.Model) :
     def name     (self) : 
         return f'{self.year}_{self.iweek}'   
     def prevWeek (self) :
-        try:
-            return Week.objects.get(year=self.year, number=self.number-1)
-        except Week.DoesNotExist:
-            # go back 1 year, and get the max iweek of that year.
-            yearnew = self.year - 1
-            iweeknew = Week.objects.filter(year=yearnew).aggregate(Max('iweek'))['iweek__max']
-            return Week.objects.get(year=yearnew, iweek=iweeknew)   
+        prev_week = self.schedule.weeks.filter(number=self.number - 1)
+        if prev_week.exists():
+            return prev_week.first()
+        else:
+            return self  
     def nextWeek (self) :
-        try:
-            return Week.objects.get(year=self.year, iweek=self.iweek+1)
-        except Week.DoesNotExist:
-            # go forward 1 year, and get the 0 iweek of that year.
-            yearnew = self.year + 1
-            try:
-                return Week.objects.get(year=yearnew, iweek=0)
-            except:
-                return Week.objects.get(year=yearnew, iweek=1)
+        next_week = self.schedule.weeks.filter(number=self.number + 1)
+        if next_week.exists():
+            return next_week.first()
+        else:
+            return self
     @property
     def slots    (self) :
         dates = self.dates
@@ -1438,16 +1432,13 @@ class SchedulingMax (models.Model):
     
     class Meta:
         unique_together = ('employee', 'year', 'pay_period')
-
-
-
+# ============================================================================
 class ShiftSortPreference (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='shiftSortPrefs')
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
     score    = models.IntegerField(default=0)
     class Meta:
         unique_together = ['employee', 'shift']
-    
     def __str__(self):
         return f"[{self.shift} | RANK-{self.score+1}]"
     
@@ -1476,10 +1467,13 @@ def generate_schedule (year,number):
     Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
 
   
-import random      
+     
 def randomSlot ():
+    import random 
+    
     slotn = random.randint (0,Slot.objects.count())
-    slot = Slot.objects.all()[slotn]
+    slot  = Slot.objects.all()[slotn]
+    
     return slot
 
 def tally (lst):

@@ -143,7 +143,11 @@ shift_patterns = [
     # ? ==== Shifts ==== ?#
     path("shifts/all/", views.SHIFT.ShiftListView.as_view(), name="shift-list"),
     path("shifts/all/overview/", views.SHIFT.shiftOverview, name="shift-overview"),
-    path("v2/shift/<str:cls>/<str:name>/", views2.shiftDetailView, name="shift-detail"),
+    path(
+        "v2/shift/<str:cls>/<str:name>/", 
+        views2.shiftDetailView, 
+        name="shift-detail"
+    ),
     path(
         "shift/<str:name>/update/",
         views.SHIFT.ShiftUpdateView.as_view(),

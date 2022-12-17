@@ -147,6 +147,30 @@ SCHEDULE DETAIL VIEW
         <input type="submit" value="Perform Time-Preference Aware Fill"/>
     </form>
 
+<div class="panel">
+
+    <h3>Schedule PTO Requests</h3>
+    <div class="hstack">
+        <div class="vstack center text text-center">
+            <div class="h-9 w-9 animate animate-spin text-lg border border-white rounded-full shadow-lg align-baseline align-content">
+                {{ schedule.pto_requests.all.count }} </div>
+            <div class="text-2xs text-slate-900 italic font-light">
+                PTO Requests
+            </div>
+        </div>
+        <div class="vstack center text text-center">
+            <div class="h-9 w-9 border border-white rounded-full text-red-600">
+                {{ schedule.pto_requests.violated.count }} </div>
+            <div class="text-2xs text-red-800 italic font-light">
+                Violated
+            </div>
+        </div>
+    </div>
+    
+    <div class="font-extrabold text-amber-300">({{ schedule.pto_requests.violated.count }} violated)</div>
+
+</div>
+
     
 {% endblock content %} 
     
