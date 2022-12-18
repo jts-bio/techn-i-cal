@@ -163,23 +163,22 @@ SCHEDULE DETAIL VIEW
     <h3>Schedule PTO Requests</h3>
     <div class="hstack">
         <div class="vstack center text text-center">
-            <div class="h-9 w-9 animate animate-spin text-lg border border-white rounded-full shadow-lg align-baseline align-content">
+            <div class="h-7 w-7 ring ring-slate-300 text-lg border border-white rounded-full shadow-lg align-baseline align-content">
                 {{ schedule.pto_requests.all.count }} </div>
             <div class="text-2xs text-slate-900 italic font-light">
                 PTO Requests
             </div>
         </div>
         <div class="vstack center text text-center">
-            <div class="h-9 w-9 border border-white rounded-full text-red-600">
+            <div class="h-7 w-7 border border-red-300 rounded-full text-red-200">
                 {{ schedule.pto_requests.violated.count }} </div>
             <a href="{% url 'sch:v2-schedule-pto-conflicts' schedule.slug %}" 
-            class="text-2xs text-red-800 italic font-light">
+            class="text-2xs text-red-400 italic font-light">
                 Violated
             </a>
         </div>
     </div>
     
-    <div class="font-extrabold text-amber-300">({{ schedule.pto_requests.violated.count }} violated)</div>
 
     
 

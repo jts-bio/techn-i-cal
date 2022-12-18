@@ -401,6 +401,10 @@ class Employee (models.Model) :
     time_pref       = models.CharField(max_length=10, choices=(("Morning","AM"),("Evening","PM"),("Overnight","XN")),default="AM")
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
+    
+    
+    class Meta:
+        ordering    = ['cls', 'name']
 
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -1042,8 +1046,8 @@ class Slot (models.Model) :
     class Meta:
         # ordering = ['shift__start']
         constraints = [
-            models.UniqueConstraint(fields=["workday", "shift"],    name='Shift Duplicates on day'),
-            models.UniqueConstraint(fields=["workday", "employee"], name='Employee Duplicates on day')
+            models.UniqueConstraint(fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
+            models.UniqueConstraint(fields=["workday", "employee", "schedule"], name='Employee Duplicates on day')
         ]
     def template (self):
         return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
@@ -1208,24 +1212,27 @@ class Slot (models.Model) :
                         
             except:
                 pass
-            else:
-                if sprefs.exists():
-                    for x in sprefs:
-                        if x in choices:
-                            self.employee = x 
-                            
-                        else:
-                            pass
-                try :
-                    self.employee = choices [0] 
-                except:
-                    pass
-        try:
-            self.save()
+        else:
+            if sprefs.exists():
+                for x in sprefs:
+                    if x in choices:
+                        self.employee = x 
+                        
+                    else:
+                        pass
+        try :
+            self.employee = choices [0] 
+            try:
+                self.save()
+            except:
+                other = self.siblings_day.get(employee=self.employee)
+                if other.template().exists():
+                    other.save()
+                else:
+                    other.employee = None
+                    other.save()
         except:
-            other = self.siblings_day.get(employee=self.employee)
-            other.employee = None
-            other.save()
+            pass
         self.save()
             
                   

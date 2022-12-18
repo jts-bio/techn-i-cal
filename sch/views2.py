@@ -124,7 +124,16 @@ def schedulePtoConflictView (request,schId):
     ptoReqs = schedule.pto_requests
     conflicts = []
     for pto in ptoReqs:
-        conflicts += pto.conflict()
+        if pto.conflict().exists():
+            conflicts += [pto.conflict()]
+    if request.method == "POST":
+        count = len(conflicts)
+        for conflict in conflicts:
+            c = conflict.first()
+            c.employee = None
+            c.save()
+        messages.success(request, f"All {count} PTO conflicts have been cleared.")
+        return HttpResponseRedirect(schedule.url())
     return render(request, template_html, {"schedule":schedule,"conflicts":conflicts})
 def weekView(request, week):
     week = Week.objects.filter(pk=week).first()

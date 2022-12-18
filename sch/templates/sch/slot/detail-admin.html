@@ -150,10 +150,7 @@
     {% endfor %}
   </div>
 
-  <div>
-    <span class="badge">OPTIONS-MAP:</span>
-    <span class="text-xs text-slate-600">{{ slot.createOptionsMap }} </span>
-  </div>
+
 
   <div class="hstack">
     <div class="panel">
@@ -163,8 +160,7 @@
         <div class="text-xs text-slate-600">NEXT DAY</div>
         <a
           {%
-          if
-          slot.prevSameShift
+          if slot.prevSameShift
           %}
           href="{{slot.prevSameShift.url}}"
           {%
@@ -175,10 +171,9 @@
         <div class="jbm text-indigo-300">{{ slot.shift }}</div>
         <a
           {%
-          if
-          slot.nextSameShift
+          if slot.nextSameShift
           %}
-          href="{{slot.nextSameShift.url}}"
+                  href="{{slot.nextSameShift.url}}"
           {%
           endif
           %}

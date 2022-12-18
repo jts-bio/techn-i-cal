@@ -4,13 +4,24 @@
 {% load tags %}
 
 
+{% block style %}
+
+    <style>
+        tr td:nth-child(7n+1) {
+            border-right: 1px solid #444444;
+        }      
+    </style>
+    
+{% endblock style %}
+    
+
 
 {% block content %}
 
     <a href="{% url 'sch:v2-schedule-detail' schedule.slug %}" class="hstack">
         <div>{% backArrow %}</div>
         <div>Back</div>
-    </a>
+</a>
 
     <h2 class="text-xl text-slate-300 font-extrabold jbm">
         Schedule {{ schedule.number }}, {{ schedule.year }}

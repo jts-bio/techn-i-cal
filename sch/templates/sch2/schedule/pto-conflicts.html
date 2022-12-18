@@ -10,6 +10,9 @@
 {{ schedule }}
 </h1>
 
+<form method="POST"> {% csrf_token %} 
+<button class="text-indigo-200 rounded p-3 w-30 italic">DELETE ALL CONFLICTS</button>
+</form>
 
 {% for pto in schedule.pto_requests %}
     {{ pto.workday }} {{ pto.employee }}
@@ -21,6 +24,8 @@
         </a>
     {% endif %}
     <br/><br/> 
+
+
 
 {% endfor %}
 
