@@ -105,7 +105,7 @@ def schDetailView(request, schId):
     return render(request, "sch2/schedule/sch-detail.html", context)
 
 
-def weekView(request, week):
+def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
     context = {

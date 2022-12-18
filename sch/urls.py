@@ -52,17 +52,27 @@ workday_patterns = [
         name="workdayAddPTO",
     ),
     path(
-        "days/new/", views.WORKDAY.WorkdayBulkCreateView.as_view(), name="workday-new"
+        "days/new/", 
+        views.WORKDAY.WorkdayBulkCreateView.as_view(), 
+        name="workday-new"
     ),
-    path("day/<slug:date>/run-swaps/", views.WORKDAY.runSwaps, name="run-swaps"),
     path(
-        "v2/workday-detail/<str:slug>/", views2.workdayDetail, name="v2-workday-detail"
+        "day/<slug:date>/run-swaps/", 
+        views.WORKDAY.runSwaps, 
+        name="run-swaps"),
+    path(
+        "v2/workday-detail/<str:slug>/", 
+        views2.workdayDetail, 
+        name="v2-workday-detail"
     ),
 ]
 
 week_patterns = [
     # ? ==== Week ==== ?#
-    path("week/<int:year>/<int:week>/", views.WEEK.WeekView.as_view(), name="week"),
+    path(
+        "week/<int:year>/<int:week>/", 
+        views.WEEK.WeekView.as_view(), 
+        name="week"),
     path(
         "week/day-table-frag/<str:workday>/",
         views.WEEK.dayTableFragment,
@@ -98,14 +108,26 @@ week_patterns = [
         views.WEEK.ClearWeekSlotsView.as_view(),
         name="clear-week-slots-form",
     ),
-    path("week/all-weeks/", views.WEEK.all_weeks_view, name="weeks-all"),
-    path("week/weekly-hours/", views.WEEK.weeklyHoursView, name="weeks-weekly-hours"),
+    path(
+        "week/all-weeks/", 
+        views.WEEK.all_weeks_view, 
+        name="weeks-all"
+        ),
+    path(
+        "week/weekly-hours/", 
+        views.WEEK.weeklyHoursView, 
+        name="weeks-weekly-hours"
+        ),
     path(
         "week/<int:year>/<int:week>/table/",
         views.WEEK.weekHoursTable,
         name="weeks-table",
     ),
-    path("v2/week-detail/<int:week>/", views2.weekView, name="v2-week-detail"),
+    path(
+        "v2/week-detail/<int:week>/", 
+        views2.weekView, 
+        name="v2-week-detail"
+        ),
     path(
         "v2/week/<int:week>/fill-templates/",
         views2.weekView__set_ssts,
