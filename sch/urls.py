@@ -418,18 +418,29 @@ schedule_patterns = [
         views.SCHEDULE.FX.removePtoConflictSlots,
         name="remove-pto-conflict-slots",
     ),
-    path("v2/schedule/list/", views2.schListView, name="sch-list"),
-    path("v2/schedule/<str:schId>/", views2.schDetailView, name="v2-schedule-detail"),
+    path(
+        "v2/schedule/list/", 
+        views2.schListView, 
+        name="sch-list"),
+    path(
+        "v2/schedule/<str:schId>/", 
+        views2.schDetailView, 
+        name="v2-schedule-detail"),
+    path(
+        "v2/schedule-as-empl-grid/<str:schId>/",
+        views2.schDetailEmplGridView,
+        name="v2-schedule-as-empl-grid"),
+    path(
+        "v2/schedule-as-shift-grid/<str:schId>/",views2.schDetailShiftGridView,
+        name='v2-schedule-as-shift-grid'),
     path(
         "v2/schedule/<str:schId>/clearSlots/",
         views2.scheduleClearAllView,
-        name="v2-schedule-clear",
-    ),
+        name="v2-schedule-clear"),
     path(
         "v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/",
         views2.schDayPopover,
-        name="sch-day-popover",
-    ),
+        name="sch-day-popover"),
     path(
         "v2/schedule-solve/<str:schId>/", views2.scheduleSolve, name="v2-schedule-solve"
     ),
@@ -437,6 +448,11 @@ schedule_patterns = [
         "v2/schedule-solve-alg-2/<str:schId>/",
         views.SCHEDULE.solveScheduleSlots,
         name="v2-schedule-solve-alg2",
+    ),
+    path(
+        "v2/schedule-pto-conflicts/<str:schId>/",
+        views2.schedulePtoConflictView,
+        name="v2-schedule-pto-conflicts"
     ),
     path(
         "v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",

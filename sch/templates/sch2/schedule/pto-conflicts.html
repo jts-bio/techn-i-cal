@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% load tags %}
+
+<a href="{{schedule.url}}"><span>{% backArrow %}</span>Back</a>
+
+
+<h1 class="text-3xl text-amber 100 font-light">
+{{ schedule }}
+</h1>
+
+<form method="POST"> {% csrf_token %} 
+<button class="text-indigo-200 rounded p-3 w-30 italic">DELETE ALL CONFLICTS</button>
+</form>
+
+{% for pto in schedule.pto_requests %}
+    {{ pto.workday }} {{ pto.employee }}
+    <br/> 
+    {% if pto.conflict.exists %}
+        <a  class="bg-amber-400 text-amber-700 font px-5 -extrabold text-xs rounded" 
+            href="{{pto.conflict.first.url}}">
+         {{ pto.conflict.first.shift }}
+        </a>
+    {% endif %}
+    <br/><br/> 
+
+
+
+{% endfor %}
+
+{% endblock %}

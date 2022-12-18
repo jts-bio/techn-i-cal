@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block style %}
+{% load tags %}
 
 <style>
   body {
@@ -58,8 +59,8 @@
                     <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
                     <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
                     <td>{{ sch.start_date }}</td>
-                    <td><span class="text-indigo-100 bg-indigo-700 border-indigo-200 border-1 px-4 rounded-full">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span></td>
-                    <td>{{ sch.status }}</td>
+                    <td class="p-1"><span class="text-indigo-200 border-indigo-200 border-1 px-4 text-2xs">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span><div class="my-1">{% progressBar sch.percent 'indigo'  %} </div></td>
+                    <td>{% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {% endif %} </td>
                 </tr>
             {% endfor %}
 

@@ -1,7 +1,6 @@
 from django import template
 import datetime as dt
 
-
 register = template.Library()
 
 
@@ -33,8 +32,13 @@ def nDaysAwaySmall (date):
         'n': (date - today).days
     }
     
+@register.inclusion_tag("progress-bar.html")
+def progressBar (percentage, color):
+    return {
+        'percent':percentage, 
+        'color':color 
+    }
     
-
 @register.inclusion_tag("LeftArrow.svg")
 def backArrow (width="20px", height="20px", fill="#e1e1e1",fillB="#acffde"):
     return {'width': width,'height': height,'fill': fill, 'fillB': fillB}

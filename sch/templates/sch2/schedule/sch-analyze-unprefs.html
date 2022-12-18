@@ -1,0 +1,26 @@
+
+<!--
+    SECTION:   
+    EMPLOYEES UNFAVORABLE SHIFT RATIO FOR SCHEDULE 
+-->    
+<h2 class="text-indigo-800 font-extrabold upper">Unfavorable Shift Ratios</h2>
+
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+    {% for employee in employees %}
+        <div class="text text-center mb-3">
+            <div class="text-2xs text-slate-400"> {{ employee.name|upper }} </div>
+            <div class="text-lg
+                        {% if employee.unfav_ratio > 40 %} 
+                            text-red-400 font-bold 
+                        {%else%} 
+                            text-slate-200 font-light
+                        {% endif %}">
+                {{ employee.unfav_ratio }} % 
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+
+
+    

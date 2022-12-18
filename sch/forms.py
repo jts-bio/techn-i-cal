@@ -40,17 +40,19 @@ class SSTForm (forms.ModelForm) :
     employee to a shift on a given day"""
     
     class Meta:
-        model = ShiftTemplate
+        model  = ShiftTemplate
         fields = ['shift', 'sd_id', 'employee']
         labels = {
-            'shift': 'Shift',
-            'sd_id': 'sD ID',
-            'employee': 'Employee',
+            'shift'     : 'Shift',
+            'sd_id'     : 'sD ID',
+            'employee'  : 'Employee',
         }
         widgets = {
-            'shift': forms.HiddenInput(),
-            'sd_id' : forms.HiddenInput(),
-            'employee': forms.Select(attrs={'class': 'form-control'}),
+            'shift'     : forms.HiddenInput(),
+            'sd_id'     : forms.HiddenInput(),
+            'employee'  : forms.Select(attrs= {
+                            'class' : 'form-control',
+                        }),
         }
     
 

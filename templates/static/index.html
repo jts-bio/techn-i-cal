@@ -44,36 +44,40 @@
   <div class="flex flex-row align-center"></div>
 
   <div
-    class="flex flex-col md:flex-row flex-1 overscroll-x-auto mx-12 md:mx-52 gap-20"
+    class="flex flex-col md:flex-row flex-1 md:flex-0 overscroll-x-auto mx-12 md:mx-52 gap-10"
   >
     {% #dense-card title='Schedules' img='static/img/ScheduleImg.png' link='/sch/v2/schedule/list' %}
     <!---->
-    <p class="text-2xs">
+    <p class="text-2xs h-24">
       Workdays, weeks, pay periods, and schedules, as well as tools to build and
       edit schedule instances.
     </p>
     {%/dense-card%} {% #dense-card title='Shifts' img='/static/img/ChemistBackground.png' link='/sch/shifts/all/' %}
 
-    <p class="text-2xs">
+    <p class="text-2xs h-24">
       Manage information about shifts and when they are scheduled.
     </p>
     {%/dense-card%} {% #dense-card title='Employees' img='/static/img/Orchestra.png' link='/sch/employees/all/' %}
 
-    <p class="text-2xs">
+    <p class="text-2xs h-24">
       Manage employee information, preferences, scheduling constraints, and
       more.
     </p>
     {%/dense-card%}
   </div>
 
-  {% #toggle-section title="View Messages" %}
+  <div class="w-full place-content-center">
 
-  <div>
-    THERE ARE EMPTY SLOTS COMING UP SOON. SEE THEM IN
-    <a href="{% url 'sch:v2-current-schedule' %}">IN THE SCHEDULE VIEW</a>
+      {% #toggle-section title="Messages" %}
+
+      <div class="p-3 bg-slate-700 rounded border-1 border-slate-500 text-xs text-slate-200 font-light w-full my-2">
+        THERE ARE EMPTY SLOTS COMING UP SOON. SEE THEM IN
+        <a href="{% url 'sch:v2-current-schedule' %}">IN THE SCHEDULE VIEW</a>
+      </div>
+  
+      {%/toggle-section%} 
   </div>
-
-  {%/toggle-section%} {% include 'sch/comp/display/carousel.html' %}
+</div>
 </div>
 
 {% endblock %}

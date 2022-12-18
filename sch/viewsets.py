@@ -19,10 +19,20 @@ class Actions:
         def fill_with_best (request, slotId):
             if request.method == "POST":
                 slot = Slot.objects.get(pk=slotId)
+                empl_original = slot.employee
                 slot.fillWithBestChoice()
-                slot.save()
-                messages.success(request, f'Success! {slot.workday}-{slot.shift} Assigned to {slot.employee} via [FILL-VIA-BESTCHOICE]')
-                return HttpResponseRedirect(slot.workday.url())
+                if slot.employee != empl_original:
+                    msg = f"""Success! 
+                    {slot.workday}-{slot.shift} Assigned to {slot.employee} 
+                    via [FILL-VIA-BESTCHOICE]"""
+                    messages.success(request,msg)
+                    return HttpResponseRedirect(slot.workday.url())
+                else:
+                    msg = f"""No Change: 
+                    {slot.workday}-{slot.shift} Assigned to {slot.employee} 
+                    via [FILL-VIA-BESTCHOICE]"""
+                    messages.success(request,msg)
+                    return HttpResponseRedirect(slot.workday.url())
             
     class PeriodActions:
         def fill_slot_with_lowest_hour_employee (request, prdId):
