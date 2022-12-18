@@ -13,22 +13,24 @@ class EmployeeTable (tables.Table):
     Base Table for All Employees
     Displays basic details about each employee
     """
-    name = tables.columns.LinkColumn('sch:v2-employee-detail', args=[A('slug')])
+    name = tables.columns.LinkColumn(
+        'sch:v2-employee-detail', args=[A('slug')])
+    
     avg_shift_pref_score = tables.columns.Column(
-        verbose_name="Avg Shift Pref Score", 
-        accessor='avg_shift_pref_score')
-    streak_pref = tables.columns.Column(
-        verbose_name='Streak Preference', 
-        accessor='streak_pref',
-        attrs={'td':{'class':'text-center'}})
-    templated_days = tables.columns.Column(
-        verbose_name='Templated Days', 
-        accessor='templated_days',
-        attrs={'td':{'class':'text-center'}})
+        verbose_name     ="Avg Shift Pref Score",
+        accessor         ='avg_shift_pref_score')
+    streak_pref          = tables.columns.Column(
+        verbose_name     ='Streak Preference',
+        accessor         ='streak_pref',
+        attrs            ={'td': {'class': 'text-center'}})
+    templated_days  = tables.columns.Column(
+        verbose_name='Templated Days',
+        accessor    ='templated_days',
+        attrs       ={'td': {'class': 'text-center'}})
     templated_days_off = tables.columns.Column(
-        verbose_name='Templated Days Off', 
-        accessor='templated_days_off',
-        attrs={'td':{'class':'text-center'}})
+        verbose_name   ='Templated Days Off',
+        accessor       ='templated_days_off',
+        attrs          ={'td': {'class': 'text-center'}})
 
     class Meta:
         model           = Employee

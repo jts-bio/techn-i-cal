@@ -1,0 +1,57 @@
+
+    {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
+    <table>
+    {% for period in schedule.periods.all %}
+        <tr>
+            <th rowspan="6">
+                <a href="{{period.url}}">
+                    {{ period }} <br> 
+                    <span class="text-xs text-slate 400">{{ period.percent }}%
+                </a>
+            </span>
+        </th>
+        {# WEEK ROW SPANS 7 COLUMNS PAST THE PERIOD #}
+        {% for week in period.weeks.all %}
+            <th colspan="8" class="center center-text text-indigo-300 font-light">
+                <a href="{{week.url}}">
+                    {{ week }} 
+                    <span class="text-xs text-indigo 600">
+                        {{ week.percent }}%
+                    </span>
+                </a>
+            </th>
+        </tr>
+        <tr>
+            <td>
+            </td>
+            {# DAY HEADER CONTAINS THE DATE #}
+            {% for day in week.workdays.all %}
+                <td class="w-21">
+                    <a href="{{day.url}}" class="bg-inherit">
+                        {{ day.date.month }}/{{ day.date.day }}
+                    </a>
+                </td>
+            {% endfor %}
+        </tr>
+        <tr>
+            <td>
+            </td>
+            {# DAY BODY CONTAINS THE PERCENT #}
+            {% for day in week.workdays.all %}
+                <td class="h-16 w-26">
+                    <div class="text-2xs text-gray-400">
+                        {{ day.percent }}%
+                    </div>
+                </td>
+            {% endfor %}
+
+            </tr>
+            {% endfor %}
+
+        </tr>
+    {% endfor %}
+    </table>
+    
+    
+
+    
