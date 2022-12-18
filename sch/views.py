@@ -1266,7 +1266,7 @@ class EMPLOYEE:
                 else:
                     print(formset.errors)
                         
-                    return HttpResponseRedirect('/sch/day-off-breakdown/')
+                    return HttpResponseRedirect(employee.url())
 
             context = {}
             

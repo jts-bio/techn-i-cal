@@ -24,7 +24,13 @@
 <div class="flex flex-col flex-grow center flex-center">
   <h1 class="text-3xl text-center">{{ employee.name }}</h1>
   <div>
-    <a href="{% url 'sch:employee-update' employee.pk %}"> Edit Employee</a>
+    <a 
+    class= "bg-zinc-800 shadow shadow-lg px-8 m-2 rounded-sm 
+            hover:bg-indigo-900 hover:ring hover:ring-zinc-600"
+    href="{% url 'sch:employee-update' employee.pk %}">
+          <i class="fas">{%mortarIcon%}</i>  
+          Edit Employee
+    </a>
     <div
       class="md:flex md:flex-col lg:flex-row"
       style="align-items: flex-start"
@@ -107,7 +113,7 @@
       <div class="vstack">
         <div class="panel">
           <h2 style="font-size: 22px; color: orange">Documents</h2>
-          <a href="generate-schedule/"
+          <a href="{% url 'sch:employee-choose-schedule' employee.pk %}"
             ><div class="hstack">
               {% plusIcon %}<span> Generate Schedule</span>
             </div></a
@@ -125,7 +131,14 @@
           <a href="{% url 'sch:employee-sort-shift-prefs' employee.slug %}"
             >Sort Shift Preferences</a
           >
-          {% if employee.shift_sort_prefs.exists %} {% for sft in employee.shift_sort_prefs.all %} <span class="text-2xs font-thin text-slate-500"> {{sft.shift}} </span>  {% endfor %} {% endif %}
+          {% if employee.shift_sort_prefs.count > 0 %} 
+              {% for sft in employee.shift_sort_prefs.all %} 
+                  <span class="text-2xs font-thin text-slate-500"> 
+                    {{sft.shift}} 
+                  </span>  
+              {% endfor %} 
+          {% endif %}
+
         </div>
         <div class="panel w-fc">
           <div class="hstack">

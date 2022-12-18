@@ -104,14 +104,39 @@ def schDetailView(request, schId):
     form = EmployeeSelectForm()
     return render(request, "sch2/schedule/sch-detail.html", context)
 
+def schDetailEmplGridView (request, schId):
+    schedule = Schedule.objects.get(slug=schId)
+    employees = Employee.objects.all()
+    for employee in employees:
+        employee.unfav_ratio = int(schedule.unfavorableRatio(employee)*100)
+    html_template = 'sch2/schedule/sch-as-empl-grid.html'
+    return render(request, html_template, {'schedule':schedule,'employees':employees})
+
+def schDetailShiftGridView (request, schId):
+    schedule = Schedule.objects.get(slug=schId)
+    shifts = Shift.objects.all()
+    html_template = 'sch2/schedule/sch-as-shift-grid.html'
+    return render(request, html_template, {'schedule':schedule,'shifts':shifts})
+
+def schDetailSingleEmployeeView (request, schId, empId):
+    schedule = Schedule.objects.get(slug=schId)
+    employee = Employee.objects.get(slug=empId)
+    empl_schedule = employee.schedule_data(schedule.slug)
+        
+    html_template = 'sch2/employee/empl-schedule-view.html'
+    return render(request, html_template, {'schedule':empl_schedule,'employee':employee,'sch': schedule})
 
 def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
+    employees = Employee.objects.all()
+    for empl in employees:
+        empl.needed_hours = week.empl_needed_hrs(empl)
     context = {
-        "week": week,
-        "slots": week.slots.filled().order_by("employee"),
-        "workdays": week.workdays.all(),
+        "week"      : week,
+        "slots"     : week.slots.filled().order_by("employee"),
+        "workdays"  : week.workdays.all(),
+        "employees" : employees,
     }
     return render(request, "sch2/week/wk-detail.html", context)
 
@@ -333,8 +358,19 @@ class PeriodViews:
     def detailView(request, prdId):
         html_template = "sch2/period/detail.html"
         period = Period.objects.get(pk=prdId)
+        stats = {}
+        stats['main'] = {
+            'figure'     :f"{period.percent()}%",
+            'statistic'  :"Percent Filled",
+            'change'     :"No Change from Previous",
+            }
+        stats['secondary_list'] = [{
+            'figure' : period.slots.empty().count(),
+            'statistic': "# Empty Slots"
+        }]
         context = {
             "period": period,
+            "stats": stats
         }
         return render(request, html_template, context)
 
@@ -377,25 +413,48 @@ class EmployeeSortShiftPreferences(View):
     template_name = "flow/alpine--drag-and-drop.html"
 
     def get(self, request, slug, **kwargs):
-        context = {"employee": Employee.objects.get(slug=slug)}
+        employee = Employee.objects.get(slug=slug)
+        if ShiftSortPreference.objects.filter(employee=employee).exists() == False:
+            i = 0
+            for shift in employee.shifts_available.all():
+                ssp = ShiftSortPreference.objects.create(employee=employee,shift=shift,score=i)
+                ssp.save()
+                i += 1
+        context = {
+            "employee": employee,
+            "favorableShifts": ShiftSortPreference.objects.filter(
+                                employee=employee,shift__group=employee.time_pref).order_by('score'),
+            "unfavorableShifts": ShiftSortPreference.objects.filter(
+                                    employee=employee).exclude(shift__group=employee.time_pref).order_by('score')
+            }
         return render(request, self.template_name, context)
 
     def post(self, request, slug, **kwargs):
         print(request.POST)
         employee = Employee.objects.get(slug=slug)
-        employee.shiftSortPrefs.all().delete()
         i = 0
-        output_string = ""
-        for pref in list(request.POST.values())[1:]:
-            shift = Shift.objects.get(pk=pref)
-            ssp = ShiftSortPreference.objects.create(
-                employee=employee, shift=shift, score=i
-            )
+        output_string = []
+        post_values = list(request.POST.values())[1:]
+        for pref in post_values:
+            pref = ShiftSortPreference.objects.get(pk=pref)
+            pref.score = i
             i += 1
-            ssp.save()
-            output_string += f"{shift.name}. "
-
-        msg = f"New Sorted Shift Preferences saved for {employee}. {output_string}"
+            pref.save()
+            output_string += [f"{pref.shift.name}"]
+        output = " ► ".join(output_string)
+        msg = f"Order of shift preferences saved for {employee}. {output}"
         messages.success(request, msg)
 
         return HttpResponseRedirect(employee.url())
+
+class EmployeeChooseSchedule(View):
+    
+    template_name = 'sch2/employee/choose-schedule.html'
+
+    def get(self, request, empId, **kwargs):
+        employee = Employee.objects.get(pk=empId)
+        context = {
+            "employee": employee,
+            "schedules": Schedule.objects.all()
+            }
+        return render(request, self.template_name, context)

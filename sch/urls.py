@@ -360,6 +360,14 @@ employee_patterns = [
         "v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/",
         views.EMPLOYEE.EmployeePtoFormView.as_view(), name="employee-sortable-down",
     ),
+    path(
+        'v2/employee/choose-schedule/<str:empId>/',
+        views2.EmployeeChooseSchedule.as_view(), name="employee-choose-schedule",
+    ),
+    path(
+        'v2/employee/choose-schedule/<str:empId>/<str:schId>/',
+        views2.schDetailSingleEmployeeView, name="empl-schedule-detail",
+    ),
 ]
 
 schedule_patterns = [
@@ -369,7 +377,8 @@ schedule_patterns = [
         views2.generate_schedule_view,
         name="v2-generate-schedule",
     ),
-    path("schedule-list/all/", views.SCHEDULE.scheduleListView, name="schedule-list"),
+    path("schedule-list/all/", 
+         views.SCHEDULE.scheduleListView, name="schedule-list"),
     path(
         "schedule-detail/<str:schId>/",
         views.SCHEDULE.scheduleView,
@@ -381,7 +390,8 @@ schedule_patterns = [
         name="schedule-slot-modal",
     ),
     path(
-        "schedule/current-schedule/", views2.currentSchedule, name="v2-current-schedule"
+        "schedule/current-schedule/", 
+        views2.currentSchedule, name="v2-current-schedule"
     ),
     path(
         "schedule/<int:year>/<int:sch>/solve/",
@@ -449,11 +459,11 @@ schedule_patterns = [
         views.SCHEDULE.solveScheduleSlots,
         name="v2-schedule-solve-alg2",
     ),
-    path(
-        "v2/schedule-pto-conflicts/<str:schId>/",
-        views2.schedulePtoConflictView,
-        name="v2-schedule-pto-conflicts"
-    ),
+    # path(
+    #     "v2/schedule-pto-conflicts/<str:schId>/",
+    #     views2.schedulePtoConflictView,
+    #     name="v2-schedule-pto-conflicts"
+    # ),
     path(
         "v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",
         views.SCHEDULE.FX.lazy_popover_load,

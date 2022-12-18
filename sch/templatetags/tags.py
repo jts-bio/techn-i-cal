@@ -177,3 +177,4 @@ def get_employees_slot (workday, employee):
     return {"class": "bg-slate-700 text-slate-200 text-light", 
                     "weekday": slot.workday.weekday, 
                     "shift": "-"}
+    

@@ -14,7 +14,8 @@ TEMPLATE VARIABLES
 ------------------------------>
 
 {% block content %}
-    
+
+   
 
     
     
@@ -23,7 +24,7 @@ TEMPLATE VARIABLES
             <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
             <h1 class="text-3xl"> <span class="bg-orange-400 rounded px-1 m-2 mr-3 text-slate-900 jbm">{{ workday.wkd }}</span>{{workday}} </h1>
             <a class="ml-20" href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
-        </div>
+        </div> 
         <div class="hstack">
             <a href="{{workday.week.url}}" class="rounded-md p-5 hover:bg-blue-800 text text-center vstack text-center">
                 <div class="text-2xs text-gray-400">WEEK</div>
@@ -37,43 +38,80 @@ TEMPLATE VARIABLES
                 <div class="text-2xs text-gray-400">SCHEDULE</div>
                 <div class="text-xl text-purple-200">{{workday.schedule.number}}</div>
             </a>
+        </div> 
+        <div class="rounded-lg shadow shadow-lg px-3 py-1 m-3 mb-12 border border-slate-300 bg-zinc-900 hover:bg-zinc-800 hover:ring hover:ring-slate-300 lg:w-[70%]">
+            <span class="shrink text-3xl font-semibold text-blue-400 text-shadow"> 
+              Schedule
+              <span class="text-lg font-light text-white">
+                for {{ workday.date}}
+              </span>
+        </span>
+        
+        <div class="text text-center">
+            {% regroup workday.slots.all by cls as slots_list %}
+
+            {% for cls in slots_list %}
+
+                <div class="grid grid-cols-2 md:grid-cols-3 w-full my-10">
+                {% for slot in cls.list %}
+                    <a href="{{ slot.url }}">
+                        {% if slot.employee %}
+                            <span class="badge">{{ slot.shift }}</span>
+                            <span class="text-indigo-300 font-light mr-3">{{ slot.employee }}</span> 
+                        {% else%}
+                            <span class="badge opacity-30 italic">{{ slot.shift }}</span>
+                            <span class="mr-3 text-2xs text-zinc-400 font-extrabold bg-opacity-60">NONE</span> 
+                        {% endif %}
+                    </a>
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
         </div>
     </div>
 
-    <div class="bg-blue-900 bg-opacity-40 rounded-lg m-5 px-12 py-2">
-        <a href="{% url 'sch:v1-workday-detail' workday.slug %}">VIEW ALERNATE LAYOUT</a>
-    </div>
 
-    <div class="panel">
-        {% regroup workday.slots.all by cls as slots_list %}
-
-        {% for cls in slots_list %}
-
-            <div class="grid grid-cols-2 w-fc">
-            {% for slot in cls.list %}
-                <a href="{{ slot.url }}">
-                    <span class="badge">{{ slot.shift }}</span>
-                    {% if slot.employee %}
-                    <span class="text-indigo-300 font-light">{{ slot.employee }}</span> {% else%}<span></span> {% endif %}
-                </a>
-            {% endfor %}
-            </div>
-
-        {% endfor %}
-        <h2 class="text-xl text-amber-400 mt-7 lg:mx-20">PTO REQUESTS</h2>
-        {% if workday.pto.count > 0 %}
-            <div class="flex ring ring-amber-300 flex-row flex-wrap lg:mx-20">
-            {% for pto in workday.pto %}
-                <div class="text-indigo-300 jbm text-xs mx-5"> {{ pto.employee }} </div>
-            {% endfor %}
+       
+        <div class="flex flex-row flex-wrap">
+        <div class="grow panel">
+            {% if workday.pto.count > 0 %}
+                <div class="grid grid-cols-2 w-fc">
+                    {% for pto in workday.pto %}
+                        <a href="{{ slot.url }}">
+                                <span class="rounded px-2 mx-1 text-sm text-slate-700 bg-amber-300">PTO</span>
+                                <span class="text-amber-400 font-light mr-3">{{ pto.employee }}</span> 
+                        </a>
+                    {% endfor %}
                 </div>
-        {% else %}
-            <div>No PTO Requests recorded</div>
-        {% endif %}
+            {% else %}
+                <div>No PTO Requests recorded</div>
+            {% endif %}
+        </div>
+        <div class="grow panel">
+            {% if workday.tdo.count > 0 %}
+                <div class="grid grid-cols-2 w-fc">
+                    {% for tdo in workday.tdo %}
+                        <a>
+                                <span class="rounded px-2 mx-1 text-sm text-zinc-900 bg-amber-600">TDO</span>
+                                <span class="text-amber-500 font-light mr-3">{{ tdo.employee }}</span> 
+                        </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div>No Employees have this day templated off.</div>
+            {% endif %}
+        </div>    
+        <div class="grow panel">
+            <h2 class="text-2xl font-light">Employees On Deck</h2>
+            {% for empl in workday.on_deck %}
+                <div class="flex flex-row">
+                    <span class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">[ON DECK] {{ empl }}</span>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 
-    <!------- TEMPLATED DAY OFF PANEL ------->
-    {% include 'sch2/workday/parts/tdo-panel.html' %}
+
 
 
     {% endblock content %}

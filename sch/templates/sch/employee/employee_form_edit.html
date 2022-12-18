@@ -1,14 +1,45 @@
 {% extends 'base.html' %}
 
 {% block style %}
-<style>
-    .html {
-        background-image: url("https://media.discordapp.net/attachments/1011557410940403822/1020869414649872475/jsteinbecker_Ukrainian_seamless_pattern_vector_design_8c86ea5d-4a6c-4094-a74e-e95a23ac5daf.webp?width=1392&height=1392");
-        background-repeat: repeat;
-        background-size: 41%;
-    }
-</style>
-    
+    <style>
+        .html {
+            background-image: url("https://media.discordapp.net/attachments/1011557410940403822/1020869414649872475/jsteinbecker_Ukrainian_seamless_pattern_vector_design_8c86ea5d-4a6c-4094-a74e-e95a23ac5daf.webp?width=1392&height=1392");
+            background-repeat: repeat;
+            background-size: 41%;
+        }
+
+        #id_shifts_trained {
+            display                 : grid;
+            grid-template-columns   : repeat(3, 1fr);
+            grid-gap                : 1rem;
+            padding-top             : 3rem;
+            padding-bottom          : 3rem;
+        }
+        #id_shifts_available {
+            display                 : grid;
+            grid-template-columns   : repeat(3, 1fr);
+            grid-gap                : 1rem;
+            padding-top             : 3rem;
+            padding-bottom          : 3rem;
+        }
+        #id_shifts_available input[type="checkbox"]:checked {
+            background: goldenrod;
+            border-radius: 20%;
+        }
+        #id_shifts_available input[type="checkbox"]:checked::before {
+            color: white;
+            border-radius: 0%;
+        }
+        #id_shifts_trained input[type="checkbox"]:checked {
+            background: cornflowerblue;
+            border-radius: 20%;
+        }
+        #id_shifts_trained input[type="checkbox"]:checked::before {
+            color: white;
+            border-radius: 0%;
+        }
+        
+    </style> 
 {% endblock style %}
 
 
@@ -17,25 +48,12 @@
     <h1>{{employee}}</h1>
     <h4>Currently editing...</h4>
    
-
-    <form method="post"> {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <input type="submit" value="Update">
-
-        {% for shift in shifts %}
-                <div class="bg-gray-600 rounded-md py-2 px-6">
-                        <input 
-                            type="checkbox" 
-                            name="checkbox-{{shift}}" 
-                            id="checkbox-{{shift}}" 
-                            checked
-                            _="on load if I am checked add .bg-green-200 .border-green-500 to my parent <div>">
-                </div>
-        {% endfor %}
-       
-
-    </form>
-
+    <div class="panel">
+        <form method="post"> {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+            </table>
+            <input type="submit" value="Update">
+        </form>
+    </div>
 {% endblock %}

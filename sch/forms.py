@@ -55,7 +55,6 @@ class SSTForm (forms.ModelForm) :
                         }),
         }
     
-
 class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
@@ -105,12 +104,12 @@ class EmployeeSelectForm (forms.Form):
 class EmployeeEditForm (forms.ModelForm) :
     
     shifts_trained = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
+        widget   =forms.CheckboxSelectMultiple,
         queryset = Shift.objects.all(),
         required = False,
     )
     shifts_available = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
+        widget   =forms.CheckboxSelectMultiple,
         queryset = Shift.objects.all(),
         required = False,
     )
@@ -135,9 +134,9 @@ class EmployeeEditForm (forms.ModelForm) :
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
-            'shifts_available': forms.CheckboxSelectMultiple(),
+            'shifts_available': forms.CheckboxSelectMultiple(attrs={'class':'grid-cols-3'}),
             'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls'             : forms.Select(),
+            'cls'             : forms.Select(attrs={'class': 'form-control'}),
         }
 
 class SstEmployeeForm (forms.Form):
@@ -189,7 +188,6 @@ class SstEmployeeForm (forms.Form):
             self.fields['shift'].choices = [(0,"TDO")]
             
         self.fields['shift'].widget.attrs.update({'class': 'form-control'})
-        
 class EmployeeTemplatedDaysOffForm (forms.ModelForm):
     
     is_templated_off = forms.BooleanField(label='Day off', required=False)

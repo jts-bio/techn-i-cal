@@ -129,7 +129,7 @@ class SlotManager (models.QuerySet):
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
     def unfavorables    (self):
-        ufs = [i.pk for i in self if i.is_unfavorable == True]
+        ufs = [i.pk for i in self if i.is_unfavorable() == True]
         return Slot.objects.filter(pk__in=ufs)
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
@@ -515,6 +515,16 @@ class Employee (models.Model) :
     def info_printWeek(self,year,week):
             slots = list(Slot.objects.filter(employee=self,workday__date__year=year,workday__iweek=week).values_list('shift__name',flat=True))
             return f'{self.name}: {slots}'
+    def schedule_data (self, schId):
+        sch = Schedule.objects.get(slug=schId)
+        empl_schedule = {}
+        for wd in sch.workdays.all():
+            emplSlot = wd.slots.filter(employee=self)
+            if emplSlot.exists():
+                empl_schedule[wd] = emplSlot.first()
+            else:
+                empl_schedule[wd] = None
+        return empl_schedule
     def save (self, *args, **kwargs):
         slugString = self.name.strip().replace(" ","-")
         self.slug      = slugString
@@ -702,6 +712,11 @@ class Workday (models.Model) :
         return PtoRequest.objects.filter(workday=self.date)
     def tdo             (self):
         return TemplatedDayOff.objects.filter(sd_id=self.sd_id)
+    def on_deck         (self):
+        onPto = self.pto().values('employee')
+        onTdo = self.tdo().values('employee')
+        onDay = self.slots.values('employee').distinct()
+        return Employee.objects.exclude(pk__in=onPto).exclude(pk__in=onTdo).exclude(pk__in=onDay)
     def save            (self, *args, **kwargs) :
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
@@ -905,8 +920,8 @@ class Period (models.Model):
                 if empl in emptySlot.fillable_by():
                     fillableSlots += [emptySlot]
             selectedSlot = fillableSlots[random.randint(0,len(fillableSlots))]
-            selectedSlot.employee = empl
-            selectedSlot.save()
+            
+            selectedSlot._set_employee(empl)
             if selectedSlot.employee != None:
                 return "SUCCESS: FILLED VIA PayPeriod.FillActions.fill_slot_with_lowest_hour_employee"
 # ============================================================================  
@@ -1001,8 +1016,8 @@ class Schedule (models.Model):
             for sst in ShiftTemplate.objects.all():
                 if instance.slots.all()[sst.sd_id].employee is None:
                     if sst.employee in instance.slots.all()[sst.sd_id]._fillableBy():
-                        instance.slots.all()[sst.sd_id].employee = sst.employee
-                        instance.slots.all()[sst.sd_id].save()
+                        slot_to_set = instance.slots.all()[sst.sd_id] 
+                        slot_to_set._set_employee (sst.employee)
                         print (f'ASSIGNED {sst.employee} to {instance.slots.all()[sst.sd_id]}')
             print (f'FINISHED TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
         def fillSlots (self,instance):
@@ -1032,7 +1047,8 @@ class Slot (models.Model) :
     # fields: workday, shift, employee
     workday        = models.ForeignKey ("Workday",  on_delete=models.CASCADE, null=True, related_name='slots')
     shift          = models.ForeignKey ("Shift",    on_delete=models.CASCADE, null=True, related_name='slots')
-    employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, blank=True, default=None, related_name='slots')
+    employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, blank=True, 
+                                                        default=None,             related_name='slots')
     empl_sentiment = models.SmallIntegerField (null=True, default=None)   
     week           = models.ForeignKey ("Week",     on_delete=models.CASCADE, null=True, related_name='slots')
     period         = models.ForeignKey ("Period",   on_delete=models.CASCADE, null=True, related_name='slots')
@@ -1208,7 +1224,7 @@ class Slot (models.Model) :
             try:
                 if self.template().exists():
                     if self.template().first().employee in choices:
-                        self.employee = self.template().first().employee
+                        self._set_employee( self.template().first().employee )
                         
             except:
                 pass
@@ -1216,23 +1232,24 @@ class Slot (models.Model) :
             if sprefs.exists():
                 for x in sprefs:
                     if x in choices:
-                        self.employee = x 
+                        self._set_employee(x.employee)
                         
                     else:
                         pass
-        try :
-            self.employee = choices [0] 
-            try:
-                self.save()
+        if self.employee == None:
+            try :
+                self._set_employee(choices [0] )
+                try:
+                    self.save()
+                except:
+                    other = self.siblings_day.get(employee=self.employee)
+                    if other.template().exists():
+                        other.save()
+                    else:
+                        other.employee = None
+                        other.save()
             except:
-                other = self.siblings_day.get(employee=self.employee)
-                if other.template().exists():
-                    other.save()
-                else:
-                    other.employee = None
-                    other.save()
-        except:
-            pass
+                pass
         self.save()
             
                   
@@ -1253,6 +1270,13 @@ class Slot (models.Model) :
             slots = Slot.objects.filter(schedule=sch, workday=self.workday.nextWD(), shift__start__hour__lt=10) | Slot.objects.filter(workday=self.workday.prevWD(), shift__start__hour__gt=10)
         sameDaySlots = Slot.objects.filter(schedule=sch, workday=self.workday).exclude(pk=self.pk)
         return slots
+    def _set_employee (self, employee):
+        if ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,employee=employee).exclude(shift=self.shift).exists():
+            return 
+        if employee in self.siblings_day.values_list('employee',flat=True):
+            others = self.siblings_day.filter(employee=employee).update(employee=None)
+        self.employee = employee
+        self.save()
     def set_sst (self):
         if PtoRequest.objects.filter(workday=self.workday.date, employee=self.employee).exists():
             return "TEMPLATED EMPL HAS ACTIVE PTO REQUEST"
@@ -1273,12 +1297,17 @@ class Slot (models.Model) :
         return
     def save (self, *args, **kwargs):
         self.streak = self._streak()
+        self._save_empl_sentiment ()
         if self.employee == None: 
             self.streak = None
-        super().save(*args, **kwargs)
-        self.post_save()
+        try:
+            super().save(*args, **kwargs)
+        
+            self.post_save()
+        except:
+            return
     def post_save (self):
-        self._save_empl_sentiment ()
+        pass
         
     def url (self):
         return reverse('sch:v2-slot-detail',args=[self.pk])
@@ -1509,15 +1538,13 @@ class ShiftSortPreference (models.Model):
     rank     = models.IntegerField(default=1)
     class Meta: 
         unique_together = ['employee', 'shift']
-        ordering = ['score', 'shift']
+        ordering        = ['score',    'shift']
     def __str__(self):
         return f"[{self.shift} | RANK-{self.score+1}]"
     def save(self,**kwargs):
         self.rank = self.score + 1
         super().save(**kwargs)
-        
-    
-
+# ============================================================================
 def generate_schedule (year,number):
     """
     GENERATE SCHEDULE
@@ -1540,9 +1567,7 @@ def generate_schedule (year,number):
     version = "ABCDEFGHIJKLMNOP"[n_same]
 
     Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
-
-  
-     
+    
 def randomSlot ():
     import random 
     

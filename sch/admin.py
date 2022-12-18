@@ -3,7 +3,8 @@ from django.contrib import admin
 # Register your models here.
 from .models import (
     Shift, Employee, TemplatedDayOff, Workday, Slot, 
-    ShiftTemplate, PtoRequest
+    ShiftTemplate, PtoRequest, Week, Period, Schedule
+
 )
 
 @admin.register(Shift)
@@ -13,8 +14,9 @@ class ShiftAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    fields          = ['name','fte_14_day','streak_pref','shifts_trained','shifts_available',]
-    list_display    = ['name', 'fte_14_day', 'streak_pref',]
+    fields          = ['name','fte_14_day','fte','streak_pref','shifts_trained','shifts_available','trade_one_offs', 'cls','time_pref']
+    readonly_fields = ['fte']
+    list_display    = ['name', 'fte_14_day', 'streak_pref','cls','time_pref']
 
 @admin.register(Workday)
 class WorkdayAdmin(admin.ModelAdmin):
@@ -43,3 +45,8 @@ class PtoRequestAdmin(admin.ModelAdmin):
 class TmplDayOffAdmin(admin.ModelAdmin):
     fields          = ['employee', 'sd_id']
     list_display    = ['employee', 'sd_id']
+    
+@admin.register(Week)
+class WeekAdmin(admin.ModelAdmin):
+    fields = ('year', 'number', 'period', 'schedule', 'start_date', )
+    list_display = ('year', 'number', 'period', 'schedule', 'start_date', )

@@ -60,6 +60,9 @@ class WeekViews:
         return render(request,html_template,context)
     
 
+
+
+
 class IdealFill:
     def levelA (request, slot_id):
         """Checks Training and No Turnarounds"""
