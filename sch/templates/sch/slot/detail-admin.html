@@ -35,9 +35,12 @@
   </div>
   <div>
     <span class="badge">Conflicts:</span>
-    {% if slot.conflicts %} 
-      <span class="text-red-200 bg-red-600 px-2 py-1 mx-2">
-        {% if slot.conflicts %} {{ slot.conflicts }} {% endif %}</span>
+    {% if slot.pto_conflicts %} 
+        {% for conflict in slot.pto_conflicts %}
+        <a href="{{ conflict.url }}" class="bg-red-400 rounded-md text-red-900 hover:bg-red-600 px-2 py-1 mx-2">
+           {{ conflict }} 
+        </a>
+        {% endfor %} 
     {% endif %}
   </div>
   <div>

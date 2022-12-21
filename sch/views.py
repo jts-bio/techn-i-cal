@@ -1703,6 +1703,25 @@ class SST:
         return render(request, 'sch/sst/day_view.html', context)
 
 class PTO:
+    
+    def ptoRequestDetailView (request, pk):
+        pto = PtoRequest.objects.get(pk=pk)
+        return render(request, 'sch/pto/pto-detail.html', {'pto': pto})
+    
+    def ptoRequestDetailView__delete (request, pk):
+        pto = PtoRequest.objects.get(pk=pk)
+        if request.method == 'POST':
+            form = PtoResolveForm(request.POST)
+            workday = Workday.objects.filter(date=pto.workday)
+            if form.is_valid():
+                messages.success(request, 'PTO request resolved via Clearing Slot assignment')
+                form.save()
+            else:
+                messages.error(request, 'PTO request resolution failed')
+            if workday.exists():
+                return HttpResponseRedirect(reverse('sch:v2-workday-detail', kwargs={'slug': workday[0].slug}))
+            else :
+                return HttpResponseRedirect(reverse('sch:schedule-list'))
 
     def resolve_pto_request (request, date, employee):
         slot = Slot.objects.get(employee__name=employee, workday__slug=date)

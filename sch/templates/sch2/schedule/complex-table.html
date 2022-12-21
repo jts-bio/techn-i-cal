@@ -1,11 +1,11 @@
 
     {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
-    <table>
+    <table class="flex flex-shrink bg-zinc-900 m-3 p-5 rounded">
     {% for period in schedule.periods.all %}
         <tr>
             <th rowspan="6">
-                <a href="{{period.url}}">
-                    {{ period }} <br> 
+                <a href="{{period.url}}" class="transform rotate-90">
+                    Pay <br> Period <br>{{ period.number }} <br> 
                     <span class="text-xs text-slate 400">{{ period.percent }}%
                 </a>
             </span>

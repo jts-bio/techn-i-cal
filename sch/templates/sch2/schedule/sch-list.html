@@ -16,13 +16,13 @@
 {% block content %}
 
 
+    <div class="w-full">
+    <div class="sticky t-2 -r-0 w-50 mt-3 mr-3">
 
-    <div class="float-right w-50 mt-3 mr-3">
-
-        {% #toggle-section title="New Schedule" %}
+        {% #toggle-section title="New Schedule Dialog" %}
 
             <div class="border-2 border-slate-300 rounded">
-                <div class="w-50 px-3 py-2 bg-gray-800 rounded">
+                <div class="w-56 px-3 py-2 bg-zinc-900 rounded">
                     <h2 class="text-lg ">Generate New Schedule</h2>
                 </div>
 
@@ -35,7 +35,7 @@
                     </p>
                 </div>
 
-                <form method="POST" class="pl-3" action=""> {% csrf_token %}
+                <form method="POST" class="pl-3 bg-zinc-900" action=""> {% csrf_token %}
                     {{ new_schedule_form }}
                     <input type="submit" value="Generate"/>
                 </form>
@@ -44,43 +44,71 @@
         {% /toggle-section %}
 
     </div>
+    </div>
     <div class="hidden md:block">
-        <table class="table">
-            <tr>
-                <th>Schedule</th>
-                <th>Version</th>
-                <th>Start Date</th>
-                <th>Slots Filled</th>
-                <th>Draft Status</th>
-            </tr>
 
-            {% for sch in schedules %}
+        
+
+        <div class="panel w-fc p-8 m-8">
+            <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm">
+                Schedule List
+            </h2>
+            <table class="table my-7">
                 <tr>
-                    <td><a href="{{sch.url}}">Schedule {{sch.slug}}</a></td>
-                    <td><span class='text-sky-600 text-2xs mx-3'>{{sch.version}}</span></td>
-                    <td>{{ sch.start_date }}</td>
-                    <td class="p-1"><span class="text-indigo-200 border-indigo-200 border-1 px-4 text-2xs">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</span><div class="my-1">{% progressBar sch.percent 'indigo'  %} </div></td>
-                    <td>{% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {% endif %} </td>
+                    <th>Schedule</th>
+                    <th>Version</th>
+                    <th>Start Date</th>
+                    <th>Slots Filled</th>
+                    <th>Draft Status</th>
                 </tr>
-            {% endfor %}
 
-        </table>
+                {% for sch in schedules %}
+                    <tr>
+                        <td><a href="{{sch.url}}"
+                                class="bg-{{sch.versionColor}}-600 rounded-sm shadow shadow-lg">
+                                Schedule {{sch.slug}} 
+                            </a>
+                        </td>
+                        <td><span class='text-{{sch.versionColor}}-600 text-2xs mx-3'>{{sch.version}}</span></td>
+                        <td>{{ sch.start_date }}</td>
+                        <td class="p-1">
+                            <span class="text-indigo-200 border-indigo-200 border-1 px-4 text-xs">
+                                <sub class="jbm">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</sub>
+                            </span>
+                            <div class="my-1">
+                                <div class="flex flex-r">
+                                    {{ sch.percent }}%
+                                    {% progressBar sch.percent 'yellow' %} 
+                                </div>
+                            </div>
+                        </td>
+                        <td>{% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {% endif %} </td>
+                    </tr>
+                {% endfor %}
+
+            </table>
+        </div>
     </div>
 
     <div class="block md:hidden">
-        <div class="flex flex-row flex-wrap">
+        <div class="flex flex-row flex-wrap gap-7 m-7">
 
             {% for sch in schedules %}
             <a  href="{{ sch.url }}"
-                class="panel hover:bg-slate-500 hover:ring-indigo-400 hover:ring">
+                class="panel grow hover:bg-slate-500 
+                    hover:ring-{% scoreColor sch.percent %}-400 
+                    hover:ring">
                 <h3 class="text-indigo-400 font-extrabold text-shadow">
                     Schedule {{sch.slug}}</h3>
-                <div class="h-8 w-8 text-xs pt-2 ring ring-offset-2 text-slate-300 font-light text-center align-text rounded-full">
+                <div class="h-8 w-8 text-xs pt-2 m-2 ring
+                            ring-{% scoreColor sch.percent %}-500 
+                            bg-{% scoreColor sch.percent %}-100 
+                            ring-offset-2 text-slate-600 font-light text-center align-text rounded-full">
                     {{ sch.percent }}%</div>
                 <div class="text-xs">
                     {{ sch.start_date }} </div>
                 <div>
-                    {{ sch.status }} </div>
+                    {% if sch.status == 0 %} DRAFT {% endif %}</div>
             </a>
             {% endfor %}
 

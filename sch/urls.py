@@ -144,6 +144,8 @@ week_patterns = [
         viewsets.WeekViews.all_slots_fillable_by_view,
         name="week-fillable-by",
     ),
+    path('v2/week-hrs-empl-form/week/<int:weekpk>/empl/<str:emplpk>/', 
+         views2.weekView__employee_possible_slots, name='week-hrs-empl-form'),
 ]
 
 pay_period_patterns = [
@@ -459,11 +461,11 @@ schedule_patterns = [
         views.SCHEDULE.solveScheduleSlots,
         name="v2-schedule-solve-alg2",
     ),
-    # path(
-    #     "v2/schedule-pto-conflicts/<str:schId>/",
-    #     views2.schedulePtoConflictView,
-    #     name="v2-schedule-pto-conflicts"
-    # ),
+    path(
+        'v2/schedule-detail/<str:schId>/empty-slots/',
+        views2.schDetailAllEmptySlots,
+        name='v2-schedule-detail-empty-slots'
+    ),
     path(
         "v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",
         views.SCHEDULE.FX.lazy_popover_load,
@@ -489,6 +491,7 @@ schedule_patterns = [
         views2.schTdoConflictTableView,
         name="sch-tdo-conflicts",
     ),
+    path("v2/compare-schedules/<str:schId1>/<str:schId2>/", viewsets.SchViews.compareSchedules, name="compare-schedules"),
 ]
 
 test_patterns = [
@@ -534,6 +537,10 @@ hyperPatterns = [
     path("testing/layout/", views2.mytest, name="test-layout"),
 ]
 
+pto_patterns = [
+    path('pto/pto-request-instance/<int:pk>/', views.PTO.ptoRequestDetailView, name='pto-request-detail'),
+    path('pto/pto-request-instance/<int:pk>/delete/', views.PTO.ptoRequestDetailView__delete, name='pto-request-delete'),
+]
 
 urlpatterns += user_patterns
 urlpatterns += workday_patterns
@@ -546,3 +553,4 @@ urlpatterns += schedule_patterns
 urlpatterns += test_patterns
 urlpatterns += htmx_patterns
 urlpatterns += hyperPatterns
+urlpatterns += pto_patterns

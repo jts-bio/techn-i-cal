@@ -19,7 +19,7 @@
 
             {% for day in schedule.workdays.all %}
                 <div id="panel-{{day.slug}}" class="rounded bg-slate-400">
-                    <label for="{{day.sd_id}}" class="text-xs">{{day.date}}</label>
+                    <label for="{{day.sd_id}}-pto-checkbox" class="text-xs">{{day.date}}</label>
                     <input 
                         _="on click @clickCount increment 1 end
                             if @clickCount > 1 then
@@ -28,9 +28,13 @@
                             end"
                         type="checkbox" 
                         name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
-                        id="{{day.sd_id}}-PtoCheckbox"
+                        id="{{day.sd_id}}-pto-checkbox"
                         {% if day.date in initial_pto_dates %} 
-                            checked {% endif %}/>
+                            checked 
+                        {% endif %}
+                        {% if day.sd_id in tdos %} 
+                            disabled 
+                        {% endif %}/>
                 </div>
              
             {% endfor %}

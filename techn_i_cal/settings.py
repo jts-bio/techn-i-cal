@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "computedfields",
     "multiselectfield",
     "compressor",
+    "taggit",
     # "rest_framework",
     "django_tables2",
     "grappelli",

@@ -60,8 +60,23 @@ class WeekViews:
         return render(request,html_template,context)
     
 
-
-
+class SchViews:
+    
+    def compareSchedules (request, schId1, schId2):
+        html_template = 'sch2/compare-schedules.html'
+        sch1 = Schedule.objects.get(slug=schId1)
+        sch2 = Schedule.objects.get(slug=schId2)
+        unequals = []
+        for slot in sch1.slots.all() :
+            if sch2.slots.get(workday__sd_id=slot.workday.sd_id, shift__pk=slot.shift.pk).employee != slot.employee:
+                unequals += [slot]
+        unequals = sch1.slots.filter(pk__in=[s.pk for s in unequals])
+        context = {
+            'sch1':sch1,
+            'sch2':sch2,
+            'unequals':unequals,
+        }
+        return HttpResponse((unequals, unequals.count()))
 
 class IdealFill:
     def levelA (request, slot_id):

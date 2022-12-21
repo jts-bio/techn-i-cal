@@ -159,7 +159,6 @@ def datePicker ():
 def showPercent (floating):
     return int(floating*100)
 
-
 @register.simple_tag
 def sumSlotHours (slots):
     total = 0
@@ -177,4 +176,49 @@ def get_employees_slot (workday, employee):
     return {"class": "bg-slate-700 text-slate-200 text-light", 
                     "weekday": slot.workday.weekday, 
                     "shift": "-"}
+    
+@register.inclusion_tag('pie-progress.html')
+def pie_progress (percent, color="gradient"): 
+    if percent > 0 and percent < 1:
+        percent = int(percent * 100)
+    else:
+        percent = int(percent)
+    if color == "gradient":
+        if percent < 50:
+            color = 'bg-red-700'
+        elif percent < 75:
+            color = 'bg-yellow-600'
+        elif percent < 90:
+            color = 'bg-green-200'
+        else:
+            color = 'bg-green-500'
+    inverse = 100 - percent
+    return {'percent': percent, 'color': color, 'inverse': inverse}
+
+@register.inclusion_tag('pie-progress.css')
+def pie_progress_css ():
+    return {}
+
+@register.simple_tag
+def versionColor (version):
+    letters = "A B C D E".split()
+    colors = ["orange", "purple", "blue", 'pink', 'emerald']
+    if version in letters:
+        return colors[letters.index(version)]
+    else :
+        return "gray"
+
+@register.simple_tag
+def scoreColor (score):
+    cutoff_values = [0.5, 0.75, 0.9]
+    if score > 1:
+        score = score / 100
+    if score < cutoff_values[0]:
+        return "red"
+    elif score < cutoff_values[1]:
+        return "yellow"
+    elif score < cutoff_values[2]:
+        return "gray"
+    else:
+        return "green"
     

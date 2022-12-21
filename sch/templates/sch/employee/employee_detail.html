@@ -145,15 +145,10 @@
             <span> {% vacationIcon %}</span>
             <h2 style="font-size: 22px; color: orange">PTO Requests</h2>
           </div>
-          <a
-            href="pto-request/add-range/"
-            class="btn btn-neutral btn-sm"
-            style="float: right"
-          >
-            <div class="hstack">
-              <div>{% plusIcon %}</div>
-              <div>NEW</div>
-            </div>
+          <a href="pto-request/add-range/"
+             class="rounded p-1 bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">
+              <i class="fas">{% plusIcon %}</i>
+              NEW
           </a>
 
           {% if ptoReqsExist %} {% render_table ptoTable %} {% else %}

@@ -6,10 +6,12 @@ from django.urls import reverse_lazy
 
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
+from django.db.models import Deferrable
 from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
                               FloatField, Max, Min, OuterRef, Q, QuerySet,
                               StdDev, Subquery, Sum, Variance)
 from django.urls import reverse
+from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
 from collections import Counter
 """
@@ -188,7 +190,8 @@ class SlotManager (models.QuerySet):
                 conflicts += [i.pk]
         return self.filter(pk__in=conflicts)
     def tally_schedule_streaks (self, employee, year, schedule):
-        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))     
+        return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))    
+                
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -539,10 +542,10 @@ class Employee (models.Model) :
 class Workday (models.Model) :
     # fields: date, shifts 
     date     = models.DateField()
-    week     = models.ForeignKey("week", on_delete=models.CASCADE, null=True, related_name='workdays')
-    period   = models.ForeignKey("Period", on_delete=models.CASCADE, null=True,related_name='workdays')
-    schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE,null=True,related_name='workdays')
-    slug     = models.CharField(max_length=30, null=True, blank=True)
+    week     = models.ForeignKey("week",     on_delete=models.CASCADE, null=True, related_name='workdays')
+    period   = models.ForeignKey("Period",   on_delete=models.CASCADE, null=True, related_name='workdays')
+    schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE, null=True, related_name='workdays')
+    slug     = models.CharField   (max_length=30, null=True, blank=True)
     iweekday = models.IntegerField(default=-1)
     iweek    = models.IntegerField(default=-1)
     iperiod  = models.IntegerField(default=-1)
@@ -684,7 +687,7 @@ class Workday (models.Model) :
         exempts = Employee.objects.filter(pk__in=alreadyWorking).union(
                     Employee.objects.filter(pk__in=tdos)).union(
                     Employee.objects.filter(pk__in=ptoRequested)).values('pk')
-        return Employee.objects.exclude(pk__in=exempts)
+        return Employee.objects.all().exclude(pk__in=exempts)
     def who_can_fill    (self, shift):
         if shift not in self.shifts:
             return None
@@ -713,10 +716,15 @@ class Workday (models.Model) :
     def tdo             (self):
         return TemplatedDayOff.objects.filter(sd_id=self.sd_id)
     def on_deck         (self):
-        onPto = self.pto().values('employee')
-        onTdo = self.tdo().values('employee')
-        onDay = self.slots.values('employee').distinct()
-        return Employee.objects.exclude(pk__in=onPto).exclude(pk__in=onTdo).exclude(pk__in=onDay)
+        not_on_deck = []
+        if self.pto().exists():
+            not_on_deck += [pk for pk in self.pto().values_list('employee__pk',flat=True)]
+        if self.tdo().exists():
+            not_on_deck += [pk for pk in self.tdo().values_list('employee__pk',flat=True)]
+        onDay = list(self.slots.values_list('employee',flat=True))
+        not_on_deck += onDay
+        print(not_on_deck)
+        return Employee.objects.all().exclude(pk__in=not_on_deck)
     def save            (self, *args, **kwargs) :
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
@@ -933,7 +941,10 @@ class Schedule (models.Model):
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
     
-    
+
+    class Meta :
+        ordering = ['year','number','version']
+        
     def save (self, *args, **kwargs) :
         if self.year    == None :
             self.year   = self.start_date.year
@@ -986,6 +997,12 @@ class Schedule (models.Model):
     @property
     def pto_requests (self):
         return PtoRequest.objects.filter(workday__in=self.workdays.all().values('date'))
+    def pto_conflicts (self):
+        conflicts = []
+        for pto in self.pto_requests:
+            if self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).exists():
+                conflicts += [self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).first()]
+        return self.slots.filter(pk__in=[c.pk for c in conflicts])
     def as_empl_dict (self):
         all_schedules = {} 
         for empl in Employee.objects.all():
@@ -993,7 +1010,7 @@ class Schedule (models.Model):
             for wd in self.workdays.all():
                 assignment = wd.slots.filter(employee=empl)
                 if assignment.exists():
-                    empl_schedule += [wd.slots.get(employee=empl)]
+                    empl_schedule += [wd.slots.filter(employee=empl).first()]
                 else:
                     empl_schedule += [None]
             all_schedules[empl] = empl_schedule
@@ -1057,14 +1074,14 @@ class Slot (models.Model) :
     is_terminal    = models.BooleanField        (default=False)
     streak         = models.SmallIntegerField   (null=True, default=None)
     
-    DETAIL_HTML_TEMPLATE = 'sch/sch2/schedule/sch-detail.html'
+    html_template = 'sch2/schedule/sch-detail.html'
     
     class Meta:
         # ordering = ['shift__start']
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
-            models.UniqueConstraint(fields=["workday", "employee", "schedule"], name='Employee Duplicates on day')
         ]
+        
     def template (self):
         return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
     def slug    (self):
@@ -1152,12 +1169,12 @@ class Slot (models.Model) :
             return Slot.objects.none()
         siblings = []
         prevDay = self.workday.prevWD()
-        while Slot.objects.filter(workday=prevDay, employee=self.employee).exists() == True:
-            siblings += [Slot.objects.get(workday=prevDay, employee=self.employee).pk]
+        while Slot.objects.filter(workday=prevDay, employee=self.employee, schedule=self.schedule).exists() == True:
+            siblings += [Slot.objects.get(workday=prevDay, employee=self.employee, schedule=self.schedule).pk]
             prevDay = prevDay.prevWD()
         nextDay = self.workday.nextWD()
         while Slot.objects.filter(workday=nextDay, employee=self.employee).exists() == True:
-            siblings += [Slot.objects.get(workday=nextDay, employee=self.employee).pk]
+            siblings += [Slot.objects.get(workday=nextDay, employee=self.employee, schedule=self.schedule).pk]
             nextDay = nextDay.nextWD()
         return Slot.objects.filter(pk__in=siblings).order_by('workday__date')
     def tenable_trades (self):
@@ -1251,8 +1268,6 @@ class Slot (models.Model) :
             except:
                 pass
         self.save()
-            
-                  
     def isFromTemplate (self):
         if self.employee != None:
             if ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift, employee=self.employee).exists():
@@ -1401,6 +1416,27 @@ class Slot (models.Model) :
         return None
     def pto_conflicts (self):
         return PtoRequest.objects.filter(employee=self.employee, workday=self.workday.date)
+    
+    def cssAvailableEmps (self):
+        classes = ""
+        for empl in self.shift.available.all():
+            classes += f"{empl.slug}-available "
+        return classes
+             
+    def fill_via_swap (self,other):
+        
+        selfEmployee = self.employee
+        otherEmployee = other.employee
+        for i in [self, other]:
+            i.employee = None
+            i.save()
+        self.employee = otherEmployee
+        other.employee = selfEmployee
+        self.save()
+        other.save()
+        return 
+    
+    tags         = TaggableManager()
     objects      = SlotManager.as_manager()
     turnarounds  = TurnaroundManager.as_manager()           
 # ============================================================================
@@ -1479,10 +1515,10 @@ class PtoRequest (ComputedFieldsModel):
         if self.sd_id == -1:
             self.sd_id = Workday.objects.filter(date=self.workday).first().sd_id
         super().save(*args, **kwargs)
-    def conflict (self):
-        return Slot.objects.filter(workday__date=self.workday, employee=self.employee) 
+    def slot_conflicts (self):
+        return Slot.objects.filter(workday__date=self.workday, employee=self.employee)
     def url (self):
-        return reverse('pto', kwargs={'pk':self.pk})
+        return reverse('sch:pto-request-detail', kwargs={'pk':self.pk})
     
     objects = PtoRequestManager.as_manager()
     # ============================================================================

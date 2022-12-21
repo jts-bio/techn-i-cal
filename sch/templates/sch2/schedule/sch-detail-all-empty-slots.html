@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+
+
+{% block content %}
+
+    <div class="panel">
+        <div>
+            <a href="{{schedule.url}}">
+                <i class="fas">{% backArrow %}</i>
+                Back
+            </a>
+        </div>
+        <h2 class="text-xl text-bold jbm text-amber-300">
+            Schedule Empty Slots
+        </h2>
+        <div class="grid grid-cols-2 md:grid-cols-4">
+        {% for slot in schedule.slots.empty %}
+        <form method="POST"> {% csrf_token %}   
+            <div class="my-2">
+                <input type="hidden" name="slot" value="{{slot.pk}}"/>
+                <label>
+                    {{ slot.shift }} // {{ slot.workday.date }}
+                    <select name="employee" 
+                            id="employee" placeholder="{{ slot.fillable_by.count }}"
+                            _="on focus 
+                                    add .hidden 
+                                        to <input/> then
+                                    remove .hidden
+                                        from the next <input/> end"
+                                >
+                        <option class="text-xs text-zinc-600 w-30" value="">{{ slot.fillable_by.count }} options</option>
+                        {% for employee in slot.fillable_by %}
+                            <option name="{{employee}}" value="{{employee.pk}}"> {{ employee.name }} </option>    
+                        {% endfor %}
+                    </select>
+                </label>
+                <input type="submit" class="hidden bg-zinc-900 rounded shadow shadow-lg" id="{{slot.shift}}-{{slot.workday.slug}}-submit" value="✔︎"/>
+            </div>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+    
+{% endblock content %}
+    

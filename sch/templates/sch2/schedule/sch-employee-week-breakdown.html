@@ -1,0 +1,18 @@
+<section id="EMPLOYEE-WEEK-BREAKDOWNS">
+
+    <div class="grid grid-cols-4 text tex-center gap-3">
+        {% for employee in employees %}
+
+            <div class="vstack border border-gray-400 rounded p-3">
+                <div class="text-slate-700 text-sm jbm">{{ employee }}</div>
+                <div class="text-2xs">
+                    {% for hrs in employee.weekBreakdown %}
+                        <span class="bg-gray-600 rounded-full mx-1 p-1"> {{ hrs }} </span>
+                    {% endfor %} 
+                </div>
+            </div>
+
+        {% endfor %}
+    </div>
+    
+</section>

@@ -46,7 +46,7 @@
                     {% for slot in workday.slots.all %}
                         <tr>
                             <td class="text-indigo-300 px-2"> {{ slot.shift.name }} </td>
-                            <td> 
+                            <td class="{{slot.employee.slug}}-slot"> 
                                 {% if slot.employee %} {{ slot.employee }}
                                 {% else %} -- {% endif %} 
                             </td>
@@ -96,6 +96,9 @@
     {% endfor %}
     
     </div>
+
+   
+        
 
     {% include 'sch2/week/wk-needed-hours.html' %}
 

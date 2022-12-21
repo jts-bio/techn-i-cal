@@ -14,9 +14,11 @@ class ShiftAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    fields          = ['name','fte_14_day','fte','streak_pref','shifts_trained','shifts_available','trade_one_offs', 'cls','time_pref']
+    fields          = ['name','fte_14_day','fte', 'streak_pref',
+                       'shifts_trained', 'shifts_available',
+                       'trade_one_offs', 'cls', 'time_pref']
     readonly_fields = ['fte']
-    list_display    = ['name', 'fte_14_day', 'streak_pref','cls','time_pref']
+    list_display    = ['name', 'fte_14_day', 'streak_pref', 'cls', 'time_pref']
 
 @admin.register(Workday)
 class WorkdayAdmin(admin.ModelAdmin):
@@ -27,7 +29,7 @@ class WorkdayAdmin(admin.ModelAdmin):
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
     fields          = ['workday', 'shift','employee','start','slug',]
-    readonly_fields = ['start','slug',]
+    readonly_fields = ['start',  'slug',]
     list_display    = ['workday','shift','employee','start','slug',]
 
 @admin.register(ShiftTemplate)
@@ -48,5 +50,16 @@ class TmplDayOffAdmin(admin.ModelAdmin):
     
 @admin.register(Week)
 class WeekAdmin(admin.ModelAdmin):
-    fields = ('year', 'number', 'period', 'schedule', 'start_date', )
-    list_display = ('year', 'number', 'period', 'schedule', 'start_date', )
+    fields          = ('year', 'number', 'period', 'schedule', 'start_date', )
+    list_display    = ('year', 'number', 'period', 'schedule', 'start_date', )
+
+@admin.register(Period)
+class PeriodAdmin(admin.ModelAdmin):
+    fields          = ('number','year', 'schedule', 'start_date', )
+    list_display    = ('number','year','schedule', 'start_date', )
+    
+@admin.register(Schedule)    
+class ScheduleAdmin (admin.ModelAdmin):
+    fields              = ('slug','number', 'year','periods', 'start_date', )
+    readonly_fields     = ('slug','start_date', 'percent')
+    list_display        = ('slug','start_date', 'percent')

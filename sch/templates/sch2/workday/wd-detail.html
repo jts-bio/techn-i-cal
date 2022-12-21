@@ -49,30 +49,61 @@ TEMPLATE VARIABLES
         
         <div class="text text-center">
             {% regroup workday.slots.all by cls as slots_list %}
-
+            <form method="POST"> {% csrf_token %}
             {% for cls in slots_list %}
-
                 <div class="grid grid-cols-2 md:grid-cols-3 w-full my-10">
                 {% for slot in cls.list %}
-                    <a href="{{ slot.url }}">
+                <div>
+                    <a href="{{ slot.url }}"
+                        class="{{ slot.cssAvailableEmps }} rounded p-1 m-2"
+                        _="on dragover or dragenter halt the event 
+                           then set my style.background to '#44ff77'
+                           on dragleave or drop set my style.background to ''
+                           on drop set tgt to the next <input/> 
+                           on drop get event.dataTransfer.getData('text/plain')
+                           then set (the next <input/>)@value to result
+                           then put the result into the next <span.output/>
+                           then add .bg-green-200 to the first <span/> in me
+                           on drop add .line-through .opacity-80 to the first .empname in me then
+                           on drop remove .opacity-60 .italic from #savebutton">
                         {% if slot.employee %}
-                            <span class="badge">{{ slot.shift }}</span>
-                            <span class="text-indigo-300 font-light mr-3">{{ slot.employee }}</span> 
+                            <span class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</span>
+                            <span class="text-indigo-300 font-light mr-3 empname">{{ slot.employee }}</span> 
                         {% else%}
                             <span class="badge opacity-30 italic">{{ slot.shift }}</span>
-                            <span class="mr-3 text-2xs text-zinc-400 font-extrabold bg-opacity-60">NONE</span> 
+                            <span class="mr-3 text-2xs text-zinc-400 font-extrabold bg-opacity-60 empname">NONE</span> 
                         {% endif %}
                     </a>
+                    <input type="hidden" id="{{slot.shift}}" name="{{slot.shift}}"/>
+                    <span class="output text-light text-green-300 italic"></span></label>
+                </div>
                 {% endfor %}
                 </div>
+                <input type="submit" id="savebutton" class="btn bg-blue-300 text-gray-300 px-2 rounded italic bg-gray-700 .opacity-60 disabled" value="Save">
             {% endfor %}
+        </form>
         </div>
         </div>
     </div>
 
-
        
-        <div class="flex flex-row flex-wrap">
+        <div class="flex flex-row flex-wrap gap-3">
+            <div class="grow panel">
+                <h2 class="text-2xl font-light">Employees On Deck</h2>
+    
+                <div _="on dragstart call event.dataTransfer.setData('text/plain',target.value)">
+                {% for empl in workday.on_deck %}
+                        <button 
+                            value="{{empl.slug}}" 
+                            draggable=true
+                            _="on dragstart add .bg-green-100 to .{{empl.slug}}-available end
+                               on dragend remove .bg-green-100 from .{{empl.slug}}-available end"
+                            class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">
+                            [ON DECK] {{ empl }}
+                        </button>
+                {% endfor %}
+                </div>
+            </div>
         <div class="grow panel">
             {% if workday.pto.count > 0 %}
                 <div class="grid grid-cols-2 w-fc">
@@ -101,16 +132,22 @@ TEMPLATE VARIABLES
                 <div>No Employees have this day templated off.</div>
             {% endif %}
         </div>    
-        <div class="grow panel">
-            <h2 class="text-2xl font-light">Employees On Deck</h2>
-            {% for empl in workday.on_deck %}
-                <div class="flex flex-row">
-                    <span class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">[ON DECK] {{ empl }}</span>
-                </div>
-            {% endfor %}
+        
         </div>
     </div>
 
+
+    
+        <button class="btn primary" _="on dragstart add .hidden to" draggable=true>DRAG ME</button>
+        <button class="btn primary" draggable=true>OR ME</button>
+      
+      <output class="float-right w-40 h-8 bg-pink-900 rounded"></output>
+      <pre class="border border-white w-40 h-20 p-3 rounded" _="
+        on dragover or dragenter halt the event
+          then set the target's style.background to 'navy'
+        on dragleave or drop set the target's style.background to ''
+        on drop get event.dataTransfer.getData('text/plain')
+          then put it into the previous <output/>">Drop Area </pre>
 
 
 

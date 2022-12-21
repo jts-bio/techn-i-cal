@@ -1,7 +1,7 @@
 
 
 {% extends 'base.html' %}
-{% load tags %}
+{% load tags %} {% load static %}
 
 
 {% block style %}
@@ -9,7 +9,10 @@
     <style>
         tr td:nth-child(7n+1) {
             border-right: 1px solid #444444;
-        }      
+        }     
+        .pie {
+            border: 1px solid #ffffff;
+        }
     </style>
     
 {% endblock style %}
@@ -17,11 +20,12 @@
 
 
 {% block content %}
-
+<script type="text/javascript" src="/static/piety.min.js"></script>
+   
     <a href="{% url 'sch:v2-schedule-detail' schedule.slug %}" class="hstack">
-        <div>{% backArrow %}</div>
-        <div>Back</div>
-</a>
+        <div> {% backArrow %} </div>
+        <div> Back </div>
+    </a>
 
     <h2 class="text-xl text-slate-300 font-extrabold jbm">
         Schedule {{ schedule.number }}, {{ schedule.year }}
@@ -29,12 +33,26 @@
 
     <div class="overscroll-x-auto overflow-x-auto">
         <div id="schedule-grid">
-            <table class='table'>
+            <table class='table table-auto'>
                 <thead>
-                    <th></th>
-                    {% for workday in schedule.workdays.all %}
-                    <th>{{ workday.date.day }}</th>
-                    {% endfor %}
+                    <tr>
+                        <th>
+                        </th>
+                        {% for workday in schedule.workdays.all %}
+                            <th> {{ workday.date.day }} </th>
+                        {% endfor %}
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        {% for workday in schedule.workdays.all %}
+                            <td>
+                                <span class="pie text-green-300">
+                                    {{workday.slots.filled.count}} {{workday.slots.empty.count}}
+                              </span>
+                            </td>
+                        {% endfor %}
+                    </tr>
                 </thead>
                 <tbody>
                     {% for employee, assignments in schedule.as_empl_dict.items %}
@@ -54,5 +72,15 @@
 
     {% include 'sch2/schedule/sch-analyze-unprefs.html' %}
 
+    {% include 'sch2/schedule/sch-employee-week-breakdown.html' %}
+
+    <script>
+        document.querySelectorAll(".donut").forEach(e => peity(e, "pie")) ;
+
+        document.querySelectorAll(".pie").forEach(e => peity(e, "pie", {
+            fill : ["white" , "gray"]
+          })) ;
+    </script>
+    
 {% endblock content %}
     

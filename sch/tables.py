@@ -188,10 +188,12 @@ class WeekListTable (tables.Table):
     
 class PtoListTable (tables.Table):
 
+    req = tables.columns.LinkColumn("pto-request-detail", args=[A("pk")])
     class Meta:
         model           = PtoRequest
-        fields          = ['workday', 'status', 'stands_respected' ]
-        template_name   = 'django_tables2/bootstrap.html'
+        fields          = ['req', 'workday', 'status', 'stands_respected' ]
+        template_name   = 'django_tables2/bootstrap-responsive.html'
+        
 
 class WeeklyHoursTable (tables.Table):
 
