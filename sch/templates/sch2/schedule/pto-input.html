@@ -4,6 +4,30 @@
 {% load tags %}
 
 
+{% block style %}
+
+    <style>
+        .tooltip {
+            display: none;
+            position: absolute;
+            z-index: 1;
+            background-color: #ccc;
+            color: #333;
+            text-align: center;
+            padding: 3px 6px;
+            border-radius: 6px;
+            shadow: 1px 1px 1px #000;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        label:hover .tooltip {
+            display: inline;
+        }
+    </style>    
+{% endblock style %}
+    
+
+
 {% block content %}
 
     <div class="vstack">
@@ -19,22 +43,24 @@
 
             {% for day in schedule.workdays.all %}
                 <div id="panel-{{day.slug}}" class="rounded bg-slate-400">
-                    <label for="{{day.sd_id}}-pto-checkbox" class="text-xs">{{day.date}}</label>
-                    <input 
-                        _="on click @clickCount increment 1 end
-                            if @clickCount > 1 then
-                                @clickCount = 0
-                                @checked = not @checked
-                            end"
-                        type="checkbox" 
-                        name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
-                        id="{{day.sd_id}}-pto-checkbox"
-                        {% if day.date in initial_pto_dates %} 
-                            checked 
-                        {% endif %}
-                        {% if day.sd_id in tdos %} 
-                            disabled 
-                        {% endif %}/>
+                    <label for="{{day.sd_id}}-pto-checkbox" class="text-xs">
+                        <input 
+                            _="on click @clickCount increment 1 end
+                                if @clickCount > 1 then
+                                    @clickCount = 0
+                                    @checked = not @checked
+                                end"
+                            type="checkbox" 
+                            name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
+                            id="{{day.sd_id}}-pto-checkbox"
+                            {% if day.date in initial_pto_dates %} checked 
+                            {% endif %}
+                            {% if day.sd_id in tdos %} disabled 
+                            {% endif %}/>
+
+                            {% if day.sd_id in tdos %}<span class="tooltip">Employee is templated off this day.<br> No PTO Request needed</span>
+                            {% endif %}
+                        {{day.date}}</label>
                 </div>
              
             {% endfor %}

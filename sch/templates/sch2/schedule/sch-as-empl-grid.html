@@ -13,7 +13,17 @@
         .pie {
             border: 1px solid #ffffff;
         }
+        .stl {
+            position: sticky;
+            left: 0
+          }
+        .stt {
+            position: sticky;
+            top: 0
+        }
     </style>
+
+ 
     
 {% endblock style %}
     
@@ -36,8 +46,7 @@
             <table class='table table-auto'>
                 <thead>
                     <tr>
-                        <th>
-                        </th>
+                        <th class="stl"></th>
                         {% for workday in schedule.workdays.all %}
                             <th> {{ workday.date.day }} </th>
                         {% endfor %}
@@ -57,7 +66,7 @@
                 <tbody>
                     {% for employee, assignments in schedule.as_empl_dict.items %}
                     <tr>
-                        <th>{{ employee }}</th>
+                        <th class="stl">{{ employee }}</th>
                         {% for assignment in assignments %}
                             <td><a class="bg-inherit font-light text-2xs text-slate-400
                                             {% if assignment.pto_conflicts.exists %} bg-red-200 shadow w-2 h-2 bg-opacity-40 text-shadow text-red-300 font-bold pl-1 {% endif %}"

@@ -2,29 +2,52 @@
 {% load tags %}
 
 
+
+{% block style %}
+
+    <style>
+        .tooltip {
+            position: absolute;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+            font-family: 'JetBrains Mono', sans-serif;
+            letter-spacing: 0.1em;
+            z-index: 1;
+            padding-left: 0.5em;
+            padding-right: 0.5em;
+            margin-top: 0px;
+            background-color: #f1f5f9;
+            color: #1f2937;
+            border-radius: 0.25em;
+        }
+
+    </style>
+    
+{% endblock style %}
+    
+
+
+
 {% block content %}
     <a href="{{week.schedule.url}}" class="hstack">
         <div> {% backArrow %} </div>
         <div> Schedule {{ week.schedule.number }}</div>
     </a>
-    <div class="hstack bg-slate-800">
-        <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
-              method="POST"> {% csrf_token %}
-        <input type="submit"
-            class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded" 
-            value="FILL TEMPLATES"/>
-        </form>
-        
-        <form action="{% url 'sch:v2-week-clear-slots' week.pk %}"
-              method="POST"> {% csrf_token %}
-        <input type="submit"
-        hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."
-            class="bg-rose-200 text-rose-600 hover:bg-rose-500 hover:text-rose-100" 
-            value="CLEAR SLOTS IN WEEK"/>
-        </form>
-    </div>
+    
 
-    <h1 class="text-2xl text-amber-300">{{ week }}</h1>
+    <div class="flex flex-row gap-4">
+
+        <a href="{% url 'sch:prev-week' week.pk %}">
+            <i class="fas">{% backArrow %}</i></a>
+
+        <h1 class="text-2xl text-amber-300">{{ week }}</h1>
+
+        <a href="{% url 'sch:next-week' week.pk %}">
+            <i class="fas">{% forwardArrow %}</i></a>
+
+    </div>
+    
+
     <a href="{% url 'sch:week-fillable-by' week.pk %}"
         class="italic text-indigo-100 text-light hover:text-indigo-300 underline">Go to week's Fillable By View</a>
 
@@ -32,6 +55,7 @@
     <div class="flex flex-row">
     
     {% for workday in workdays %}
+    <div>
     <a href="{{workday.url}}">
         <div class="panel">
             <div 
@@ -57,12 +81,43 @@
                 <div class="text-2xs badge px-5">{{ workday.percent }}% Filled</div>
         </div>
     </a>
-        
+        <div class="text-sm mx-4">
+            {% for ptor in workday.pto %} 
+                {% if pto.stands_respected == True %}
+                    <span class="text-sky-500"
+                        _="on mouseover remove .hidden from the next <div.tooltip/>
+                        on mouseleave add .hidden to the next <div.tooltip/> ">◉</span>
+                {% else %} 
+                    <span class="text-rose-500"
+                        _="on mouseover remove .hidden from the next <div.tooltip/>
+                        on mouseleave add .hidden to the next <div.tooltip/>">◉</span>
+            {% endif %}
+                <div class="tooltip hidden">{{ptor.employee}}</div>
+            {% endfor %}
+        </div>
+    </div>    
     {% endfor %}
     
      </div>
     </div>
     <div>
+
+        <div class="hstack bg-slate-800">
+            <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
+                  method="POST"> {% csrf_token %}
+            <input type="submit"
+                class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded" 
+                value="FILL TEMPLATES"/>
+            </form>
+            
+            <form action="{% url 'sch:v2-week-clear-slots' week.pk %}"
+                  method="POST"> {% csrf_token %}
+            <input type="submit"
+            hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."
+                class="bg-rose-200 text-rose-600 hover:bg-rose-500 hover:text-rose-100" 
+                value="CLEAR SLOTS IN WEEK"/>
+            </form>
+        </div>
 
     {% regroup slots by employee as slotCount %}
 

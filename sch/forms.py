@@ -134,9 +134,10 @@ class EmployeeEditForm (forms.ModelForm) :
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
+            'fte_14_day'      : forms.NumberInput(attrs={'class': 'w-24 form-control'}),
             'shifts_available': forms.CheckboxSelectMultiple(attrs={'class':'grid-cols-3'}),
-            'streak_pref'     : forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls'             : forms.Select(attrs={'class': 'form-control'}),
+            'streak_pref'     : forms.NumberInput(attrs={'class': 'w-24 form-control'}),
+            'cls'             : forms.Select(attrs={'class': 'form-control h-7'}),
         }
 
 class SstEmployeeForm (forms.Form):
@@ -210,6 +211,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
         employee = self.initial.get('employee')
         if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
             self.fields['is_templated_off'].widget.attrs['disabled'] = True
+            self.fields['is_templated_off'].widget.attrs['title'] = "Employee is scheduled for this day. Cannot be templated off until the Shift Template is removed."
         
     # if checked and already existing: pass and don't error
     # if checked and not existing: create

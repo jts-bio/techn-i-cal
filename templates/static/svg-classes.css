@@ -1,0 +1,6 @@
+{% load tags %}
+
+.icon-trash::before {
+    content : url("/static/img/trash.svg");
+    margin-right: 5px;
+}

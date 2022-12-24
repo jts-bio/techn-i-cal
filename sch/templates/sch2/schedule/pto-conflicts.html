@@ -1,32 +1,59 @@
 {% extends 'base.html' %}
 
+
+
+{% block style %}
+
+
+    
+{% endblock style %}
+    
+    <style>
+        .clear-button {
+            @apply flex items-center gap-2 rounded-lg border border-red-300 bg-slate-900 text-white px-4 py-2 text-sm text-red-500 hover:bg-red-600 hover:text-red-100 m-4;
+        }
+    </style>
+
 {% block content %}
 {% load tags %}
 
-<a href="{{schedule.url}}"><span>{% backArrow %}</span>Back</a>
+<a href="{{schedule.url}}"><i class="fas">{% backArrow %}</i>Back</a>
 
 
-<h1 class="text-3xl text-amber 100 font-light">
-{{ schedule }}
+<h1 class="text-3xl text-amber-100 font-light">
+    {{ schedule }}
+</h1>
+<h1 class="text-2xl text-amber-300 font-light">
+    PTO Request Manager
 </h1>
 
-<form method="POST"> {% csrf_token %} 
-<button class="text-indigo-200 rounded p-3 w-30 italic">DELETE ALL CONFLICTS</button>
+<form method='POST'> {% csrf_token %} 
+    <button type="submit" 
+            class= "border baseline justify-center border-red-200 hover:bg-red-100 text-light hover:text-red-600 px-4 py-1 rounded">
+        <i class="fas">{% clearIcon '24px' '24px' %}</i>
+        CLEAR ALL CONFLICT SLOTS
+    </button>
 </form>
 
-{% for pto in schedule.pto_requests %}
-    {{ pto.workday }} {{ pto.employee }}
-    <br/> 
-    {% if pto.conflict.exists %}
-        <a  class="bg-amber-400 text-amber-700 font px-5 -extrabold text-xs rounded" 
-            href="{{pto.conflict.first.url}}">
-         {{ pto.conflict.first.shift }}
-        </a>
-    {% endif %}
-    <br/><br/> 
-
-
-
+<table>
+{% for pto in pto_conflicts %}
+    <tr>
+        <td>{{ pto.workday }}</td>
+        <td>{{ pto.employee }}</td>
+        {% if pto.slot %}
+        <td>
+            <a  class="bg-amber-400 text-amber-700 font px-5 -extrabold text-xs rounded" 
+                href="{{ pto.conflict.first.url }}">
+            {{ pto.conflict.first.shift }}
+            </a>
+        </td>
+        {% else %}
+        <td>
+            <span class="text-2xs text-red-300 bg-red-900 rounded px-2"> CONFLICT </span>   
+        </td>
+        {% endif %}
+        </tr>
 {% endfor %}
+</table>
 
 {% endblock %}

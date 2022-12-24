@@ -1,6 +1,6 @@
 from .models import *
 from django.http import JsonResponse
-
+from django.db.models import Sum
 
 class WeekApi: 
     
@@ -9,5 +9,7 @@ class WeekApi:
         def employeeHours (request, weekid):
             week = Week.objects.get(pk=weekid)
             slots = week.workdays.slots.all().order_by('employee')
-            return sum(list(slots.values_list('shift__hours')))
+            employees = slots.values('employee').distinct()
+            employees.annotate(hours=Sum('shift__hours'))
+            return employees
         

@@ -131,6 +131,10 @@ def moonIcon (width="20px", height="20px", fill="indigo"):
 def teamIcon (width="20px", height="20px", fill="#faed2a99"):
     return {'width': width,'height': height,'fill': fill}
 
+@register.inclusion_tag("sunMoon.svg")
+def sunMoon (w='20px', h='20px', fill='white'):
+    return {'w': w, 'h': h, 'fill': fill}
+
 @register.simple_tag
 def todayYear ():
     return dt.date.today().year 
@@ -221,4 +225,8 @@ def scoreColor (score):
         return "gray"
     else:
         return "green"
+    
+@register.simple_tag
+def emplHoursSummary (empl, wd):
+    return empl.weekHours(wd), empl.periodHours(wd)
     

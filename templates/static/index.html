@@ -44,26 +44,38 @@
   <div class="flex flex-row align-center"></div>
 
   <div
-    class="flex flex-col md:flex-row flex-1 md:flex-0 overscroll-x-auto mx-12 md:mx-52 gap-10"
+    class="flex flex-col md:flex-row flex-1 md:flex-0 overscroll-x-auto mx-12 md:mx-52 gap-10 my-3"
   >
-    {% #dense-card title='Schedules' img='static/img/ScheduleImg.png' link='/sch/v2/schedule/list' %}
-    <!---->
-    <p class="text-2xs h-24">
-      Workdays, weeks, pay periods, and schedules, as well as tools to build and
-      edit schedule instances.
-    </p>
-    {%/dense-card%} {% #dense-card title='Shifts' img='/static/img/ChemistBackground.png' link='/sch/shifts/all/' %}
+    <a href="/sch/v2/schedule/list">
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
+        <img class="object-cover w-full h-48" src="static/img/ScheduleImg.png" alt="Schedules"/>
+        <div class="absolute top-0 left-0 px-6 py-4">
+          <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Schedules</h4>
+        </div>
+      </div>
+      <p class="leading-normal mt-2 text-sm jbm text-zinc-300 text-shadow">All your schedules organized into Pay Periods, Weeks, Workdays, and individual Slots.</p>
+    </a>
 
-    <p class="text-2xs h-24">
-      Manage information about shifts and when they are scheduled.
-    </p>
-    {%/dense-card%} {% #dense-card title='Employees' img='/static/img/Orchestra.png' link='/sch/employees/all/' %}
+    <a href="/sch/shifts/all/">
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
+        <img class="object-cover w-full h-48" src="/static/img/ChemistBackground.png" alt="Shifts"/>
+        <div class="absolute top-0 left-0 px-6 py-4">
+          <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Shifts</h4>
+        </div>
+      </div>
+      <p class="leading-normal mt-2 text-sm jbm text-slate-300 text-shadow">Manage information about shifts and when they are scheduled.</p>
+    </a>
 
-    <p class="text-2xs h-24">
-      Manage employee information, preferences, scheduling constraints, and
-      more.
-    </p>
-    {%/dense-card%}
+    <a href="/sch/employees/all/">
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
+        <img class="object-cover w-full h-48 backdrop-contrast-200" src="/static/img/Orchestra.png" alt="Employees"/>
+        <div class="absolute top-0 left-0 px-6 py-4">
+          <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Employees</h4>
+        </div>
+      </div>
+      <p class="leading-normal mt-2 text-sm jbm text-slate-300 text-shadow">Manage employee information, preferences, scheduling constraints, and more.</p>
+    </a>
+
   </div>
 
   <div class="w-full place-content-center">

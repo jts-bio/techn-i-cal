@@ -23,6 +23,7 @@ from .formsets import *
 from .models import *
 from .tables import *
 from .data import Images
+from . import viewsets
 
 
 # -------------------------#
@@ -100,11 +101,15 @@ def schDetailView (request, schId):
             return HttpResponseRedirect(
                 reverse("sch:v2-schedule-empl-pto", args=[schedule.pk, employee.pk])
             )
+        else:
+            messages.warning (request, "Form is invalid")
+
     context = {
         "schedule": schedule,
         "actionDropdown": actionDropdown,
         "employees": Employee.objects.all(),
         "form": EmployeeSelectForm,
+        "emusr": viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
     form = EmployeeSelectForm()
     return render(request, "sch2/schedule/sch-detail.html", context)
@@ -149,6 +154,19 @@ def schDetailSingleEmployeeView (request, schId, empId):
         
     html_template = 'sch2/employee/empl-schedule-view.html'
     return render(request, html_template, {'schedule':empl_schedule,'employee':employee,'sch': schedule})
+
+def schDetailPtoConflicts (request, schId):
+    schedule = Schedule.objects.get(slug=schId)
+    pto_conflicts = schedule.pto_conflicts()
+    
+    if request.method == "POST":
+        for pto_conflict in pto_conflicts:
+            pto_conflict.employee = None
+            pto_conflict.save()
+        messages.success(request, f"PTO conflicts resolved")
+    
+    html_template = 'sch2/schedule/pto-conflicts.html'
+    return render(request, html_template, {'schedule':schedule,'pto_conflicts':pto_conflicts})
 
 def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
@@ -383,7 +401,7 @@ def pto_schedule_form(request, schId, empl):
             pto_new = PtoRequest.objects.create(workday=pto_date, employee=empl)
             pto_new.save()
 
-            messages.success(request, f"{pto_new} created at {dt.datetime.now()}")
+            messages.success(request, f"{pto_new} created for {pto_new.workday}")
 
         return HttpResponseRedirect(sch.url())
 
@@ -466,11 +484,13 @@ class EmployeeSortShiftPreferences(View):
                 ssp.save()
                 i += 1
         context = {
-            "employee": employee,
-            "favorableShifts": ShiftSortPreference.objects.filter(
-                                employee=employee,shift__group=employee.time_pref).order_by('score'),
+            "employee":          employee,
+            "favorableShifts":   ShiftSortPreference.objects.filter(
+                                    employee=employee,
+                                    shift__group=employee.time_pref).order_by('score'),
             "unfavorableShifts": ShiftSortPreference.objects.filter(
-                                    employee=employee).exclude(shift__group=employee.time_pref).order_by('score')
+                                    employee=employee).exclude(
+                                    shift__group=employee.time_pref).order_by('score')
             }
         return render(request, self.template_name, context)
 

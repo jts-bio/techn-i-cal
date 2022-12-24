@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block style %}
+
+
+    
+{% endblock style %}
+    
+
+
+{% block content %}
+
+    <a href="{{employee.url}}">
+        <i class="fas">{% backArrow %}</i>
+        Back
+    </a>
+
+    <div class="text text-center">
+        <h1 class="text-3xl">{{ employee }}</h1>
+        <h2 class="text-xl"> Sort Shift Preferences</h2>
+    </div>
+
+
+
+    <form method="POST">{% csrf_token %}
+
+        <div class="hstack">
+            <div class="hstack">
+                {% for n in nTotal %}
+                    <div id="bin-{{n}}" 
+                        class="bg-sky-900 h-12 w-12 rounded text-center p-4" 
+                        ondrop="drop(event)"
+                        ondragover="dragOver(event)"
+                        ondragleave="dragLeave(event)">
+                        {{ n }}
+                    </div>
+                    <input type="hidden" name="bin-{{n}}" value="">
+                {% endfor %}
+            </div>
+            
+            <input id="sort-submit" type="submit" value="Submit" hidden>
+        </div>
+    </form>
+
+    <div class="hstack bg-slate-600 p-8 w-fc m-4">
+        {% for shift in employee.shifts_available.all %}
+            <div id="shift-{{shift}}" 
+                class="bg-indigo-500 h-6 w-6 rounded text-center p-1 text-xs"
+                draggable="true"
+                ondragstart="dragStart(event)"
+                value="{{shift}}">
+                {{shift}}
+            </div>
+        {% endfor %}
+
+    </div>
+
+    <script>
+        function dragStart(ev) {
+            console.log(`dragStart: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+          
+            // Add this element's id to the drag payload so the drop handler will
+            // know which element to add to its tree
+            ev.dataTransfer.setData("text", ev.target.id);
+            ev.dataTransfer.effectAllowed = "move";
+          }
+          
+          function drop(ev) {
+            console.log(`drop: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+            ev.preventDefault();
+            ev.target.style.background = "";
+            // Get the id of the target and add the moved element to the target's DOM
+            const data = ev.dataTransfer.getData("text");
+            ev.target.appendChild(document.getElementById(data)); {
+            // get the next input in the DOM and set its value to shift value 
+            const nextInput = ev.target.nextElementSibling;
+            nextInput.value = data;
+            // if all inputs have values, show the submit button
+            const allInputs = document.querySelectorAll('input[type="hidden"]');
+            const allInputsHaveValues = Array.from(allInputs).every(input => input.value);
+            if (allInputsHaveValues) {
+                document.getElementById('sort-submit').hidden = false;
+                }
+            }
+          }
+
+          function dragLeave(ev) {
+            ev.preventDefault();
+            ev.target.style.background = "";
+          }
+          
+          function dragOver(ev) {
+            console.log(`dragOver: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+            ev.preventDefault();
+            // make the target background lighter 
+            ev.target.style.background = "lightblue"; 
+            // Set the dropEffect to move
+            ev.dataTransfer.dropEffect = "move"
+          }
+
+          function reloadPage() {
+            location.reload();
+          }
+        </script>
+ 
+
+
+
+{% endblock content %}
+    

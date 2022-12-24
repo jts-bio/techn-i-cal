@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+
+
+
+{% block content %}
+
+
+    <div>
+        <h1>Schedule Compare View</h1>
+        <h2>{{ sch1 }}</h2>
+        <h2>{{ sch2 }}</h2>
+        
+        <div class="grid grid-cols-7">
+            {% for workday in workdays %}
+               <div class="panel">
+                    <h4 class="text-sky-300 font-bold">{{ workday.0.date }}</h4>
+                    {% for slot in workday %}
+                        {% if slot.equal == True %}
+                            <div>
+                                <span class="bg-sky-600 text-sky-100 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                                <span class="text-xs">{{ slot.sch1.employee }}</span>
+                            </div>
+                        {% else %}
+                            <div class='flex flex-row'>
+                                <span class="bg-amber-800 text-amber-100 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                                <span class="flex flex-col">
+                                    <span class='text-2xs text-amber-300'>{{ slot.sch1.employee }}</span>
+                                    <span class='text-2xs text-orange-300'>{{ slot.sch2.employee }}</span>
+                                </span>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+        </div>
+
+    
+{% endblock content %}
+    

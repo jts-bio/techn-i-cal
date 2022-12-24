@@ -22,13 +22,13 @@
                 <thead>
                     <th></th>
                     {% for workday in schedule.workdays.all %}
-                    <th class="text-2xs">{{ workday.date }}</th>
+                    <th class="sticky-top text-2xs">{{ workday.date }}</th>
                     {% endfor %}
                 </thead>
                 <tbody>
                     {% for shift, assignments in schedule.as_shift_dict.items %}
                         <tr>
-                            <th>{{ shift }}</th>
+                            <th class="sticky-top">{{ shift }}</th>
                             {% for assignment in assignments %}
                             <td><a class="bg-inherit font-light text-2xs text-slate-400" href="{{assignment.url|default:'#'}}">{{ assignment.employee|default:"." }}</a></td>
                             {% endfor %}

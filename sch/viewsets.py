@@ -1,7 +1,7 @@
 from sch.models import *
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-
+from django.db.models import Sum, Case, When, FloatField
 
 class Actions:
     class SlotActions:
@@ -59,24 +59,95 @@ class WeekViews:
         }
         return render(request,html_template,context)
     
+    def nextWeek (request, weekId):
+        week = Week.objects.get(pk=weekId)
+        nextWeek = week.nextWeek()
+        return HttpResponseRedirect(nextWeek.url())
+    
+    def prevWeek (request, weekId):
+        week = Week.objects.get(pk=weekId)
+        prevWeek = week.prevWeek()
+        return HttpResponseRedirect(prevWeek.url())
+    
 
 class SchViews:
     
+    def schFtePercents (request, schId):
+        html_template = 'sch2/schedule/fte-percents.html'
+        sch = Schedule.objects.get(slug=schId)
+        # annotate a list of all employees with the sum of their scheduled hours of slots in sch.slots.all
+        empls = Employee.objects.annotate(
+            total_hours = Sum( Case( When(
+                        slots__in=sch.slots.all(),
+                        then='slots__shift__hours'),  
+                    default=0, output_field=FloatField()))).annotate(
+            fte_percent = (F('total_hours') / (F('fte')*240)) * 100 ).order_by('-fte_percent')
+        context = {
+            'sch'       : sch,
+            'employees' : empls,
+        }
+        return render(request,html_template,context)
+    
     def compareSchedules (request, schId1, schId2):
-        html_template = 'sch2/compare-schedules.html'
+        html_template = 'sch2/schedule/sch-compare.html'
         sch1 = Schedule.objects.get(slug=schId1)
         sch2 = Schedule.objects.get(slug=schId2)
-        unequals = []
-        for slot in sch1.slots.all() :
-            if sch2.slots.get(workday__sd_id=slot.workday.sd_id, shift__pk=slot.shift.pk).employee != slot.employee:
-                unequals += [slot]
-        unequals = sch1.slots.filter(pk__in=[s.pk for s in unequals])
+        days = []
+        for day in sch1.workdays.all() :
+            slots = []
+            for slot in day.slots.all():
+                thisSlot = {}
+                thisSlot['sch1'] = slot
+                thisSlot['sch2'] = sch2.slots.get(workday__sd_id=slot.workday.sd_id, shift__pk=slot.shift.pk)
+                thisSlot['equal'] = thisSlot['sch2'].employee == thisSlot['sch1'].employee
+                slots += [thisSlot]
+            days += [slots]
         context = {
             'sch1':sch1,
             'sch2':sch2,
-            'unequals':unequals,
+            'workdays':days,
         }
-        return HttpResponse((unequals, unequals.count()))
+        return render(request,html_template,context)
+    
+    def schEMUSR (request, schId):
+        """Schedule Expected Morning Unpreferred Shift Requirements"""
+        sch = Schedule.objects.get(slug=schId)
+        n_pm = sch.slots.evenings().count()
+        pm_empls = Employee.objects.filter(time_pref__in=['Midday','Evening','Overnight'])
+        pm_empls_shifts = sum(list(pm_empls.values_list('fte',flat=True))) * 24
+        remaining_pm = n_pm - pm_empls_shifts
+        full_template_emps = Employee.objects.full_template_employees().values('pk')
+        am_empls_fte_sum = sum(list(Employee.objects.filter(time_pref__in=['Morning']).exclude(pk__in=full_template_emps).values_list('fte',flat=True)))
+        emusr = Employee.objects.filter(time_pref='Morning').exclude(pk__in=full_template_emps).annotate(
+            emusr = (F('fte')* remaining_pm / am_empls_fte_sum)).order_by('-emusr')
+        return emusr.values('name','fte','emusr')
+
+
+        
+
+
+class EmpViews:
+    
+    def empShiftSort (request, empId):
+        html_template = 'sch2/employee/shift-sort.html'
+        emp = Employee.objects.get(pk=empId)
+        if request.method == 'POST':
+            for i in range(1,emp.shifts_available.count()+1):
+                shift = request.POST.get(f'bin-{i}')
+                shift = Shift.objects.get(name=shift.replace("shift-",""))
+                pref = emp.shift_sort_prefs.get_or_create(shift=shift)[0]
+                pref.score = i 
+                pref.rank = i - 1
+                pref.save()
+            messages.success(request, f"Success: {emp} shift sort preferences updated: {emp.shift_sort_prefs.all()}")
+            
+            return HttpResponseRedirect(emp.url())
+        
+        context = {
+            'employee':emp,
+            'nTotal': range(1,emp.shifts_available.all().count()+1),
+        }
+        return render(request,html_template,context)    
 
 class IdealFill:
     def levelA (request, slot_id):

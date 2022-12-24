@@ -128,7 +128,7 @@
               {% teamIcon %}<span>Coworker Views</span>
             </div></a
           >
-          <a href="{% url 'sch:employee-sort-shift-prefs' employee.slug %}"
+          <a href="{% url 'sch:emp-shift-sort' employee.slug %}"
             >Sort Shift Preferences</a
           >
           {% if employee.shift_sort_prefs.count > 0 %} 
@@ -146,8 +146,8 @@
             <h2 style="font-size: 22px; color: orange">PTO Requests</h2>
           </div>
           <a href="pto-request/add-range/"
-             class="rounded p-1 bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">
-              <i class="fas">{% plusIcon %}</i>
+             class="rounded p-1 text-2xs bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">
+              <i class="fas align-center">{% plusIcon '13x' '13px' 'black' %}</i>
               NEW
           </a>
 

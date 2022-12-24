@@ -146,6 +146,8 @@ week_patterns = [
     ),
     path('v2/week-hrs-empl-form/week/<int:weekpk>/empl/<str:emplpk>/', 
          views2.weekView__employee_possible_slots, name='week-hrs-empl-form'),
+    path('v2/week/next-week/<int:weekId>/', viewsets.WeekViews.nextWeek, name='next-week'),
+    path('v2/week/prev-week/<int:weekId>/', viewsets.WeekViews.prevWeek, name='prev-week')
 ]
 
 pay_period_patterns = [
@@ -267,38 +269,14 @@ slot_patterns = [
 
 employee_patterns = [
     # ? ==== Employees ==== ?#
-    path(
-        "employees/all/",
-        views.EMPLOYEE.EmployeeListView.as_view(), name="employee-list",
-    ),
-    path(
-        "employees/cpht/",
-        views.EMPLOYEE.EmployeeListViewCpht.as_view(), name="cpht-list",
-    ),
-    path(
-        "employees/rph/", 
-        views.EMPLOYEE.EmployeeListViewRph.as_view(), name="rph-list"
-    ),
-    path(
-        "employees/new-pharmacist/",
-        views.EMPLOYEE.PharmacistCreateView.as_view(), name="create-rph",
-    ),
-    path(
-        "employees/new-technician/",
-        views.EMPLOYEE.TechnicianCreateView.as_view(), name="create-cpht",
-    ),
-    path(
-        "employee/<str:empId>/",
-        views.EMPLOYEE.EmployeeDetailView.as_view(), name="v2-employee-detail",
-    ),
-    path(
-        "employee/<str:empId>/shift-tallies/",
-        views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name="employee-shift-tallies",
-    ),
-    path(
-        "employee/<str:empId>/shift-preferences/",
-        views.EMPLOYEE.shift_preference_form_view, name="shift-preferences-form",
-    ),
+    path("employees/all/", views.EMPLOYEE.EmployeeListView.as_view(), name="employee-list"),
+    path("employees/cpht/", views.EMPLOYEE.EmployeeListViewCpht.as_view(), name="cpht-list"),
+    path("employees/rph/", views.EMPLOYEE.EmployeeListViewRph.as_view(), name="rph-list"),
+    path("employees/new-pharmacist/", views.EMPLOYEE.PharmacistCreateView.as_view(), name="create-rph"),
+    path("employees/new-technician/", views.EMPLOYEE.TechnicianCreateView.as_view(), name="create-cpht"),
+    path("employee/<str:empId>/", views.EMPLOYEE.EmployeeDetailView.as_view(), name="v2-employee-detail"),
+    path("employee/<str:empId>/shift-tallies/", views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name="employee-shift-tallies"),
+    path("employee/<str:empId>/shift-preferences/", views.EMPLOYEE.shift_preference_form_view, name="shift-preferences-form"),
     path(
         "employee/<str:empId>/update/",
         views.EMPLOYEE.EmployeeUpdateView.as_view(), name="employee-update",
@@ -319,57 +297,22 @@ employee_patterns = [
         "employee/<str:nameA>/coworker/<str:nameB>/",
         views.EMPLOYEE.coWorkerView, name="coworker",
     ),
-    path(
-        "employee/<str:empId>/template-days-off/",
-        views.EMPLOYEE.employeeTemplatedDaysOffView, name="employee-tdos",
-    ),
-    path(
-        "employee/<str:name>/template-days-off/match/",
-        views.EMPLOYEE.employeeMatchCoworkerTdosView, name="employee-days-off",
-    ),
-    path(
-        "employee/<str:name>/pto-request/add/",
-        views.EMPLOYEE.EmployeeAddPtoView.as_view(), name="employee-add-pto",
-    ),
-    path(
-        "employee/<str:name>/pto-request/add-range/",
-        views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name="employee-add-pto-range",
-    ),
-    path(
-        "employee/<str:name>/generate-schedule/",
-        views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name="employee-schedule-form",
-    ),
-    path(
-        "v2/employee/<str:name>/generate-schedule/<str:sch>/",
-        views.EMPLOYEE.EmployeeScheduleView.as_view(), name="v2-employee-schedule",
-    ),
-    path(
-        "day-off-breakdown/", 
-        views.EMPLOYEE.tdoBreakdownView, name="day-off-breakdown"
-    ),
-    path(
-        "evening-fractions/", 
-         views.EMPLOYEE.eveningFractionView, name="pm-fractions"),
-    path(
-        "employee/<str:name>/sort-shift-prefs/",
-        views.EMPLOYEE.sortShiftPreferences, name="employee-sortable",
-    ),
-    path(
-        "v2/sort-shift-prefs/<str:slug>/",
-        views2.EmployeeSortShiftPreferences.as_view(), name="employee-sort-shift-prefs",
-    ),
-    path(
-        "v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/",
-        views.EMPLOYEE.EmployeePtoFormView.as_view(), name="employee-sortable-down",
-    ),
-    path(
-        'v2/employee/choose-schedule/<str:empId>/',
-        views2.EmployeeChooseSchedule.as_view(), name="employee-choose-schedule",
-    ),
-    path(
-        'v2/employee/choose-schedule/<str:empId>/<str:schId>/',
-        views2.schDetailSingleEmployeeView, name="empl-schedule-detail",
-    ),
+    path("employee/<str:empId>/template-days-off/",views.EMPLOYEE.employeeTemplatedDaysOffView, name="employee-tdos"),
+    path("employee/<str:name>/template-days-off/match/",views.EMPLOYEE.employeeMatchCoworkerTdosView, name="employee-days-off"),
+    path("employee/<str:name>/pto-request/add/",views.EMPLOYEE.EmployeeAddPtoView.as_view(), name="employee-add-pto"),
+    path("employee/<str:name>/pto-request/add-range/",views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name="employee-add-pto-range"),
+    path("employee/<str:name>/generate-schedule/",views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name="employee-schedule-form"),
+    path("v2/employee/<str:name>/generate-schedule/<str:sch>/",
+        views.EMPLOYEE.EmployeeScheduleView.as_view(), name="v2-employee-schedule"),
+    path("day-off-breakdown/",views.EMPLOYEE.tdoBreakdownView, name="day-off-breakdown"),
+    path("evening-fractions/", views.EMPLOYEE.eveningFractionView, name="pm-fractions"),
+    path("employee/<str:name>/sort-shift-prefs/",views.EMPLOYEE.sortShiftPreferences, name="employee-sortable",),
+    path("v2/sort-shift-prefs/<str:slug>/",views2.EmployeeSortShiftPreferences.as_view(),name="employee-sort-shift-prefs"),
+    path("v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/",
+         views.EMPLOYEE.EmployeePtoFormView.as_view(),name="employee-sortable-down"),
+    path('v2/employee/choose-schedule/<str:empId>/',views2.EmployeeChooseSchedule.as_view(),name="employee-choose-schedule"),
+    path('v2/employee/choose-schedule/<str:empId>/<str:schId>/',views2.schDetailSingleEmployeeView,name="empl-schedule-detail"),
+    path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
 ]
 
 schedule_patterns = [
@@ -476,22 +419,13 @@ schedule_patterns = [
         views2.generate_schedule_form,
         name="generate-new-schedule",
     ),
-    path(
-        "v2/schedule-empl-pto/<str:schId>/<str:empl>/",
-        views2.pto_schedule_form,
-        name="v2-schedule-empl-pto",
-    ),
-    path(
-        "v2/schedule/slot-table-view/<str:schId>/",
-        views2.schDetailSlotTableView,
-        name="sch-detail-slot-table",
-    ),
-    path(
-        "v2/schedule/tdo-conflicts-table/<str:schId>/",
-        views2.schTdoConflictTableView,
-        name="sch-tdo-conflicts",
-    ),
+    path("v2/schedule-empl-pto/<str:schId>/<str:empl>/", views2.pto_schedule_form, name="v2-schedule-empl-pto"),
+    path("v2/schedule/slot-table-view/<str:schId>/", views2.schDetailSlotTableView, name="sch-detail-slot-table"),
+    path("v2/schedule/tdo-conflicts-table/<str:schId>/", views2.schTdoConflictTableView,name="sch-tdo-conflicts"),
+    path("v2/schedule/pto-conflicts/<str:schId>/", views2.schDetailPtoConflicts, name="sch-pto-conflicts"),
     path("v2/compare-schedules/<str:schId1>/<str:schId2>/", viewsets.SchViews.compareSchedules, name="compare-schedules"),
+    path("v2/schedule/fte-percents/<str:schId>/", viewsets.SchViews.schFtePercents, name="sch-fte-percents"),
+    path('api/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSR, name='api-sch-emusr'),
 ]
 
 test_patterns = [

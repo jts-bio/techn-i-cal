@@ -1213,6 +1213,8 @@ class EMPLOYEE:
                             else:
                                 sft = ShiftTemplate.objects.create(sd_id=sdid,employee=employee, shift=shift)
                                 sft.save()
+                    messages.success (request, 
+                                      f"{employee} - Shift Templates successfully updated! [{len(formset)} total]")
                             
                 return HttpResponseRedirect(employee.url())
                 
@@ -1308,7 +1310,7 @@ class EMPLOYEE:
                 print(form.errors)
             return HttpResponseRedirect('/sch/employee/{}'.format(name))
         
-        context['form'].initial = {'employee':employee}
+        context['form'].initial = {'employee': employee }
         return render (request, template_name, context)
            
     class EmployeeAddPtoView (FormView):

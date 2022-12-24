@@ -15,6 +15,16 @@ SCHEDULE DETAIL VIEW
             background-repeat: repeat;
             background-size: 30%;
         }
+        .loading-dimmer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: none;
+        }
     </style>
 {% endblock style %}
     
@@ -58,23 +68,34 @@ SCHEDULE DETAIL VIEW
                             {{ schedule.slots.tdoConflicts.count }} Day Off Conflicts
                         </a>
                     {% else %}
-                        <span class="text-2xs text-zinc-600"><span class="text-green-500">⎷</span> No Day Off Conflicts</span>
+                        <span class="text-2xs text-zinc-500"><span class="text-green-500">⎷</span> No Day Off Conflicts</span>
                     {% endif %}
                 </div>
                 <div>
-                    {% if schedule.slots.empty.exists %}
+                    {% if schedule.slots.empty.count > 0 %}
                         <a class="text-2xs text-red-500" href="{% url 'sch:v2-schedule-detail-empty-slots' schedule.pk %}">
-                            {{ schedule.slots.empty.count }} Empty Slots
+                            {{ schedule.slots.empty.count }} EMPTY SLOTS
                         </a>
                     {% else %}
                         <span class="text-2xs text-zinc-600"><span class="text-green-500">⎷</span> No Empty Slots</span>
                     {% endif %}
                 </div>
+    
+                <div>
+                    {% if schedule.pto_conflicts.count > 0 %}
+                        <a class="text-2xs text-red-500" href="{% url 'sch:sch-pto-conflicts' schedule.slug %}">
+                            {{ schedule.pto_conflicts.count }} PTO CONFLICTS
+                        </a>
+                    {% else %}
+                        <span class="text-2xs text-zinc-600"><span class="text-green-500">⎷</span> No PTO Conflicts</span>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        <div class="bg-zinc-900 rounded-lg w-fc p-4 vstack">
-            <div class="float-left w-9 h-9 center text-center 
-                        text mt-6 my-5 rounded-full 
+        <div class="bg-zinc-900 rounded-lg w-fc p-4 vstack justify-center shadow shadow-lg">
+            <h3 class="text-slate-300 text-light">PROGRESS</h3>
+            <div class="float-left w-12 h-12 center center-self text-center 
+                        text mt-6 my-5 rounded-full pt-2
                         border border-4  border-slate-500 font-light
                             {% if schedule.percent < 90 %} 
                                 ring ring-offset-2 ring-amber-400 text-amber-200
@@ -86,19 +107,41 @@ SCHEDULE DETAIL VIEW
             <div class="flex flex-col flex-shrink align-center">
                 <div id="progress-bar" class='center-self w-24'>
                     {% with schedule.percent as percentage %}
-                    {% progressBar percentage 'amber' %} {% endwith %}
+                        {% if schedule.percent < 90 %} 
+                            {% progressBar percentage 'amber' %}
+                        {% else %} 
+                            {% progressBar percentage 'green' %}
+                        {% endif %}
+                     {% endwith %}
                 </div>
             </div>
         </div>
+        <div class="bg-zinc-900 rounded-lg w-fc p-4 vstack">
+            <div class="text-lg font-light tracking-wider text-amber-200" title="Expected Morning Shift Unfavorable Requirement">
+                <i class="fas">{% sunMoon %}</i>
+                EMSUR
+            </div>
+            <div class="text-2xs jbm">
+                    {% for emp_emusr in emusr %}
+                        {{ emp_emusr.name }}: 
+                        {{ emp_emusr.emusr|floatformat:0 }} shifts<br/>
+                    {% endfor %}
+            </div>
+            
+        </div>
     </div>
 
-    <div id="alt-view-linkbox">
+    <div class="flex flex-row center center-content center-self gap-5 space-between"
+         id="alt-view-linkbox">
         <a  href="{% url 'sch:v2-schedule-as-empl-grid' schedule.slug %}" 
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
-            VIEW AS EMPLOYEE GRID</a>
+        VIEW AS EMPLOYEE GRID </a>
         <a  href="{% url 'sch:v2-schedule-as-shift-grid' schedule.slug %}" 
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
-            VIEW AS SHIFT GRID</a>
+        VIEW AS SHIFT GRID </a>
+        <a  href="{% url 'sch:sch-fte-percents' schedule.slug %}"
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+        VIEW FTE-SCHEDULED RATIOS </a>
     </div>
         
     <div>
@@ -112,20 +155,25 @@ SCHEDULE DETAIL VIEW
             </form> 
     </div>
     </div>
-    
-            <div class="overflow-x-auto"> 
-                    {# ========= SCHEDULE TABLE ========= #}
-                    {% include 'sch2/schedule/complex-table.html' %}
-            </div>
-       
+    <div class="flex text text-center">
+        <div class="overflow-x-auto"> 
+                {# ========= SCHEDULE TABLE ========= #}
+                {% include 'sch2/schedule/complex-table.html' %}
+        </div>
+    </div>   
 
 </div>
-    <form method="POST"> {% csrf_token %}
-        <h2>Access Employee PTO Management for this schedule</h2>
-            
-            {{ form }}
-
-        <button type="submit">SUBMIT</button>
+    <form method="POST">{% csrf_token %}
+        <select name="view-pto-empl-select" id="view-pto-empl" class="px-3 font-extralight" onchange="location = this.value;">
+            <option value="">
+                View Employee Schedule PTO 
+            </option>
+        {% for employee in employees %}
+            <option value="{% url 'sch:v2-schedule-empl-pto' schedule.pk employee.pk %}">
+                {{ employee }}'s PTO Requests
+            </option>
+        {% endfor %}
+        </select>
     </form>
 
     <form method="POST" action="{% url 'sch:sch-time-pref-fill' schedule.pk %}"> 
@@ -133,28 +181,6 @@ SCHEDULE DETAIL VIEW
         <input type="submit" value="Perform Time-Preference Aware Fill"/>
     </form>
 
-<div class="panel">
-
-    <h3>Schedule PTO Requests</h3>
-    <div class="hstack">
-        <div class="vstack center text text-center">
-            <div class="h-7 w-7 ring ring-slate-300 text-lg border border-white rounded-full shadow-lg align-baseline align-content">
-                {{ schedule.pto_requests.all.count }} </div>
-            <div class="text-2xs text-slate-900 italic font-light">
-                PTO Requests
-            </div>
-        </div>
-        <div class="vstack center text text-center">
-            <div class="h-7 w-7 border border-red-300 rounded-full text-red-200">
-                {{ schedule.pto_requests.violated.count }} </div>
-                <span>Violated</span>
-        </div>
-    </div>
-    
-
-    
-
-</div>
 
 
     
