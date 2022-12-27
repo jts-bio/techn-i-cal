@@ -66,12 +66,14 @@
 				{% if messages %}
 					<div class="absolute bottom-0 right-0">
 						{% for message in messages %}
+						<div class="message">
 						<div x-data="{ notification: true }"
 							x-init="$watch('notification', function(value){ if(value){ setTimeout(function(){ notification=false; }, 4000) } })"
 							class="fixed right-6 bottom-4">
 							<div x-show="notification" x-transition
 								class="flex items-center justify-between max-w-sm p-4 bg-slate-800 border rounded-md shadow-sm">
 								<div class="flex items-center">
+								
 								<svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-green-400" viewBox="0 0 20 20" fill="currentColor">
 									<path fill-rule="evenodd"
 									d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
@@ -80,13 +82,25 @@
 								<p class="ml-3 text-2xs jbm font-light text-green-100">{{ message }}</p>
 								</div>
 								<span @click="notification=false;" class="inline-flex items-center cursor-pointer">
-								<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24"
-									stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-								</svg>
+
+								<div class="px-2" 
+									 _="on click  
+											set msg to the closest <div.message/> then 
+										
+											transition msg.height to 0 over 1s
+											then hide msg
+										end ">
+
+									<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24"
+										stroke="currentColor">
+										<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+									</svg>
+								</div>
+
 								</span>
 							</div>
 							</div>
+						</div>
 						</div>
 						{% endfor %}
 					</div>

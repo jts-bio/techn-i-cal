@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% load tags %}
+
+
+
+{% block style %}
+
+{% endblock style %}
+    
+
+
+{% block content %}
+
+    <a href="{{ sch.url }}"><i class="fas">{% backArrow %}</i>Back</a>
+
+    <h1 class="text-2xl font-bold text-indigo-200 jbm">{{ sch }} EMUSR View</h1>
+
+    <div class="grid grid-cols-3 gap-5">
+
+        {% for empl in emusr %}
+            {% if empl.difference < 0 %}
+                <div class="bg-zinc-900 ring ring-zinc-200 rounded shadow shadow-sm p-5 hover:transition hover:scale-125 hover:translate-y-2">
+                    <h4 class="helv text-light text-lg">{{ empl.name }}</h4>
+                    <span class="text-pink-300">Expected #</span> {{ empl.emusr }}
+                    <br/>
+                    <span class="text-pink-300">Actual #</span> {{ empl.count}} ({{ empl.difference }})
+                </div>
+            {% else %}
+                <div class="bg-zinc-900 ring ring-zinc-200 rounded shadow shadow-sm p-5 hover:transition hover:scale-125 hover:translate-y-2">
+                    <h4 class="helv text-light text-lg">{{ empl.name }}</h4>
+                    <span class="text-amber-300">Expected #</span> {{ empl.emusr }}
+                    <br/>
+                    <span class="text-amber-300">Actual #</span> {{ empl.count}} ({{ empl.difference }})
+                </div>
+                {% endif %}
+
+        {% endfor %}
+    
+    </div>
+    
+{% endblock content %}
+    

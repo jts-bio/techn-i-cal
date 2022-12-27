@@ -73,6 +73,8 @@ def schDetailView (request, schId):
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
     schedule = Schedule.objects.get(slug=schId)
+    slots = schedule.slots.all()
+    
 
     action1 = {
         "name":    "Solve: Method A",
@@ -103,13 +105,17 @@ def schDetailView (request, schId):
             )
         else:
             messages.warning (request, "Form is invalid")
+            
+    emusr = Employee.objects.template_ratio()
+    emusr = viewsets.SchViews.schEMUSR(0,schedule.slug)
 
     context = {
         "schedule": schedule,
         "actionDropdown": actionDropdown,
         "employees": Employee.objects.all(),
         "form": EmployeeSelectForm,
-        "emusr": viewsets.SchViews.schEMUSR(0,schedule.slug)
+        "emusr": emusr
+            #viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
     form = EmployeeSelectForm()
     return render(request, "sch2/schedule/sch-detail.html", context)

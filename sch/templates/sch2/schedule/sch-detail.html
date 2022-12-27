@@ -116,19 +116,7 @@ SCHEDULE DETAIL VIEW
                 </div>
             </div>
         </div>
-        <div class="bg-zinc-900 rounded-lg w-fc p-4 vstack">
-            <div class="text-lg font-light tracking-wider text-amber-200" title="Expected Morning Shift Unfavorable Requirement">
-                <i class="fas">{% sunMoon %}</i>
-                EMSUR
-            </div>
-            <div class="text-2xs jbm">
-                    {% for emp_emusr in emusr %}
-                        {{ emp_emusr.name }}: 
-                        {{ emp_emusr.emusr|floatformat:0 }} shifts<br/>
-                    {% endfor %}
-            </div>
-            
-        </div>
+        {% include 'sch2/schedule/detail/sch-emusr-panel.html' %}
     </div>
 
     <div class="flex flex-row center center-content center-self gap-5 space-between"
@@ -145,15 +133,12 @@ SCHEDULE DETAIL VIEW
     </div>
         
     <div>
-    <div class="float-right mx-6">
-            <form method="POST"> {% csrf_token %}
-            {{ actionDropdown }}
-                {# ACTIONS DROPDOWN BUTTON #} 
-                {#______SOLVE W/ALGORITHM___#}
-                {#______SOLVE w/MACH.LEARNING___#}
-                {#______DELETE SCHEDULE SLOTS___#}
-            </form> 
-    </div>
+        <div class="float-right mx-6">
+                <form method="POST"> 
+                    {% csrf_token %}
+                    {{ actionDropdown }}
+                </form> 
+        </div>
     </div>
     <div class="flex text text-center">
         <div class="overflow-x-auto"> 

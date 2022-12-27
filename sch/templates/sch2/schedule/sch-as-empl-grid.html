@@ -68,9 +68,22 @@
                     <tr>
                         <th class="stl">{{ employee }}</th>
                         {% for assignment in assignments %}
-                            <td><a class="bg-inherit font-light text-2xs text-slate-400
-                                            {% if assignment.pto_conflicts.exists %} bg-red-200 shadow w-2 h-2 bg-opacity-40 text-shadow text-red-300 font-bold pl-1 {% endif %}"
-                                    href="{{assignment.url|default:'#'}}">{{ assignment.shift|default:"." }}</a></td>
+                            {% if assignment == "PTO" %}
+                                <td><a class="bg-inherit font-light text-2xs text-indigo-600"
+                                        href="{{assignment.url|default:'#'}}">{{ assignment|default:"PTO" }}</a></td>
+                            {% else %}
+                                <td><a class="bg-inherit font-light text-2xs text-slate-400 
+                                            {% if assignment.shouldBeTdo == True %}    
+                                                    text-amber-600 font-bold {% endif %}
+                                            {% if assignment.pto_conflicts.exists %} 
+                                                    bg-red-200 shadow w-2 h-2 bg-opacity-40 
+                                                    text-shadow text-red-300 font-bold pl-1 
+                                            {% endif %}"
+                                    href="{{assignment.url|default:'#'}}">{{ assignment.shift|default:"." }}
+                                    {% if assignment.is_unfavorable %} <span class="text-amber-300 font-bold"> ● </span> {% endif %}
+                                    </a>
+                                </td>
+                            {% endif %}
                         {% endfor %}
                     </tr>
                     {% endfor %}

@@ -669,3 +669,11 @@ class ScheduleActions:
             if slots.filter(workday__sd_id=t.sd_id).exists() == False:
                 empty += [t]
         return empty
+    
+    def solveEveningsOnly (self, schId):
+        sch = Schedule.objects.get(slug=schId)
+        slots_to_solve = sch.slots.empty().filter(shift__start__hour__gte=10)
+        init_count = slots_to_solve.count()
+        for slot in slots_to_solve:
+            slot.fill_with_template()
+            # TODO : finish this method

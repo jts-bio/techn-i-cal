@@ -47,33 +47,33 @@
     class="flex flex-col md:flex-row flex-1 md:flex-0 overscroll-x-auto mx-12 md:mx-52 gap-10 my-3"
   >
     <a href="/sch/v2/schedule/list">
-      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
-        <img class="object-cover w-full h-48" src="static/img/ScheduleImg.png" alt="Schedules"/>
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5">
+        <img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png" alt="Schedules"/>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Schedules</h4>
         </div>
       </div>
-      <p class="leading-normal mt-2 text-sm jbm text-zinc-300 text-shadow">All your schedules organized into Pay Periods, Weeks, Workdays, and individual Slots.</p>
+      <p class="leading-normal mt-2 text-2xs jbm text-zinc-300 text-shadow">All your schedules organized into Pay Periods, Weeks, Workdays, and individual Slots.</p>
     </a>
 
     <a href="/sch/shifts/all/">
-      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
-        <img class="object-cover w-full h-48" src="/static/img/ChemistBackground.png" alt="Shifts"/>
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5">
+        <img class="object-cover w-full h-48 rounded" src="/static/img/ChemistBackground.png" alt="Shifts"/>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Shifts</h4>
         </div>
       </div>
-      <p class="leading-normal mt-2 text-sm jbm text-slate-300 text-shadow">Manage information about shifts and when they are scheduled.</p>
+      <p class="leading-normal mt-2 text-2xs jbm text-slate-300 text-shadow">Manage information about shifts and when they are scheduled.</p>
     </a>
 
     <a href="/sch/employees/all/">
-      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring">
-        <img class="object-cover w-full h-48 backdrop-contrast-200" src="/static/img/Orchestra.png" alt="Employees"/>
+      <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:transition hover:scale-107 hover:-translate-y-5">
+        <img class="object-cover w-full h-48 backdrop-contrast-200 rounded" src="/static/img/Orchestra.png" alt="Employees"/>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Employees</h4>
         </div>
       </div>
-      <p class="leading-normal mt-2 text-sm jbm text-slate-300 text-shadow">Manage employee information, preferences, scheduling constraints, and more.</p>
+      <p class="leading-normal mt-2 text-2xs jbm text-slate-300 text-shadow">Manage employee information, preferences, scheduling constraints, and more.</p>
     </a>
 
   </div>
@@ -91,5 +91,7 @@
   </div>
 </div>
 </div>
+
+
 
 {% endblock %}

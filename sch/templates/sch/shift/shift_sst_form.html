@@ -32,15 +32,25 @@
         <form method="post"> {% csrf_token %}
         {{ formset.management_form }}
 
-            <div class="panel grid-7-by-2">
-                    {% for form in formset %}   {{ form.as_div }}    {% endfor %}
-            </div>
+        <div class="panel grid-7-by-2" onload="dimElementsOnLoad()">
+            {% for form in formset %}   {{ form.as_div }}    {% endfor %}
+          </div>
 
             <input 
                 class="btn btn-primary bg-slate-200 ring-slate-800 ring-offset-slate-200 text-green-900 w-2/3"
                 type="submit" 
                 value="Submit">
         </form>
+
+
+
+        <script id="DIM-ELEMENTS-ON-LOAD">
+            function dimElementsOnLoad () {
+                if (this.children[1].innerHTML === '---------') {
+                    this.children[1].style.backgroundColor = '#444444';
+                  }    
+            }
+        </script>
 
 {% endblock content %}
 

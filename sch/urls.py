@@ -18,11 +18,7 @@ app_name = "sch"
 urlpatterns = [
     path("", views.index, name="index"),
     # ? ==== PTO Requests ==== ?#
-    path(
-        "pto-requests/all/", 
-        views.PTO.PtoManagerView.as_view(), 
-        name="pto-request-list"
-    ),
+    path("pto-requests/all/", views.PTO.PtoManagerView.as_view(), name="pto-request-list"),
     # ? ==== DOCS ==== ?#
     path("docs/week/", views.DOCUMENTATION.weekly, name="docs-week"),
 ]
@@ -31,16 +27,8 @@ user_patterns = []
 
 workday_patterns = [
     # ? ==== Workday ==== ?#
-    path(
-        "workday-list-view/all/",
-        views.WORKDAY.WorkdayListView.as_view(),
-        name="v2-workday-list",
-    ),
-    path(
-        "v1/workday-detail/<str:slug>/",
-        views.WORKDAY.WorkDayDetailView.as_view(),
-        name="v1-workday-detail",
-    ),
+    path("workday-list-view/all/",views.WORKDAY.WorkdayListView.as_view(),name="v2-workday-list",),
+    path("v1/workday-detail/<str:slug>/",views.WORKDAY.WorkDayDetailView.as_view(),name="v1-workday-detail"),
     path(
         "day/<slug:date>/fill-template/",
         views.WORKDAY.workdayFillTemplate,
@@ -426,6 +414,7 @@ schedule_patterns = [
     path("v2/compare-schedules/<str:schId1>/<str:schId2>/", viewsets.SchViews.compareSchedules, name="compare-schedules"),
     path("v2/schedule/fte-percents/<str:schId>/", viewsets.SchViews.schFtePercents, name="sch-fte-percents"),
     path('api/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSR, name='api-sch-emusr'),
+    path('v2/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
 ]
 
 test_patterns = [

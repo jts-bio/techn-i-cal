@@ -1,7 +1,8 @@
 from sch.models import *
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from django.db.models import Sum, Case, When, FloatField
+from django.db.models import Sum, Case, When, FloatField, IntegerField, F, Value
+from django.db.models.functions import Cast
 
 class Actions:
     class SlotActions:
@@ -73,7 +74,9 @@ class WeekViews:
 class SchViews:
     
     def schFtePercents (request, schId):
+        
         html_template = 'sch2/schedule/fte-percents.html'
+        
         sch = Schedule.objects.get(slug=schId)
         # annotate a list of all employees with the sum of their scheduled hours of slots in sch.slots.all
         empls = Employee.objects.annotate(
@@ -89,7 +92,9 @@ class SchViews:
         return render(request,html_template,context)
     
     def compareSchedules (request, schId1, schId2):
+        
         html_template = 'sch2/schedule/sch-compare.html'
+        
         sch1 = Schedule.objects.get(slug=schId1)
         sch2 = Schedule.objects.get(slug=schId2)
         days = []
@@ -118,11 +123,38 @@ class SchViews:
         remaining_pm = n_pm - pm_empls_shifts
         full_template_emps = Employee.objects.full_template_employees().values('pk')
         am_empls_fte_sum = sum(list(Employee.objects.filter(time_pref__in=['Morning']).exclude(pk__in=full_template_emps).values_list('fte',flat=True)))
-        emusr = Employee.objects.filter(time_pref='Morning').exclude(pk__in=full_template_emps).annotate(
-            emusr = (F('fte')* remaining_pm / am_empls_fte_sum)).order_by('-emusr')
-        return emusr.values('name','fte','emusr')
 
+        unfavorables = sch.slots.unfavorables().values('employee')
+        unfavorables = unfavorables.annotate(count=Value(1, output_field=IntegerField()))
+        unfavorables = unfavorables.values('employee').annotate(count=Sum('count'))
 
+        query = Employee.objects.filter(
+                                time_pref='Morning'
+                            ).exclude(
+                                pk__in=full_template_emps
+                            ).annotate(
+                                emusr=Cast(
+                                    F('fte') * remaining_pm / am_empls_fte_sum,
+                                    output_field=IntegerField()
+                                )
+                            ).order_by('-emusr').annotate(
+                                count=Subquery(
+                                    unfavorables.filter(employee=OuterRef('pk')).values('count')
+                                )
+                            ).annotate(
+                                difference=F('emusr') - F('count')
+                            )
+        return query
+
+    def schEMUSRView (request, schId):
+        html_template = 'sch2/schedule/emusr.html'
+        sch = Schedule.objects.get(slug=schId)
+        emusr = SchViews.schEMUSR(None,sch.slug)
+        context = {
+            'sch':sch,
+            'emusr':emusr.exclude(emusr=0),
+        }
+        return render(request,html_template,context)
         
 
 
