@@ -15,28 +15,49 @@
         <h2 class="text-xl text-bold jbm text-amber-300">
             Schedule Empty Slots
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4">
+        <div class="grid grid-cols-2 md:grid-cols-3">
         {% for slot in schedule.slots.empty %}
         <form method="POST"> {% csrf_token %}   
             <div class="my-2">
                 <input type="hidden" name="slot" value="{{slot.pk}}"/>
-                <label>
-                    {{ slot.shift }} // {{ slot.workday.date }}
+                <label class="text-xs">
+                    <div class="flex flex-row">
+                    <span class="font-extrabold text-slate-900 bg-slate-100 rounded-sm text-xl pl-1 w-8">{{ slot.shift }}</span> 
+                    <div class="flex flex-col mx-2 px-1">
+                    <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
+                    <span>{{ slot.workday.date }}</span>
+                    </div>
                     <select name="employee" 
-                            id="employee" placeholder="{{ slot.fillable_by.count }}"
+                            id="employee"
                             _="on focus 
                                     add .hidden 
                                         to <input/> then
                                     remove .hidden
-                                        from the next <input/> end"
-                                >
-                        <option class="text-xs text-zinc-600 w-30" value="">{{ slot.fillable_by.count }} options</option>
+                                        from the next <input/> 
+                                    then add .bg-indigo-900 .ring 
+                                             .ring-indigo-300 
+                                             .p-3 .rounded 
+                                        to the closest <form/>
+                                end"
+                            class="bg-zinc-900 rounded w-full border-zinc-400 mr-8
+                                   shadow shadow-lg"
+                                {% if slot.fillable_by.count == 0 %} disabled {% endif %}>
+                        <option value="" selected disabled>{{ slot.fillable_by.count }} options.. </option>
                         {% for employee in slot.fillable_by %}
-                            <option name="{{employee}}" value="{{employee.pk}}"> {{ employee.name }} </option>    
+                        <option id="{{employee}}" 
+                            value="{{employee.pk}}" > 
+                            {{ employee.name }} 
+                        </option>    
                         {% endfor %}
+
                     </select>
+                </div>
                 </label>
-                <input type="submit" class="hidden bg-zinc-900 rounded shadow shadow-lg" id="{{slot.shift}}-{{slot.workday.slug}}-submit" value="✔︎"/>
+                <input type="submit" 
+                       class="hidden bg-zinc-900 rounded w-full border-zinc-400
+                              shadow shadow-lg hover:bg-indigo-500 hover:transition hover:duration-1700 hover:rotate-6 hover:scale-110 hover:ring hover:ring-amber-300" 
+                        id="{{slot.shift}}-{{slot.workday.slug}}-submit" 
+                        value="ASSIGN" />
             </div>
         </form>
         {% endfor %}

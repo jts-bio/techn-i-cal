@@ -16,23 +16,58 @@
 
     <h1 class="text-2xl font-bold text-indigo-200 jbm">{{ sch }} EMUSR View</h1>
 
+    <div class='text-underline italic border border-slate-200 p-2 my-4 rounded-lg hover:bg-slate-900'
+        _= "on click toggle .hidden on <div#explaination/>">
+        What's this?
+    </div>
+    <div id="explaination" 
+         class="hidden flex bg-sky-900 opacity-60 text-xs rounded px-9 py-2 shrink mb-7">
+        EMUSR (Expected Morning Unfavorable Shift Requirements) is a metric that represents the proportionally ideal way to distribute unfavorable shifts among employees who prefer working "business hours" shifts.
+        <br/>
+        <br/>
+        The metric is calculated taking into account the employee's FTE, their preference for morning shifts, and the relative amount of Evening employees PTO utilization in the current schedule.
+    </div>
+
     <div class="grid grid-cols-3 gap-5">
 
         {% for empl in emusr %}
             {% if empl.difference < 0 %}
-                <div class="bg-zinc-900 ring ring-zinc-200 rounded shadow shadow-sm p-5 hover:transition hover:scale-125 hover:translate-y-2">
-                    <h4 class="helv text-light text-lg">{{ empl.name }}</h4>
-                    <span class="text-pink-300">Expected #</span> {{ empl.emusr }}
-                    <br/>
-                    <span class="text-pink-300">Actual #</span> {{ empl.count}} ({{ empl.difference }})
+                <div class="items-center font-bold leading-10 bg-zinc-800 ring ring-zinc-900 rounded shadow shadow-sm p-5 hover:transition hover:scale-105 hover:translate-y-2 hover:shadow-white">
+                    <div class="flex flex-row place-content-between">
+                        <div>
+                            <div class="uppercase text-sm font-extrabold text-slate-300">
+                                {{ empl.name }}
+                            </div>
+                            <div class="text-lg text-slate-100">
+                                {{ empl.count }}
+                                <span class="text-slate-400 font-light text-xs"> / {{ empl.emusr }} expected unfavorable shifts</span>
+                            </div>
+                        </div>
+                        <div class="bg-pink-900 rounded-lg w-10 h-10 text text-center text-3xl opacity-50 text-pink-300"> 
+                            ⇱ 
+                        </div>
+                    </div>
+                    <div class="text-2xs font-light"><span class="text-pink-500 text-sm px-4 font-bold">
+                        {% widthratio empl.difference 1 -1 %}
+                    </span> EXCESS BURDEN </div>
                 </div>
             {% else %}
-                <div class="bg-zinc-900 ring ring-zinc-200 rounded shadow shadow-sm p-5 hover:transition hover:scale-125 hover:translate-y-2">
-                    <h4 class="helv text-light text-lg">{{ empl.name }}</h4>
-                    <span class="text-amber-300">Expected #</span> {{ empl.emusr }}
-                    <br/>
-                    <span class="text-amber-300">Actual #</span> {{ empl.count}} ({{ empl.difference }})
+            <div class="items-center font-bold leading-10 bg-zinc-800 ring ring-zinc-900 rounded shadow shadow-sm p-5 hover:transition hover:scale-105 hover:translate-y-2 hover:shadow-white">
+                <div class="flex flex-row place-content-between">
+                    <div>
+                        <div class="uppercase text-sm font-extrabold text-slate-300">
+                            {{ empl.name }}
+                        </div>
+                        <div class="text-lg text-slate-100">
+                            {{ empl.count }}
+                            <span class="text-slate-400 font-light text-xs"> / {{ empl.emusr }} expected unfavorable shifts</span>
+                        </div>
+                    </div>
+                    <div class="bg-amber-900 rounded-lg w-10 h-10 text text-center text-3xl opacity-50 text-amber-300"> 
+                        ⇲
+                    </div>
                 </div>
+            </div>
                 {% endif %}
 
         {% endfor %}

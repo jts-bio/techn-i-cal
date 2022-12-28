@@ -68,16 +68,23 @@ TEMPLATE VARIABLES
                         draggable='false'
                         class="{{ slot.cssAvailableEmps }} rounded p-1 m-2"
                         _="on dragover or dragenter halt the event 
-                                then set my style.background to '#44ff77'
+                                then set my style.background 
+                                    to '#44ff77'
                            on dragleave or drop 
-                                set my style.background to ''
+                                set my style.background 
+                                    to ''
                            on drop set tgt to the next <input/> then
                                 get event.dataTransfer.getData('text/plain') then
-                                set (the next <input/>)@value to result  
-                           then put the result into the next <span.output/>
-                           then add .bg-green-200 to the first <span/> in me
-                           on drop add .line-through .opacity-80 .px-0 to the first .empname in me then
-                           on drop remove .opacity-30 .italic from #savebutton">
+                                set (the next <input/>)@value 
+                                    to result  
+                           then put the result 
+                                into the next <span.output/>
+                           then add .bg-green-200 
+                                to the first <span/> in me
+                           on drop add .line-through .opacity-80 .px-0 
+                                to the first .empname in me
+                           on drop remove .opacity-30 .italic 
+                                from #savebutton" >
                         {% if slot.employee %}
                             <span class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</span>
                             <span class="text-indigo-300 font-light mr-3 empname">{{ slot.employee }}</span> 
@@ -143,12 +150,28 @@ TEMPLATE VARIABLES
 
         <div class="grow panel">
             {% if workday.tdo.count > 0 %}
-                <div class="grid grid-cols-2 w-fc">
+                <div class="grid grid-cols-2 w-fc"
+                    _="on dragstart
+                            call event.dataTransfer.setData('text/plain', target.value)">
+
                     {% for tdo in workday.tdo %}
-                        <a>
-                                <span class="rounded px-2 mx-1 text-sm text-zinc-900 bg-amber-600">TDO</span>
-                                <span class="text-amber-500 font-light mr-3">{{ tdo.employee }}</span> 
-                        </a>
+                        <button value="{{empl.slug}}"
+                                draggable
+                                _= "on dragstart 
+                                        add .bg-green-100 
+                                        to .{{empl.slug}}-available 
+                                    end
+                                    on dragend 
+                                        remove .bg-green-100 
+                                        from .{{empl.slug}}-available 
+                                    end"
+                                class="flex flex-row">
+                               
+                                <span class="text-amber-500 border border-amber-500 rounded px-2 pr-3 font-light mr-3"> 
+                                    <span class="rounded px-2 mx-1 text-sm text-zinc-900 bg-amber-600">TDO</span>
+                                    {{ tdo.employee }}
+                                </span> 
+                        </button>
                     {% endfor %}
                 </div>
             {% else %}
@@ -158,6 +181,7 @@ TEMPLATE VARIABLES
         
         </div>
     </div>
+    
 
 
     

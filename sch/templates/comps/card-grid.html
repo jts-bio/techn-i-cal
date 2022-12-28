@@ -2,7 +2,13 @@
     
     {% for employee in employees %}
     <a href="{% url 'sch:v2-employee-detail' employee.slug %}" 
-    class="col-span-1 bg-zinc-900 rounded-lg shadow shadow-black shadow-lg overflow-hidden">
+    class="col-span-1 bg-zinc-900 rounded-lg shadow shadow-black shadow-lg overflow-hidden
+           hover:bg-zinc-800 hover:scale-110 hover:-translate-y-3 hover:ring hover:transition
+           {% if employee.time_pref == 'Evening' %} hover:ring-blue-300 
+           {% elif employee.time_pref == 'Overnight' %} hover:ring-indigo-600 
+           {% else %} hover:ring-amber-500 
+           {% endif %}
+           ">
       <div class="px-6 py-4">
         <span class="shrink text-3xl font-semibold text-amber-500
                     {% if employee.time_pref == 'Evening' %} text-blue-400 {% elif employee.time_pref == 'Overnight' %} text-indigo-700 {% endif %}">{{ employee }}</span>

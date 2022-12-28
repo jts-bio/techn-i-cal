@@ -304,7 +304,7 @@ class ClearWeekSlotsForm (forms.Form) :
 
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
-    ppd_id   = forms.IntegerField(widget=forms.HiddenInput())
+    sd_id   = forms.IntegerField(widget=forms.HiddenInput())
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), required=False, widget=forms.Select(attrs={'class':'form-control'}))
 
     def __init__(self, *args, **kwargs):
@@ -312,23 +312,23 @@ class SstForm (forms.Form):
         # Select options set as form renders
         shift  = self.initial.get('shift')
         trained_emps = Employee.objects.filter(shifts_trained__name=shift)
-        conflicting_tmpl = ShiftTemplate.objects.filter(ppd_id=self.initial.get('ppd_id')).exclude(shift=shift).values('employee')
+        conflicting_tmpl = ShiftTemplate.objects.filter(sd_id=self.initial.get('sd_id')).exclude(shift=shift).values('employee')
         
         emp_choices = trained_emps.exclude(pk__in=conflicting_tmpl)
-        tdos = TemplatedDayOff.objects.filter(ppd_id=self.initial.get('ppd_id')).values('employee')
+        tdos = TemplatedDayOff.objects.filter(sd_id=self.initial.get('sd_id')).values('employee')
         emp_choices = emp_choices.exclude(pk__in=tdos)
-        if self.initial.get('ppd_id'):
-            if str(self.initial.get('ppd_id') % 7) in list(shift.occur_days):
+        if self.initial.get('sd_id'):
+            if str(self.initial.get('sd_id') % 7) in list(shift.occur_days):
                 self.fields['employee'].choices  = list(emp_choices.values_list('id','name')) + [("","---------------")] 
         else:
             self.fields['employee'].choices  = [("","---------------")] 
         
         if ShiftTemplate.objects.filter(
                     shift=shift, 
-                    ppd_id=self.initial.get('ppd_id')).exists():
+                    sd_id=self.initial.get('sd_id')).exists():
             self.fields['employee'].initial = ShiftTemplate.objects.get(
                         shift=shift, 
-                        ppd_id=self.initial.get('ppd_id')).employee
+                        sd_id=self.initial.get('sd_id')).employee
         
         # custom labels 
         wds = 'Sun Mon Tue Wed Thu Fri Sat'.split(" ")
@@ -337,6 +337,7 @@ class SstForm (forms.Form):
         except:
             pass
 
+SHIFT_UNIQUE_MESG = "Shifts must be unique."
 class SstFormSet (BaseFormSet):
     def clean(self):
         if any(self.errors):
@@ -346,7 +347,7 @@ class SstFormSet (BaseFormSet):
         for form in self.forms:
             shift = form.cleaned_data['shift']
             if shift in shifts:
-                raise forms.ValidationError("Shifts must be unique.")
+                raise forms.ValidationError(SHIFT_UNIQUE_MESG)
             shifts.append(shift)
 
 class PTOForm (forms.ModelForm) :
@@ -407,7 +408,7 @@ class SlotPriorityFormSet (BaseFormSet):
             shift = form.cleaned_data['shift']
             iweekday = form.cleaned_data['iweekday']
             if (shift, iweekday) in pairs:
-                raise forms.ValidationError("Shifts must be unique.")
+                raise forms.ValidationError(SHIFT_UNIQUE_MESG)
             pairs.append((shift, iweekday))
 
     def save(self, commit=True):
@@ -469,7 +470,7 @@ class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
         for form in self.forms:
             shift = form.cleaned_data['shift']
             if shift in shifts:
-                raise forms.ValidationError("Shifts must be unique.")
+                raise forms.ValidationError(SHIFT_UNIQUE_MESG)
             shifts.append(shift)
     
     def save(self, commit=True):

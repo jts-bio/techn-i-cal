@@ -65,7 +65,7 @@ SCHEDULE DETAIL VIEW
                 <div>
                     {% if schedule.slots.tdoConflicts.exists %}
                         <a href="{% url 'sch:sch-tdo-conflicts' schedule.pk %}" class="text-2xs text-red-500">
-                            {{ schedule.slots.tdoConflicts.count }} Day Off Conflicts
+                            {{ schedule.slots.tdoConflicts.count }} <span class="text-slate-600"> Day Off Conflicts</span> 
                         </a>
                     {% else %}
                         <span class="text-2xs text-zinc-500"><span class="text-green-500">⎷</span> No Day Off Conflicts</span>

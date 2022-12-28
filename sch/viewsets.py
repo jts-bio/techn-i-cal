@@ -1,4 +1,5 @@
 from sch.models import *
+from . import forms
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.db.models import Sum, Case, When, FloatField, IntegerField, F, Value
@@ -25,13 +26,13 @@ class Actions:
                 if slot.employee != empl_original:
                     msg = f"""Success! 
                     {slot.workday}-{slot.shift} Assigned to {slot.employee} 
-                    via [FILL-VIA-BESTCHOICE]"""
+                    via [FILL-VIA-BEST_CHOICE]"""
                     messages.success(request,msg)
                     return HttpResponseRedirect(slot.workday.url())
                 else:
                     msg = f"""No Change: 
                     {slot.workday}-{slot.shift} Assigned to {slot.employee} 
-                    via [FILL-VIA-BESTCHOICE]"""
+                    via [FILL-VIA-BEST_CHOICE]"""
                     messages.success(request,msg)
                     return HttpResponseRedirect(slot.workday.url())
             
@@ -121,8 +122,8 @@ class SchViews:
         pm_empls = Employee.objects.filter(time_pref__in=['Midday','Evening','Overnight'])
         pm_empls_shifts = sum(list(pm_empls.values_list('fte',flat=True))) * 24
         remaining_pm = n_pm - pm_empls_shifts
-        full_template_emps = Employee.objects.full_template_employees().values('pk')
-        am_empls_fte_sum = sum(list(Employee.objects.filter(time_pref__in=['Morning']).exclude(pk__in=full_template_emps).values_list('fte',flat=True)))
+        full_template_empls = Employee.objects.full_template_employees().values('pk')
+        am_empls_fte_sum = sum(list(Employee.objects.filter(time_pref__in=['Morning']).exclude(pk__in=full_template_empls).values_list('fte',flat=True)))
 
         unfavorables = sch.slots.unfavorables().values('employee')
         unfavorables = unfavorables.annotate(count=Value(1, output_field=IntegerField()))
@@ -131,18 +132,18 @@ class SchViews:
         query = Employee.objects.filter(
                                 time_pref='Morning'
                             ).exclude(
-                                pk__in=full_template_emps
+                        pk__in=full_template_empls
                             ).annotate(
-                                emusr=Cast(
-                                    F('fte') * remaining_pm / am_empls_fte_sum,
-                                    output_field=IntegerField()
-                                )
+                    emusr= Cast(
+                        F('fte') * remaining_pm / am_empls_fte_sum,
+                        output_field=IntegerField()
+                        )
                             ).order_by('-emusr').annotate(
-                                count=Subquery(
-                                    unfavorables.filter(employee=OuterRef('pk')).values('count')
+                        count=Subquery(
+                            unfavorables.filter(employee=OuterRef('pk')).values('count')
                                 )
                             ).annotate(
-                                difference=F('emusr') - F('count')
+                    difference=F('emusr') - F('count')
                             )
         return query
 
@@ -157,6 +158,54 @@ class SchViews:
         return render(request,html_template,context)
         
 
+class ShiftViews:
+    
+    def sstFormView (request, shiftId):
+        import json 
+        html_template = 'sch2/shift/sst-form.html'
+        shift = Shift.objects.get(name=shiftId)
+        days = {}
+        weekdays = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+        for i in range(42):
+            day = {}
+            day['sd_id'] = i,
+            day['shift_on_sd_id'] = str(i%7) in shift.occur_days
+            excludeEmployees = ShiftTemplate.objects.filter(sd_id=i).exclude(shift=shift).values_list('employee',flat=True)
+            exclude_tdos = TemplatedDayOff.objects.filter(sd_id=i).values_list('employee',flat=True)
+            excludeEmployees = Employee.objects.filter(pk__in=list(excludeEmployees)+list(exclude_tdos))
+            day['available'] = Employee.objects.filter(shifts_available__pk=shift.pk).exclude(pk__in=excludeEmployees)
+            day['initial']   = ShiftTemplate.objects.filter(sd_id=i,shift=shift).first()
+            days[i] = day
+            
+        initial_data = {
+            'shift':shift, 'sd_id': i , "employee": ShiftTemplate.objects.filter(sd_id=i,shift=shift).first().employee if ShiftTemplate.objects.filter(sd_id=i,shift=shift).first() else None
+        }
+        print(initial_data)
+        
+        if request.method == 'POST':
+            for sd_id, employee in request.POST.items():
+                if sd_id == 'csrfmiddlewaretoken':
+                    continue
+                else:
+                    sst = ShiftTemplate.objects.filter(shift=shift,sd_id=sd_id)
+                    if sst.exists():
+                        sst = sst.first()
+                        if employee == "":
+                            sst.delete()
+                            messages.INFO(request, sst.employee, sst.shift,"SCH DAY #", sst.sd_id, "[ DELETED SUCCESSFULLY ]")
+                        else:
+                            if sst.employee == Employee.objects.get(pk=employee):
+                                continue
+                            else:
+                                sst.employee = Employee.objects.get(pk=employee)
+                                sst.save()
+                                print(sst.employee, sst.shift,"SCH DAY #", sst.sd_id, "[ SAVED SUCCESSFULLY ]")
+                
+        context = {
+            'shift':shift,
+            'days':days
+        }
+        return render(request,html_template,context)
 
 class EmpViews:
     

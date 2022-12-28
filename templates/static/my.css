@@ -58,9 +58,9 @@
 		}
 		
 		select {
-			background: #888!important;
-			font-size: 18px!important;
-			color: #dddd!important;
+			background: #888;
+			font-size: 18px;
+			color: #dddd;
 			border: none;
 			border-radius: 5px!important;
 			padding: 5px;
@@ -101,10 +101,6 @@
 			color: #ddd;
 			background-color: #267a;
 			border-radius: 5px;
-		}
-		input[type="submit"]:hover {
-			background-color: #267;
-			color: #ddd;
 		}
 		aside {
 			background-color: #333;

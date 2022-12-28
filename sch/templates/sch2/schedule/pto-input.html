@@ -43,7 +43,7 @@
 
             {% for day in schedule.workdays.all %}
                 <div id="panel-{{day.slug}}" class="rounded bg-slate-400">
-                    <label for="{{day.sd_id}}-pto-checkbox" class="text-xs">
+                    <label for="{{day.sd_id}}-pto-checkbox" class="text-xs text-zinc-900">
                         <input 
                             _="on click @clickCount increment 1 end
                                 if @clickCount > 1 then
@@ -53,20 +53,29 @@
                             type="checkbox" 
                             name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
                             id="{{day.sd_id}}-pto-checkbox"
-                            {% if day.date in initial_pto_dates %} checked 
-                            {% endif %}
-                            {% if day.sd_id in tdos %} disabled 
-                            {% endif %}/>
+                                {% if day.date in initial_pto_dates %} 
+                                        checked {% endif %}
+                                {% if day.sd_id in tdos %} 
+                                        disabled {% endif %}/>
 
-                            {% if day.sd_id in tdos %}<span class="tooltip">Employee is templated off this day.<br> No PTO Request needed</span>
+                            {% if day.sd_id in tdos %}
+                                <span class="tooltip italic">
+                                    Employee is templated off this day.<br> No PTO Request needed
+                                </span>
                             {% endif %}
-                        {{day.date}}</label>
+
+                        {{day.date}}
+                    </label>
                 </div>
              
             {% endfor %}
 
         </div>
-        <input class="w-2/3 center border border-amber-400 rounded" type="submit" value="Submit">
+        <input class="w-2/3 center border border-amber-400 rounded
+                        hover:bg-amber-500 hover:transition 
+                        hover:scale-105 hover:shadow hover:shadow-lg"
+                type="submit" 
+                value="Submit" />
         </form>
     </div>
     

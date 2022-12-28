@@ -99,16 +99,17 @@
                     hover:ring-{% scoreColor sch.percent %}-400 
                     hover:ring">
                 <h3 class="text-indigo-400 font-extrabold text-shadow">
-                    Schedule {{sch.slug}}</h3>
+                    Schedule {{sch.slug}} 
+                </h3>
                 <div class="h-8 w-8 text-xs pt-2 m-2 ring
                             ring-{% scoreColor sch.percent %}-500 
                             bg-{% scoreColor sch.percent %}-100 
-                            ring-offset-2 text-slate-600 font-light text-center align-text rounded-full">
-                    {{ sch.percent }}%</div>
-                <div class="text-xs">
-                    {{ sch.start_date }} </div>
-                <div>
-                    {% if sch.status == 0 %} DRAFT {% endif %}</div>
+                            ring-offset-2 text-slate-600 font-light 
+                            text-center align-text rounded-full">
+                    {{ sch.percent }}%
+                </div>
+                <div class="text-xs"> {{ sch.start_date }} </div>
+                <div> {% if sch.status == 0 %} DRAFT {% endif %} </div>
             </a>
             {% endfor %}
 

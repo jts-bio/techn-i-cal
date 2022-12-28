@@ -4,11 +4,13 @@
 
 
 {% block content %}
-
-<h1 class="text-2xl font-bold text-shadow shadow">
-    Schedule {{ sch.number }} 
-    <span>({{ sch.year }})</span>
-</h1>
+<div>
+    <a href="{{sch.url}}"
+    class="text-2xl font-bold text-shadow shadow">
+        Schedule {{ sch.number }} 
+        <span>({{ sch.year }})</span>
+    </a>
+</div>
 
 <a class="text-indigo-600 italic" href="{{employee.url}}">Back to Employee</a>
 <h2  class="text-3xl font-extrabold text-indigo-300">

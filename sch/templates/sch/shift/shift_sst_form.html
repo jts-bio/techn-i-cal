@@ -26,13 +26,15 @@
             <div class="ml-2">Back to Shifts</div>
         </a>
 
-        <h1>{{shift}}</h1>
-        <h4>Shift Templating</h4>
+        <div class="text text-center">
+            <h1 class="text-2xl text-sky-200 text-extrabold text-shadow">{{shift}}</h1>
+            <h4 class="text-light text-sky-500">Shift Templating</h4>
+        </div>
 
         <form method="post"> {% csrf_token %}
         {{ formset.management_form }}
 
-        <div class="panel grid-7-by-2" onload="dimElementsOnLoad()">
+        <div class="panel grid-7-by-2 w-full" onload="dimElementsOnLoad()">
             {% for form in formset %}   {{ form.as_div }}    {% endfor %}
           </div>
 
@@ -43,10 +45,22 @@
         </form>
 
 
+        <form method="POST">
+            {% csrf_token %}
+            {% for day in day_ids %}
+                <label>{{ day|add:1 }}
+                    <select name="empl-select-{{ day|add:1 }}" id="empl-select-{{ day|add:1 }}">
+                        {% if %}
+                    </select>
+                </label>
+            {% endfor %}
+        </form>
+
+
 
         <script id="DIM-ELEMENTS-ON-LOAD">
             function dimElementsOnLoad () {
-                if (this.children[1].innerHTML === '---------') {
+                if (this.children[1].value === '' {
                     this.children[1].style.backgroundColor = '#444444';
                   }    
             }

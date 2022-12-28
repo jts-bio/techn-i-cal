@@ -1304,7 +1304,6 @@ class Slot (models.Model) :
     def _fillableBy (self):
         """ 
         returns Employees that could fill this slot 
-        
         BASED ON
         ------------------------------------------------
             - training, 
@@ -1312,26 +1311,42 @@ class Slot (models.Model) :
                 - on day before, 
                 - day of, or 
                 - day after     
-                
         EXAMPLE
         ------------------------------------------------
         ```s.fillableBy() 
         >>>   [<Employee: Josh, Brianna, Sabrina...>]
         ```
+        ------------------------------------------------
         """
         slot = self
-        empl_in_conflicting = list(slot._get_conflicting_slots().all().values_list('employee',flat=True))
-        empl_w_ptor  = list(PtoRequest.objects.filter(workday=slot.workday.date).values_list('employee',flat=True).distinct())
-        empl_w_tdo   = list(TemplatedDayOff.objects.filter(sd_id=slot.workday.sd_id).values_list('employee',flat=True).distinct())
-        incompatible = list(set(empl_in_conflicting + empl_w_ptor + empl_w_tdo))
+        empl_in_conflicting = list(
+            slot._get_conflicting_slots().all().values_list(
+                'employee',
+                flat=True
+            ))
+        empl_w_ptor  = list(
+            PtoRequest.objects.filter(workday=slot.workday.date).values_list(
+                    'employee',
+                    flat=True
+                ).distinct()
+            )
+        empl_w_tdo   = list(TemplatedDayOff.objects.filter(sd_id=slot.workday.sd_id).values_list(
+                    'employee',
+                    flat=True
+                ).distinct()
+            )
+        same_day     = list(self.workday.slots.filled().exclude(pk=self.pk).values_list(
+                    'employee',
+                    flat=True
+                ).distinct()
+            )
+        incompatible = list(set(empl_in_conflicting + empl_w_ptor + empl_w_tdo + same_day))
         if None in incompatible:
             incompatible.remove(None)
         incompatible_employees = Employee.objects.filter(pk__in=incompatible)
-        fillableBy = Employee.objects.filter(shifts_available=slot.shift).exclude(pk__in=incompatible_employees)
-    
-        neededHrs = slot.week.needed_hours 
-        neededHrs 
-        return fillableBy
+        fillable_by = Employee.objects.filter(
+            shifts_available=slot.shift).exclude(pk__in=incompatible_employees).distinct()
+        return fillable_by
     def fillable_by (self):
         return self._fillableBy()
     def fillWithBestChoice(self):

@@ -193,6 +193,7 @@ shift_patterns = [
         views.SHIFT.shiftPrefScores,
         name="shift-pref-scores"
     ),
+    path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
 ]
 
 slot_patterns = [
