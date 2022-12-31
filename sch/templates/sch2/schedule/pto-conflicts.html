@@ -1,66 +1,67 @@
 {% extends 'base.html' %}
-
+{% load tags %}
 
 
 {% block style %}
-
-
     
 {% endblock style %}
-    
-    <style>
-        .clear-button {
-            @apply flex items-center gap-2 rounded-lg border border-red-300 bg-slate-900 text-white px-4 py-2 text-sm text-red-500 hover:bg-red-600 hover:text-red-100 m-4;
-        }
-    </style>
 
 {% block content %}
-{% load tags %}
-
-<a href="{{schedule.url}}"><i class="fas">{% backArrow %}</i>Back</a>
 
 
-<h1 class="text-3xl text-amber-100 font-light">
-    {{ schedule }}
-</h1>
-<h1 class="text-2xl text-amber-300 font-light">
-    PTO Request Manager
-</h1>
+    <a href="{{schedule.url}}">
+        <i class="fas">{% backArrow %}</i>
+        Back
+    </a>
 
-<form method='POST'> {% csrf_token %} 
-    <button type="submit" 
-            class= "border baseline text-sm justify-center border-red-200 hover:bg-red-100 font-light hover:text-red-600 px-4 py-1 rounded my-5">
-        <i class="fas">{% clearIcon '18px' '18px' %}</i>
-        CLEAR ALL CONFLICT SLOTS
-    </button>
-</form>
 
-<table class="table">
-    <thead>
+    <h1 class="text-3xl text-amber-100 font-light">
+        {{ schedule }}
+    </h1>
+    <h1 class="text-2xl text-amber-300 font-light mb-4">
+        PTO Request Manager
+    </h1>
+
+    <form method='POST'> {% csrf_token %} 
+        <button type="submit" 
+                class= "border baseline text-sm justify-center border-red-200 hover:bg-red-100 font-light hover:text-red-600 px-4 py-1 rounded my-5">
+            <i class="fas">{% clearIcon '18px' '18px' %}</i>
+            CLEAR ALL CONFLICT SLOTS
+        </button>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>DAY</th>
+                <th>CURRENT ASSIGNMENT</th>
+                <th>STATUS</th>
+            </tr>
+        </thead>
+    {% for pto in pto_requests %}
         <tr>
-            <th>DAY</th>
-            <th>CURRENT ASSIGNMENT</th>
-            <th>STATUS</th>
-        </tr>
-    </thead>
-{% for pto in pto_conflicts %}
-    <tr>
-        <td><a class="text-red-100 uppercase bg-slate-900 text-2xs hover:transition hover:scale-140" href="{{pto.workday.url}}">{{ pto.workday.date }}</a></td>
-        <td>{{ pto.employee }}</td>
-        {% if pto.slot %}
-        <td>
-            <a  class="bg-amber-400 text-amber-700 font px-5 -extrabold text-xs rounded" 
-                href="{{ pto.conflict.first.url }}">
-            {{ pto.conflict }}
-            </a>
-        </td>
-        {% else %}
-        <td>
-            <span class="text-2xs text-red-300 bg-red-900 rounded px-2"> CONFLICT </span>   
-        </td>
-        {% endif %}
-        </tr>
-{% endfor %}
-</table>
+            <td><a class="text-red-100 uppercase bg-transparent text-2xs hover:transition hover:scale-140" href="{{pto.slot_conflicts.first.workday.url}}">{{ pto.slot_conflicts.first.workday.date }}</a></td>
+            <td>{{ pto.employee }}</td>
+            {% if pto.slot_conflicts.exists %}
+            <td>
+                <a class="bg-transparent" href="{{ pto.conflict.first.url }}">
+                {{ pto.conflict }}<span class="text-2xs text-red-300 bg-red-900 rounded px-2"> CONFLICT </span>   
+                </a>
+            </td>
+            {% else %}
+            <td>
+                <span class="bg-green-400 text-green-800 px-5">RESPECTED</span>
+            </td>
+            {% endif %}
+            </tr>
+    {% endfor %}
+    </table>
+
+
+    {% for pto in pto_requests %}
+    <a href="{{pto.url}}" class="bg-zinc-300 text-black">
+        {{ pto.employee }}
+    </a>
+    {% endfor %}
 
 {% endblock %}

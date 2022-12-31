@@ -1,4 +1,4 @@
-
+d
 
 {% extends 'base.html' %}
 {% load tags %} {% load static %}
@@ -41,57 +41,59 @@
         Schedule {{ schedule.number }}, {{ schedule.year }}
     </h2>
 
-    <div class="overscroll-x-auto overflow-x-auto">
-        <div id="schedule-grid">
-            <table class='table table-auto'>
-                <thead>
-                    <tr>
-                        <th class="stl bg-sky-800 ring ring-sky-800"></th>
-                        {% for workday in schedule.workdays.all %}
-                            <th> <a href="{{ workday.url }}">{{ workday.date.day }}</a> </th>
-                        {% endfor %}
-                    </tr>
-                    <tr>
-                        <td class="stl bg-sky-800 ring ring-sky-800">
-                        </td>
-                        {% for workday in schedule.workdays.all %}
-                            <td>
-                                <span class="pie text-green-300">
-                                    {{workday.slots.filled.count}} {{workday.slots.empty.count}}
-                              </span>
+    <div class="bg-zinc-900 rounded p-2 shadow ring ring-indigo-300">
+        <div class="overscroll-x-auto overflow-x-auto overscroll-contain">
+            <div id="schedule-grid">
+                <table class='table table-auto'>
+                    <thead>
+                        <tr>
+                            <th class="stl bg-sky-800 ring ring-sky-800"></th>
+                            {% for workday in schedule.workdays.all %}
+                                <th> <a href="{{ workday.url }}">{{ workday.date.day }}</a> </th>
+                            {% endfor %}
+                        </tr>
+                        <tr>
+                            <td class="stl bg-sky-800 ring ring-sky-800">
                             </td>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for employee, assignments in schedule.as_empl_dict.items %}
-                    <tr>
-                        <th class="stl bg-sky-800 ring ring-sky-800">{{ employee }}</th>
-                        {% for assignment in assignments %}
-                            {% if assignment == "PTO" %}
-                                <td><a class="bg-inherit font-light text-2xs text-indigo-600"
-                                        href="{{assignment.url|default:'#'}}">{{ assignment|default:"PTO" }}</a></td>
-                            {% else %}
-                                <td><a class="bg-inherit font-light text-2xs text-slate-400 
-                                            {% if assignment.shouldBeTdo == True %}    
-                                                    text-amber-600 font-bold {% endif %}
-                                            {% if assignment.pto_conflicts.exists %} 
-                                                    bg-red-200 shadow w-2 h-2 bg-opacity-40 
-                                                    text-shadow text-red-300 font-bold pl-1 
-                                            {% endif %}"
-                                    href="{{assignment.url|default:'#'}}">
-                                    {{ assignment.shift|default:"." }}
-
-                                    {% if assignment.is_unfavorable %} <span class="text-amber-300 font-bold"> ● </span> {% endif %}
-
-                                    </a>
+                            {% for workday in schedule.workdays.all %}
+                                <td>
+                                    <span class="pie text-green-300">
+                                        {{workday.slots.filled.count}} {{workday.slots.empty.count}}
+                                </span>
                                 </td>
-                            {% endif %}
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employee, assignments in schedule.as_empl_dict.items %}
+                        <tr>
+                            <th class="stl bg-sky-800 ring ring-sky-800">{{ employee }}</th>
+                            {% for assignment in assignments %}
+                                {% if assignment == "PTO" %}
+                                    <td><a class="bg-inherit font-light text-2xs text-indigo-600"
+                                            href="{{assignment.url|default:'#'}}">{{ assignment|default:"PTO" }}</a></td>
+                                {% else %}
+                                    <td><a class="bg-inherit font-light text-2xs text-slate-400 
+                                                {% if assignment.shouldBeTdo == True %}    
+                                                        text-amber-600 font-bold {% endif %}
+                                                {% if assignment.pto_conflicts.exists %} 
+                                                        bg-red-200 shadow w-2 h-2 bg-opacity-40 
+                                                        text-shadow text-red-300 font-bold pl-1 
+                                                {% endif %}"
+                                        href="{{assignment.url|default:'#'}}">
+                                        {{ assignment.shift|default:"." }}
+
+                                        {% if assignment.is_unfavorable %} <span class="text-amber-300 font-bold"> ● </span> {% endif %}
+
+                                        </a>
+                                    </td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 

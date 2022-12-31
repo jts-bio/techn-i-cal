@@ -22,16 +22,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-rc@04_mry_3-$@2sq$b9%-9jp6q2eyxf4bsw9&&esj++aw&r)p"
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = [
-        'flowrate.herokuapp.com',
-        'flowratetime.herokuapp.com',
-        'jsteinbecker.pythonanywhere.com',
-        'localhost',
-        '127.0.0.1'
-    ]
+    "flowrate.herokuapp.com",
+    "flowratetime.herokuapp.com",
+    "jsteinbecker.pythonanywhere.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 
 # Application definition
@@ -59,7 +60,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    #"kolo.middleware.KoloMiddleware",
+    # "kolo.middleware.KoloMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -70,8 +71,8 @@ MIDDLEWARE = [
     "django_require_login.middleware.LoginRequiredMiddleware",
 ]
 
-LOGIN_URL = 'login-view'
-LOGOUT_REDIRECT_URL = 'sch:index'
+LOGIN_URL = "login-view"
+LOGOUT_REDIRECT_URL = "sch:index"
 
 REQUIRE_LOGIN_PUBLIC_NAMED_URLS = (LOGIN_URL, LOGOUT_REDIRECT_URL)
 
@@ -115,11 +116,11 @@ WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 # }
 DATABASES = {
     "default": {
-         "ENGINE": "django.db.backends.sqlite3",
-         "NAME": BASE_DIR / "db.sqlite3",
-     }
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }
-    
+
 
 # DATABASES = {
 #     "default": {
@@ -162,13 +163,12 @@ USE_I18N = True
 USE_TZ = True
 
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]  
-STATIC_ROOT = STATIC_ROOT = BASE_DIR / "staticfiles" 
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"  # new
 
 # STATICFILES_STORAGE = "django.contrib.staticfiles.storage.staticfiles_storage"

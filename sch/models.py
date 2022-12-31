@@ -1047,6 +1047,8 @@ class Schedule (models.Model):
     @property
     def pto_requests (self):
         return PtoRequest.objects.filter(workday__in=self.workdays.all().values('date'))
+    def pto_percent (self):
+        return 100 - int(self.pto_conflicts().count() / self.pto_requests.count() * 100)
     def pto_conflicts (self):
         """PTO CONFLICTS 
         List of Slots ---> Employee has Pto on this day"""
@@ -1231,8 +1233,13 @@ class Slot (models.Model) :
     def is_postturnaround (self) :
         if not self.employee:
             return False
-        if self.shift.start < dt.time(12,0):
+        if self.shift.start > dt.time(18,0):
             return False
+        elif self.shift.start > dt.time(13,0) and self.shift.start < dt.time(18,0) :
+            if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+                return True
+            else:
+                return False
         elif self.shift.start < dt.time(18,0) :
             if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
                 return True

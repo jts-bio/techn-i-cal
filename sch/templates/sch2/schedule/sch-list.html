@@ -1,11 +1,8 @@
-{% extends 'base.html' %}
-
-{% block style %}
-{% load tags %}
+{% extends 'base.html' %} {% block style %} {% load tags %}
 
 <style>
   body {
-    background-image: url('/static/img/ScienceExperiments_seamless_1.png');
+    background-image: url("/static/img/ScienceExperiments_seamless_1.png");
     background-repeat: repeat;
     background-size: 40%;
   }
@@ -29,133 +26,127 @@
   }
 </style>
 
-{% endblock style %} 
+{% endblock style %} {% block content %}
 
-{% block content %}
+<div class="w-full">
+  <div class="sticky t-2 -r-0 w-50 mt-3 mr-3">
+    {% #toggle-section title="New Schedule Dialog" %}
 
+    <div class="border-2 border-slate-300 rounded">
+      <div class="w-56 px-3 py-2 bg-zinc-900 rounded">
+        <h2 class="text-lg">Generate New Schedule</h2>
+      </div>
 
+      <div class="px-3 py-2 bg-slate-700">
+        <p class="w-56">
+          Select the start date for a new schedule to Generate.
+          <span class="info">
+            Note, you can have more than one schedule for the same date range in
+            order to test multiple scenarios.
+          </span>
+        </p>
+      </div>
 
-
-
-
-
-
-    <div class="w-full">
-    <div class="sticky t-2 -r-0 w-50 mt-3 mr-3">
-
-        {% #toggle-section title="New Schedule Dialog" %}
-
-            <div class="border-2 border-slate-300 rounded">
-                <div class="w-56 px-3 py-2 bg-zinc-900 rounded">
-                    <h2 class="text-lg ">Generate New Schedule</h2>
-                </div>
-
-                <div class="px-3 py-2 bg-slate-700">
-                    <p class="w-56">
-                        Select the start date for a new schedule 
-                        to Generate. <span class="info"> Note, you can have 
-                        more than one schedule for the same date range 
-                        in order to test multiple scenarios. </span>
-                    </p>
-                </div>
-
-                <form method="POST" class="pl-3 bg-zinc-900" action=""> {% csrf_token %}
-                    {{ new_schedule_form }}
-                    <input type="submit" value="Generate"/>
-                </form>
-            </div>
-
-        {% /toggle-section %}
-
+      <form method="POST" class="pl-3 bg-zinc-900" action="">
+        {% csrf_token %} {{ new_schedule_form }}
+        <input type="submit" value="Generate" />
+      </form>
     </div>
-    </div>
-    <div class="hidden md:block">
 
-        
+    {% /toggle-section %}
+  </div>
+</div>
+<div class="hidden md:block">
+  <div class="panel w-fc p-8 m-8">
+    <h2
+      class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm"
+    >
+      Schedule List
+    </h2>
+    <table class="table my-7">
+      <tr>
+        <th>Schedule</th>
+        <th>Version</th>
+        <th>Start Date</th>
+        <th>Slots Filled</th>
+        <th>Draft Status</th>
+      </tr>
 
-        <div class="panel w-fc p-8 m-8">
-            <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm">
-                Schedule List
-            </h2>
-            <table class="table my-7">
-                <tr>
-                    <th>Schedule</th>
-                    <th>Version</th>
-                    <th>Start Date</th>
-                    <th>Slots Filled</th>
-                    <th>Draft Status</th>
-                </tr>
+      {% for sch in schedules %}
 
-                
-                {% for sch in schedules %}
-               
-                    <tr>
-                        <td><a href="{{sch.url}}" 
-                               class="link bg-{{sch.versionColor}}-600 
+      <tr>
+        <td>
+          <a
+            href="{{sch.url}}"
+            class="link bg-{{sch.versionColor}}-600 
                                         rounded-sm shadow shadow-lg
-                                        hover:scale-110 hover:transition"
-                               onmousedown= "appendWithSpinner (this)"
-                               id= "button-{{sch.slug}}"
-                               >
-                                Schedule {{sch.slug}} 
-                            </a> 
-                            <script type="text/javascript"
-                            >
-                                function appendWithSpinner (el) {
-                                    var spinner = document.createElement('span');
-                                    spinner.classList.add('spinner');
-                                    el.appendChild(spinner);
-                                }
-                            </script>
-                        </td>
-                        <td><span class='text-{{sch.versionColor}}-600 text-2xs mx-3'>{{sch.version}}</span></td>
-                        <td>{{ sch.start_date }}</td>
-                        <td class="p-1">
-                            <span class="text-indigo-200 border-indigo-200 border-1 px-4 text-xs">
-                                <sub class="jbm">{{sch.slots.filled.count}}/{{sch.slots.all.count}}</sub>
-                            </span>
-                            <div class="my-1">
-                                <div class="flex flex-r">
-                                    {{ sch.percent }}%
-                                    {% progressBar sch.percent 'yellow' %} 
-                                </div>
-                            </div>
-                        </td>
-                        <td>{% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {% endif %} </td>
-                    </tr>
-                {% endfor %}
+                                        will-change-transform
+                                        hover:scale-105 hover:transition"
+            onmousedown="appendWithSpinner (this)"
+            id="button-{{sch.slug}}"
+            _="on click
+                                        add .cursor-wait 
+                                        to me"
+          >
+            Schedule {{sch.slug}}
+          </a>
+          <script type="text/javascript">
+            function appendWithSpinner(el) {
+              var spinner = document.createElement("span");
+              spinner.classList.add("spinner");
+              el.appendChild(spinner);
+            }
+          </script>
+        </td>
+        <td>
+          <span class="text-{{sch.versionColor}}-600 text-2xs mx-3"
+            >{{sch.version}}</span
+          >
+        </td>
+        <td>{{ sch.start_date }}</td>
+        <td class="p-1">
+          <span class="text-indigo-200 border-indigo-200 border-1 px-4 text-xs">
+            <sub class="jbm"
+              >{{sch.slots.filled.count}}/{{sch.slots.all.count}}</sub
+            >
+          </span>
+          <div class="my-1">
+            <div class="flex flex-r">
+              {{ sch.percent }}% {% progressBar sch.percent 'yellow' %}
+            </div>
+          </div>
+        </td>
+        <td>
+          {% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {%
+          endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
 
-            </table>
-            
-        </div>
-    </div>
+<div class="block md:hidden">
+  <div class="flex flex-row flex-wrap gap-7 m-7">
+    {% for sch in schedules %}
+    <a
+      href="{{ sch.url }}"
+      class="panel grow hover:bg-slate-500 hover:ring-{% scoreColor sch.percent %}-400 hover:ring"
+      id="myButton"
+    >
+      <h3 class="text-indigo-400 font-extrabold text-shadow">
+        Schedule {{sch.slug}}
+      </h3>
+      <div
+        class="h-8 w-8 text-xs pt-2 m-2 ring ring-{% scoreColor sch.percent %}-500 bg-{% scoreColor sch.percent %}-100 ring-offset-2 text-slate-600 font-light text-center align-text rounded-full"
+      >
+        {{ sch.percent }}%
+      </div>
+      <div class="text-xs">{{ sch.start_date }}</div>
+      <div>{% if sch.status == 0 %} DRAFT {% endif %}</div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
 
-    <div class="block md:hidden">
-        <div class="flex flex-row flex-wrap gap-7 m-7">
-
-            {% for sch in schedules %}
-            <a  href="{{ sch.url }}"
-                class="panel grow hover:bg-slate-500 
-                       hover:ring-{% scoreColor sch.percent %}-400 
-                       hover:ring"
-                id="myButton">
-                <h3 class="text-indigo-400 font-extrabold text-shadow">
-                    Schedule {{sch.slug}} 
-                </h3>
-                <div class="h-8 w-8 text-xs pt-2 m-2 ring
-                            ring-{% scoreColor sch.percent %}-500 
-                            bg-{% scoreColor sch.percent %}-100 
-                            ring-offset-2 text-slate-600 font-light 
-                            text-center align-text rounded-full">
-                    {{ sch.percent }}%
-                </div>
-                <div class="text-xs"> {{ sch.start_date }} </div>
-                <div> {% if sch.status == 0 %} DRAFT {% endif %} </div>
-            </a>
-            {% endfor %}
-            
-        </div>
-    </div>
-    
 {% endblock content %}
-    

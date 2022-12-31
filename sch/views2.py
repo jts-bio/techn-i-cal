@@ -29,12 +29,12 @@ from . import viewsets
 # -------------------------#
 #### LIST OF SCHEDULES ####
 # -------------------------#
-def schListView (request):
+def schListView(request):
     VERSION_COLORS = {
-        'A' : 'amber',
-        'B' : 'emerald',
-        'C' : 'blue',
-        'D' : 'pink',
+        'A': 'amber',
+        'B': 'emerald',
+        'C': 'blue',
+        'D': 'pink',
     }
     schedules = Schedule.objects.all()
     for sch in schedules:
@@ -59,7 +59,8 @@ def schListView (request):
     }
     return render(request, "sch2/schedule/sch-list.html", context)
 
-def schDayPopover (request, year, num, ver, day):
+
+def schDayPopover(request, year, num, ver, day):
     schedule = Schedule.objects.get(year=year, number=num, version=ver)
     workday = schedule.workdays.get(day=day)
 
@@ -68,13 +69,13 @@ def schDayPopover (request, year, num, ver, day):
     }
     return render(request, "sch2/schedule/sch-day-popover2.html", context)
 
-def schDetailView (request, schId):
+
+def schDetailView(request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
     schedule = Schedule.objects.get(slug=schId)
     slots = schedule.slots.all()
-    
 
     action1 = {
         "name":    "Solve: Method A",
@@ -101,17 +102,15 @@ def schDetailView (request, schId):
         if form.is_valid():
             employee = form.cleaned_data["employee"]
             return HttpResponseRedirect(
-                reverse("sch:v2-schedule-empl-pto", args=[schedule.pk, employee.pk])
+                reverse("sch:v2-schedule-empl-pto",
+                        args=[schedule.pk, employee.pk])
             )
         else:
-            messages.warning (request, "Form is invalid")
-            
-    
-    emusr = viewsets.SchViews.schEMUSR(0,schedule.slug)
-    emusr_differences = list(emusr.values_list('difference',flat=True))
+            messages.warning(request, "Form is invalid")
+
+    emusr = viewsets.SchViews.schEMUSR(0, schedule.slug)
+    emusr_differences = list(emusr.values_list('difference', flat=True))
     emusr_differences = [x for x in emusr_differences if x is not None]
-    
-        
 
     context = {
         "schedule": schedule,
@@ -120,66 +119,74 @@ def schDetailView (request, schId):
         "form": EmployeeSelectForm,
         "emusr": emusr,
         "emusr_dist": max(emusr_differences) - min(emusr_differences),
-            #viewsets.SchViews.schEMUSR(0,schedule.slug)
+        # viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
     form = EmployeeSelectForm()
     return render(request, "sch2/schedule/sch-detail.html", context)
 
-def schDetailAllEmptySlots (request, schId):
-    schedule      = Schedule.objects.get(pk=schId)
-    slots         = schedule.slots.empty()
+
+def schDetailAllEmptySlots(request, schId):
+    schedule = Schedule.objects.get(pk=schId)
+    slots = schedule.slots.empty()
     html_template = 'sch2/schedule/sch-detail-all-empty-slots.html'
-    
+
     if request.method == "POST":
         form = EmployeeSelectForm(request.POST)
         employee = request.POST.get("employee")
         employee = Employee.objects.get(pk=employee)
-        slot  = request.POST.get("slot")
-        slot  = Slot.objects.get(pk=slot)
+        slot = request.POST.get("slot")
+        slot = Slot.objects.get(pk=slot)
         slot.employee = employee
         slot.save()
-        messages.success(request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {employee}")
-        
-    
-    return render(request, html_template, {'schedule':schedule,'slots':slots})
+        messages.success(
+            request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {employee}")
 
-def schDetailEmplGridView (request, schId):
+    return render(request, html_template, {'schedule': schedule, 'slots': slots})
+
+
+def schDetailEmplGridView(request, schId):
     schedule = Schedule.objects.get(slug=schId)
     employees = Employee.objects.all()
     for employee in employees:
         employee.unfav_ratio = int(schedule.unfavorableRatio(employee)*100)
-        employee.weekBreakdown = [int(sum(list(wk.slots.filter(employee=employee).values_list('shift__hours',flat=True)))) for wk in schedule.weeks.all() ]
+        employee.weekBreakdown = [int(sum(list(wk.slots.filter(employee=employee).values_list(
+            'shift__hours', flat=True)))) for wk in schedule.weeks.all()]
     html_template = 'sch2/schedule/sch-as-empl-grid.html'
-    return render(request, html_template, {'schedule':schedule,'employees':employees})
+    return render(request, html_template, {'schedule': schedule, 'employees': employees})
 
-def schDetailShiftGridView (request, schId):
+
+def schDetailShiftGridView(request, schId):
     schedule = Schedule.objects.get(slug=schId)
     shifts = Shift.objects.all()
     html_template = 'sch2/schedule/sch-as-shift-grid.html'
-    return render(request, html_template, {'schedule':schedule,'shifts':shifts})
+    return render(request, html_template, {'schedule': schedule, 'shifts': shifts})
 
-def schDetailSingleEmployeeView (request, schId, empId):
+
+def schDetailSingleEmployeeView(request, schId, empId):
     schedule = Schedule.objects.get(slug=schId)
     employee = Employee.objects.get(slug=empId)
     empl_schedule = employee.schedule_data(schedule.slug)
-        
-    html_template = 'sch2/employee/empl-schedule-view.html'
-    return render(request, html_template, {'schedule':empl_schedule,'employee':employee,'sch': schedule})
 
-def schDetailPtoConflicts (request, schId):
+    html_template = 'sch2/employee/empl-schedule-view.html'
+    return render(request, html_template, {'schedule': empl_schedule, 'employee': employee, 'sch': schedule})
+
+
+def schDetailPtoConflicts(request, schId):
     schedule = Schedule.objects.get(slug=schId)
     pto_conflicts = schedule.pto_conflicts()
-    
+    pto_requests = schedule.pto_requests.all()
+
     if request.method == "POST":
         for pto_conflict in pto_conflicts:
             pto_conflict.employee = None
             pto_conflict.save()
         messages.success(request, f"PTO conflicts resolved")
-    
-    html_template = 'sch2/schedule/pto-conflicts.html'
-    return render(request, html_template, {'schedule':schedule,'pto_conflicts':pto_conflicts})
 
-def weekView (request, week):
+    html_template = 'sch2/schedule/pto-conflicts.html'
+    return render(request, html_template, {'schedule': schedule, 'pto_conflicts': pto_conflicts, 'pto_requests': pto_requests})
+
+
+def weekView(request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
     employees = Employee.objects.all()
@@ -189,13 +196,14 @@ def weekView (request, week):
         if week.empl_needed_hrs(empl) == 0:
             otEmployees += [empl]
     context = {
-        "week"      : week,
-        "slots"     : week.slots.filled().order_by("employee"),
-        "workdays"  : week.workdays.all(),
-        "employees" : employees,
+        "week": week,
+        "slots": week.slots.filled().order_by("employee"),
+        "workdays": week.workdays.all(),
+        "employees": employees,
         "otEmployees": otEmployees,
     }
     return render(request, "sch2/week/wk-detail.html", context)
+
 
 def weekView__set_ssts(request, week):
     """
@@ -212,31 +220,35 @@ def weekView__set_ssts(request, week):
                 slot.set_sst()
         return HttpResponseRedirect(week.url())
 
+
 def weekView__clear_slots(request, week):
     if request.method == "POST":
         week = Week.objects.filter(pk=week).first()
         week.slots.filled().update(employee=None)
     return HttpResponseRedirect(week.url())
 
+
 def weekView__employee_possible_slots(request, weekpk, emplpk):
     week = Week.objects.filter(pk=weekpk).first()
     employee = Employee.objects.filter(pk=emplpk).first()
-    
+
     if request.method == "POST":
         slot = request.POST.get("slot")
         slot = Slot.objects.get(pk=slot)
         slot.employee = employee
         slot.save()
-        messages.success(request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {employee}")
+        messages.success(
+            request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {employee}")
         return HttpResponseRedirect(week.url())
-    
+
     open_wds = []
     for wd in week.workdays.all():
         for slot in wd.slots.all():
             if slot.employee == employee:
                 open_wds += [wd.pk]
     open_wds = week.workdays.exclude(pk__in=open_wds)
-    empty_slots = Slot.objects.filter(workday__in=open_wds).filter(employee=None)
+    empty_slots = Slot.objects.filter(
+        workday__in=open_wds).filter(employee=None)
     context = {
         "week": week,
         "employee": employee,
@@ -244,23 +256,27 @@ def weekView__employee_possible_slots(request, weekpk, emplpk):
     }
     return render(request, "sch2/week/wk-needed-hours-empl-form.html", context)
 
+
 def workdayDetail(request, slug):
 
     html_template = "sch2/workday/wd-detail.html"
     workday = Workday.objects.get(slug=slug)
     if request.method == "POST":
         post = request.POST
-        post = {k:v for k,v in post.items() if k != "csrfmiddlewaretoken" and v != ""}
-        for sft,emp in post.items():
+        post = {k: v for k, v in post.items() if k !=
+                "csrfmiddlewaretoken" and v != ""}
+        for sft, emp in post.items():
             if emp != None:
                 slot = workday.slots.filter(shift__name=sft).first()
                 slot.employee = Employee.objects.get(slug=emp)
                 slot.save()
-                messages.success(request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {slot.employee}")
+                messages.success(
+                    request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {slot.employee}")
     context = {
         "workday": workday,
     }
     return render(request, html_template, context)
+
 
 def shiftDetailView(request, cls, name):
     html_template = "sch2/shift/shift-detail.html"
@@ -275,6 +291,7 @@ def shiftDetailView(request, cls, name):
         "upcoming": shift.slots.filter(workday__date__gte=dt.date.today()).order_by("workday__date"),
     }
     return render(request, html_template, context)
+
 
 def shiftTrainingFormView(request, cls, sft):
 
@@ -316,23 +333,27 @@ def shiftTrainingFormView(request, cls, sft):
     }
     return render(request, html_template, context)
 
-def currentWeek (request):
+
+def currentWeek(request):
     workday = Workday.objects.filter(date=dt.date.today()).first()
     week = Week.objects.filter(workdays=workday).first()
     return HttpResponseRedirect(week.url())
 
-def currentSchedule (request):
+
+def currentSchedule(request):
     workday = Workday.objects.filter(date=dt.date.today()).first()
     schedule = Schedule.objects.filter(workdays=workday).first()
     return HttpResponseRedirect(schedule.url())
 
-def scheduleSolve (request, schId):
+
+def scheduleSolve(request, schId):
     sch = Schedule.objects.get(slug=schId)
     bot = sch.Actions()
     bot.fillSlots(sch)
     return HttpResponseRedirect(sch.url())
 
-def scheduleClearAllView (request, schId):
+
+def scheduleClearAllView(request, schId):
     try:
         sch = Schedule.objects.get(pk=schId)
     except:
@@ -343,6 +364,7 @@ def scheduleClearAllView (request, schId):
         pass
     sch.slots.filled().update(employee=None)
     return HttpResponseRedirect(sch.url())
+
 
 class ScheduleMaker:
     def generate_schedule(self, year, number):
@@ -374,8 +396,10 @@ class ScheduleMaker:
             f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] ",
         )
 
+
 def mytest(request):
     return render(request, "sch/test/layout.html", {})
+
 
 def generate_schedule_form(request):
     html_template = "sch2/schedule/generate-new-miniform.html"
@@ -389,9 +413,11 @@ def generate_schedule_form(request):
     }
     return render(request, html_template, context)
 
+
 def generate_schedule_view(request, year, num):
     generate_schedule(year, num)
     return HttpResponseRedirect(reverse("sch:schedule-list"))
+
 
 def pto_schedule_form(request, schId, empl):
     """
@@ -410,10 +436,12 @@ def pto_schedule_form(request, schId, empl):
         for pto_date_str in pto_checked:
             YMD = re.findall("(\d+)-(\d+)-(\d+)", pto_date_str)[0]
             pto_date = dt.date(int(YMD[0]), int(YMD[1]), int(YMD[2]))
-            pto_new = PtoRequest.objects.create(workday=pto_date, employee=empl)
+            pto_new = PtoRequest.objects.create(
+                workday=pto_date, employee=empl)
             pto_new.save()
 
-            messages.success(request, f"{pto_new} created for {pto_new.workday}")
+            messages.success(
+                request, f"{pto_new} created for {pto_new.workday}")
 
         return HttpResponseRedirect(sch.url())
 
@@ -424,13 +452,15 @@ def pto_schedule_form(request, schId, empl):
             "workday", flat=True
         ),
         "tdos": TemplatedDayOff.objects.filter(employee=empl).values_list(
-                       "sd_id", flat=True),
+            "sd_id", flat=True),
     }
     print(context)
     return render(request, html_template, context)
 
+
 def shift_templating_view(request, schId):
     shift = Shift.objects.get(pk=schId)
+
 
 class PeriodViews:
     def detailView(request, prdId):
@@ -438,12 +468,12 @@ class PeriodViews:
         period = Period.objects.get(pk=prdId)
         stats = {}
         stats['main'] = {
-            'figure'     :f"{period.percent()}%",
-            'statistic'  :"Percent Filled",
-            'change'     :"No Change from Previous",
-            }
+            'figure': f"{period.percent()}%",
+            'statistic': "Percent Filled",
+            'change': "No Change from Previous",
+        }
         stats['secondary_list'] = [{
-            'figure' : period.slots.empty().count(),
+            'figure': period.slots.empty().count(),
             'statistic': "# Empty Slots"
         }]
         context = {
@@ -452,6 +482,7 @@ class PeriodViews:
         }
         return render(request, html_template, context)
 
+
 def schDetailSlotTableView(request, schId):
     html_template = "sch2/schedule/slot-table.html"
     schedule = Schedule.objects.get(pk=schId)
@@ -459,6 +490,7 @@ def schDetailSlotTableView(request, schId):
         "schedule": schedule,
     }
     return render(request, html_template, context)
+
 
 def schTdoConflictTableView(request, schId):
     html_template = "sch2/schedule/tdo-conflict-table.html"
@@ -483,6 +515,7 @@ def schTdoConflictTableView(request, schId):
     }
     return render(request, html_template, context)
 
+
 class EmployeeSortShiftPreferences(View):
 
     template_name = "flow/alpine--drag-and-drop.html"
@@ -492,18 +525,19 @@ class EmployeeSortShiftPreferences(View):
         if ShiftSortPreference.objects.filter(employee=employee).exists() == False:
             i = 0
             for shift in employee.shifts_available.all():
-                ssp = ShiftSortPreference.objects.create(employee=employee,shift=shift,score=i)
+                ssp = ShiftSortPreference.objects.create(
+                    employee=employee, shift=shift, score=i)
                 ssp.save()
                 i += 1
         context = {
             "employee":          employee,
             "favorableShifts":   ShiftSortPreference.objects.filter(
-                                    employee=employee,
-                                    shift__group=employee.time_pref).order_by('score'),
+                employee=employee,
+                shift__group=employee.time_pref).order_by('score'),
             "unfavorableShifts": ShiftSortPreference.objects.filter(
-                                    employee=employee).exclude(
-                                    shift__group=employee.time_pref).order_by('score')
-            }
+                employee=employee).exclude(
+                shift__group=employee.time_pref).order_by('score')
+        }
         return render(request, self.template_name, context)
 
     def post(self, request, slug, **kwargs):
@@ -524,8 +558,9 @@ class EmployeeSortShiftPreferences(View):
 
         return HttpResponseRedirect(employee.url())
 
+
 class EmployeeChooseSchedule(View):
-    
+
     template_name = 'sch2/employee/choose-schedule.html'
 
     def get(self, request, empId, **kwargs):
@@ -533,5 +568,5 @@ class EmployeeChooseSchedule(View):
         context = {
             "employee": employee,
             "schedules": Schedule.objects.all()
-            }
+        }
         return render(request, self.template_name, context)

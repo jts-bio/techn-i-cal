@@ -38,11 +38,14 @@
                 <a href="{% url 'sch:sch-pto-conflicts' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
                         <p class="text-3xl font-semibold {% if schedule.pto_conflicts.count > 1 %} text-red-500
                             {% else %} text-emerald-600 {% endif %}">
-                            {{ schedule.pto_conflicts.count }}
+                            {{ schedule.pto_conflicts.count }} <span class="text-sm font-light text-gray-300">({{ schedule.pto_percent }}%)</span>
                         </p>
                         <p class="mt-1 text-gray-500">
                             PTO Request Conflicts
                         </p>
+                        <p class="text-xs text-gray-500">
+                            {{ schedule.pto_requests.count }} PTO Requests Total
+                          </p>
                 </a>
                 
                 <a href="{% url 'sch:sch-emusr' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
