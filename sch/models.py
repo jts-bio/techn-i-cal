@@ -110,7 +110,8 @@ class SlotManager (models.QuerySet):
                                 employee= F('employee__name'),
                                 workday= F('workday__date')
                             )
-    
+    def random_order    (self):
+        return self.order_by('?')
     def empls_weekly_hours (self, year, week, employee):
         return self.filter(
             workday__iweek= week,
@@ -856,6 +857,14 @@ class Week (models.Model) :
         if needed < 0:
             needed = 0
         return needed
+    def overtime_hours (self):
+        data = Slot.objects.filter(week=self).order_by('employee').values('employee').annotate(hours=Sum('shift__hours'))
+        # Define a subquery to get the total hours for each employee
+        total_hours_subquery = data.filter(employee=OuterRef('pk')).values('hours')
+        # Annotate the Employee queryset with the total hours for each employee
+        return Employee.objects.annotate(hours=Subquery(total_hours_subquery)).annotate(
+            overtime_hours=40 - F('hours')).filter(overtime_hours__gt=0).order_by('-overtime_hours')
+        
     def needed_hours (self):
         """
         >>> {<Josh> : 10, <Sabrina> : 5 }
@@ -1002,7 +1011,6 @@ class Schedule (models.Model):
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
     
-
     class Meta :
         ordering = ['year','number','version']
     
@@ -1100,7 +1108,7 @@ class Schedule (models.Model):
         def fillTemplates (self,instance,**kwargs):
             print (f'===============================')
             print (f'[ACTION : SCHEDULE__FILLTEMPLATES] {dt.datetime.now()}')
-            for slot in instance.slots.all():
+            for slot in instance.slots.random_order():
                 if slot.employee is None:
                     if slot.template_employee is not None:
                         slot.siblings_day.filter(employee=slot.template_employee).update(employee=None)
@@ -1110,12 +1118,10 @@ class Schedule (models.Model):
                             slot.employee = slot.template_employee
                             slot.save()
                             print (f'Filled Slot {slot.workday.date.month}-{slot.workday.date.day} {slot.shift}: with {slot.employee} via Template')
-            
             print (f'FINISHED TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
             print (f'===============================')
         def fillSlots (self,instance):
             print (f'STARTING SCHEDULE FILL: {dt.datetime.now()}')
-            self.fillTemplates(instance)
             for i in range(700):
                 slot = instance.slots.empty()[random.randint(0,instance.slots.empty().count()-1)]
                 slot.fillWithBestChoice()
@@ -1133,8 +1139,16 @@ class Schedule (models.Model):
                     slot.save()
                     keeptrying -= 1
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA OPTION-MAPPING ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
+        def solvePmOnly (self, instance):
+            for slot in instance.slots.empty().evenings().random_order():
+                slot.fillWithBestChoice()
+                print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA PM ONLY ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
         def deleteSlots (self,instance):
             instance.slots.all().update(employee=None)
+            print('All Slots Wiped on Schedule {instance.slug}')
+            
+    actions = Actions()
+    
 # ============================================================================
 class Slot (models.Model) :
     # fields: workday, shift, employee
@@ -1370,16 +1384,14 @@ class Slot (models.Model) :
     def fillable_by (self):
         return self._fillableBy()
     def fillWithBestChoice(self):
-        self.save()
         choices = self._fillableBy()
+        sprefs = ShiftPreference.objects.filter(shift=self.shift, employee__in=choices, score__gte=1).order_by('-score')
         if len(choices) != 0:
-            sprefs = ShiftPreference.objects.filter(shift=self.shift, employee__in=choices, score__gte=1).order_by('-score')
         # sort the choices by the best prefScore score
             try:
                 if self.template().exists():
                     if self.template().first().employee in choices:
-                        self._set_employee( self.template().first().employee )
-                        
+                        self._set_employee( self.template().first().employee )   
             except:
                 pass
         else:
@@ -1387,7 +1399,6 @@ class Slot (models.Model) :
                 for x in sprefs:
                     if x in choices:
                         self._set_employee(x.employee)
-                        
                     else:
                         pass
         if self.employee == None:
@@ -1404,6 +1415,8 @@ class Slot (models.Model) :
                         other.save()
             except:
                 pass
+        else:
+            print('Slot remains blank due to no selectable employees by Method.')
         self.save()
     def isFromTemplate (self):
         if self.employee != None:

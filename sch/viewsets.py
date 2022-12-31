@@ -9,8 +9,9 @@ from django.db.models.functions import Cast
 class Actions:
     class SlotActions:
         def clear_employee(request, slotId):
+            slot = Slot.objects.get(pk=slotId)
             if request.method == "POST":
-                slot = Slot.objects.get(pk=slotId)
+                
                 slot.employee = None
                 slot.save()
                 messages.success(

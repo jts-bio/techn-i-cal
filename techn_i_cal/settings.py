@@ -29,6 +29,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "flowrate.herokuapp.com",
     "flowratetime.herokuapp.com",
+    "flowratex.herokuapp.com",
     "jsteinbecker.pythonanywhere.com",
     "localhost",
     "127.0.0.1",

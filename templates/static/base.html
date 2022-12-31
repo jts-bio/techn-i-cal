@@ -119,6 +119,9 @@
 						toast.classList.add("text-green-700");
 						toast.classList.add("text-xs");
 						// add a i.fas.fa-check element to the right of the toast
+						var toastspan = document.createElement("span");
+						toastspan.classList.add("float-right");
+						toastspan.classList.add("text-green-700");
 						var icon = document.createElement("i");
 						icon.classList.add("fas");
 						icon.classList.add("mr-3");
@@ -128,7 +131,10 @@
 						icon.classList.add("shadow");
 						icon.classList.add("shadow-green-200");
 						icon.classList.add("shadow-sm");
-						toast.appendChild(icon);
+						icon.style.color = "green";
+						toastspan.appendChild(icon);
+						
+						toast.appendChild(toastspan);
 						toast.appendChild(document.createTextNode(message));
 						// add the toast to the wrapper
 						var wrapper = document.getElementById("toast-wrapper");
@@ -143,7 +149,7 @@
 						// remove the toast after 5 seconds
 						setTimeout(function() {
 						  wrapper.removeChild(toast);
-						}, 9000);
+						}, 19000);
 					  }
 					  
 				</script>
