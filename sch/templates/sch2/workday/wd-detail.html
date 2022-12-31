@@ -125,7 +125,7 @@ TEMPLATE VARIABLES
                             class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">
                         {{ empl }}
                             <div class="tooltip">
-                                <span>{% emplHoursSummary empl workday %}</span>
+                                <span>{% emplWeekAndPeriodHours empl workday %}</span>
                             </div>
                         </button>
                 {% endfor %}
@@ -133,7 +133,8 @@ TEMPLATE VARIABLES
                 </div>
             </div>
 
-        <div class="flex grow panel">
+        <div class="flex flex-col grow panel">
+            <h2 class="text-2xl font-light">Employees with PTO Requests</h2>
             {% if workday.pto.count > 0 %}
                 <div class="grid grid-cols-2 w-fc">
                     {% for pto in workday.pto %}
@@ -149,6 +150,7 @@ TEMPLATE VARIABLES
         </div>
 
         <div class="grow panel">
+            <h2 class="text-2xl font-light">Employees Templated Off</h2>
             {% if workday.tdo.count > 0 %}
                 <div class="grid grid-cols-2 w-fc"
                     _="on dragstart

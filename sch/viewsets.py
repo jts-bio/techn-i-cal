@@ -126,7 +126,11 @@ class SchViews:
         am_empls_fte_sum = sum(list(Employee.objects.filter(time_pref__in=['Morning']).exclude(pk__in=full_template_empls).values_list('fte',flat=True)))
 
         unfavorables = sch.slots.unfavorables().values('employee')
-        unfavorables = unfavorables.annotate(count=Value(1, output_field=IntegerField()))
+        unfavorables = unfavorables.annotate(
+                            count=Value(1, 
+                            output_field=IntegerField()
+                            )
+                        )
         unfavorables = unfavorables.values('employee').annotate(count=Sum('count'))
 
         query = Employee.objects.filter(
@@ -146,17 +150,32 @@ class SchViews:
                     difference=F('emusr') - F('count')
                             )
         return query
-
+    
     def schEMUSRView (request, schId):
         html_template = 'sch2/schedule/emusr.html'
         sch = Schedule.objects.get(slug=schId)
         emusr = SchViews.schEMUSR(None,sch.slug)
+        emusr_differences = list(emusr.values_list('difference',flat=True))
+        emusr_differences = [x for x in emusr_differences if x is not None]
         context = {
             'sch':sch,
             'emusr':emusr.exclude(emusr=0),
+            'emusr_dist': max(emusr_differences)-min(emusr_differences),
         }
         return render(request,html_template,context)
-        
+     
+class SlotViews:
+    def slotStreakView (request, slotId):
+        html_template = 'sch2/slot/streak-timeline.html'
+        slot = Slot.objects.get(pk=slotId)
+        siblings = slot.siblings_streak()
+        ids = [s.pk for s in siblings] + [slot.pk]
+        streak = Slot.objects.filter(pk__in=ids).order_by('workday__date')
+        context = {
+            'mainSlot':slot,
+            'streak':streak,
+        }
+        return render(request,html_template,context)
 
 class ShiftViews:
     

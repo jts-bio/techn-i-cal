@@ -1,12 +1,16 @@
-<header class='flex flex-row items-center center justify-center text-center mx-2 mb-4' style='width:100%;'>
+<header class='flex flex-row items-center center justify-center text-center
+               mx-2 mb-4 bg-zinc-900 
+               opacity-20 hover:opacity-100 hover:transition hover:scale-110 
+               hover:ring hover:ring-orange-500'
+        style= 'width:100%;'>
   
-  <div class="vstack">
+  <div class="bg-zinc-900 px-5 py-1 rounded opacity-60 hover:opacity-100 vstack">
        
 
       <div class="mx-10">
         <a href="{% url 'login-view' %}" 
-          class='center-self'> 
-          
+           class='center-self'
+           > 
           {% avatar initials=user.initials %} 
         </a>
       </div>
@@ -14,8 +18,11 @@
 
       <div>
         <a href="{% url 'logout-view' %}" 
-          class="center-self text-2xs rounded px-3 italic text-gray-400 hover:text-red-400 hover:bg-pink-800">
-          
+          class="center-self text-2xs rounded 
+                 px-3 italic text-gray-400 
+                 hover:text-red-400 
+                 hover:bg-pink-800"
+          >
           LOGOUT
         </a>
       </div>

@@ -26,30 +26,54 @@
 
 
         <div class="panel">
-            <h2 class="text-lg">Summary</h2>
-        <table class="table">
-            <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
-            <tr><th>Duration</th>  <td>{{shift.duration}}</td></tr>
-            <tr><th>Occurs on</th> <td>{{ days }}</td></tr>
-            <tr></tr>
-            <tfoot>
-            <tr>
-                <td><span class="text-xs italic">
-                                            {{shift.trained.all.count}} Trained Employees
-                    </span>
-                </td>
-                <td><span><a 
-                    href="{% url 'sch:shift-training-update' shift.cls shift.name %}" 
-                    class="bg-gray-400 border-2 border-gray-400 text-gray-800 
-                           hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 
-                           hover:border-amber-400 hover:ring-amber-600">
-                    Manage
-                    </a></span>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-
+        <div class="flex flex-row">
+            <div class="flex flex-col">  
+                <h2 class="text-lg">Summary</h2>
+                <table class="table">
+                    <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
+                    <tr><th>Duration</th>  <td>{{shift.duration}}</td></tr>
+                    <tr><th>Occurs on</th> <td>{{ days }}</td></tr>
+                    <tr></tr>
+                    <tfoot>
+                    <tr>
+                        <td><span class="text-xs italic">
+                                                    {{shift.trained.all.count}} Trained Employees
+                            </span>
+                        </td>
+                        <td><span><a 
+                            href="{% url 'sch:shift-training-update' shift.cls shift.name %}" 
+                            class="bg-gray-400 border-2 border-gray-400 text-gray-800 
+                                hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 
+                                hover:border-amber-400 hover:ring-amber-600">
+                            Manage
+                            </a></span>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>  
+            <div class="w-full mx-6 my-2 pt-4 overflow-auto overscroll-x-auto bg-zinc-600 ring ring-zinc-400">
+                <div class="flex flex-row gap-12">
+                    {% for instance in upcoming %}
+                        <a href="{{ instance.workday.url }}" 
+                            class="bg-zinc-900 px-3 rounded shadow ring ring-offset-2 ring-indigo-300
+                                hover:scale-125 hover:transition hover:ring-white
+                                {% if instance.employee == None %}  bg-red-900 text-white {% endif %}" style="width:85px!important;height:60px!important;">
+                            <div class="flex flex-col justify-center">
+                                <span class="text-2xs bg-zinc-200 rounded text-zinc-900 px-2 font-bold">{{ instance.workday.wkd }} {{ instance.workday.date.month }}/{{ instance.workday.date.day }}</span>
+                                <span class="text-lg text text-center text-sky-300 py-2 font-extrabold 
+                                            mx-2 flex flex-1
+                                            {% if instance.employee == None %} 
+                                                    text-zinc-900 text-shadow 
+                                            {% endif %}">
+                                    {{ instance.employee }}
+                                </span>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
         <div class="panel">
                 <h3 class="text-lg">
                     {{shift.trained.all.count}} Trained Employees: 

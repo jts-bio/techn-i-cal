@@ -9,11 +9,35 @@
     background-repeat: repeat;
     background-size: 40%;
   }
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 3px solid #f3f3f3;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
 {% endblock style %} 
 
 {% block content %}
+
+
+
+
+
+
 
 
     <div class="w-full">
@@ -62,12 +86,27 @@
                     <th>Draft Status</th>
                 </tr>
 
+                
                 {% for sch in schedules %}
+               
                     <tr>
-                        <td><a href="{{sch.url}}"
-                                class="bg-{{sch.versionColor}}-600 rounded-sm shadow shadow-lg">
+                        <td><a href="{{sch.url}}" 
+                               class="link bg-{{sch.versionColor}}-600 
+                                        rounded-sm shadow shadow-lg
+                                        hover:scale-110 hover:transition"
+                               onmousedown= "appendWithSpinner (this)"
+                               id= "button-{{sch.slug}}"
+                               >
                                 Schedule {{sch.slug}} 
-                            </a>
+                            </a> 
+                            <script type="text/javascript"
+                            >
+                                function appendWithSpinner (el) {
+                                    var spinner = document.createElement('span');
+                                    spinner.classList.add('spinner');
+                                    el.appendChild(spinner);
+                                }
+                            </script>
                         </td>
                         <td><span class='text-{{sch.versionColor}}-600 text-2xs mx-3'>{{sch.version}}</span></td>
                         <td>{{ sch.start_date }}</td>
@@ -87,6 +126,7 @@
                 {% endfor %}
 
             </table>
+            
         </div>
     </div>
 
@@ -96,8 +136,9 @@
             {% for sch in schedules %}
             <a  href="{{ sch.url }}"
                 class="panel grow hover:bg-slate-500 
-                    hover:ring-{% scoreColor sch.percent %}-400 
-                    hover:ring">
+                       hover:ring-{% scoreColor sch.percent %}-400 
+                       hover:ring"
+                id="myButton">
                 <h3 class="text-indigo-400 font-extrabold text-shadow">
                     Schedule {{sch.slug}} 
                 </h3>
@@ -112,7 +153,7 @@
                 <div> {% if sch.status == 0 %} DRAFT {% endif %} </div>
             </a>
             {% endfor %}
-
+            
         </div>
     </div>
     

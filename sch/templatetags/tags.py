@@ -229,4 +229,10 @@ def scoreColor (score):
 @register.simple_tag
 def emplHoursSummary (empl, wd):
     return empl.weekHours(wd), empl.periodHours(wd)
+
+@register.simple_tag
+def emplWeekAndPeriodHours (empl, wd):
+    wk_hrs = empl.weekHours(wd) or 0
+    pd_hrs = empl.periodHours(wd) or 0
+    return f"W:{int(wk_hrs)}   P:{int(pd_hrs)}"
     

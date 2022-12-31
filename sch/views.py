@@ -20,7 +20,7 @@ from .formsets import *
 from .actions import *
 from .tables import *
 from .data import Images
-from django.db.models import Q, F, Sum, Subquery, OuterRef, Count
+from django.db.models import Q, F, Sum, Subquery, OuterRef, Count, Exists
 from django_tables2 import RequestConfig
 import datetime as dt
 
@@ -35,10 +35,10 @@ def index(request):
     shifts  = wd.shifts
     
     context = {
-        'user'  : request.user,
-        'wd'    : wd, 
-        'shifts': shifts,
-        'scheduleImg': Images.SCHEDULE_IMG_1,
+        'user'          : request.user,
+        'wd'            : wd, 
+        'shifts'        : shifts,
+        'scheduleImg'   : Images.SCHEDULE_IMG_1,
     }
     return render ( request, 'index.html', context )
 
@@ -1035,6 +1035,11 @@ class EMPLOYEE:
             context['employee'] = employee
             ptoReqs = PtoRequest.objects.filter(employee=employee)
             schedule = Schedule.objects.get(slug=self.kwargs['sch'])
+            workdays = schedule.workdays.all().annotate (
+                isPto = Exists(ptoReqs.filter(date=OuterRef('date'))),
+                isTdo = Exists(TemplatedDayOff.objects.filter(employee=employee, sd_id=OuterRef('sd_id'))),
+                slotScheduled = Slot.objects.filter(employee=employee, workday=OuterRef('pk'))
+            )
             slots = schedule.slots.filter(employee=employee)
             days = [{
                 'date':i.strftime("%Y-%m-%d"),
@@ -1042,6 +1047,7 @@ class EMPLOYEE:
                 } for i in (schedule.workdays.all().values_list('date',flat=True))]
             
             context['days'] = days
+            context['workdays'] = workdays
             
             return context
     

@@ -132,8 +132,7 @@ week_patterns = [
         viewsets.WeekViews.all_slots_fillable_by_view,
         name="week-fillable-by",
     ),
-    path('v2/week-hrs-empl-form/week/<int:weekpk>/empl/<str:emplpk>/', 
-         views2.weekView__employee_possible_slots, name='week-hrs-empl-form'),
+    path('v2/week-hrs-empl-form/week/<int:weekpk>/empl/<str:emplpk>/', views2.weekView__employee_possible_slots, name='week-hrs-empl-form'),
     path('v2/week/next-week/<int:weekId>/', viewsets.WeekViews.nextWeek, name='next-week'),
     path('v2/week/prev-week/<int:weekId>/', viewsets.WeekViews.prevWeek, name='prev-week')
 ]
@@ -254,6 +253,7 @@ slot_patterns = [
         views.SCHEDULE.DO.fillSlotsWithPrefTime,
         name="sch-time-pref-fill",
     ),
+    path('v2/slot/slot-streak-view/<int:slotId>/', viewsets.SlotViews.slotStreakView, name='slot-as-streak-view'),
 ]
 
 employee_patterns = [

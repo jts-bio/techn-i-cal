@@ -46,13 +46,13 @@
             <table class='table table-auto'>
                 <thead>
                     <tr>
-                        <th class="stl"></th>
+                        <th class="stl bg-sky-800 ring ring-sky-800"></th>
                         {% for workday in schedule.workdays.all %}
-                            <th> {{ workday.date.day }} </th>
+                            <th> <a href="{{ workday.url }}">{{ workday.date.day }}</a> </th>
                         {% endfor %}
                     </tr>
                     <tr>
-                        <td>
+                        <td class="stl bg-sky-800 ring ring-sky-800">
                         </td>
                         {% for workday in schedule.workdays.all %}
                             <td>
@@ -66,7 +66,7 @@
                 <tbody>
                     {% for employee, assignments in schedule.as_empl_dict.items %}
                     <tr>
-                        <th class="stl">{{ employee }}</th>
+                        <th class="stl bg-sky-800 ring ring-sky-800">{{ employee }}</th>
                         {% for assignment in assignments %}
                             {% if assignment == "PTO" %}
                                 <td><a class="bg-inherit font-light text-2xs text-indigo-600"
@@ -79,8 +79,11 @@
                                                     bg-red-200 shadow w-2 h-2 bg-opacity-40 
                                                     text-shadow text-red-300 font-bold pl-1 
                                             {% endif %}"
-                                    href="{{assignment.url|default:'#'}}">{{ assignment.shift|default:"." }}
+                                    href="{{assignment.url|default:'#'}}">
+                                    {{ assignment.shift|default:"." }}
+
                                     {% if assignment.is_unfavorable %} <span class="text-amber-300 font-bold"> ● </span> {% endif %}
+
                                     </a>
                                 </td>
                             {% endif %}
@@ -97,8 +100,7 @@
     {% include 'sch2/schedule/sch-employee-week-breakdown.html' %}
 
     <script>
-        document.querySelectorAll(".donut").forEach(e => peity(e, "pie")) ;
-
+        // SCRIPT : PIE CHARTS FOR DAY COLUMNS
         document.querySelectorAll(".pie").forEach(e => peity(e, "pie", {
             fill : ["white" , "gray"]
           })) ;

@@ -103,15 +103,13 @@ class SlotManager (models.QuerySet):
         return self.filter(workday=workday)
     def ShiftDetail     (self, workday, shift):
         if self.filter(workday=workday, shift=shift).exists():
-            return self.filter(workday=workday, shift=shift).annotate(
-                employee= F('employee__name'),workday= F('workday__date')
-                )
-    def add_one         (x: int) :
-        print("Adding one to {}".format(x))
-        return x + 1
-        return self.filter(workday=workday, shift=shift).annotate(
-                employee= None, workday= F('workday__date')
-                )
+            return self.filter(
+                workday=workday, 
+                shift=shift).annotate(
+                                employee= F('employee__name'),
+                                workday= F('workday__date')
+                            )
+    
     def empls_weekly_hours (self, year, week, employee):
         return self.filter(
             workday__iweek= week,
@@ -1433,7 +1431,7 @@ class Slot (models.Model) :
         super().save(*args, **kwargs)
  
     def url (self):
-        return reverse('sch:v2-slot-detail',args=[self.pk])
+        return reverse('sch:slot-as-streak-view',args=[self.pk])
     def _save_empl_sentiment (self):
         if self.employee == None:
             self.empl_sentiment = None

@@ -51,6 +51,19 @@
     <a href="{% url 'sch:week-fillable-by' week.pk %}"
         class="italic text-indigo-100 text-light hover:text-indigo-300 underline">Go to week's Fillable By View</a>
 
+
+    {% if week.slots.empty.count > 0 %}
+        <div class="flex grow flex-grow mx-12 bg-red-300 py-4 mt-2 mb-12 text-red-800 font-light text-xs px-7 rounded border border-red-700"
+            _='on mouseenter
+                   toggle .scale-125 .text-md .font-bold .m-1 .animate-pulse .bg-red-100 .text-red-700 
+                   on <td.emptyslot/>
+                until mouseleave
+                end'
+            >
+            {{ week.slots.empty.count }} empty slots
+        </div>
+    {% endif %}
+    
     <div class="overflow-auto">
     <div class="flex flex-row">
     
@@ -69,7 +82,12 @@
                 <table class='x-overflow-scroll'>
                     {% for slot in workday.slots.all %}
                         <tr>
-                            <td class="text-indigo-300 px-2"> {{ slot.shift.name }} </td>
+                            <td class="text-indigo-300 px-2 transition
+                                    {% if slot.employee %} {% else %} 
+                                            emptyslot 
+                                    {% endif %}">  
+                                    {{ slot.shift.name }} 
+                            </td>
                             <td class="{{slot.employee.slug}}-slot"> 
                                 {% if slot.employee %} {{ slot.employee }}
                                 {% else %} -- {% endif %} 
@@ -105,17 +123,22 @@
         <div class="hstack bg-slate-800">
             <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
                   method="POST"> {% csrf_token %}
-            <input type="submit"
-                class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded" 
-                value="FILL TEMPLATES"/>
+            <button type="submit"
+                class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">
+                 FILL TEMPLATES
+            </button>
             </form>
             
             <form action="{% url 'sch:v2-week-clear-slots' week.pk %}"
                   method="POST"> {% csrf_token %}
-            <input type="submit"
+            <button type="submit"
             hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."
-                class="bg-rose-200 text-rose-600 hover:bg-rose-500 hover:text-rose-100" 
-                value="CLEAR SLOTS IN WEEK"/>
+                class="bg-red-100 text-red-800 hover:bg-red-200 p-2 m-2 rounded" 
+                _="on mousedown 
+                        remove .hidden from the next <span#spinner/> 
+                    end"/>
+                    <span id="spinner" class="hidden animate animate-spin">{% include 'sch/comp/spinners/spinner-1.svg' %}</span> CLEAR SLOTS (WITHIN WEEK)
+            </button>
             </form>
         </div>
 
@@ -126,7 +149,7 @@
         <p> 
         {{ empl.grouper }} 
             <span class="bg-gray-200 text-gray-800 text-xs rounded-sm px-3 m-1"> 
-                {% sumSlotHours empl.list %}
+                {% sumSlotHours empl.list %} hrs.
             </span> 
         </p> 
 

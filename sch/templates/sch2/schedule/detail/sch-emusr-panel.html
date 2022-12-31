@@ -3,17 +3,24 @@
 
 
 <a href="{% url 'sch:sch-emusr' schedule.slug %}"
-class="bg-zinc-900 rounded-lg w-fc p-4 vstack hover:bg-zinc-800 hover:ring-pink-600 hover:ring-3 hover:transition hover:scale-110">
+class="bg-zinc-900 rounded-lg w-fc p-4 vstack hover:bg-zinc-800 hover:ring-pink-600 hover:ring hover:transition hover:scale-110">
 
     <div class="text-lg font-light tracking-wider text-indigo-200" title="Expected Morning Shift Unfavorable Requirement">
         <i class="fas">{% sunMoon '20px' '20px' 'cornflowerblue' %}</i>
         EMSUR
     </div>
+    <div class="flex flex-row basis-1 gap-6">
     <div class="text-2xs jbm text-left">
-            {% for emp_emusr in emusr %}
-                {{ emp_emusr.name }}: 
-                {{ emp_emusr.emusr|floatformat:0 }} shifts<br/>
-            {% endfor %}
+           <span class="text-2xl font-extrabold
+                {% if emusr_dist > 4 %} text-3xl text-amber-400 text-shadow text-shadow-amber-200 \
+                {% endif %}">
+                {{ emusr_dist }}
+            </span> 
     </div>
-    
+    {% if emusr_dist > 4 %}
+        <div class="bg-amber-600 text-zinc-900 text-2xs fit-content h-4 p-1 jbm rounded-sm">UNEQUITABLE</div>
+    {% elif emusr_dist <= 4 %}
+        <div class="bg-green-400 text-zinc-900 text-2xs jbm p-1 rounded-sm">EQUITABLE</div>
+    {% endif %}
+    </div>
 </a>

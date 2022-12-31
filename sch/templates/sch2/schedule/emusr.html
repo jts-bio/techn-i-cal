@@ -16,17 +16,71 @@
 
     <h1 class="text-2xl font-bold text-indigo-200 jbm">{{ sch }} EMUSR View</h1>
 
-    <div class='text-underline italic border border-slate-200 p-2 my-4 rounded-lg hover:bg-slate-900'
+    <div class="p-6 rounded-lg bg-zinc-300 w-4/12 shadow shadow-lg mt-5 lg:pr-6 xl:pr-12
+                border-r-4 {% if emusr_dist > 7 %} border-red-700 {% elif emusr_dist > 4%} border-yellow-800 {% else %} border-emerald-600 {% endif %}">
+        <p class="text-6xl font-bold leading-10 
+                {% if emusr_dist > 7 %} text-red-700 {% elif emusr_dist > 4%} text-yellow-800 {% else %} text-emerald-600 {% endif %}}">
+          {{ emusr_dist }} 
+          <span class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 font-medium text-gray-800 text-xs leading-4 rounded-full py-0.5 px-2 dark:bg-gray-800 dark:text-gray-300">
+            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"/>
+            </svg>
+            {% if emusr_dist > 4 %} UNEQUITABLE {% else %} EQUITABLE {% endif %}
+          </span>
+        </p>
+        <span class="text-lg font-semibold text-gray-700">Unfavorable Shift Distribution</span>
+      </div>
+
+    <div id="accordion" class="lg:w-7/12">
+        <div class='text-underline border border-slate-200 p-2 my-4 rounded-lg hover:bg-slate-900'
         _= "on click toggle .hidden on <div#explaination/>">
-        What's this?
+        What is this?
+        
+        <div id="explaination" 
+            class="hidden 
+                    flex 
+                    text-sky-600 
+                    opacity-60 
+                    text-sm 
+                    rounded 
+                    px-9 
+                    py-2 
+                    shrink">
+            EMUSR (Expected Morning Unfavorable Shift Requirements) is a metric 
+            that represents the proportionally ideal way to distribute unfavorable
+            shifts among employees who prefer working "business hours" shifts.
+            <br/>
+            <br/>
+            The metric is calculated taking into account the employee's FTE, their 
+            preference for morning shifts, and the relative amount of Evening 
+            employees PTO utilization in the current schedule.
+        </div>
     </div>
-    <div id="explaination" 
-         class="hidden flex bg-sky-900 opacity-60 text-xs rounded px-9 py-2 shrink mb-7">
-        EMUSR (Expected Morning Unfavorable Shift Requirements) is a metric that represents the proportionally ideal way to distribute unfavorable shifts among employees who prefer working "business hours" shifts.
-        <br/>
-        <br/>
-        The metric is calculated taking into account the employee's FTE, their preference for morning shifts, and the relative amount of Evening employees PTO utilization in the current schedule.
+    <div class='text-underline border border-slate-200 p-2 my-4 rounded-lg hover:bg-slate-900'
+        _= "on click toggle .hidden on <div#distribution/>">
+        What is the metric "Unfavorable Distribution"?
+    
+        <div id="distribution" 
+            class="hidden 
+                    flex 
+                    text-indigo-400 
+                    opacity-60 
+                    text-sm 
+                    rounded 
+                    px-9 
+                    py-2 
+                    shrink">
+            The Unfavorable Distribution looks at relavent employees and compares
+            their actual unfavorable shifts to their expected unfavorable shifts. 
+            Because this takes into account the employee's FTE, it is a more
+            accurate representation of the "fairness" of unfavorable shift assignment.
+            <br/>
+            <br/>
+            A low number indicates that the schedule is is more equitable than a high number.
+        </div>
     </div>
+    </div>
+    
 
     <div class="grid grid-cols-3 gap-5">
 

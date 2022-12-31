@@ -106,15 +106,20 @@ def schDetailView (request, schId):
         else:
             messages.warning (request, "Form is invalid")
             
-    emusr = Employee.objects.template_ratio()
+    
     emusr = viewsets.SchViews.schEMUSR(0,schedule.slug)
+    emusr_differences = list(emusr.values_list('difference',flat=True))
+    emusr_differences = [x for x in emusr_differences if x is not None]
+    
+        
 
     context = {
         "schedule": schedule,
         "actionDropdown": actionDropdown,
         "employees": Employee.objects.all(),
         "form": EmployeeSelectForm,
-        "emusr": emusr
+        "emusr": emusr,
+        "emusr_dist": max(emusr_differences) - min(emusr_differences),
             #viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
     form = EmployeeSelectForm()
@@ -267,6 +272,7 @@ def shiftDetailView(request, cls, name):
     context = {
         "shift": shift,
         "days": days,
+        "upcoming": shift.slots.filter(workday__date__gte=dt.date.today()).order_by("workday__date"),
     }
     return render(request, html_template, context)
 

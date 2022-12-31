@@ -1,0 +1,78 @@
+
+<div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto mb-8">
+    <!-- Grid -->
+    <div class="grid items-center lg:grid-cols-12 gap-6 lg:gap-12">
+      <div class="lg:col-span-4">
+        <!-- Stats -->
+        <div class="lg:pr-6 xl:pr-12">
+          <p class="text-6xl font-bold leading-10 
+                    {% if schedule.percent < 90 %} text-amber-500 {% else %} text-emerald-400 {% endif %}">
+            {{ schedule.percent }}%
+            <span class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 font-medium text-gray-800 text-xs leading-4 rounded-full py-0.5 px-2 dark:bg-gray-800 dark:text-gray-300">
+              <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"/>
+              </svg>
+              {% if schedule.status == 0 %} DRAFT {% else %} PUBLISHED {% endif %}
+            </span>
+          </p>
+          <p class="mt-2 sm:mt-3 text-gray-500">Schedule {{ schedule.slug }}</p>
+          <a href="{% url 'sch:sch-detail-slot-table' schedule.pk %}"
+                        class="text-zinc-400 text-2xs hover:border-b hover:border-white">
+                    VIEW ALL SLOTS AS TABLE
+            </a>
+        </div>
+        <!-- End Stats -->
+      </div>
+      <!-- End Col -->
+  
+      <div class="lg:col-span-8 relative lg:before:absolute lg:before:top-0 lg:before:-left-12 lg:before:w-px lg:before:h-full lg:before:bg-gray-200 lg:before:dark:bg-gray-700">
+        <div class="grid gap-6 grid-cols-2 md:grid-cols-4 lg:grid-cols-3 sm:gap-8">
+          <!-- Stats -->
+            {% if schedule.slots.empty.count > 0 %}
+                <a href="{% url 'sch:v2-schedule-detail-empty-slots' schedule.pk %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                    <p class="text-3xl font-semibold text-amber-500">{{ schedule.slots.empty.count }}</p>
+                    <p class="mt-1 text-gray-500">Empty Slots</p>
+                </a>
+            {% endif %}
+            
+                <a href="{% url 'sch:sch-pto-conflicts' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                        <p class="text-3xl font-semibold {% if schedule.pto_conflicts.count > 1 %} text-red-500
+                            {% else %} text-emerald-600 {% endif %}">
+                            {{ schedule.pto_conflicts.count }}
+                        </p>
+                        <p class="mt-1 text-gray-500">
+                            PTO Request Conflicts
+                        </p>
+                </a>
+                
+                <a href="{% url 'sch:sch-emusr' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                    <p class="text-3xl font-semibold 
+                        {% if emusr_dist > 4 %} 
+                                text-yellow-600
+                        {% elif emusr_dist <= 4 %} 
+                                text-zinc-300
+                        {% endif %}">
+                        {{ emusr_dist }}
+                        <span class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 font-medium 
+                                        {% if emusr_dist > 4 %} text-yellow-600 
+                                        {% else %} text-gray-800 {% endif %}
+                                    text-xs leading-4 rounded-full py-0.5 px-2 dark:bg-gray-800 dark:text-gray-300">
+                            <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                              <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"/>
+                            </svg>
+                            {% if emusr_dist > 4 %} 
+                                UNEQUITABLE 
+                            {% else %} 
+                                EQUITABLE 
+                            {% endif %}
+                        </span>
+                    </p>
+                    <p class="mt-1 text-gray-500">Unfavorables Spread</p>
+                </a>
+          <!-- End Stats -->
+      </div>
+      <!-- End Col -->
+    </div>
+    <!-- End Grid -->
+  </div>
+  <!-- End Features -->

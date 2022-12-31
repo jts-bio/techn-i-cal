@@ -8,6 +8,25 @@
   body {
     background-image: url('/static/img/AbstractBackground.png');
   }
+   /* Add a spinner style */
+   .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
 </style>
 
 {% endblock style %} 
@@ -22,7 +41,7 @@
       <div
         style="
           font-size: 50px;
-          font-family: 'JetBrains Mono';
+          font-family: 'JetBrains Mono', monospace;
           letter-spacing: 2px;
           color: #fff6;
           font-style: italic;
@@ -91,7 +110,25 @@
   </div>
 </div>
 </div>
-
+<script>
+  // Get the submit button
+  const submitButton = document.getElementById('schedule-button');
+  // Add a click event listener to the button
+  submitButton.addEventListener('click', () => {
+    // Replace the button text with a spinner
+    submitButton.innerHTML = '<div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5"><img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png"  alt="Schedules"/> <div class="absolute top-0 left-0 px-6 py-4"> <h4 class="mb-3 text-xl font-semibold tracking-tight text-white"><div class="spinner"></div></h4></div>' ; 
+    // Send a request to the server
+    sendRequest().then(() => {
+      // When the request is complete, restore the original button text
+      submitButton.innerHTML = '<div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5"><img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png"  alt="Schedules"/> <div class="absolute top-0 left-0 px-6 py-4"> <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Schedules</h4></div>' ; 
+    });
+  });
+  async function sendRequest() {
+    // This is where you would send the request to the server
+    // For the sake of this example, we will just simulate a delay using setTimeout()
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+</script>
 
 
 {% endblock %}

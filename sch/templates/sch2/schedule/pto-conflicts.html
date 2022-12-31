@@ -29,22 +29,29 @@
 
 <form method='POST'> {% csrf_token %} 
     <button type="submit" 
-            class= "border baseline justify-center border-red-200 hover:bg-red-100 text-light hover:text-red-600 px-4 py-1 rounded">
-        <i class="fas">{% clearIcon '24px' '24px' %}</i>
+            class= "border baseline text-sm justify-center border-red-200 hover:bg-red-100 font-light hover:text-red-600 px-4 py-1 rounded my-5">
+        <i class="fas">{% clearIcon '18px' '18px' %}</i>
         CLEAR ALL CONFLICT SLOTS
     </button>
 </form>
 
-<table>
+<table class="table">
+    <thead>
+        <tr>
+            <th>DAY</th>
+            <th>CURRENT ASSIGNMENT</th>
+            <th>STATUS</th>
+        </tr>
+    </thead>
 {% for pto in pto_conflicts %}
     <tr>
-        <td>{{ pto.workday }}</td>
+        <td><a class="text-red-100 uppercase bg-slate-900 text-2xs hover:transition hover:scale-140" href="{{pto.workday.url}}">{{ pto.workday.date }}</a></td>
         <td>{{ pto.employee }}</td>
         {% if pto.slot %}
         <td>
             <a  class="bg-amber-400 text-amber-700 font px-5 -extrabold text-xs rounded" 
                 href="{{ pto.conflict.first.url }}">
-            {{ pto.conflict.first.shift }}
+            {{ pto.conflict }}
             </a>
         </td>
         {% else %}
