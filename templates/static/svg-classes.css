@@ -1,6 +1,14 @@
 {% load tags %}
+{% load static %}
 
 .icon-trash::before {
     content : url("/static/img/trash.svg");
     margin-right: 5px;
+}
+
+.spinner-flop {
+    content : url('https://raw.githubusercontent.com/n3r4zzurr0/svg-spinners/main/svg-css/3-dots-rotate.svg');
+    width: 10px;
+    height: 10px;
+    color: #fff;
 }

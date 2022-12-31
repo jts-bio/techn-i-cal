@@ -178,7 +178,9 @@ class SchViews:
         return query
 
     def schEMUSRView(request, schId):
+        
         html_template = "sch2/schedule/emusr.html"
+        
         sch = Schedule.objects.get(slug=schId)
         emusr = SchViews.schEMUSR(None, sch.slug)
         emusr_differences = list(emusr.values_list("difference", flat=True))
@@ -190,26 +192,66 @@ class SchViews:
         }
         return render(request, html_template, context)
 
+    def schEMUSREmployeeView (request, schId, empl):
+        html_template = "sch2/schedule/emusr-employee.html"
+        sch = Schedule.objects.get(slug=schId)
+        unfavorables = sch.slots.unfavorables().filter(employee=empl)
+        emusr = SchViews.schEMUSR(None, sch.slug).get(pk=empl)
 
+        context = {
+            "sch": sch,
+            "emusr": emusr,
+            "unfavorables": unfavorables,
+        }
+        return render(request, html_template, context)
+
+    def getSchEmptyCount (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        empty_count = sch.slots.filter(employee__isnull=True).count()
+        return HttpResponse(empty_count)
 class SlotViews:
     def slotStreakView(request, slotId):
+        """
+        Slot Streak View: 
+            - Shows the streak of slots for a given Slot
+            - Streak generated from the selected slot
+        """
         html_template = "sch2/slot/streak-timeline.html"
+        
         slot = Slot.objects.get(pk=slotId)
         siblings = slot.siblings_streak()
         ids = [s.pk for s in siblings] + [slot.pk]
         streak = Slot.objects.filter(pk__in=ids).order_by("workday__date")
+        for s in streak:
+            s.save()
         context = {
             "mainSlot": slot,
             "streak": streak,
         }
         return render(request, html_template, context)
+    
+    def slotClearActionView (request, slotId):
+        slot = Slot.objects.get(pk=slotId)
+        if request.method == 'POST':
+            old_assignment = slot.employee
+            slot.actions.clear_employee(slot)
+            messages.success(request, f"{old_assignment} cleared from {slot} successfully.")
+            return HttpResponseRedirect(slot.workday.url())
+        else:
+            messages.error(request, f"Invalid request method.")
+            return HttpResponseRedirect(slot.url())
 
 
 class ShiftViews:
+    
     def sstFormView(request, shiftId):
+        """
+        SST Form View: 
+            - Edits the 42 Schedule-Days for a given Shift"""
         import json
 
         html_template = "sch2/shift/sst-form.html"
+        
         shift = Shift.objects.get(name=shiftId)
         days = {}
         weekdays = [
@@ -230,7 +272,8 @@ class ShiftViews:
                 .exclude(shift=shift)
                 .values_list("employee", flat=True)
             )
-            exclude_tdos = TemplatedDayOff.objects.filter(sd_id=i).values_list(
+            exclude_tdos = TemplatedDayOff.objects.filter(
+                sd_id=i).values_list(
                 "employee", flat=True
             )
             excludeEmployees = Employee.objects.filter(
@@ -288,7 +331,6 @@ class ShiftViews:
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)
 
-
 class EmpViews:
     def empShiftSort(request, empId):
         html_template = "sch2/employee/shift-sort.html"
@@ -313,7 +355,6 @@ class EmpViews:
             "nTotal": range(1, emp.shifts_available.all().count() + 1),
         }
         return render(request, html_template, context)
-
 
 class IdealFill:
     def levelA(request, slot_id):

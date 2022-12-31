@@ -54,6 +54,7 @@ SCHEDULE DETAIL VIEW
             / {{ schedule.slots.all.count }} 
             SLOTS ASSIGNED 
         </span>
+        
 
     </div>
 
@@ -64,15 +65,34 @@ SCHEDULE DETAIL VIEW
     <div class="flex flex-row center center-content center-self gap-5 space-between"
          id="alt-view-linkbox">
         <a  href="{% url 'sch:v2-schedule-as-empl-grid' schedule.slug %}" 
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            onclick="loadingButton(this)">
         VIEW AS EMPLOYEE GRID </a>
         <a  href="{% url 'sch:v2-schedule-as-shift-grid' schedule.slug %}" 
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            onclick="loadingButton(this)">
+            <i class="spinner-flop hidden"></i>
         VIEW AS SHIFT GRID </a>
         <a  href="{% url 'sch:sch-fte-percents' schedule.slug %}"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs">
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            onclick="loadingButton(this)">
         VIEW FTE-SCHEDULED RATIOS </a>
     </div>
+    
+    <script>
+        function loadingButton(button) {
+            // reduce the opacity of the button
+            button.style.opacity = 0.5;
+            // create the spinner element
+            var spinner = document.createElement("i");
+            spinner.classList.add("fas", "fa-spinner", "fa-spin");
+            var buttonWidth = button.offsetWidth + 'px';
+            // replace the button text with the spinner element
+            button.innerHTML = "";
+            button.appendChild(spinner);
+            button.style.width = buttonWidth;
+        }
+    </script>
         
     <div>
         <div class="float-right mx-6">

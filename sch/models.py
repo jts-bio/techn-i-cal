@@ -10,6 +10,7 @@ from django.db.models import Deferrable
 from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
                               FloatField, Max, Min, OuterRef, Q, QuerySet,
                               StdDev, Subquery, Sum, Variance)
+from django.db.models.functions import Coalesce
 from django.urls import reverse
 from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
@@ -565,6 +566,8 @@ class Employee (models.Model) :
     def get_TdoSlotConflicts (self):
         tdos = list(TemplatedDayOff.objects.filter(employee=self).values_list('pk',flat=True))
         return Slot.objects.filter(workday__sd_id__in=tdos, employee=self)
+    def get_WeeklyHours (self, weekId):
+        return sum(list(Slot.objects.filter(employee=self, week__pk=weekId).values_list('shift__hours')))
     def info_printWeek(self,year,week):
             slots = list(Slot.objects.filter(employee=self,workday__date__year=year,workday__iweek=week).values_list('shift__name',flat=True))
             return f'{self.name}: {slots}'
@@ -863,6 +866,14 @@ class Week (models.Model) :
             hrs_needed = self.empl_needed_hrs(empl)
             output.update({empl:hrs_needed})        
         return sortDict(output,reverse=True)
+    def total_hours(self):
+        # Calculate the total hours for each employee
+        data = self.slots.values('employee').annotate(hours=Sum('shift__hours'))
+        # Define a subquery to get the total hours for each employee
+        total_hours_subquery = data.filter(employee=OuterRef('pk')).values('hours')
+        # Annotate the Employee queryset with the total hours for each employee
+        employees = Employee.objects.annotate(hours=Subquery(total_hours_subquery))
+        return employees
     def empl_with_max_needed_hours (self):   
         return self.needed_hours()[0]
     def nFilled (self):
@@ -1048,6 +1059,8 @@ class Schedule (models.Model):
     def pto_requests (self):
         return PtoRequest.objects.filter(workday__in=self.workdays.all().values('date'))
     def pto_percent (self):
+        if self.pto_requests.count() == 0:
+            return 0
         return 100 - int(self.pto_conflicts().count() / self.pto_requests.count() * 100)
     def pto_conflicts (self):
         """PTO CONFLICTS 
@@ -1127,11 +1140,10 @@ class Slot (models.Model) :
     # fields: workday, shift, employee
     workday        = models.ForeignKey ("Workday",  on_delete=models.CASCADE, null=True, related_name='slots')
     shift          = models.ForeignKey ("Shift",    on_delete=models.CASCADE, null=True, related_name='slots')
-    employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, blank=True, 
-                                                    default=None, related_name='slots')
+    employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name='slots')
     week           = models.ForeignKey ("Week",     on_delete=models.CASCADE, null=True, related_name='slots')
     period         = models.ForeignKey ("Period",   on_delete=models.CASCADE, null=True, related_name='slots')
-    schedule       = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True,related_name='slots')
+    schedule       = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True, related_name='slots')
     empl_sentiment = models.SmallIntegerField   (null=True, default=None)   
     is_turnaround  = models.BooleanField        (default=False)
     is_terminal    = models.BooleanField        (default=False)
@@ -1164,24 +1176,27 @@ class Slot (models.Model) :
                         print (
                             "NO ACTION TAKEN", 
                             "EMPLOYEE WORKING NONTEMPLATE SHIFT ON SAME DAY"
-                        )
-                        return
+                        )  
                 else:
                     instance.template_employee = instance.template().first().employee
                     instance.save()
                     print (
                         "TEMPLATING SUCCESSFUL", 
                         f"{instance.employee} TEMPLATED ON {instance.workday.date}"
-                        )
-                    return
+                        ) 
             else:
                 print(
                     "NO ACTION TAKEN",
                     "NO EMPLOYEE IS TEMPLATED FOR THIS SLOT"
                 )
-                return
-                    
+        def clear_employee (self, instance):
+            if instance.employee != None:
+                old_assignment = instance.employee
+                instance.employee = None
+                instance.save()
+                print (f'{old_assignment} cleared from {instance}')
                 
+
                 
     actions = Actions()
         
@@ -1436,7 +1451,6 @@ class Slot (models.Model) :
         self.streak = self._streak()
         self._save_empl_sentiment ()
         super().save(*args, **kwargs)
- 
     def url (self):
         return reverse('sch:slot-as-streak-view',args=[self.pk])
     def _save_empl_sentiment (self):
@@ -1527,6 +1541,7 @@ class Slot (models.Model) :
             if cslots.exists():
                 return cslots.first()
         return None
+    @property
     def pto_conflicts (self):
         return PtoRequest.objects.filter(employee=self.employee, workday=self.workday.date)
     def cssAvailableEmps (self):
@@ -1611,7 +1626,6 @@ class PtoRequest (ComputedFieldsModel):
     status           = models.CharField (max_length=20, choices=PTO_STATUS_CHOICES, default='Pending')
     manager_approval = models.BooleanField (default=False)
     sd_id            = models.IntegerField (default=-1)
-    #stands_respected = models.BooleanField(default=True)
 
     @computed (models.BooleanField(), depends=[('self',['status'])])
     def stands_respected (self) -> bool:

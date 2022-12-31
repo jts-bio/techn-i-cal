@@ -1278,6 +1278,7 @@ class EMPLOYEE:
 
             context = {}
             
+            context['DAYS_OF_WEEK'] = "Sun Mon tue Wed Thu Fri Sat".split(" ")
             context['templated_days_off'] = TemplatedDayOff.objects.filter(employee__name=employee)
             context['employee'] = employee
             
@@ -1288,6 +1289,7 @@ class EMPLOYEE:
             
             formset = formset(initial=initial)
             context['formset'] = formset
+            
             
             return render(request, template_name, context)       
     

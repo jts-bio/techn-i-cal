@@ -5,32 +5,32 @@
 
 {% block style %}
 
-<style> 
-    .html {
-        background-image: url("https://cdn.discordapp.com/attachments/1022445219704225842/1033115199760248872/jsteinbecker_Jelly_Beans_delicious_food_photography_fancy_dimme_335e6cda-cf59-41cc-8e94-17a6f95da59a.png");
-        background-repeat:  repeat;
-        background-size:    41%;
-    }
-    input[type="checkbox"]:checked {
-        background:     goldenrod;
-        border-radius:  20%;
-        width:          25px;
-        height:         25px;
-    }
-    input[type="checkbox"]:checked::before {
-        color:          white;
-        border-radius:  0%;
-        width:          12px;
-        height:         12px;
-    }
-    label {
-        color:          white;
-        font-size:      0.6em;
-        font-weight:    thin;
-        font-family:    "Helvetica Neue", Helvetica, Arial, sans-serif;
-    }
-</style>
-    
+    <style> 
+        .html {
+            background-image: url("https://cdn.discordapp.com/attachments/1022445219704225842/1033115199760248872/jsteinbecker_Jelly_Beans_delicious_food_photography_fancy_dimme_335e6cda-cf59-41cc-8e94-17a6f95da59a.png");
+            background-repeat:  repeat;
+            background-size:    41%;
+        }
+        input[type="checkbox"]:checked {
+            background:     goldenrod;
+            border-radius:  20%;
+            width:          25px;
+            height:         25px;
+        }
+        input[type="checkbox"]:checked::before {
+            color:          white;
+            border-radius:  0%;
+            width:          12px;
+            height:         12px;
+        }
+        label {
+            color:          white;
+            font-size:      0.6em;
+            font-weight:    thin;
+            font-family:    "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+    </style>
+        
 {% endblock style %}
     
 
@@ -54,14 +54,16 @@
     {% csrf_token %}
     {{ formset.management_form }}
         
-    <div class="panel grid-7-by-2">
-        <div class="lg">SUN</div>
-        <div class="lg">MON</div>
-        <div class="lg">TUE</div>
-        <div class="lg">WED</div>
-        <div class="lg">THU</div>
-        <div class="lg">FRI</div>
-        <div class="lg">SAT</div>
+    <div class="bg-slate-700 rounded-lg border border-slate-400  overflow-x-auto overscroll-x-auto grid-7-by-2">
+
+        {% for day_of_week in DAYS_OF_WEEK %}
+            <div clickCount=0 
+                class="lg hover:font-bold hover:text-yellow-300" 
+                script="on click if my @clickCount is '0' then set <input.{{ day_of_week }}/>@checked to 'checked' then set my @clickCount to '1' end">
+                {{ day_of_week }}
+            </div>
+        {% endfor %}
+        
 
         {% for form in formset %}
             <div>

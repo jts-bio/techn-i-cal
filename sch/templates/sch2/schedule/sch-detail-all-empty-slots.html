@@ -15,9 +15,11 @@
         <h2 class="text-xl text-bold jbm text-amber-300">
             Schedule Empty Slots
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-3">
+        <div class="grid grid-cols-1 md:grid-cols-3">
         {% for slot in schedule.slots.empty %}
-        <form method="POST"> {% csrf_token %}   
+        <form method="POST"
+            script="on mouseover send loadSignal to <option/> in me">
+            {% csrf_token %}   
             <div class="my-2">
                 <input type="hidden" name="slot" value="{{slot.pk}}"/>
                 <label class="text-xs">
@@ -27,27 +29,38 @@
                     <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
                     <span>{{ slot.workday.date }}</span>
                     </div>
+
+
                     <select name="employee" 
                             id="employee"
                             _="on focus 
-                                    add .hidden 
-                                        to <input/> then
-                                    remove .hidden
-                                        from the next <input/> 
-                                    then add .bg-indigo-900 .ring 
-                                             .ring-indigo-300 
-                                             .p-3 .rounded 
-                                        to the closest <form/>
-                                end"
+                            add .hidden 
+                                to <input/> then
+                            remove .hidden
+                                from the next <input/> 
+                            then add .bg-indigo-900 .ring 
+                                        .ring-indigo-300 
+                                        .p-3 .rounded 
+                                to the closest <form/>
+                            end"
                             class="bg-zinc-900 rounded w-full border-zinc-400 mr-8
                                    shadow shadow-lg"
-                                {% if slot.fillable_by.count == 0 %} disabled {% endif %}>
-                        <option value="" selected disabled>{{ slot.fillable_by.count }} options.. </option>
+                                {% if slot.fillable_by.count == 0 %} disabled {% endif %}
+                                >
+                        <option value="" selected disabled>
+                            {{ slot.fillable_by.count }} options.. 
+                        </option>
+
                         {% for employee in slot.fillable_by %}
-                        <option id="{{employee}}" 
-                            value="{{employee.pk}}" > 
-                            {{ employee.name }} 
-                        </option>    
+                            <option id="{{employee}}" 
+                                value="{{employee.pk}}"
+                                _="on load
+                                        fetch {% url 'sch:api-week-empl-hours' slot.week.pk employee %} then
+                                        set @wk to the result then 
+                                        append the result to my innerHTML
+                                    end"> 
+                                {{ employee.name }}
+                            </option>    
                         {% endfor %}
 
                     </select>

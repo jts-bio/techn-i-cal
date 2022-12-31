@@ -178,7 +178,7 @@ class SstEmployeeForm (forms.Form):
         if TemplatedDayOff.objects.filter(sd_id=self.initial.get('ppd_id'), employee=employee).exists():
             shiftList = Shift.objects.none()
 
-        self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","---------")]      # type: ignore
+        self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("","-")]      # type: ignore
 
         if ShiftTemplate.objects.filter(employee=employee, sd_id=self.initial.get('sd_id')).exists():
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee, sd_id=self.initial.get('sd_id')).shift.id
@@ -197,7 +197,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
     
     class Meta:
         model = TemplatedDayOff
-        fields = ['is_templated_off', 'employee','sd_id']
+        fields = [ 'is_templated_off', 'employee', 'sd_id' ]
         labels =    {
                   'sd_id': 'Day from month start',
                 }
@@ -209,14 +209,12 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
         super(EmployeeTemplatedDaysOffForm, self).__init__(*args, **kwargs)
         sd_id = self.initial.get('sd_id')
         employee = self.initial.get('employee')
+        if sd_id:
+            self.fields['is_templated_off'].widget.attrs.update({'class': "Sun Mon Tue Wed Thu Fri Sat".split(" ")[sd_id % 7]})
         if ShiftTemplate.objects.filter(employee=employee, sd_id=sd_id).exists():
             self.fields['is_templated_off'].widget.attrs['disabled'] = True
             self.fields['is_templated_off'].widget.attrs['title'] = "Employee is scheduled for this day. Cannot be templated off until the Shift Template is removed."
         
-    # if checked and already existing: pass and don't error
-    # if checked and not existing: create
-    # if not checked and not existing: pass and don't error
-    # if not checked and existing: delete
     def clean(self):
         cleaned_data = super(EmployeeTemplatedDaysOffForm,self).clean()
         td = TemplatedDayOff.objects.filter(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])
@@ -224,7 +222,8 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
             if td.exists():                    # pass
                 pass
             else:                              # create 
-                td = TemplatedDayOff.objects.create(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])  # type: ignore
+                td = TemplatedDayOff.objects.create(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])
+                td.save()
         else:                                  # delete or pass
             if td.exists():                    # delete
                 td[0].delete()  

@@ -31,7 +31,38 @@
     <div
       class="bg-slate-900 rounded-lg center center-text overflow-x-auto my-7 mx-20"
     >
-      {% render_table schedule.slots.all %}
+      <table>
+        <thead>
+          <tr>
+            <th>Workday</th>
+            <th>Shift</th>
+            <th>Employee</th>
+            <th>Template Employee</th>
+          </tr>
+        </thead>
+        
+      {% for slot in schedule.slots.all %}
+        <tr>
+          <td>{{ slot.workday.date }}</td>
+          <td>{{ slot.shift }}</td>
+          <td>{{ slot.employee | default:"NONE"}}</td>
+          <td>
+              {% if slot.employee == slot.template_employee %}
+                <span class="text-2xs text-slate-600">
+                  {{ slot.template_employee | default:"" }}
+                </span>
+              {% else %}
+                <span class="text-pink-300 text-2xs">
+                  {{ slot.template_employee | default:"" }}
+                </span>
+              {% endif %}
+            </span>
+          </td>
+        </tr>
+      {% endfor %}
+      
+    
+    </table>
     </div>
 
 {% endblock content %}

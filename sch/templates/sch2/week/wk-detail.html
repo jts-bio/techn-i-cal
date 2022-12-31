@@ -60,15 +60,16 @@
                 until mouseleave
                 end'
             >
+            <i class="fas">{% warnIcon %}</i>
             {{ week.slots.empty.count }} empty slots
         </div>
     {% endif %}
     
     <div class="overflow-auto">
-    <div class="flex flex-row py-2">
+    <div class="flex flex-row">
     
     {% for workday in workdays %}
-    <div class="hover:scale-105 hover:-translate-y-2 hover:transition">
+    <div class="hover:scale-105 hover:-translate-x-2 hover:transition ">
     <a href="{{workday.url}}">
         <div class="panel">
             <div 

@@ -143,6 +143,10 @@ def todayYear ():
 def todaySch ():
     return 7
 
+@register.inclusion_tag('warn.svg')
+def warnIcon (w='15px',h='15px',fill='#ff6688'):
+    return {'w': w, 'h': h, 'fill': fill}
+
 @register.inclusion_tag('iconCard.html')
 def iconCard (title="", body="", cardUrl="", badge=""):
     return {'title':title, 'body':body, 'cardUrl':cardUrl, 'badge':badge} 
@@ -236,3 +240,6 @@ def emplWeekAndPeriodHours (empl, wd):
     pd_hrs = empl.periodHours(wd) or 0
     return f"W:{int(wk_hrs)}   P:{int(pd_hrs)}"
     
+@register.filter(name="getWeekHours")
+def employeeWeeklyHours (empl, weekId):
+    return empl.get_WeeklyHours(weekId)

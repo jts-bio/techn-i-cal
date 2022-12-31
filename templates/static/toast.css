@@ -1,0 +1,29 @@
+#toast-wrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 999;
+}
+
+
+.toast {
+  background-color:#150a;
+  color: #ada;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.toast svg {
+  width: 25px;
+  height: 25px;
+  margin-right: 10px;
+  fill: #040!important;
+  color: #040!important;
+  bg-color: #ada!important;
+}

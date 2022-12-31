@@ -30,6 +30,7 @@
 				{% include 'my.css' %} 
 				{% include 'svg-classes.css' %}
 				{% include 'table-styles.css' %}
+				{% include 'toast.css' %}
 				
 				<link rel="stylesheet" href="https://unpkg.com/flowbite@1.5.3/dist/flowbite.min.css" />
 			</style>
@@ -63,7 +64,7 @@
 				{% block content %}
 				{% endblock %}
 
-				{% if messages %}
+				{% comment %} {% if messages %}
 					<div class="absolute bottom-0 right-0">
 						{% for message in messages %}
 						<div class="message">
@@ -104,13 +105,65 @@
 						</div>
 						{% endfor %}
 					</div>
+				{% endif %} {% endcomment %}
+
+				<div class="toast-wrapper" id="toast-wrapper"></div>
+				<script>
+					function showToast(message) {
+						// create the toast element
+						var toast = document.createElement("div");
+						toast.classList.add("toast");
+						toast.classList.add("bg-green-200");
+						toast.classList.add("border");
+						toast.classList.add("border-green-400");
+						toast.classList.add("text-green-700");
+						toast.classList.add("text-xs");
+						// add a i.fas.fa-check element to the right of the toast
+						var icon = document.createElement("i");
+						icon.classList.add("fas");
+						icon.classList.add("mr-3");
+						icon.classList.add("fa-shield-check");
+						icon.classList.add("fill-green-700");
+						icon.classList.add("fill")
+						icon.classList.add("shadow");
+						icon.classList.add("shadow-green-200");
+						icon.classList.add("shadow-sm");
+						toast.appendChild(icon);
+						toast.appendChild(document.createTextNode(message));
+						// add the toast to the wrapper
+						var wrapper = document.getElementById("toast-wrapper");
+						wrapper.appendChild(toast);
+						// slide the toast in from the bottom
+						toast.style.bottom = "-50px";
+						toast.style.opacity = 0;
+						setTimeout(function() {
+						  toast.style.bottom = "20px";
+						  toast.style.opacity = 1;
+						}, 50);
+						// remove the toast after 5 seconds
+						setTimeout(function() {
+						  wrapper.removeChild(toast);
+						}, 9000);
+					  }
+					  
+				</script>
+				{% if messages %}
+				{% for msg in messages%}
+				<script>
+					showToast("{{ msg }}");
+				</script>
+				{% endfor %}
 				{% endif %}
+
+				
+
+				
 
 				<section class='m-3'>
 				</section>
 				
 				{# TAILWINDCSS #}
-				<script src="https://cdn.tailwindcss.com"></script>
+				<script src="https://cdn.tailwindcss.com"></scrip>
 				{# FLOWBITE #}
 				<script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
 				{# HTMX #}

@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from . import views, actions, views2, viewsets
+from .api import WeekApi
 
 
 """
@@ -134,7 +135,8 @@ week_patterns = [
     ),
     path('v2/week-hrs-empl-form/week/<int:weekpk>/empl/<str:emplpk>/', views2.weekView__employee_possible_slots, name='week-hrs-empl-form'),
     path('v2/week/next-week/<int:weekId>/', viewsets.WeekViews.nextWeek, name='next-week'),
-    path('v2/week/prev-week/<int:weekId>/', viewsets.WeekViews.prevWeek, name='prev-week')
+    path('v2/week/prev-week/<int:weekId>/', viewsets.WeekViews.prevWeek, name='prev-week'),
+    path('api/week/week-total-hours/<int:weekId>/employee/<str:empId>/', WeekApi.GET.employeeHours, name='api-week-empl-hours'),
 ]
 
 pay_period_patterns = [
@@ -209,11 +211,6 @@ slot_patterns = [
     ),
     path("day/<slug:date>/<str:shift>/add/post", views.slotAdd_post, name="slot-add-post"),  # type: ignore
     path(
-        "day/<slug:date>/<str:shift>/delete/",
-        views.SLOT.SlotDeleteView.as_view(),
-        name="slot-delete",
-    ),
-    path(
         "day/<slug:date>/<str:employee>/resolve-pto-request/",
         views.WORKDAY.ResolvePtoRequestFormView.as_view(),
         name="resolve-pto-request",
@@ -254,6 +251,7 @@ slot_patterns = [
         name="sch-time-pref-fill",
     ),
     path('v2/slot/slot-streak-view/<int:slotId>/', viewsets.SlotViews.slotStreakView, name='slot-as-streak-view'),
+    path('v2/slot/slot-clear-action/<int:slotId>/clear/', viewsets.SlotViews.slotClearActionView, name="slot-clear-action")
 ]
 
 employee_patterns = [
@@ -366,10 +364,9 @@ schedule_patterns = [
         "v2/schedule/list/", 
         views2.schListView, 
         name="sch-list"),
-    path(
-        "v2/schedule/<str:schId>/", 
-        views2.schDetailView, 
-        name="v2-schedule-detail"),
+    path("v2/schedule/<str:schId>/", views2.schDetailView,name="v2-schedule-detail"),
+    path('v2/schedule/<str:schId>/get-sch-empty-count/', viewsets.SchViews.getSchEmptyCount, name="get-sch-empty-count"),
+    
     path(
         "v2/schedule-as-empl-grid/<str:schId>/",
         views2.schDetailEmplGridView,
@@ -416,6 +413,7 @@ schedule_patterns = [
     path("v2/schedule/fte-percents/<str:schId>/", viewsets.SchViews.schFtePercents, name="sch-fte-percents"),
     path('api/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSR, name='api-sch-emusr'),
     path('v2/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
+    path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
 ]
 
 test_patterns = [

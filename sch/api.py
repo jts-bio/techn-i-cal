@@ -1,18 +1,24 @@
 from .models import *
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Sum, Case, When, FloatField, Count, IntegerField
 
 class WeekApi: 
     
     class GET:
     
-        def employeeHours (request, weekid):
-            
-            week      = Week.objects.get(pk=weekid)
-            slots     = week.workdays.slots.all().order_by('employee')
-            employees = slots.values('employee').distinct()
-            employees.annotate(hours=Sum('shift__hours'))
-            return employees
+        def employeeHours (request, weekId, empId=None):
+            week = Week.objects.get(pk=weekId)
+            if empId:
+                emp = week.total_hours().filter(pk=empId)
+                if emp.exists():
+                    hrs = emp.first().hours
+                    if hrs == None:
+                        hrs = 0
+                else:
+                    hrs = 0 
+            else:
+                hrs = week.total_hours()
+            return HttpResponse(f"({hrs} hours in week)")
   
 
 
@@ -30,5 +36,8 @@ class ScheduleApi:
                             then='slots__pk'),  
                         default=0, output_field=IntegerField())).order_by('-unpref_count')
             return empls
+        def percent (request, schid):
+            sch = Schedule.objects.get(slug=schid)
+            return HttpResponse(sch.percent())
         
         

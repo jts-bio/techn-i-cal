@@ -1,3 +1,4 @@
+{% load cache %}
 
 <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto mb-8">
     <!-- Grid -->
@@ -30,7 +31,15 @@
           <!-- Stats -->
             {% if schedule.slots.empty.count > 0 %}
                 <a href="{% url 'sch:v2-schedule-detail-empty-slots' schedule.pk %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
-                    <p class="text-3xl font-semibold text-amber-500">{{ schedule.slots.empty.count }}</p>
+                    <span class="text-3xl font-semibold text-amber-500"
+                      script="on load repeat until event stop
+                              fetch get-sch-empty-count/ then put
+                              the result into me end then wait 2s"></span>
+                    <span>
+                      {% cache 1000 empty_icon %}
+                          <i class="fa-solid fa-person-circle-exclamation"></i>
+                      {% endcache %}
+                    </span>
                     <p class="mt-1 text-gray-500">Empty Slots</p>
                 </a>
             {% endif %}
