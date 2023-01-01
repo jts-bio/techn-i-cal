@@ -62,6 +62,21 @@ SCHEDULE DETAIL VIEW
 
     <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
 
+    <select name="select-for-compare" id="select-for-compare"
+            class="bg-sky-100 pl-2 pr-7 font-extralight text-sky-900 hover:bg-sky-200"
+            onchange="location= this.value; loadingButton(this);">
+            <option value="" selected disabled>Select a schedule for Layover Comparison...</option>
+            {% for sch in otherSchedules %}
+                <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}" class="text-xs font-light">
+                    {{ sch.year }}: Schedule {{ sch.number }} 
+                    (Version {{ sch.version }})
+                </option>
+            {% endfor %}
+    </select>
+    
+
+    <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
+
     <div class="flex flex-row center center-content center-self gap-5 space-between"
          id="alt-view-linkbox">
         <a  href="{% url 'sch:v2-schedule-as-empl-grid' schedule.slug %}" 
@@ -95,14 +110,14 @@ SCHEDULE DETAIL VIEW
     </script>
         
     <div>
-        <div class="float-right mx-6">
+        <div class="hidden md:block md:float-right mx-6">
                 <form method="POST"> 
                     {% csrf_token %}
                     {{ actionDropdown }}
                 </form> 
         </div>
     </div>
-    <div class="flex text text-center">
+    <div class="flex basis-1 shrink text text-center">
         <div class="overflow-x-auto"> 
                 {# ========= SCHEDULE TABLE ========= #}
                 {% include 'sch2/schedule/complex-table.html' %}

@@ -119,6 +119,7 @@ def schDetailView(request, schId):
         "form": EmployeeSelectForm,
         "emusr": emusr,
         "emusr_dist": max(emusr_differences) - min(emusr_differences),
+        "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk),
         # viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
     form = EmployeeSelectForm()

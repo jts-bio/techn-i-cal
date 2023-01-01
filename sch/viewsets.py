@@ -132,6 +132,7 @@ class SchViews:
             "sch1": sch1,
             "sch2": sch2,
             "workdays": days,
+            "percentSimilarity": sch1.actions.calculatePercentDivergence(sch1,sch2),
         }
         return render(request, html_template, context)
 

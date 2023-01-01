@@ -1146,6 +1146,17 @@ class Schedule (models.Model):
         def deleteSlots (self,instance):
             instance.slots.all().update(employee=None)
             print('All Slots Wiped on Schedule {instance.slug}')
+        def calculatePercentDivergence (self, instance, other):
+            sameSum = 0
+            totalSum = 0
+            for slot in instance.slots.all():
+                other_slot = other.slots.filter(shift=slot.shift,workday__sd_id=slot.workday.sd_id)
+                if other_slot.exists():
+                    if slot.employee == other_slot.first().employee:
+                        sameSum += 1
+                    totalSum += 1
+            return int(sameSum/totalSum * 100)
+                    
             
     actions = Actions()
     
@@ -1235,6 +1246,12 @@ class Slot (models.Model) :
             return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
         else:
             return 0
+    def sortScore    (self):
+        ssp = ShiftSortPreference.objects.filter(employee=self.employee,shift=self.shift)
+        if ssp.exists():
+            return ssp.values('score')
+        else:
+            return None
     def _typeATrades (self):
         return self.workday.slots.filter(shift__cls=self.shift.cls,shift__group=self.shift.group).exclude(employee=self.employee).filter(employee__shifts_available=self.shift)
     def isTurnaround (self):
@@ -1355,22 +1372,22 @@ class Slot (models.Model) :
         slot = self
         empl_in_conflicting = list(
             slot._get_conflicting_slots().all().values_list(
-                'employee',
+                'employee__pk',
                 flat=True
             ))
         empl_w_ptor  = list(
             PtoRequest.objects.filter(workday=slot.workday.date).values_list(
-                    'employee',
+                    'employee__pk',
                     flat=True
                 ).distinct()
             )
         empl_w_tdo   = list(TemplatedDayOff.objects.filter(sd_id=slot.workday.sd_id).values_list(
-                    'employee',
+                    'employee__pk',
                     flat=True
                 ).distinct()
             )
         same_day     = list(self.workday.slots.filled().exclude(pk=self.pk).values_list(
-                    'employee',
+                    'employee__pk',
                     flat=True
                 ).distinct()
             )
