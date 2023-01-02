@@ -47,14 +47,32 @@
                 <a href="{% url 'sch:sch-pto-conflicts' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
                         <p class="text-3xl font-semibold {% if schedule.pto_conflicts.count > 1 %} text-red-500
                             {% else %} text-emerald-600 {% endif %}">
-                            {{ schedule.pto_conflicts.count }} <span class="text-sm font-light text-gray-300">({{ schedule.pto_percent }}%)</span>
+                            {{ schedule.pto_conflicts.count }} 
+                            
+                            <span class="text-sm font-light text-gray-300">
+                              ({{ schedule.pto_percent }}%)
+                            </span>
                         </p>
+                        <i class="text-lg fa-duotone fa-square-person-confined"></i>
                         <p class="mt-1 text-gray-500">
                             PTO Request Conflicts
                         </p>
+
                         <p class="text-xs text-gray-500">
                             {{ schedule.pto_requests.count }} PTO Requests Total
-                          </p>
+                        </p>
+                </a>
+
+                <a href="{% url 'sch:sch-pto-conflicts' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                    <p class="text-3xl font-semibold {% if schedule.slots.tdoConflicts.count > 8 %} text-red-500
+                        {% elif schedule.slots.tdoConflicts.count > 1 %} text-orange-400
+                        {% else %} text-emerald-600 {% endif %}">
+                        {{ schedule.slots.tdoConflicts.count }} 
+                    </p>
+                    <i class="text-lg fa-duotone fa-comments-question"></i>
+                    <p class="mt-1 text-gray-500">
+                        Templated Day Off Conflicts
+                    </p>
                 </a>
                 
                 <a href="{% url 'sch:sch-emusr' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
@@ -65,10 +83,11 @@
                                 text-zinc-300
                         {% endif %}">
                         {{ emusr_dist }}
+                        <i class="text-lg fa-duotone fa-scale-unbalanced-flip"></i>
                         <span class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 font-medium 
                                         {% if emusr_dist > 4 %} text-yellow-600 
                                         {% else %} text-gray-800 {% endif %}
-                                    text-xs leading-4 rounded-full py-0.5 px-2 dark:bg-gray-800 dark:text-gray-300">
+                                    text-xs leading-4 rounded-full py-0.5 px-2 dark:bg-gray-800 dark:text-gray-300"><br/>
                             <svg class="w-3 h-3" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                               <path d="M10.067.87a2.89 2.89 0 0 0-4.134 0l-.622.638-.89-.011a2.89 2.89 0 0 0-2.924 2.924l.01.89-.636.622a2.89 2.89 0 0 0 0 4.134l.637.622-.011.89a2.89 2.89 0 0 0 2.924 2.924l.89-.01.622.636a2.89 2.89 0 0 0 4.134 0l.622-.637.89.011a2.89 2.89 0 0 0 2.924-2.924l-.01-.89.636-.622a2.89 2.89 0 0 0 0-4.134l-.637-.622.011-.89a2.89 2.89 0 0 0-2.924-2.924l-.89.01-.622-.636zm.287 5.984-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7 8.793l2.646-2.647a.5.5 0 0 1 .708.708z"/>
                             </svg>
@@ -77,7 +96,7 @@
                             {% else %} 
                                 EQUITABLE 
                             {% endif %}
-                        </span>
+                        </span><br/>
                     </p>
                     <p class="mt-1 text-gray-500">Unfavorables Spread</p>
                 </a>

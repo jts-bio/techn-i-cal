@@ -37,23 +37,26 @@ SCHEDULE DETAIL VIEW
     <a href="{% url 'sch:sch-list' %}"><i class="fas">{% backArrow %}</i> Back to List</a>
     
     <div class="panel text text-center">
-        <h1 class="text-3xl text-amber-600 text-bold">
+        <h1 class="text-3xl text-zinc-400 text-bold">
 
                 {{schedule.year}}-Schedule {{schedule.number}}
                     
         </h1> 
-        <h3 class="text-lg text-amber-300 text-light">
+        <h3 class="text-lg text-zinc-100 text-light">
         
                     VERSION {{schedule.version}}   
         </h3>
 
-        <div class="text-xs text-gray-300 italic">
+        <div class="text-xs text-zinc-300 italic">
 
         <span>
             {{ schedule.slots.filled.count }} 
             / {{ schedule.slots.all.count }} 
             SLOTS ASSIGNED 
         </span>
+        {% if schedule.percent < 70 %} 
+        <div><i class="text-3xl text-orange-400 fa-duotone fa-dumpster-fire"></i> </div>
+        {% endif %}
         
 
     </div>
@@ -61,18 +64,36 @@ SCHEDULE DETAIL VIEW
     {% include 'sch2/schedule/detail/stat-bar.html' %}
 
     <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
-
-    <select name="select-for-compare" id="select-for-compare"
-            class="bg-sky-100 pl-2 pr-7 font-extralight text-sky-900 hover:bg-sky-200"
-            onchange="location= this.value; loadingButton(this);">
-            <option value="" selected disabled>Select a schedule for Layover Comparison...</option>
-            {% for sch in otherSchedules %}
-                <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}" class="text-xs font-light">
-                    {{ sch.year }}: Schedule {{ sch.number }} 
-                    (Version {{ sch.version }})
-                </option>
-            {% endfor %}
-    </select>
+    <div class="flex flex-row">
+        <h2 class="jbm text-xl text-slate-900 bg-slate-300 rounded p-2 translate-x-2">
+            <i class="text-sky-800 fa-duotone fa-code-compare"></i>
+            COMPARE
+        </h2>
+        <select name="select-for-compare" id="select-for-compare"
+                class="bg-sky-100 pl-2 pr-7 font-extralight text-sky-100 hover:bg-sky-200"
+                onchange="location= this.value; selectLoading(this);">
+                <option value="" selected disabled>Select a schedule for Layover Comparison...</option>
+                {% for sch in otherSchedules %}
+                    <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}" class="text-xs font-light">
+                        {{ sch.year }}: Schedule {{ sch.number }} 
+                        (Version {{ sch.version }})
+                    </option>
+                {% endfor %}
+        </select>
+    </div>
+    <script>
+        function selectLoading(select) {
+            //append as a span after the select
+            var loading = document.createElement("span");
+            // create the spinner element
+            var spinner = document.createElement("i");
+            spinner.classList.add("fas", "fa-spinner", "fa-spin", "ml-2");
+            loading.appendChild(spinner);
+            select.after(loading);
+            // set the text of the select to loading please wait 
+            select.innerHTML = "Loading, Please Wait ...";
+        }
+    </script>
     
 
     <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
@@ -82,16 +103,23 @@ SCHEDULE DETAIL VIEW
         <a  href="{% url 'sch:v2-schedule-as-empl-grid' schedule.slug %}" 
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             onclick="loadingButton(this)">
-        VIEW AS EMPLOYEE GRID </a>
+
+            <i class="text-lg fa-duotone fa-poll-people"></i><br/>
+            VIEW AS EMPLOYEE GRID </a>
+
         <a  href="{% url 'sch:v2-schedule-as-shift-grid' schedule.slug %}" 
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             onclick="loadingButton(this)">
-            <i class="spinner-flop hidden"></i>
-        VIEW AS SHIFT GRID </a>
+
+            <i class="text-lg fa-duotone fa-grid-dividers"></i><br/>
+            VIEW AS SHIFT GRID </a>
+
         <a  href="{% url 'sch:sch-fte-percents' schedule.slug %}"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             onclick="loadingButton(this)">
-        VIEW FTE-SCHEDULED RATIOS </a>
+            
+            <i class="text-lg fa-duotone fa-chart-bullet"></i><br/>
+            VIEW FTE-SCHEDULED RATIOS </a>
     </div>
     
     <script>
@@ -141,9 +169,16 @@ SCHEDULE DETAIL VIEW
         </select>
     </form>
 
-    <form method="POST" action="{% url 'sch:sch-time-pref-fill' schedule.pk %}"> 
+    <form 
+    method="POST" 
+    action="{% url 'sch:sch-time-pref-fill' schedule.pk %}"> 
+
         {% csrf_token %}
-        <input type="submit" value="Perform Time-Preference Aware Fill"/>
+
+        <input 
+        type="submit" 
+        value="Perform Time-Preference Aware Fill"/>
+
     </form>
 
 

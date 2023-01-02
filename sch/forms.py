@@ -450,7 +450,9 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
         widgets = {
             'employee' : forms.HiddenInput(),
             'shift'    : forms.HiddenInput(),
-            'priority' : forms.Select(choices=PREF_SCORES),}
+            'priority' : forms.Select(choices=PREF_SCORES, attrs={'onchange':'updateColor(this)'})
+        }
+
         labels = {
             'priority' : 'Preference',}
                 
@@ -458,6 +460,9 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
             cleaned_data = super(EmployeeShiftPreferencesForm, self).clean()
             employee_id = cleaned_data.get('employee_id')
             shift = cleaned_data.get('shift')
+            
+        
+        
             
 class EmployeeShiftPreferencesFormset (BaseInlineFormSet):
     

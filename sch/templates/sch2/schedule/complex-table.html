@@ -1,10 +1,10 @@
 
     {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
-    <table class="flex flex-shrink bg-zinc-900 m-3 p-5 rounded">
+    <table class="flex basis-1 shrink bg-zinc-900 m-3 p-5 rounded">
     {% for period in schedule.periods.all %}
         <tr>
             <th rowspan="6">
-                <a href="{{period.url}}" class="transform rotate-90">
+                <a href="{{period.url}}" class="hidden md:block">
                     Pay <br> Period <br>{{ period.number }} <br> 
                     <span class="text-xs text-slate 400">{{ period.percent }}%
                 </a>
@@ -15,7 +15,7 @@
             <th colspan="8" class="center center-text text-indigo-300 font-light">
                 <a href="{{week.url}}">
                     {{ week }} 
-                    <span class="text-xs text-indigo 600">
+                    <span class="text-2xs md:text-xs text-indigo 600">
                         {{ week.percent }}%
                     </span>
                 </a>
@@ -26,7 +26,7 @@
             </td>
             {# DAY HEADER CONTAINS THE DATE #}
             {% for day in week.workdays.all %}
-                <td class="w-21">
+                <td class="text-2xs w-14 md:w-21 md:text-sm">
                     <a href="{{day.url}}" class="bg-inherit">
                         {{ day.date.month }}/{{ day.date.day }}
                     </a>
@@ -38,7 +38,7 @@
             </td>
             {# DAY BODY CONTAINS THE PERCENT #}
             {% for day in week.workdays.all %}
-                <td class="h-16 w-26">
+                <td class="h-16 w-14 md:w-26">
                     <a href="{{day.url}}"
                      class="text-2xs text-zinc-100 w-8 h-8 rounded text text-center shadow shadow-lg ring-1 ring-slate-200
                                 {% if day.percent > 94 %} bg-green-700 hover:bg-green-300 hover:text-green-800

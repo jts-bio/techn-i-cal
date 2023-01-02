@@ -2,6 +2,38 @@
 {% extends 'base.html' %}
 
 
+
+{% block style %}
+
+<style>
+    h2.glow-yellow {
+        color: #ffffffaa;
+        text-shadow: 0 0 10px #f6e05e;
+        size: 24px;
+        font-family: 'Helvetica Neue';
+        font-weight: 900;
+        stroke: #f6e05e;
+    }
+    h2.glow-green {
+        color: #ffffffaa;
+        text-shadow: 0 0 10px #68d391;
+        size: 24px;
+        font-family: 'Helvetica Neue';
+        font-weight: 900;
+    }
+    h2.glow-red {
+        color: #ffffffaa;
+        text-shadow: 0 0 10px #fc8181;
+        size: 24px;
+        font-family: 'Helvetica Neue';
+        font-weight: 900;
+    }
+</style>
+    
+{% endblock style %}
+    
+
+
 {% block content %}
 
 <h1 style="font-size: 36px;">{{employee}}</h1>
@@ -14,14 +46,64 @@
 <div class="hstack" style="flex-wrap: wrap;">
     {% for form in formset %}
     <div class="hstack panel" style="width: 220px;">
-        <div class="green-glow" style="font-size:22px;">{{form.shift.initial}}</div>
+        <h2 class="text-2xl">
+            {{form.shift.initial}}
+        </h2>
         <div>{{form.as_div}}</div>
     </div>
     {% endfor %}
 </div>
 
-<input type="submit" text="Submit">
+<input  class="border border-yellow-400 transition text-yelloq-300 hover:text-black hover:font-bold 
+               hover:transition border-2 w-170 hover:bg-yellow-500 hover:scale-125" 
+        type="submit" 
+        text="Submit">
 
 </form>
+
+
+
+
+
+<script>
+      window.onload = function() {
+        var selectElements = document.querySelectorAll("select");
+        for (var i = 0; i < selectElements.length; i++) {
+          var selectElement = selectElements[i];
+          var h2Element = selectElement.parentElement.parentElement.previousElementSibling;
+          if (selectElement.value === "N") {
+            h2Element.classList.add("glow-yellow");
+          } else if (selectElement.value === "P") {
+            h2Element.classList.add("glow-green");
+          } else if (selectElement.value === "SP") {
+              h2Element.classList.add("glow-green");
+          } else if (selectElement.value === "D") {
+              h2Element.classList.add("glow-red");
+          } else if (selectElement.value === "SD") {
+              h2Element.classList.add("glow-red");
+          }
+        }
+      };    
+</script>
+<script>
+    function updateColor(selectElement) {
+        var h2Element = selectElement.parentElement.parentElement.previousElementSibling;
+        h2Element.className = ""; // Remove all classes from the h2 element
+        h2Element.classList.add("text-2xl");
+        if (selectElement.value === "N") {
+            h2Element.classList.add("glow-yellow");
+          } else if (selectElement.value === "P") {
+            h2Element.classList.add("glow-green");
+          } else if (selectElement.value === "SP") {
+              h2Element.classList.add("glow-green");
+          } else if (selectElement.value === "D") {
+              h2Element.classList.add("glow-red");
+          } else if (selectElement.value === "SD") {
+              h2Element.classList.add("glow-red");
+          }
+      };
+</script>
+
+
 {% endblock content %}
     

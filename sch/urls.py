@@ -395,16 +395,8 @@ schedule_patterns = [
         views2.schDetailAllEmptySlots,
         name='v2-schedule-detail-empty-slots'
     ),
-    path(
-        "v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",
-        views.SCHEDULE.FX.lazy_popover_load,
-        name="lazy-popover-load",
-    ),
-    path(
-        "v2/generate-new-schedule/",
-        views2.generate_schedule_form,
-        name="generate-new-schedule",
-    ),
+    path("v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",views.SCHEDULE.FX.lazy_popover_load,name="lazy-popover-load",),
+    path("v2/generate-new-schedule/",views2.generate_schedule_form,name="generate-new-schedule",),
     path("v2/schedule-empl-pto/<str:schId>/<str:empl>/", views2.pto_schedule_form, name="v2-schedule-empl-pto"),
     path("v2/schedule/slot-table-view/<str:schId>/", views2.schDetailSlotTableView, name="sch-detail-slot-table"),
     path("v2/schedule/tdo-conflicts-table/<str:schId>/", views2.schTdoConflictTableView,name="sch-tdo-conflicts"),

@@ -442,7 +442,7 @@ def pto_schedule_form(request, schId, empl):
             pto_new.save()
 
             messages.success(
-                request, f"{pto_new} created for {pto_new.workday}")
+                request, f"PTO: {pto_new.employee} created on {pto_new.workday}")
 
         return HttpResponseRedirect(sch.url())
 

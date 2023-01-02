@@ -48,7 +48,7 @@
           <tr>
             <th>
               Trained Shifts <br />
-              <a href="{{ employee.url__tallies }}" class="small"
+              <a class="small"
                 >View Tallies</a
               >
             </th>
@@ -110,34 +110,47 @@
         </div>
         
       </div>
+
+      <!-- DOCUMENTS PANEL -->
       <div class="vstack">
-        <div class="panel">
-          <h2 style="font-size: 22px; color: orange">Documents</h2>
-          <a href="{% url 'sch:employee-choose-schedule' employee.pk %}"
-            ><div class="hstack">
-              {% plusIcon %}<span> Generate Schedule</span>
-            </div></a
-          >
-          <a href="shift-preferences/"
-            ><div class="hstack">
-              {% favoriteIcon %}<span>Shift Preferences</span>
-            </div></a
-          >
-          <a href="coworker/">
-            <div class="hstack">
-              {% teamIcon %}<span>Coworker Views</span>
-            </div></a
-          >
-          <a href="{% url 'sch:emp-shift-sort' employee.slug %}"
-            >Sort Shift Preferences</a
-          >
-          {% if employee.shift_sort_prefs.count > 0 %} 
-              {% for sft in employee.shift_sort_prefs.all %} 
-                  <span class="text-2xs font-thin text-slate-500"> 
-                    {{sft.shift}} 
-                  </span>  
-              {% endfor %} 
-          {% endif %}
+        <div class="panel p-8">
+
+          <h2 class="text-xs text-zinc-500 text-shadow spacing-wide font-light mb-7">
+            DOCUMENTS </h2>
+
+          <a href="{% url 'sch:employee-choose-schedule' employee.pk %}" class="hover:text-sky-200">
+            <i class="text-sky-200 fa-duotone fa-calendar-circle-plus"></i>  
+            Generate Schedule
+          </a>
+          <br/>
+          <a href="shift-preferences/" class="hover:text-orange-200">
+              <i class="text-amber-600 fa-duotone fa-thumbs-up"></i>
+              Shift Preferences
+          </a>
+          <br/>
+          <a href="coworker/" class="hover:text-yellow-200">
+              <i class="text-yellow-200 fa-duotone fa-people-group"></i>
+              Coworker Views
+          </a>
+          <br/>
+          <a href="{{ employee.url__tallies }}" class="hover:text-emerald-200">
+            <i class="text-emerald-200 fa-solid fa-tally"></i>
+            Shift Tallies
+          </a>
+          <br/>
+          <span class="align-center text-align" class="hover:text-slate-200">
+            <a href="{% url 'sch:emp-shift-sort' employee.slug %}">
+              <i class="fa-duotone fa-circle-sort-up"></i>
+              Shift Sort Preferences 
+            </a>
+              {% if employee.shift_sort_prefs.count > 0 %} 
+                  {% for sft in employee.shift_sort_prefs.all %} 
+                      <span class="text-2xs font-thin text-slate-500"> 
+                        {{sft.shift}} 
+                      </span>  
+                  {% endfor %} 
+              {% endif %}
+          </span>
 
         </div>
         <div class="panel w-fc">

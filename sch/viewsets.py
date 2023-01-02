@@ -60,7 +60,7 @@ class Actions:
                     f"Success: {selectedSlot} filled via PeriodActions.fill_slot_with_lowest_hour_employee",
                 )
             return HttpResponseRedirect(period.url())
-
+#######--- END OF ACTIONS SECTION ---########
 
 class WeekViews:
     def all_slots_fillable_by_view(request, weekId):
@@ -81,8 +81,10 @@ class WeekViews:
         prevWeek = week.prevWeek()
         return HttpResponseRedirect(prevWeek.url())
 
-
 class SchViews:
+    """ SCHEDULE VIEWS > GROUPED CLASS
+    =====================================
+    """
     def schFtePercents(request, schId):
 
         html_template = "sch2/schedule/fte-percents.html"
@@ -114,6 +116,7 @@ class SchViews:
 
         sch1 = Schedule.objects.get(slug=schId1)
         sch2 = Schedule.objects.get(slug=schId2)
+        
         days = []
         for day in sch1.workdays.all():
             slots = []
@@ -128,16 +131,21 @@ class SchViews:
                 )
                 slots += [thisSlot]
             days += [slots]
+            
         context = {
-            "sch1": sch1,
-            "sch2": sch2,
-            "workdays": days,
+            "sch1"      : sch1,
+            "sch2"      : sch2,
+            "workdays"  : days,
             "percentSimilarity": sch1.actions.calculatePercentDivergence(sch1,sch2),
         }
         return render(request, html_template, context)
 
     def schEMUSR(request, schId):
-        """Schedule Expected Morning Unpreferred Shift Requirements"""
+        """Schedule Expected Morning Unpreferred Shift Requirements
+        -----------------------------------------------------------
+        inputs: (1) request (2) schId 
+        """
+        import json
         sch = Schedule.objects.get(slug=schId)
         n_pm = sch.slots.evenings().count()
         pm_empls = Employee.objects.filter(
@@ -211,6 +219,7 @@ class SchViews:
         sch = Schedule.objects.get(slug=schId)
         empty_count = sch.slots.filter(employee__isnull=True).count()
         return HttpResponse(empty_count)
+
 class SlotViews:
     def slotStreakView(request, slotId):
         """
@@ -242,7 +251,6 @@ class SlotViews:
         else:
             messages.error(request, f"Invalid request method.")
             return HttpResponseRedirect(slot.url())
-
 
 class ShiftViews:
     
