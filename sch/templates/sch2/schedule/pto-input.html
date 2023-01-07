@@ -7,8 +7,8 @@
 {% block style %}
 
     <style>
-        .tooltip {
-            display: none;
+        .mytooltip {
+            display: inline-block;
             position: absolute;
             z-index: 1;
             background-color: #ccc;
@@ -18,10 +18,6 @@
             border-radius: 6px;
             shadow: 1px 1px 1px #000;
             font-family: 'JetBrains Mono', monospace;
-        }
-        
-        label:hover .tooltip {
-            display: inline;
         }
     </style>    
 {% endblock style %}
@@ -42,25 +38,28 @@
             <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
 
             {% for day in schedule.workdays.all %}
-                <div id="panel-{{day.slug}}" class="rounded bg-slate-400">
+                <div _="{% if day.sd_id in tdos %}  
+                                    on mouseenter  remove .hidden on .tooltip-{{day.sd_id}} end
+                                    on mouseleave  add .hidden on .tooltip-{{day.sd_id}} end
+                        {% endif %}"
+                    id="panel-{{day.slug}}" 
+                    class="rounded bg-slate-400"
+                >
                     <label for="{{day.sd_id}}-pto-checkbox" class="text-xs text-zinc-900">
                         <input 
-                            _="on click @clickCount increment 1 end
-                                if @clickCount > 1 then
-                                    @clickCount = 0
-                                    @checked = not @checked
-                                end"
                             type="checkbox" 
                             name="{{day.date.year}}-{{day.date.month}}-{{day.date.day}}" 
                             id="{{day.sd_id}}-pto-checkbox"
                                 {% if day.date in initial_pto_dates %} 
-                                        checked {% endif %}
+                                        checked      {% endif %}
                                 {% if day.sd_id in tdos %} 
-                                        disabled {% endif %}/>
+                                        disabled     {% endif %}/>
 
                             {% if day.sd_id in tdos %}
-                                <span class="tooltip italic">
-                                    Employee is templated off this day.<br> No PTO Request needed
+                                <span class="mytooltip tooltip-{{day.sd_id}} hidden italic">
+                                    Employee is templated off this day.
+                                    <br/> 
+                                    No PTO Request needed
                                 </span>
                             {% endif %}
 

@@ -1,0 +1,232 @@
+`{% extends 'base.html' %}
+
+{% block style %}
+
+    <style>
+        .shift-slot {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 10px;
+            background-color: #24641290;
+            color: white;
+        }
+        .on-deck-container {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 10px;
+            background-color: #24641290;
+            color: white;
+        }
+        .scheduled-off-container {
+            width: 100px;
+            height: 100px;
+            border: 1px solid black;
+            display: inline-block;
+            margin: 10px;
+            border-radius: 10px;
+            background-color: #24641290;
+            color: white;
+        }
+        .empl {
+            width: 70px;
+            height: 15px;
+            border: 1px solid lightblue;
+            display: inline;
+            margin: 3px;
+            border-radius: 5px;
+            background-color: #033703l
+            color: white;
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+        
+    </style>
+
+{% endblock style %}
+
+{% block content %}
+
+  
+    <div class == "grid grid-cols-4">
+      {% for slot in wd.slots.all %}
+        <div class= "rounded-xl border border-gray-800 bg-zinc-900 m-2 p-3 shadow {% if slot.employee == None %} bg-red-900 {% endif %}"
+             draggable="false">
+          <a= href= "#">
+            {% if slot.employee != None %}
+              <i class= "text-2xl text-sky-300 fa-duotone fa-check"></i>
+            {% else %}
+              <i class= "text-2xl text-red-300 fa-duotone fa-x"></i>
+            {% endif %}
+          
+            <h3 class= "mt-3 text-xl font-bold text-white"> Slot: {{ slot.shift }} </h3>
+          
+            {% if slot.employee != None %}
+              <div class="mt-4 text-sm text-gray-300 border px-3 py-1 rounded-full w-fc employee"
+                   draggable="true">
+                  {{ slot.employee.name }}
+              </div>
+            {% endif %}
+
+          </a=>
+        </div>
+      {% endfor %}
+    </div>
+
+
+
+    <div id="on-deck-container">
+      On Deck Employees
+
+        {% for employee in wd.on_deck %}
+            <div id="{{employee.name}}" class="empl" draggable="true"> {{ employee.name }} </div>
+        {% endfor %}
+
+    </div>
+
+    <div id="scheduled-off-container">
+      Scheduled Off Employees
+
+        {% for tdo in wd.tdo.all %}
+            <div id="{{employee.name}}" class="empl" draggable="true"> {{ tdo.employee.name }} </div>
+        {% endfor %}
+
+  </div>
+  
+
+<script>
+    const container = document.getElementById("container");
+    const onDeckContainer = document.getElementById("on-deck-container");
+    const scheduledOffContainer = document.getElementById("scheduled-off-container");
+
+// Employee class
+class Employee {
+  constructor(name, trainedShifts) {
+    this.name = name;
+    this.trainedShifts = trainedShifts;
+  }
+}
+
+// run this code on load:
+// function that will bake Employees on load:
+
+{% comment %} function bakeEmployees() {
+    const employees = [];
+    const employeeNames = ["Josh", "David", "Brianna", "Brittanie"];
+    const employeeShifts = [["MI", "7C","7P","S","OP"], ["MI", "7C"], ["MI", "7C","7P","S"], ["OP"]];
+    for (let i = 0; i < employeeNames.length; i++) {
+        employees.push(new Employee(employeeNames[i], employeeShifts[i]));
+    }
+    return employees;
+}
+
+// function that will bake Shifts on load:
+
+
+// Create some employees
+const josh = new Employee("Josh", ["MI", "7C","7P","S","OP"]);
+const david = new Employee("David", ["MI", "7C"]);
+const brianna = new Employee("Brianna",  ["MI", "7C","7P","S"]);
+const brittanie = new Employee("Brittanie", ["OP"]);
+
+//add them to the on-deck container
+onDeckContainer.appendChild(createEmployeeElement(josh));
+onDeckContainer.appendChild(createEmployeeElement(david));
+onDeckContainer.appendChild(createEmployeeElement(brianna));
+
+
+//add them to the scheduled off container
+scheduledOffContainer.appendChild(createEmployeeElement(brittanie)); {% endcomment %}
+
+
+// Create an element for an employee
+function createEmployeeElement(employee) {
+  const employeeElement = document.createElement("div");
+  employeeElement.id = employee.name;
+  employeeElement.innerHTML = employee.name;
+  employeeElement.draggable = true;
+  employeeElement.employee = employee;
+  employeeElement.trainedShifts = employee.trainedShifts;
+  return employeeElement;
+}
+
+
+
+// Set up drag and drop event listeners for employees
+onDeckContainer.addEventListener("dragstart", dragStart);
+scheduledOffContainer.addEventListener("dragstart", dragStart);
+container.addEventListener("dragover", dragOver);
+container.addEventListener("drop", drop);
+onDeckContainer.addEventListener("dragend", dragEnd);
+
+
+
+
+function dragStart(event) {
+  // Store a reference to the dragged element
+  event.dataTransfer.setData("text", event.target.id);
+
+  // Highlight all the shifts that the employee is trained for
+  const trainedShifts = event.target.trainedShifts;
+  for (const shift of trainedShifts) {
+    document.getElementById(shift).style.background = "yellow";
+  }
+}
+
+function dragOver(event) {
+  event.preventDefault();
+}
+
+function dragEnd (event) {
+  // Remove the highlight from all the shifts
+  const shiftSlots = document.querySelectorAll(".shift-slot");
+  for (const shiftSlot of shiftSlots) {
+    shiftSlot.style.background = "";
+  }
+}
+
+function drop(event) {
+  // Prevent the default drop action
+  event.preventDefault();
+
+  // Get the id of the shift slot that the employee is being dropped on
+  const shiftId = event.target.id;
+
+  // Get the id of the employee that was dragged
+  const employeeId = event.dataTransfer.getData("text");
+  const employeeElement = document.getElementById(employeeId);
+  const employee = employeeElement.employee;
+
+  // Check if the employee is trained for the shift
+  if (!employee.trainedShifts.includes(shiftId)) {
+    return;
+  }
+
+  // Remove the highlight from all the shifts
+  const shiftSlots = document.querySelectorAll(".shift-slot");
+  for (const shiftSlot of shiftSlots) {
+    shiftSlot.style.background = "";
+  }
+
+  // If there is an employee already assigned to the shift, move them back to the on-deck container
+  if (event.target.children.length > 0) {
+    onDeckContainer.appendChild(event.target.children[0]);
+  }
+
+  // Assign the new employee to the shift
+
+    event.target.appendChild(employeeElement);
+}
+
+
+</script>
+
+
+    
+{% endblock content %}
+    

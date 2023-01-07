@@ -89,10 +89,16 @@ def schDetailView(request, schId):
         "confirm": "This method is under construction and may take upward of 5 minutes to complete. Verify to continue.",
         "url":      schedule.url__solve(),
     }
+    action3 = {
+        "name":     "Maintenance: Clear Over FTE",
+        "note":     "(No changes will be made on PRN Employees)",
+        "confirm":  "Verify you will run the Maintenance Script: Clear FTE Overages.",
+        "url":      reverse('sch:sch-clear-over-fte', args=[schedule.slug])
+    }
     actionDropdown = render_to_string(
         "sch/comp/dropdown_btn.html",
         {
-            "menuItems": [action1, action2],
+            "menuItems": [action1, action2, action3],
             "deleteLink": schedule.url__clear(),
         },
     )
@@ -260,12 +266,15 @@ def weekView__employee_possible_slots(request, weekpk, emplpk):
 
 def workdayDetail(request, slug):
 
-    html_template = "sch2/workday/wd-detail.html"
+    html_template = "sch2/workday/wd-2.html"
+    
     workday = Workday.objects.get(slug=slug)
     if request.method == "POST":
         post = request.POST
-        post = {k: v for k, v in post.items() if k !=
-                "csrfmiddlewaretoken" and v != ""}
+        post = {
+                k : v for k, v in post.items() if k !=
+                "csrfmiddlewaretoken" and v != ""
+            }
         for sft, emp in post.items():
             if emp != None:
                 slot = workday.slots.filter(shift__name=sft).first()
@@ -280,7 +289,7 @@ def workdayDetail(request, slug):
 
 
 def shiftDetailView(request, cls, name):
-    html_template = "sch2/shift/shift-detail.html"
+    html_template = "sch2/shift/shift-dnd.html"
 
     shift = Shift.objects.get(cls=cls, name=name)
     _ = [int(sft) for sft in shift.occur_days]

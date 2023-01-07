@@ -1,0 +1,36 @@
+-- Usage: _="install Draggable(dragHandle: .titlebar in me)"
+
+behavior Draggable(dragHandle)
+
+  init
+    if no dragHandle set the dragHandle to me
+  end
+
+  on pointerdown(clientX, clientY) from dragHandle
+    halt the event
+    trigger draggable:start -- hooks, e.g. for adding a drop shadow while dragging
+    measure my x, y
+    set xoff to clientX - x
+    set yoff to clientY - y
+    repeat until event pointerup from document
+      wait for pointermove(pageX, pageY) or
+               pointerup  (pageX, pageY) from document
+      add { left: ${pageX - xoff}px; top: ${pageY - yoff}px; }
+      trigger draggable:move
+    end
+    trigger draggable:end
+end
+
+
+behavior DraggableData(dragHandle)
+
+  on draggable:start
+    set my data to { x: my x, y: my y }
+  end
+
+  on draggable:move
+    set my x to my data.x + (my x - my data.x)
+    set my y to my data.y + (my y - my data.y)
+  end
+
+end

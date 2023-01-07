@@ -6,9 +6,9 @@
 {% block style %}
 
     <style>
-        .tooltip {
+        .mytooltip {
             position: absolute;
-            display: inline-block;
+            display: none;
             border-bottom: 1px dotted black;
             font-family: 'JetBrains Mono', sans-serif;
             letter-spacing: 0.1em;
@@ -20,6 +20,9 @@
             color: #1f2937;
             border-radius: 0.25em;
         }
+        .mytooltip:hover {
+            display: block;
+        }
 
     </style>
     
@@ -29,12 +32,14 @@
 
 
 {% block content %}
+
+
     <a href="{{week.schedule.url}}" class="hstack">
         <div> {% backArrow %} </div>
         <div> Schedule {{ week.schedule.number }}</div>
     </a>
     
-
+    <!-- NAV ARROWS   &   TITLE  --->
     <div class="flex flex-row gap-4">
 
         <a href="{% url 'sch:prev-week' week.pk %}">
@@ -49,16 +54,20 @@
     
 
     <a href="{% url 'sch:week-fillable-by' week.pk %}"
-        class="italic text-indigo-100 text-light hover:text-indigo-300 underline">Go to week's Fillable By View</a>
+        class="italic text-2xs 
+               text-indigo-100 text-light 
+               hover:text-indigo-300 underline">
+            Go to week's Fillable By View
+    </a>
 
 
     {% if week.slots.empty.count > 0 %}
-        <div class="flex grow flex-grow mx-12 bg-red-300 py-4 mt-2 mb-12 text-red-800 font-light text-xs px-7 rounded border border-red-700"
-            _='on mouseenter
-                   toggle .scale-125 .text-md .font-bold .m-1 .animate-pulse .bg-red-100 .text-red-700 
-                   on <td.emptyslot/>
-                until mouseleave
-                end'
+        <div class="flex grow flex-grow mx-12 bg-red-300 
+                    py-4 mt-2 mb-12 text-red-800 font-light 
+                    text-xs px-7 rounded border border-red-700"
+
+            _="on mouseenter
+                pingEmptySlots()"
             >
             <i class="fas">{% warnIcon %}</i>
             {{ week.slots.empty.count }} empty slots
@@ -66,10 +75,10 @@
     {% endif %}
     
     <div class="overflow-auto">
-    <div class="flex flex-row">
+    <div class="flex flex-row my-2">
     
     {% for workday in workdays %}
-    <div class="hover:scale-105 hover:-translate-x-2 hover:transition ">
+    <div class="hover:ring hover:ring-yellow-200 hover:bg-slate-700  transition ">
     <a href="{{workday.url}}">
         <div class="panel">
             <div 
@@ -102,16 +111,22 @@
     </a>
         <div class="text-sm mx-4">
             {% for ptor in workday.pto %} 
-                {% if pto.stands_respected == True %}
+                {% if pto.stands_respected %}
                     <span class="text-sky-500"
-                        _="on mouseover remove .hidden from the next <div.tooltip/>
-                        on mouseleave add .hidden to the next <div.tooltip/> ">◉</span>
+                        _="on mouseover 
+                                toggle .hidden 
+                                on the next <div.tooltip/>
+                            until mouseleave 
+                            end "> ◉ </span>
                 {% else %} 
                     <span class="text-rose-500"
-                        _="on mouseover remove .hidden from the next <div.tooltip/>
-                        on mouseleave add .hidden to the next <div.tooltip/>">◉</span>
+                    _="on mouseover 
+                            toggle .hidden 
+                            on the next <div.tooltip/>
+                        until mouseleave 
+                        end "> ◉ </span>
             {% endif %}
-                <div class="tooltip hidden">{{ptor.employee}}</div>
+                <div class="tooltip hidden -translate-y-4">{{ptor.employee}}</div>
             {% endfor %}
         </div>
     </div>    
@@ -156,23 +171,23 @@
 
        
         {% for slot in empl.list %}
-        <a href="{{ slot.url }}">
-            {% if slot.shouldBeTdo %}
-                <span class='bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
-            {% else %}
-                <span class='bg-blue-600 px-2 rounded-lg'>
-            {% endif %}
-                <span class='text-white italic text-xs'>
-                    {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+            <a href="{{ slot.url }}">
+                {% if slot.shouldBeTdo %}
+                    <span class='bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
+                {% else %}
+                    <span class='bg-blue-600 px-2 rounded-lg'>
+                {% endif %}
+                    <span class='text-white italic text-xs'>
+                        {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+                    </span>
+                    <span class="text-xs text-indigo-200">
+                        {{ slot.shift }} 
+                    </span>
                 </span>
-                <span class="text-xs text-indigo-200">
-                    {{ slot.shift }} 
-                </span>
-            </span>
-        </a>
-        {% endfor %}     
+            </a>
+        {% endfor slot %}     
 
-    {% endfor %}
+    {% endfor empl %}
     
     </div>
 
@@ -180,6 +195,17 @@
         
 
     {% include 'sch2/week/wk-needed-hours.html' %}
+
+
+<script type="text/hyperscript">
+
+    function pingEmptySlots 
+        toggle .scale-125 .text-md 
+                .font-bold .m-1 
+                .animate-pulse .bg-red-100 
+                .text-red-700 
+
+</script>
 
     
 {% endblock content %}

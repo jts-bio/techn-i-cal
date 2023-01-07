@@ -80,6 +80,7 @@
 		select option {
 			background: #32362a!important;
 		}
+
 		.light-button:hover {
 			background-color: #ddd1;
 			color: #cdea;

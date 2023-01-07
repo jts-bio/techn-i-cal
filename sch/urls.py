@@ -1,7 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from . import views, actions, views2, viewsets
-from .api import WeekApi
+from .api import WeekApi, WdApi, ScheduleApi, SlotApi
 
 
 """
@@ -18,9 +18,7 @@ app_name = "sch"
 
 urlpatterns = [
     path("", views.index, name="index"),
-    # ? ==== PTO Requests ==== ?#
     path("pto-requests/all/", views.PTO.PtoManagerView.as_view(), name="pto-request-list"),
-    # ? ==== DOCS ==== ?#
     path("docs/week/", views.DOCUMENTATION.weekly, name="docs-week"),
 ]
 
@@ -28,32 +26,15 @@ user_patterns = []
 
 workday_patterns = [
     # ? ==== Workday ==== ?#
+    path("days/new/", views.WORKDAY.WorkdayBulkCreateView.as_view(), name="workday-new"),
     path("workday-list-view/all/",views.WORKDAY.WorkdayListView.as_view(),name="v2-workday-list",),
     path("v1/workday-detail/<str:slug>/",views.WORKDAY.WorkDayDetailView.as_view(),name="v1-workday-detail"),
-    path(
-        "day/<slug:date>/fill-template/",
-        views.WORKDAY.workdayFillTemplate,
-        name="workdayFillTemplate",
-    ),
-    path(
-        "day/<slug:date>/add-pto/",
-        views.WORKDAY.WorkdayPtoRequest.as_view(),
-        name="workdayAddPTO",
-    ),
-    path(
-        "days/new/", 
-        views.WORKDAY.WorkdayBulkCreateView.as_view(), 
-        name="workday-new"
-    ),
-    path(
-        "day/<slug:date>/run-swaps/", 
-        views.WORKDAY.runSwaps, 
-        name="run-swaps"),
-    path(
-        "v2/workday-detail/<str:slug>/", 
-        views2.workdayDetail, 
-        name="v2-workday-detail"
-    ),
+    path("day/<slug:date>/fill-template/",views.WORKDAY.workdayFillTemplate,name="workdayFillTemplate"),
+    path("day/<slug:date>/add-pto/",views.WORKDAY.WorkdayPtoRequest.as_view(),name="workdayAddPTO"),
+    path("day/<slug:date>/run-swaps/", views.WORKDAY.runSwaps, name="run-swaps"),
+    path("v2/workday-detail/<str:slug>/", views2.workdayDetail, name="v2-workday-detail"),
+    path('v2/workday-detail/<str:wdSlg>/api/fill-slot/<str:shiftSlg>/<str:empId>/', WdApi.Post.fillSlotWithApi, name='api-fill-slot'),
+    path('beta/day/<str:wdId>/detail/', viewsets.WdViews.wdayDetailBeta, name='beta-day'),
 ]
 
 week_patterns = [
@@ -230,10 +211,7 @@ slot_patterns = [
         name="turnarounds-delete",
     ),
     path("sst-by-day/", views.SST.sstDayView, name="sst-day-view"),
-    path(
-        "v2/slot/slot-admin/<str:slotId>/",
-        views.SLOT.slot_admin_detail_view,
-        name="v2-slot-detail",
+    path("v2/slot/slot-admin/<str:slotId>/",views.SLOT.slot_admin_detail_view,name="v2-slot-detail",
     ),
     path(
         "v2/slot/slot-clear-assignment/<str:slotId>/action/",
@@ -247,11 +225,11 @@ slot_patterns = [
     ),
     path(
         "v2/schedule-time-pref-aware-fill/<int:pk>/",
-        views.SCHEDULE.DO.fillSlotsWithPrefTime,
-        name="sch-time-pref-fill",
+        views.SCHEDULE.DO.fillSlotsWithPrefTime,name="sch-time-pref-fill",
     ),
     path('v2/slot/slot-streak-view/<int:slotId>/', viewsets.SlotViews.slotStreakView, name='slot-as-streak-view'),
-    path('v2/slot/slot-clear-action/<int:slotId>/clear/', viewsets.SlotViews.slotClearActionView, name="slot-clear-action")
+    path('v2/slot/slot-clear-action/<int:slotId>/clear/', viewsets.SlotViews.slotClearActionView, name="slot-clear-action"),
+    path('v2/slot/slot-check-emp-fillability/<str:slotId>/<str:empId>/', SlotApi.checkEmpFillability, name='checkEmpFillability'),
 ]
 
 employee_patterns = [
@@ -335,77 +313,33 @@ schedule_patterns = [
         views.HTMX.scheduleActiveLoad,
         name="sch-active-loading",
     ),
-    path(
-        "schedule/<int:year>/<int:sch>/delete-all-slots/",
-        views.SCHEDULE.scheduleDelSlots,
-        name="sch-del-slots",
-    ),
-    path(
-        "schedule/<int:year>/<int:sch>/solve-slots/",
-        views.SCHEDULE.solveScheduleSlots,
-        name="solve-sch-slots",
-    ),
-    path(
-        "v2/schedule/generate-random-pto/<int:schpk>/",
-        views.SCHEDULE.DO.generateRandomPtoRequest,
-        name="gen-rand-pto",
-    ),
-    path(
-        "schedule/<int:year>/<int:sch>/weekly-ot/",
-        views.SCHEDULE.weeklyOTView,
-        name="weekly-ot",
-    ),
-    path(
-        "schedule/<int:year>/<int:sch>/del-pto-conflict-slots/",
-        views.SCHEDULE.FX.removePtoConflictSlots,
-        name="remove-pto-conflict-slots",
-    ),
-    path(
-        "v2/schedule/list/", 
-        views2.schListView, 
-        name="sch-list"),
+    path("schedule/<int:year>/<int:sch>/delete-all-slots/",views.SCHEDULE.scheduleDelSlots, name="sch-del-slots"),
+    path("schedule/<int:year>/<int:sch>/solve-slots/",views.SCHEDULE.solveScheduleSlots,name="solve-sch-slots"),
+    path("v2/schedule/generate-random-pto/<int:schpk>/",views.SCHEDULE.DO.generateRandomPtoRequest,name="gen-rand-pto"),
+    path("schedule/<int:year>/<int:sch>/weekly-ot/",views.SCHEDULE.weeklyOTView,name="weekly-ot"),
+    path("schedule/<int:year>/<int:sch>/del-pto-conflict-slots/",views.SCHEDULE.FX.removePtoConflictSlots,name="remove-pto-conflict-slots"),
+    path("v2/schedule/list/", views2.schListView, name="sch-list"),
     path("v2/schedule/<str:schId>/", views2.schDetailView,name="v2-schedule-detail"),
     path('v2/schedule/<str:schId>/get-sch-empty-count/', viewsets.SchViews.getSchEmptyCount, name="get-sch-empty-count"),
-    
-    path(
-        "v2/schedule-as-empl-grid/<str:schId>/",
-        views2.schDetailEmplGridView,
-        name="v2-schedule-as-empl-grid"),
-    path(
-        "v2/schedule-as-shift-grid/<str:schId>/",views2.schDetailShiftGridView,
-        name='v2-schedule-as-shift-grid'),
-    path(
-        "v2/schedule/<str:schId>/clearSlots/",
-        views2.scheduleClearAllView,
-        name="v2-schedule-clear"),
-    path(
-        "v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/",
-        views2.schDayPopover,
-        name="sch-day-popover"),
-    path(
-        "v2/schedule-solve/<str:schId>/", views2.scheduleSolve, name="v2-schedule-solve"
-    ),
-    path(
-        "v2/schedule-solve-alg-2/<str:schId>/",
-        views.SCHEDULE.solveScheduleSlots,
-        name="v2-schedule-solve-alg2",
-    ),
-    path(
-        'v2/schedule-detail/<str:schId>/empty-slots/',
-        views2.schDetailAllEmptySlots,
-        name='v2-schedule-detail-empty-slots'
-    ),
-    path("v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",views.SCHEDULE.FX.lazy_popover_load,name="lazy-popover-load",),
-    path("v2/generate-new-schedule/",views2.generate_schedule_form,name="generate-new-schedule",),
+    path("v2/schedule-as-empl-grid/<str:schId>/",views2.schDetailEmplGridView,name="v2-schedule-as-empl-grid"),
+    path("v2/schedule-as-shift-grid/<str:schId>/",views2.schDetailShiftGridView, name='v2-schedule-as-shift-grid'),
+    path("v2/schedule/<str:schId>/clearSlots/",views2.scheduleClearAllView, name="v2-schedule-clear"),
+    path("v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/",views2.schDayPopover, name="sch-day-popover"),
+    path("v2/schedule-solve/<str:schId>/", views2.scheduleSolve, name="v2-schedule-solve" ),
+    path("v2/schedule-solve-alg-2/<str:schId>/",views.SCHEDULE.solveScheduleSlots, name="v2-schedule-solve-alg2"),
+    path('v2/schedule-detail/<str:schId>/empty-slots/', views2.schDetailAllEmptySlots, name='v2-schedule-detail-empty-slots'),
+    path("v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",views.SCHEDULE.FX.lazy_popover_load, name="lazy-popover-load",),
+    path("v2/generate-new-schedule/",views2.generate_schedule_form, name="generate-new-schedule",),
     path("v2/schedule-empl-pto/<str:schId>/<str:empl>/", views2.pto_schedule_form, name="v2-schedule-empl-pto"),
     path("v2/schedule/slot-table-view/<str:schId>/", views2.schDetailSlotTableView, name="sch-detail-slot-table"),
-    path("v2/schedule/tdo-conflicts-table/<str:schId>/", views2.schTdoConflictTableView,name="sch-tdo-conflicts"),
+    path("v2/schedule/tdo-conflicts-table/<str:schId>/", viewsets.SchViews.schTdoConflictsView,name="sch-tdo"),
     path("v2/schedule/pto-conflicts/<str:schId>/", views2.schDetailPtoConflicts, name="sch-pto-conflicts"),
     path("v2/compare-schedules/<str:schId1>/<str:schId2>/", viewsets.SchViews.compareSchedules, name="compare-schedules"),
     path("v2/schedule/fte-percents/<str:schId>/", viewsets.SchViews.schFtePercents, name="sch-fte-percents"),
     path('api/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSR, name='api-sch-emusr'),
     path('v2/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
     path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
+    path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
 ]
 
 test_patterns = [

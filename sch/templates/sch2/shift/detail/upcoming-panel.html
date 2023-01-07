@@ -1,4 +1,7 @@
-<div class="w-full mx-6 my-2 pt-4 overflow-auto overscroll-x-auto overflow-y-none bg-zinc-600 ring ring-zinc-400">
+
+
+
+{% comment %} <div class="w-full mx-6 my-2 pt-4 overflow-auto overscroll-x-auto overflow-y-none bg-zinc-600 ring ring-zinc-400">
     <div class="flex flex-row gap-12">
         {% for instance in upcoming %}
             <a href="{{ instance.workday.url }}" 
@@ -18,6 +21,17 @@
                         {{ instance.employee }}
                     </span>
                 </div>
+            </a>
+        {% endfor %}
+    </div>
+</div> {% endcomment %}
+<div class="w-full mx-6 my-2 pt-4 overflow-auto overscroll-x-auto overflow-y-none bg-zinc-600 ring ring-zinc-400">
+    <div class="flex flex-row gap-12">
+        {% for instance in upcoming %}
+            <a class="calendar-page bg-zinc-900 shadow shadow-lg" href="{{ instance.workday.url }}">
+                <div class="calendar-header">{{ instance.workday.wkd }}</div>
+                <div class="calendar-date jbm text-2xl mb-3">{{ instance.workday.date.month }}/{{ instance.workday.date.day }}</div>
+                <div class="calendar-name {% if instance.employee == None %}  text-zinc-900 text-shadow {% endif %}"> {{ instance.employee }}</div>
             </a>
         {% endfor %}
     </div>

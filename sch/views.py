@@ -680,14 +680,17 @@ class SHIFT :
             cpht_n_evening += len(sft)
         cpht_ssts = ShiftTemplate.objects.filter(shift__start__hour__gte=10, employee__cls='CPhT').count()
         
-        resp = f""" *** EVENING TOTALS ***
+        resp = f""" 
+        ============== EVENING TOTALS ==============
+        
          RPH EVENING SHIFTS : {rph_n_evening*6}/schedule
               RPH TEMPLATED : {rph_ssts}/schedule
-              {rph_n_evening*6-rph_ssts} EVENING SHIFT(S) Remain
+              {rph_n_evening * 6-rph_ssts} EVENING SHIFT(S) Remain
         CPHT EVENING SHIFTS : {cpht_n_evening*6}/schedule
         CPHT EVENING SHIFTS : {cpht_n_evening*6}/schedule
              CPHT TEMPLATED : {cpht_ssts}/schedule
-             {cpht_n_evening*6-cpht_ssts} EVENING SHIFT(S) Remain"""
+             {cpht_n_evening*6-cpht_ssts} EVENING SHIFT(S) Remain
+        """
         print(resp)
         return HttpResponse(resp)
 
@@ -1036,7 +1039,7 @@ class EMPLOYEE:
             ptoReqs = PtoRequest.objects.filter(employee=employee)
             schedule = Schedule.objects.get(slug=self.kwargs['sch'])
             workdays = schedule.workdays.all().annotate (
-                isPto = Exists(ptoReqs.filter(date=OuterRef('date'))),
+                isPto = Exists(ptoReqs.filter(workday=OuterRef('date'))),
                 isTdo = Exists(TemplatedDayOff.objects.filter(employee=employee, sd_id=OuterRef('sd_id'))),
                 slotScheduled = Slot.objects.filter(employee=employee, workday=OuterRef('pk'))
             )

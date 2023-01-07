@@ -19,9 +19,22 @@
             position: sticky;
             top: 0
         }
-    </style>
+        .tooltip {
+            position: absolute;
+            z-index: 1000;
+            background-color: #ccc;
+            color: #333;
+            text-align: center;
+            padding: 3px 6px;
+            border-radius: 6px;
+            shadow: 1px 1px 1px #000;
+            font-family: 'JetBrains Mono', monospace;
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-left: 35px;
+        }
 
- 
+    </style>    
     
 {% endblock style %}
     
@@ -42,12 +55,17 @@
     <div class="bg-zinc-900 rounded p-2 shadow ring ring-indigo-300">
         <div class="overscroll-x-auto overflow-x-auto">
             <div id="schedule-grid">
-                <table class='table table-auto'>
+                <table class='table display table-auto'>
                     <thead>
                         <tr>
                             <th class="stl bg-sky-800 ring ring-sky-800"></th>
+
                             {% for workday in schedule.workdays.all %}
-                                <th> <a href="{{ workday.url }}">{{ workday.date.day }}</a> </th>
+                                <th>
+                                     <a href="{{ workday.url }}">
+                                        {{ workday.date.day }}
+                                    </a> 
+                                </th>
                             {% endfor %}
                         </tr>
                         <tr>
@@ -64,30 +82,96 @@
                     </thead>
                     <tbody>
                         {% for employee, assignments in schedule.as_empl_dict.items %}
-                        <tr>
-                            <th class="stl bg-sky-800 ring ring-sky-800">{{ employee }}</th>
-                            {% for assignment in assignments %}
-                                {% if assignment == "PTO" %}
-                                    <td><a class="bg-inherit font-light text-2xs text-indigo-600"
-                                            href="{{assignment.url|default:'#'}}">{{ assignment|default:"PTO" }}</a></td>
-                                {% else %}
-                                    <td><a class="bg-inherit font-light text-2xs text-slate-400 
-                                                {% if assignment.shouldBeTdo == True %}    
-                                                        text-amber-600 font-bold {% endif %}
-                                                {% if assignment.pto_conflicts.exists %} 
-                                                        bg-red-200 shadow w-2 h-2 bg-opacity-40 
-                                                        text-shadow text-red-300 font-bold pl-1 
-                                                {% endif %}"
-                                        href="{{assignment.url|default:'#'}}">
-                                        {{ assignment.shift|default:"." }}
+                            <tr>
+                                <!-- ROW HEADER: Employee name -->
+                                <th class="employee-header 
+                                            stl 
+                                            bg-sky-800 
+                                            ring 
+                                            ring-sky-800
+                                            transition
+                                            hover:bg-sky-600 hover:font-bold
+                                            hover:scale=110
+                                            text
+                                            text-right
+                                            text-slate-300"
 
-                                        {% if assignment.is_unfavorable %} <span class="text-amber-300 font-bold"> ● </span> {% endif %}
+                                        _="on click remove @hidden from <div.tooltip/> in me end">
+                                        
+                                    {{ employee }}
+                                    
+                                    <!-- POPUP: Employee info -->   
+                                    <div hidden 
+                                            class="tooltip">
 
-                                        </a>
-                                    </td>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
+                                            <!--NAME-->
+                                            <div class="text-lg 
+                                                    jbm 
+                                                    text-sky-400"> 
+                                            {{ employee.name}} 
+                                            </div>
+
+                                            <!--LINK TO SCHEDULE VIEW FOR SINGLE EMPLOYEE-->
+                                            <a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug  %}" 
+                                            class= "text-xs transition helv font-light
+                                                    text-indigo-500 hover:text-indigo-200 hover:scale-105"> 
+                                            Go to Employee Schedule
+                                            </a>
+
+                                            <br/>
+
+                                            <!--LINK TO SCHEDULE PTO VIEW FOR SINGLE EMPLOYEE-->
+                                            <a href="{% url 'sch:v2-schedule-empl-pto' schedule.slug employee.slug %}"
+                                            class= "text-xs transition helv font-light
+                                                    text-indigo-500 hover:text-indigo-200 hover:scale-105">
+                                            Go to Employee PTO 
+                                            </a>
+
+                                    </div>
+                                </th>
+
+                                <!-- ROW BODY: Employee assignments within schedule -->
+                                {% for assignment in assignments %}
+                                    {% if assignment == "PTO" %}
+                                    <div class="sch-grid-cell" 
+                                        oncontextmenu="alert('Verify You want to delete?')">
+                                        <td>
+                                            <a
+                                             class="bg-inherit 
+                                                    font-light 
+                                                    text-2xs 
+                                                    text-indigo-600"
+                                                href="{{assignment.url|default:'#'}}">
+                                            {{ assignment|default:"PTO" }}
+                                            </a>
+                                        </td>
+                                    </div>
+                                    {% else %}
+                                        <td>
+                                            <a class="bg-inherit 
+                                                      font-light 
+                                                      text-2xs 
+                                                      text-slate-400 
+                                                    {% if assignment.shouldBeTdo == True %}    
+                                                            text-amber-600 font-bold 
+                                                    {% endif %}
+                                                    {% if assignment.pto_conflicts.exists %} 
+                                                            bg-red-200 shadow w-2 h-2 bg-opacity-40 
+                                                            text-shadow text-red-300 font-bold pl-1 
+                                                    {% endif %}"
+                                                href="{{assignment.url|default:'#'}}">
+                                            {{ assignment.shift|default:"." }}
+
+                                            {% if assignment.is_unfavorable %} 
+                                                <span class="text-amber-300 font-bold">
+                                                    ● 
+                                                </span> 
+                                            {% endif %}
+                                            </a>
+                                        </td>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -95,12 +179,43 @@
         </div>
     </div>
 
+    <script>
+        const el = document.getElementById('sch-grid-cell');
+
+        el.addEventListener('contextmenu', function(ev) {
+            ev.preventDefault();
+            alert('success!');
+            return false;
+        }, false);
+    </script>
+
+
+
+    {# UNPREFERABLE SLOTS ANALYSIS GRID #}
     {% include 'sch2/schedule/sch-analyze-unprefs.html' %}
 
+    {# EMPLOYEE WEEK BREAKDOWN #}
     {% include 'sch2/schedule/sch-employee-week-breakdown.html' %}
 
-    <script>
-        // SCRIPT : PIE CHARTS FOR DAY COLUMNS
+    <script> // SCRIPT : POPUP EMPLOYEE INFO
+        const toggleElement = document.querySelector('.employee-header');
+        const tooltipElement = document.querySelector('.tooltip');
+
+        function createClickOutsideTooltipListener (tooltipElement, toggleElement) {
+            return function (event) {
+                const isClickInsideTooltip = tooltipElement.contains(event.target);
+                const isClickInsideToggle = toggleElement.contains(event.target);
+
+                if (!isClickInsideTooltip && !isClickInsideToggle) {
+                    tooltipElement.hidden = true;
+                }
+            }
+        }
+        
+
+    </script>
+
+    <script> // SCRIPT : PIE CHARTS FOR DAY COLUMNS
         document.querySelectorAll(".pie").forEach(e => peity(e, "pie", {
             fill : ["white" , "gray"]
           })) ;

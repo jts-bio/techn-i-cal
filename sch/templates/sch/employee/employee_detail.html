@@ -17,51 +17,45 @@
 <!--CONTENT-->
 {% block content %}
 
-<a href="/sch/employees/all/"
-  ><div class="hstack">{% backArrow %} All Employees</div></a
->
 
-<div class="flex flex-col flex-grow center flex-center">
-  <h1 class="text-3xl text-center">{{ employee.name }}</h1>
-  <div>
-    <a 
-    class= "bg-zinc-800 shadow shadow-lg px-8 m-2 rounded-sm 
-            hover:bg-indigo-900 hover:ring hover:ring-zinc-600"
-    href="{% url 'sch:employee-update' employee.pk %}">
-          <i class="fas">{%mortarIcon%}</i>  
-          Edit Employee
+
+  <a href="/sch/employees/all/">
+    <i class="fa-duotone fa-arrow-circle-left pr-2"></i>Back to All Employees
+  </a>
+
+  <div class="flex flex-row gap-12 w-full md:mx-30 md:gap-40">
+
+    
+
+    <a class= "bg-zinc-800 shadow shadow-lg px-8 m-2 rounded-sm h-20 w-32 justify-center
+              center text-center transition
+              hover:scale-125 hover:bg-indigo-700 hover:ring hover:ring-zinc-600"
+          href="{% url 'sch:employee-update' employee.pk %}">
+      <i class="text-2xl fa-duotone fa-mortar-pestle"></i>  
+      <br/>
+      Edit Employee
     </a>
-    <div
-      class="md:flex md:flex-col lg:flex-row"
-      style="align-items: flex-start"
-    >
-      <div class="flex flex-row">
-        <table stylr="width:flex-grow;">
-          <tr>
-            <th>Employee ID</th>
-            <td>{{ employee.id }}</td>
-          </tr>
-          <tr>
-            <th>Employee Name</th>
-            <td>{{ employee.name }}</td>
-          </tr>
-          <tr>
-            <th>
-              Trained Shifts <br />
-              <a class="small"
-                >View Tallies</a
-              >
-            </th>
-            <td>
-              {% for shift in sfts_trained %} {% if shift in sfts_avail %}
-              <span class="green-glow"> {{ shift.name }} <br /></span>
-              {% else %} {{shift.name}} <br />
-              {% endif %} {% endfor %}
-            </td>
-          </tr>
-          <tr></tr>
-        </table>
+
+      <h1 class="text-3xl text-center">{{ employee.name }}</h1>
+     
+      <div class="flex flex-row flex-wrap">
+      {% for shift in sfts_trained %} 
+        {% if shift in sfts_avail %}
+            <div class="green-glow mx-6 p-2"> 
+              {{ shift.name }} 
+            </div>
+        {% else %} 
+            <div>
+              {{shift.name}} 
+            </div>
+        {% endif %} 
+      {% endfor %}
       </div>
+  
+</div>  
+<div class="ml-32 flex flex-row gap-12">
+   <div class="center">
+     
       <div class="panel w-fc">
         <div style="float: right">
           <a
@@ -110,6 +104,9 @@
         </div>
         
       </div>
+    </div>
+  
+
 
       <!-- DOCUMENTS PANEL -->
       <div class="vstack">
@@ -160,7 +157,7 @@
           </div>
           <a href="pto-request/add-range/"
              class="rounded p-1 text-2xs bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">
-              <i class="fas align-center">{% plusIcon '13x' '13px' 'black' %}</i>
+              <i class="fas align-center">{% plusIcon '13px' '13px' 'black' %}</i>
               NEW
           </a>
 
@@ -173,28 +170,33 @@
       </div>
     </div>
   </div>
+</div>
 
-  <div class="panel">
-    <h2 class="text-2xl">
-      <div class="hstack">
-        <div>{% mortarIcon %}</div>
-        <div>Unfavorables</div>
-      </div>
-      <div class="badge badge-primary">{{unfavorables|length}} Upcoming</div>
-    </h2>
-    {% regroup unfavorables by workday.iweek as ufs_week %}
-    <div class="hstack">
-      {% for s in ufs_week %}
-      <div class="vstack panel">
-        <div>WEEK {{s.grouper}}</div>
-        <div>
-          {% for sft in s.list %}
-          <div class="badge badge-secondary">{{sft.shift}}</div>
-          {% endfor %}
+    {% if unfavorables|length > 0 %}
+    <div class="panel">
+      <h2 class="text-2xl">
+        <div class="hstack">
+          <div>{% mortarIcon %}</div>
+          <div>Unfavorables</div>
         </div>
+        <div class="badge badge-primary">{{unfavorables|length}} Upcoming</div>
+      </h2>
+      {% regroup unfavorables by workday.iweek as ufs_week %}
+      <div class="hstack">
+        {% for s in ufs_week %}
+        <div class="vstack panel">
+          <div>WEEK {{s.grouper}}</div>
+          <div>
+            {% for sft in s.list %}
+            <div class="badge badge-secondary">{{sft.shift}}</div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
   </div>
+  {% endif %}
 </div>
+
 {% endblock %}

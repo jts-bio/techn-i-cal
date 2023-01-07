@@ -3,9 +3,47 @@
 
 
 {% block style %}
+
     <style>
+        
         .local-button { }
+    
+        .calendar-page {
+            display: flex;
+            flex-direction: column;
+            width: 100px;
+            height: 85px;
+            padding: 10px;
+            margin: 5px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        
+        .calendar-page:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .calendar-header {
+            background-color: #9c9c9c;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 3px;
+            border-radius: 3px;
+        }
+        
+        .calendar-name {
+            width: 100%;
+            color: #87ceeb;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
     </style>
+    
 {% endblock style %}
     
 

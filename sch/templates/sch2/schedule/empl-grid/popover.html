@@ -1,0 +1,30 @@
+
+<!--POPOVER FOR EMPLOYEE NAMES IN SCHEDULE-EMPLOYEE GRID-->
+
+        <span   hidden 
+                class="tooltip">
+
+                <!--NAME-->
+                <div class="text-lg 
+                        jbm 
+                        text-sky-400"> 
+                {{ employee.name}} 
+                </div>
+
+                <!--LINK TO SCHEDULE VIEW FOR SINGLE EMPLOYEE-->
+                <a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug  %}" 
+                   class= "text-xs transition helv font-light
+                           text-indigo-500 hover:text-indigo-200 hover:scale-105"> 
+                Go to Employee Schedule
+                </a>
+
+                <br/>
+
+                <!--LINK TO SCHEDULE PTO VIEW FOR SINGLE EMPLOYEE-->
+                <a href="{% url 'sch:v2-schedule-empl-pto' schedule.slug employee.slug %}"
+                class= "text-xs transition helv font-light
+                        text-indigo-500 hover:text-indigo-200 hover:scale-105">
+                Go to Employee PTO 
+                </a>
+
+        </span>

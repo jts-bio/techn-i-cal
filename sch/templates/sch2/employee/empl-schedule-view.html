@@ -4,15 +4,17 @@
 
 
 {% block content %}
-<div>
-    <a href="{{sch.url}}"
-    class="text-2xl font-bold text-shadow shadow">
-        Schedule {{ sch.number }} 
-        <span>({{ sch.year }})</span>
-    </a>
-</div>
+
+    <div>
+        <a href="{{sch.url}}"
+        class="text-2xl font-bold text-shadow shadow">
+            Schedule {{ sch.number }} 
+            <span>({{ sch.year }})</span>
+        </a>
+    </div>
 
 <a class="text-indigo-600 italic" href="{{employee.url}}">Back to Employee</a>
+
 <h2  class="text-3xl font-extrabold text-indigo-300">
     View of {{ employee}}'s Schedule
 </h2>   
@@ -59,9 +61,18 @@
                     <td class="h-16 w-26">
                         <div class="text-2xs text-gray-400">
                             {% for st in workday.slots.all %} 
-                            {% if st.employee == employee %} 
-                                {{ st.shift }} {% else %}
-                            {% endif %} 
+
+                                    {% if st.employee == employee %} 
+                                    <span class="text-xl font-light 
+                                                 bg-sky-500   bg-opacity-30   rounded 
+                                                 shadow    shadow-lg    shadow-sky-100">
+
+                                        {{ st.shift }}
+
+                                    </span>
+                                    {% else %}
+
+                                {% endif %} 
                             {% endfor %}
                         </div>
                     </td>

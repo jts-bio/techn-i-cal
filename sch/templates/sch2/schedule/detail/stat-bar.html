@@ -63,7 +63,7 @@
                         </p>
                 </a>
 
-                <a href="{% url 'sch:sch-pto-conflicts' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                <a href="{% url 'sch:sch-tdo' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
                     <p class="text-3xl font-semibold {% if schedule.slots.tdoConflicts.count > 8 %} text-red-500
                         {% elif schedule.slots.tdoConflicts.count > 1 %} text-orange-400
                         {% else %} text-emerald-600 {% endif %}">

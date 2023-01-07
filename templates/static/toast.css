@@ -6,9 +6,10 @@
 }
 
 
-.toast {
+.my-toast {
   background-color:#150a;
-  color: #ada;
+  // very light green 
+  color: #ddd;
   border-radius: 4px;
   padding: 15px;
   font-size: 14px;
@@ -17,8 +18,21 @@
   position: relative;
   display: flex;
   align-items: center;
+  margin-top: 7px;
 }
 
+.toast-span-success {
+  color: #ada;
+}
+.toast-span-error {
+  color: #daa;
+}
+.toast-span-warning {
+  color: goldenrod;
+}
+.toast-span-info {
+  color: #aad;
+}
 
 
 .toast svg {

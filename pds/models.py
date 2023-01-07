@@ -22,6 +22,7 @@ class Diluent(models.Model):
 class Compound(models.Model):
     drugs     = models.ManyToManyField(Drug, related_name='compounds')
     diluent   = models.ForeignKey(Diluent, on_delete=models.CASCADE)
+    struct    = models.JSONField()
     
     def __str__(self):
         return f'{" ".join(self.drugs)} in {self.diluent}'

@@ -15,6 +15,11 @@
 
 
 {% block content %}
+
+    {% with "border border-amber-200 rounded hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition transition" as INPUT_CSS %}
+    {% with "panel w-full grid-7-by-2" as DAYWRAPPER_CSS %}
+  
+
     <div class="text text-center">
         <h2 class='text-2xl h2'> {{employee}} </h2>
         <h3 class="text-xl h3"> Templated Scheduling </h3>
@@ -24,16 +29,51 @@
         {% csrf_token %}
         {{ formset.management_form }}
             
-        <div class="panel w-8/12 grid-7-by-2">
-            {% for form in formset %}
-            {{ form.as_div }}
+        <div class="{{ DAYWRAPPER_CSS }}">
+
+            {% for form in formset %} 
+
+                <div class="dayContainer rounded-lg shadow shadow-lg"> 
+                    {{ form.as_div }} 
+                </div> 
+                
             {% endfor %}
+
         </div>
 
-        <input class="border border-amber-200 rounded hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition transition" type="submit" value="Submit"/>
+        <input disabled class="{{ INPUT_CSS }}" type="submit" value="Submit"/>
     </form>    
 
-    
+
+    <script>
+        
+        // listen for changes of select elements 
+        // add .mutated to the select and the option upon a change
+        // remove .mutated from the select and the option upon a change
+
+        var selects = document.querySelectorAll('select');
+        selects.forEach(select => {
+            select.addEventListener('change', (e) => {
+                // select all its options inside it
+                var options = select.querySelectorAll('option');
+                // add .mutated to the select and the option upon a change
+                select.classList.add('mutated');
+                options.forEach(option => {
+                    option.classList.add('mutated');
+                    option.style.backgroundColor = 'red!important';
+                });
+            });
+        });
+
+       
+
+
+        
+    </script>
+
+
+{% endwith DAYWRAPPER_CSS %} 
+{% endwith INPUT_CSS %} 
 
 {% endblock content %}
 

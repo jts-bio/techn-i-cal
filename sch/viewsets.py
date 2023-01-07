@@ -71,12 +71,12 @@ class WeekViews:
         }
         return render(request, html_template, context)
 
-    def nextWeek(request, weekId):
+    def nextWeek (request, weekId):
         week = Week.objects.get(pk=weekId)
         nextWeek = week.nextWeek()
         return HttpResponseRedirect(nextWeek.url())
 
-    def prevWeek(request, weekId):
+    def prevWeek (request, weekId):
         week = Week.objects.get(pk=weekId)
         prevWeek = week.prevWeek()
         return HttpResponseRedirect(prevWeek.url())
@@ -220,7 +220,58 @@ class SchViews:
         empty_count = sch.slots.filter(employee__isnull=True).count()
         return HttpResponse(empty_count)
 
+    def schTdoConflictsView (request, schId):
+        
+        html_template = "sch2/schedule/tdo-conflict-table.html"
+        
+        schedule     = Schedule.objects.get(slug=schId)
+        tdoConflicts = []
+        for slot in schedule.slots.all():
+            if slot.shouldBeTdo:
+                tdoConflicts.append(slot)
+        tdoConflicts = Slot.objects.filter(pk__in=[s.pk for s in tdoConflicts])
+
+        if request.method == "POST":
+            for slot in tdoConflicts:
+                print(slot)
+                if slot.shouldBeTdo:
+                    slot.employee = None
+                    slot.save()
+            return HttpResponseRedirect(schedule.url())
+
+        context = {
+            "tdoConflicts": tdoConflicts,
+            "schedule": schedule,
+        }
+        return render(request, html_template, context)
+
+    def clearOverFteSchView (request,schId):
+        schedule = Schedule.objects.get(slug=schId)
+        slots  = []
+        for prd in schedule.periods.all():
+            for employee in prd.slots.values("employee").distinct():
+                employee = Employee.objects.filter(pk=employee)
+                if employee.exists():
+                    slots += prd.slots.filter(employee=employee.first()).first()
+        for slot in schedule.slots.all():
+            slot.actions.clear_over_fte_slots(slot)
+        messages.success (
+                request, 
+                f"Schedule {schedule.number}{schedule.version}.{schedule.year} All Employees Brought down to FTE Levels"
+            )
+        return HttpResponseRedirect(schedule.url())
+
+class WdViews:
+    def wdayDetailBeta (request, wdId):
+        wd = Workday.objects.get(slug=wdId)
+        html_template = "sch2/workday/wd-2.html"
+        context = {
+            "wd": wd,
+        }
+        return render(request, html_template, context)
+
 class SlotViews:
+    
     def slotStreakView(request, slotId):
         """
         Slot Streak View: 
@@ -242,14 +293,26 @@ class SlotViews:
         return render(request, html_template, context)
     
     def slotClearActionView (request, slotId):
+        """
+        Slot Clear Action View
+        ============================================
+        input:   slotId
+        --------------------------------------------
+        """
         slot = Slot.objects.get(pk=slotId)
         if request.method == 'POST':
             old_assignment = slot.employee
             slot.actions.clear_employee(slot)
-            messages.success(request, f"{old_assignment} cleared from {slot} successfully.")
+            messages.success(
+                    request, 
+                    f"success:{old_assignment} cleared from {slot} successfully."
+                )
             return HttpResponseRedirect(slot.workday.url())
         else:
-            messages.error(request, f"Invalid request method.")
+            messages.error(
+                    request, 
+                    f"error:Invalid request method."
+                )
             return HttpResponseRedirect(slot.url())
 
 class ShiftViews:
@@ -330,13 +393,7 @@ class ShiftViews:
                             else:
                                 sst.employee = Employee.objects.get(pk=employee)
                                 sst.save()
-                                print(
-                                    sst.employee,
-                                    sst.shift,
-                                    "SCH DAY #",
-                                    sst.sd_id,
-                                    "[ SAVED SUCCESSFULLY ]",
-                                )
+                                
 
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)
@@ -353,10 +410,12 @@ class EmpViews:
                 pref.score = i
                 pref.rank = i - 1
                 pref.save()
+            sort_repr = ", ".join([f"{pref.shift} ({pref.score})" for pref in emp.shift_sort_prefs.all()])
             messages.success(
                 request,
-                f"Success: {emp} shift sort preferences updated: {emp.shift_sort_prefs.all()}",
+                f"{emp} shift sort preferences updated: {sort_repr }",
             )
+            print(messages.get_messages(request))
 
             return HttpResponseRedirect(emp.url())
 
@@ -405,17 +464,17 @@ class IdealFill:
         return possible.filter(time_pref=timeGroup)
 
     def levelE(request, slot_id):
-        """Checks for Prefered Streak-length not to be exceeded"""
+        """Checks for Preferred Streak-length not to be exceeded"""
         slot = Slot.objects.get(pk=slot_id)
         possible = IdealFill.levelD(None, slot_id)
-        okstreak = []
-        for possibleEmpl in possible:
-            slot.employee = possibleEmpl
+        ok_streak = []
+        for possibility in possible:
+            slot.employee = possibility
             slot.save()
             maxStreak = slot.siblings_streak().count() + 1
             if slot.employee.streak_pref >= maxStreak:
-                okstreak += [possibleEmpl]
-        return Employee.objects.filter(pk__in=okstreak)
+                ok_streak += [possibility]
+        return Employee.objects.filter (pk__in=ok_streak)
 
     def levelF(request, slot_id):
         for empl in IdealFill.levelE(None, slot_id):

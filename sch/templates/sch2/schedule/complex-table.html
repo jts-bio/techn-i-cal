@@ -40,12 +40,14 @@
             {% for day in week.workdays.all %}
                 <td class="h-16 w-14 md:w-26">
                     <a href="{{day.url}}"
-                     class="text-2xs text-zinc-100 w-8 h-8 rounded text text-center shadow shadow-lg ring-1 ring-slate-200
-                                {% if day.percent > 94 %} bg-green-700 hover:bg-green-300 hover:text-green-800
-                                {% elif day.percent > 70 %} bg-zinc-800 hover:bg-zinc-300 hover:text-zinc-800
-                                {% elif day.percent > 0 %} bg-amber-700 hover:bg-amber-300 hover:text-amber-800
-                                {% else %} text-red-300 shadow text-shadow-red {% endif %}
-                                hover:ring-3 hover:ring-blue-300">
+                     class="text-2xs text-zinc-100 w-8 h-8 rounded text text-center 
+                            shadow shadow-lg ring-1 ring-slate-200
+                                {% if day.percent > 94 %}       bg-green-700 hover:bg-green-300 hover:text-green-800
+                                {% elif day.percent > 70 %}     bg-zinc-800 hover:bg-zinc-300 hover:text-zinc-800
+                                {% elif day.percent > 0 %}      bg-amber-700 hover:bg-amber-300 hover:text-amber-800
+                                {% else %}                      bg-red-800 bg-opacity-70 text-red-200 hover:bg-red-600 hover:bg-opacity-100 shadow text-shadow-red 
+                                {% endif %}
+                            hover:ring-3 hover:ring-blue-300">
                         {{ day.percent }}%
                     </a>
                 </td>
@@ -57,6 +59,8 @@
         </tr>
     {% endfor %}
     </table>
+
+
     
     
 

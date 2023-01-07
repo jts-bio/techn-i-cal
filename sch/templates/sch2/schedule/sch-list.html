@@ -30,6 +30,7 @@
 
 <div class="w-full">
   <div class="sticky t-2 -r-0 w-50 mt-3 mr-3">
+
     {% #toggle-section title="New Schedule Dialog" %}
 
     <div class="border-2 border-slate-300 rounded">
@@ -76,6 +77,7 @@
 
       <tr>
         <td>
+          
           <a
             href="{{sch.url}}"
             class="link bg-{{sch.versionColor}}-600 
@@ -84,12 +86,11 @@
                                         hover:scale-105 hover:transition"
             onmousedown="appendWithSpinner (this)"
             id="button-{{sch.slug}}"
-            _="on click
-                                        add .cursor-wait 
-                                        to me"
+            onactivate="appendWithSpinner (this);"
           >
             Schedule {{sch.slug}}
           </a>
+
           <script type="text/javascript">
             function appendWithSpinner(el) {
               var spinner = document.createElement("span");

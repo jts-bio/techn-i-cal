@@ -196,6 +196,12 @@ class SlotManager (models.QuerySet):
         return tally(list(self.filter(employee=employee, is_terminal=True, workday__date__year=year, workday__ischedule=schedule).values_list('streak')))    
     def evenings (self):
         return self.filter(shift__start__gte=dt.time(12,0,0))
+    def weekends (self):
+        return self.filter(workday__date__week_day__gte=5)
+    def disliked (self):
+        return self.annotate(score=
+                        Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
+                    ).filter(score__lte=0)
                 
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
@@ -203,6 +209,8 @@ class TurnaroundManager (models.QuerySet):
         return Slot.objects.filter(workday__schedule=sch)
 # ============================================================================
 class EmployeeManager (models.QuerySet): 
+    def random_choice (self):
+        return random.choice(self.all())
     def low_option_emps (self):
         return self.filter (fte__gt=0, n_trained__lte=3)
     def prn_employees (self):
@@ -362,11 +370,12 @@ class PtoRequestManager (models.QuerySet):
 
 class Shift (models.Model) :
     """
-    model <<< SHIFT >>>
+    model SHIFT
+    ===========
     
-        hours               ---> 10.0
-        on_days_display     ---> "Sun Mon Tue Wed Thu Fri Sat"
-        ppd_ids             ---> 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+    >>>    hours               ---> 10.0
+    >>>    on_days_display     ---> "Sun Mon Tue Wed Thu Fri Sat"
+    >>>    ppd_ids             ---> 0,1,2,3,4,5,6,7,8,9,10,11,12,13
         
     
     """
@@ -1141,8 +1150,14 @@ class Schedule (models.Model):
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA OPTION-MAPPING ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
         def solvePmOnly (self, instance):
             for slot in instance.slots.empty().evenings().random_order():
-                slot.fillWithBestChoice()
-                print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA PM ONLY ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
+                choices = slot.fillable_by().filter(time_pref='Evening')
+                if choices.exists():
+                    choice = choices.order_by('?').first()
+                    slot.employee = choice
+                    slot.save()
+                    print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA PM ONLY ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
+                else:
+                    print('SLOT NOT FILLED, NO VIABLE OPTION EXISTS VIA PM ONLY ALGORITHM')
         def deleteSlots (self,instance):
             instance.slots.all().update(employee=None)
             print('All Slots Wiped on Schedule {instance.slug}')
@@ -1159,7 +1174,6 @@ class Schedule (models.Model):
                     
             
     actions = Actions()
-    
 # ============================================================================
 class Slot (models.Model) :
     # fields: workday, shift, employee
@@ -1177,14 +1191,16 @@ class Slot (models.Model) :
     
     html_template = 'sch2/schedule/sch-detail.html'
     
-    
     def __init__(self, *args,**kwargs):
         super().__init__(*args,**kwargs)
         if self.template().exists():
             self.template_employee = self.template().first().employee
             
     class Meta:
-        # ordering = ['shift__start']
+        ordering = [
+            'workday__date', 
+            'shift__start'
+        ]
         constraints = [
             models.UniqueConstraint(fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
             models.UniqueConstraint(fields=["workday", "employee", "schedule"], name='Employee Duplicates on day'),
@@ -1220,9 +1236,27 @@ class Slot (models.Model) :
                 instance.employee = None
                 instance.save()
                 print (f'{old_assignment} cleared from {instance}')
-                
-
-                
+        def clear_over_fte_slots (self, instance):
+            if instance.employee != None:
+                slots = instance.period.slots.filter(employee=instance.employee).order_by('?')    
+                while sum(list(slots.values_list('shift__hours',flat=True))) > instance.employee.fte_14_day:
+                    slot = slots.first()
+                    print(f'CLEARING SLOT {slot}: EXCEEDING FTE')
+                    slot.employee = None 
+                    slot.save()
+                    slots = instance.period.slots.filter(employee=instance.employee).order_by('?')
+        def fillWithPrecautions (self,instance,employee):
+            if instance.employee == None:
+                if instance.template_employee == employee:
+                    print(f'NO ACTION TAKEN: {employee} ALREADY TEMPLATED ON {instance.workday.date}')
+                elif instance.workday.date in employee.unavailable_dates.all():
+                    print(f'NO ACTION TAKEN: {employee} UNAVAILABLE ON {instance.workday.date}')
+                else:
+                    instance.employee = employee
+                    instance.save()
+                    print(f'{employee} assigned to {instance}')
+            else:
+                print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')               
     actions = Actions()
         
     def template (self):
@@ -1574,11 +1608,27 @@ class Slot (models.Model) :
     @property
     def pto_conflicts (self):
         return PtoRequest.objects.filter(employee=self.employee, workday=self.workday.date)
-    def cssAvailableEmps (self):
-        classes = ""
+    def css__all (self):
+        return self.css__available_employees() + ' ' + self.css__turnaround_employees()
+    def css__available_employees (self):
+        """CSS SELECTOR CLASSES to Print on a Slot for Available Employees
+        --> <STRING>"""
+        available = []
         for empl in self.shift.available.all():
-            classes += f"{empl.slug}-available "
-        return classes
+            if empl not in self.siblings_day:
+                if empl not in self._get_conflicting_slots().values_list('employee__slug',flat=True):
+                    available += [ f"{empl.slug}-available" ]
+                    
+        return " ".join(available)
+    def css__turnaround_employees (self):
+        """CSS SELECTOR CLASSES to Print on a Slot for Turnaround Employees
+        --> <STRING>"""
+        turnaround = []
+        for empl in self.shift.available.all():
+            if empl in self._get_conflicting_slots().values_list('employee__slug',flat=True):
+                turnaround += [ f"{empl.slug}-turnaround" ] 
+        return " ".join(turnaround)
+    
     def fill_via_swap (self,other):
         
         selfEmployee = self.employee
@@ -1737,7 +1787,7 @@ class ShiftSortPreference (models.Model):
         ordering        = ['score',    'shift']
     def __str__(self):
         return f"[{self.shift} SortPref]"
-    def save(self,**kwargs):
+    def save (self,**kwargs):
         self.rank = self.score + 1
         super().save(**kwargs)
 # ============================================================================
@@ -1756,7 +1806,6 @@ def generate_schedule (year,number):
     yeardates.sort()
     n = Schedule.objects.filter(year=year,number=number).count()
     start_date = yeardates[number - 1]
-    
     n_same = 0
     if Schedule.objects.filter(year=year, number=number).exists(): 
         n_same = Schedule.objects.filter(year=year, number=number).count()
