@@ -16,12 +16,12 @@
 
 {% block content %}
 
-    {% with "border border-amber-200 rounded hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition transition" as INPUT_CSS %}
+    {% with "border border-amber-200 rounded transition hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition" as INPUT_CSS %}
     {% with "panel w-full grid-7-by-2" as DAYWRAPPER_CSS %}
   
 
     <div class="text text-center">
-        <h2 class='text-2xl h2'> {{employee}} </h2>
+        <h2 class='text-2xl h2'> {{ employee }} </h2>
         <h3 class="text-xl h3"> Templated Scheduling </h3>
     </div>
 
@@ -41,7 +41,7 @@
 
         </div>
 
-        <input disabled class="{{ INPUT_CSS }}" type="submit" value="Submit"/>
+        <input class="{{ INPUT_CSS }}" type="submit" value="Submit"/>
     </form>    
 
 

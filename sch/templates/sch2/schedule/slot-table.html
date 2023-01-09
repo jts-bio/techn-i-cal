@@ -43,13 +43,16 @@
         
       {% for slot in schedule.slots.all %}
       
-        <tr>
+        <tr _="on mouseover transition my *size to '22px' then settle end
+               on mouseleave transition my *size to '16px' then settle end">
         
-          <td><a href="{{ slot.workday.url }}" class="text-md transition will-change hover:bg-zinc-700 hover:text-lg hover:scale-125 hover:transition">
-            {{ slot.workday.date }} </a>
+          <td>
+            <a href="{{ slot.workday.url }}" >
+              {{ slot.workday.date }} 
+            </a>
           </td>
           <td>{{ slot.shift }}</td>
-          <td>{{ slot.employee | default:"NONE"}}</td>
+          <td>{{ slot.employee | default: "NONE" }}</td>
           <td>
               {% if slot.employee == slot.template_employee %}
                 <span class="text-2xs text-slate-600">

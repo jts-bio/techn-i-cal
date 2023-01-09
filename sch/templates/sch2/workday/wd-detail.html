@@ -67,41 +67,8 @@ TEMPLATE VARIABLES
                                     {{ slot.css__all }} 
                                     rounded   
                                     p-1   
-                                    m-2 "
-                            _="on checkEmpFillability (emp) 
-                                        fetch '/sch/v2/slot/slot-check-emp-fillability/{{slot.pk}}/${emp}/'
-                                            then set :canFill  to the result 
-                                            if :canFill
-                                                then log 
-                                                    '!!Success ${emp} capable of filling SLOT: {{ slot.workday.daye }}[{{ slot.workday.shift.name }}]'
-                                        if not :canFill 
-                                        then log 
-                                            `!!Warn ${emp} unable to fill {{ slot.workdy.date }}[{{ slot.workday.shift.name }}]`
-
-                                        then if :canFill == 'True' 
-                                            set :willAcceptDrop 
-                                                to 'True'
-                                            then add 
-                                                .bg-green-900 
-                                                .bg-opacity-20 
-                                                .border
-                                                .border-green-300
-                                                    to me
-                                        then if :canFill == 'False'
-                                            set :willAcceptDrop 
-                                                to 'False'
-                                            then add 
-                                                .bg-red-900 
-                                                .bg-opacity-20 
-                                                .border
-                                                .border-red-300
-                                                    to me
-                                    end
-                                
-                                    on dragEndingNoises call hearDragEndEvent(event);
-                                   
-                                    
-                                    on dragover
+                                    m-2"
+                            _="on dragover
                                         halt the event then 
                                         add .bg-opacity-100 
                                             .bg-emerald-400 
@@ -139,7 +106,7 @@ TEMPLATE VARIABLES
                                                 .border
                                                 .border-red-300
                                                     to me
-                                        end
+                                        then
 
                                         if :willAcceptDrop == 'True'
                                             then log 'will accept drop'
@@ -153,9 +120,35 @@ TEMPLATE VARIABLES
                                             then halt the event
                                             then set :willAcceptDrop to 'False'
                                         end
+                                    on checkEmpFillability (emp) 
+                                        fetch '/sch/v2/slot/slot-check-emp-fillability/{{slot.pk}}/${emp}/'
+                                            then set :canFill  to the result 
+                                            if :canFill
+                                                then log 
+                                                    '!!Success ${emp} capable of filling SLOT: {{ slot.workday.daye }}[{{ slot.workday.shift.name }}]'
+                                        if not :canFill 
+                                        then log 
+                                            `!!Warn ${emp} unable to fill {{ slot.workdy.date }}[{{ slot.workday.shift.name }}]`
+
+                                        then if :canFill == 'True' 
+                                            set :willAcceptDrop 
+                                                to 'True'
+                                            then add 
+                                                .bg-green-900 
+                                                .bg-opacity-20 
+                                                .border
+                                                .border-green-300
+                                                    to me
+                                        then if :canFill == 'False'
+                                            set :willAcceptDrop 
+                                                to 'False'
+                                            then add 
+                                                .bg-red-900 
+                                                .bg-opacity-20 
+                                                .border
+                                                .border-red-300
+                                                    to me
                                     end
-                                    
-                                    
                                     " 
                         >
                             <a href="{{ slot.url }}">

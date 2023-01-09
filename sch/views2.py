@@ -95,10 +95,13 @@ def schDetailView(request, schId):
         "confirm":  "Verify you will run the Maintenance Script: Clear FTE Overages.",
         "url":      reverse('sch:sch-clear-over-fte', args=[schedule.slug])
     }
-    actionDropdown = render_to_string(
-        "sch/comp/dropdown_btn.html",
+    actionDropdown = render_to_string( "sch/comp/dropdown_btn.html",
         {
-            "menuItems": [action1, action2, action3],
+            "menuItems": [
+                    action1, 
+                    action2, 
+                    action3
+                ],
             "deleteLink": schedule.url__clear(),
         },
     )
@@ -128,7 +131,6 @@ def schDetailView(request, schId):
         "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk),
         # viewsets.SchViews.schEMUSR(0,schedule.slug)
     }
-    form = EmployeeSelectForm()
     return render(request, "sch2/schedule/sch-detail.html", context)
 
 
@@ -271,6 +273,7 @@ def workdayDetail(request, slug):
     workday = Workday.objects.get(slug=slug)
     if request.method == "POST":
         post = request.POST
+        print(post)
         post = {
                 k : v for k, v in post.items() if k !=
                 "csrfmiddlewaretoken" and v != ""
@@ -282,14 +285,16 @@ def workdayDetail(request, slug):
                 slot.save()
                 messages.success(
                     request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {slot.employee}")
+                
     context = {
+        "wd": workday,
         "workday": workday,
     }
     return render(request, html_template, context)
 
 
 def shiftDetailView(request, cls, name):
-    html_template = "sch2/shift/shift-dnd.html"
+    html_template = "sch2/shift/shift-detail.html"
 
     shift = Shift.objects.get(cls=cls, name=name)
     _ = [int(sft) for sft in shift.occur_days]

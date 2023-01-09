@@ -55,23 +55,29 @@ class WdApi:
                                  'change'  : change } 
                                 )
 
+    
 class ScheduleApi:
-
-        
-        
     
     class GET:
         
         def employee_unpref_count (request, schid):
-            
+            """
+            Schedule-wide UNFAVORABLES COUNT by Employee
+            ===========================================
+            ex output:
+                >>> 
+            """
             sch = Schedule.objects.get(slug=schid)
             empls = Employee.objects.annotate(
-                unpref_count = Count( Case( 
+                unpref_count = Avg( Case( 
                         When(
                             slots__in=sch.slots.unfavorables().filter(employee=F('pk'))),
-                            then='slots__pk'),  
-                        default=0, output_field=IntegerField())).order_by('-unpref_count')
-            return empls
+                            then=1),  
+                            output_field=IntegerField(),
+                            default=0)).order_by('-unpref_count')
+            return HttpResponse(empls.values('name','unpref_count','fte',))
+
+        
         def percent (request, schid):
             sch = Schedule.objects.get(slug=schid)
             return HttpResponse(sch.percent())

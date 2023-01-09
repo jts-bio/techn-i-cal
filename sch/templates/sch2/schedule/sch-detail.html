@@ -61,7 +61,13 @@ SCHEDULE DETAIL VIEW
 
     </div>
 
-    {% include 'sch2/schedule/detail/stat-bar.html' %}
+    {# --- STATS BAR ---#}
+    <section id="stat-bar">
+
+            {% include 'sch2/schedule/detail/stat-bar.html' %}
+
+    </section>
+   
 
     <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
 
@@ -76,10 +82,18 @@ SCHEDULE DETAIL VIEW
 
         <select name="select-for-compare" 
                 id="select-for-compare"
-                class="bg-sky-100 pl-2 pr-7 font-extralight text-sky-100 hover:bg-sky-200"
+                class="bg-sky-100 
+                    pl-2 
+                    pr-7 
+                    font-extralight 
+                    text-sky-100 
+                    hover:bg-sky-200"
                 onchange="selectLoading(this)"
                 >
-                <option value="" selected disabled>Select schedule...</option>
+                    <option value="" 
+                        selected 
+                        disabled>
+                    Select schedule...</option>
 
                 {% for sch in otherSchedules %}
                     <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}" class="text-xs font-light">
@@ -93,15 +107,15 @@ SCHEDULE DETAIL VIEW
 
     <script>
         function selectLoading(select) {
-            // get #compare-head and put a spinner in it 
-            var compareHead = document.getElementById("compare-head");
-            var spinner = document.createElement("i");
-            spinner.classList.add("fas", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "text-sky-800");
-            compareHead.innerHTML = "";
-            compareHead.appendChild(spinner);
-            // get the selected option in #select-for-compare and redirect to it
-            var selectedOption = select.options[select.selectedIndex];
-            window.location.href = selectedOption.value;
+                // get #compare-head and put a spinner in it 
+                var compareHead = document.getElementById("compare-head");
+                var spinner = document.createElement("i");
+                spinner.classList.add("fas", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "text-sky-800");
+                compareHead.innerHTML = "";
+                compareHead.appendChild(spinner);
+                // get the selected option in #select-for-compare and redirect to it
+                var selectedOption = select.options[select.selectedIndex];
+                window.location.href = selectedOption.value;
         }
     </script>
     
@@ -133,31 +147,37 @@ SCHEDULE DETAIL VIEW
 
         <!-- Example single danger button -->
             <div class="btn-group">
-                <button type="button" class="text-zinc-300 bg-zinc-900 hover:bg-zinc-700 px-3 py-1 jbm border border-sky-600 rounded " data-bs-toggle="dropdown" aria-expanded="false">
+                <button type="button" 
+                        class="text-zinc-300 bg-zinc-900 hover:bg-zinc-700 px-3 py-1 jbm border border-sky-600 rounded " 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false">
                     Actions
                     <i class="fa-duotone fa-chevron-down px-1"></i>
                 </button>
+
                     <ul class="dropdown-menu">
                     <li><a class="dropdown-item hover:bg-indigo-200 font-bold" href="{{ schedule.url__solve_b }}">
                                                     <i class="fa-duotone fa-user-robot text-lg text-indigo-500"></i>
                                                         Solve: Method A
-                                                    <span class="text-2xs text-indigo-700"> USING A.I. <br/> 
+                                                    <span class="text-2xs font-thin text-indigo-700"> 
+                                                        USING A.I. <br/> 
                                                         TRAINED ON PREVIOUS SCHEDULES
                                                     </span> 
                                                 </a>
                                             </li>
                     <li><a class="dropdown-item hover:bg-indigo-200 font-bold" href="#"> <i class="fa-duotone fa-function text-lg text-indigo-500"></i>
                                                         Solve:  Method B 
-                                                    <span class="text-2xs  text-indigo-700">USING <br/>
+                                                    <span class="text-2xs font-thin text-indigo-700">
+                                                        USING <br/>
                                                         QUASI-ALGORYTHYM
                                                     </span>
                                                 </a>
                                             </li>
-                    <li><a disabled class="dropdown-item bg-slate-200">
+                    <li><a disabled class="dropdown-item bg-slate-300 font-thin italic">
                                                     <i class="fa-duotone fa-clock text-lg text-slate-500"></i>
                                                         Solve:  Method C
-                                                    <span class="text-2xs  text-slate-700">USING <br/>
-                                                         TIME-AWARE VARIENT (UNDER CONSTRUCTION)
+                                                    <span class="text-2xs font-thin text-slate-400">USING <br/>
+                                                         TIME-AWARE VARIANT (UNDER CONSTRUCTION)
                                                     </span>
                                                 </a>
                                             </li>
@@ -165,7 +185,8 @@ SCHEDULE DETAIL VIEW
                            hx-confirm="Please Note: <br/> This Currently Ignores All PRN employees">
                                                     <i class="fa-duotone fa-inboxes text-sky-400 text-lg"></i>
                                                         Maintain
-                                                    <span class="text-2xs  text-sky-700">CLEAR OUT ASSIGNED<br/> 
+                                                    <span class="text-2xs  text-sky-700">
+                                                        CLEAR OUT ASSIGNED<br/> 
                                                         SLOTS RESULTING IN OVERTIME
                                                     </span>
                                                 </a>
@@ -174,7 +195,7 @@ SCHEDULE DETAIL VIEW
                     <li><hr class="dropdown-divider"></li>
                     <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300" href="#"
                         _="on click fetch '{{schedule.url__clear}}' then log 'done' then go to the top of the body smoothly">
-                                                    <i class="fa-duotone fa-trash-can text-red-800"></i>
+                                                    <i class="fa-duotone fa-eraser text-red-800"></i>
                                                         Clear Slots
                                                 </div>
                                             </li>

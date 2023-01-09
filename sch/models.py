@@ -815,9 +815,11 @@ class Week (models.Model) :
     iweek       = models.IntegerField (null=True, blank=True) 
     year        = models.IntegerField (null=True, blank=True)
     number      = models.IntegerField (null=True, blank=True)
+    version     = models.CharField (null=True,blank=True)
     period      = models.ForeignKey   ("Period", on_delete=models.CASCADE,   null=True,related_name='weeks')
     schedule    = models.ForeignKey   ("Schedule", on_delete=models.CASCADE, null=True,related_name='weeks')
     start_date  = models.DateField    (blank=True, null=True)
+    
     
     class Meta:
         ordering = ['year','number','schedule__version']
@@ -1386,6 +1388,9 @@ class Slot (models.Model) :
             return True
         else:
             return False
+    def css__fillable_by (self):
+        return " ".join([ "fb-"+str(e) for e in self._fillableBy().values_list('pk',flat=True)])
+            
     def _fillableBy (self):
         """ 
         returns Employees that could fill this slot 
@@ -1516,7 +1521,7 @@ class Slot (models.Model) :
         self._save_empl_sentiment ()
         super().save(*args, **kwargs)
     def url (self):
-        return reverse('sch:slot-as-streak-view',args=[self.pk])
+        return reverse('sch:v2-slot-detail',args=[self.workday.slug,self.shift.name])
     def _save_empl_sentiment (self):
         if self.employee == None:
             self.empl_sentiment = None

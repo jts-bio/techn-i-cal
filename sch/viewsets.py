@@ -2,9 +2,22 @@ from sch.models import *
 from . import forms
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
-from django.db.models import Sum, Case, When, FloatField, IntegerField, F, Value
+from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 
+from rest_framework import viewsets
+from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
+from .serializers import ArticleSerializer
+
+class EmployeeViewSet(viewsets.ModelViewSet):
+    queryset = Employee.objects.all()
+    serializer_class = ArticleSerializer
+    
+class WorkdayViewSet(viewsets.ModelViewSet):
+    queryset = Workday.objects.all()
+    serializer_class = ArticleSerializer
+
+class ScheduleViewset()
 
 class Actions:
     class SlotActions:
@@ -140,12 +153,13 @@ class SchViews:
         }
         return render(request, html_template, context)
 
-    def schEMUSR(request, schId):
+    def schEMUSR(request, schId, asTable=True):
         """Schedule Expected Morning Unpreferred Shift Requirements
         -----------------------------------------------------------
         inputs: (1) request (2) schId 
         """
         import json
+        import pandas as pd
         sch = Schedule.objects.get(slug=schId)
         n_pm = sch.slots.evenings().count()
         pm_empls = Employee.objects.filter(
@@ -185,6 +199,9 @@ class SchViews:
             )
             .annotate(difference=F("emusr") - F("count"))
         )
+        if asTable:
+            df = pd.DataFrame(list(query.values()))
+            return df
         return query
 
     def schEMUSRView(request, schId):
@@ -262,8 +279,8 @@ class SchViews:
         return HttpResponseRedirect(schedule.url())
 
 class WdViews:
-    def wdayDetailBeta (request, wdId):
-        wd = Workday.objects.get(slug=wdId)
+    def wdayDetailBeta (request, slug):
+        wd = Workday.objects.get(slug=slug)
         html_template = "sch2/workday/wd-2.html"
         context = {
             "wd": wd,
@@ -272,7 +289,7 @@ class WdViews:
 
 class SlotViews:
     
-    def slotStreakView(request, slotId):
+    def slotStreakView(request, slug, sft):
         """
         Slot Streak View: 
             - Shows the streak of slots for a given Slot
@@ -280,7 +297,7 @@ class SlotViews:
         """
         html_template = "sch2/slot/streak-timeline.html"
         
-        slot = Slot.objects.get(pk=slotId)
+        slot = Slot.objects.get(workday__slug=slug, shift__name=sft)
         siblings = slot.siblings_streak()
         ids = [s.pk for s in siblings] + [slot.pk]
         streak = Slot.objects.filter(pk__in=ids).order_by("workday__date")
@@ -288,7 +305,7 @@ class SlotViews:
             s.save()
         context = {
             "mainSlot": slot,
-            "streak": streak,
+            "streak"  : streak,
         }
         return render(request, html_template, context)
     
