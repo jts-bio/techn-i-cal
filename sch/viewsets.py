@@ -17,7 +17,7 @@ class WorkdayViewSet(viewsets.ModelViewSet):
     queryset = Workday.objects.all()
     serializer_class = ArticleSerializer
 
-class ScheduleViewset()
+
 
 class Actions:
     class SlotActions:
