@@ -1160,6 +1160,16 @@ class Schedule (models.Model):
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA PM ONLY ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
                 else:
                     print('SLOT NOT FILLED, NO VIABLE OPTION EXISTS VIA PM ONLY ALGORITHM')
+        def stdUnfavorableSwaps (self,instance):
+            for s in instance.unfavorables():
+                swaps = Slot.objects.filter(workday=s.workday).unfavorables().exclude(pk=self.pk)
+            print(swaps)
+        def clearPmEmployeesAmShifts (self, instance):
+            for slot in instance.slots.unfavorables():
+                if slot.employee.time_pref == 'Evening':
+                    slot.employee = None
+                    slot.save()
+                    print(f'UNFAVORABLE SLOT {slot} CLEARED VIA EVENING EMPLOYEE ALGORITHM')
         def deleteSlots (self,instance):
             instance.slots.all().update(employee=None)
             print('All Slots Wiped on Schedule {instance.slug}')
@@ -1259,8 +1269,9 @@ class Slot (models.Model) :
                     print(f'{employee} assigned to {instance}')
             else:
                 print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')               
-    actions = Actions()
         
+    actions = Actions()
+    
     def template (self):
         return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
     def slug    (self):

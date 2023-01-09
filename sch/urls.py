@@ -13,11 +13,22 @@ URLS FOR THE SCHEDULE APP WITHIN FLOWRATE
 
 app_name = "sch"
 
+from rest_framework import routers
+
+router = routers.DefaultRouter()
+router.register(r'employees', viewsets.EmployeeViewSet)
+router.register(r'workdays', viewsets.WorkdayViewSet)
+router.register(r'slots', viewsets.SlotViewSet)
+router.register(r'weeks', viewsets.WeekViewSet)
+router.register(r'periods', viewsets.PeriodViewSet)
+router.register(r'schedules',  viewsets.ScheduleViewSet)
+router.register(r'pto-requests', viewsets.PtoRequestViewSet)
 
 # ================================ #
 
 urlpatterns = [
     path("", views.index, name="index"),
+    path("rest/", include(router.urls)),
     path("pto-requests/all/", views.PTO.PtoManagerView.as_view(), name="pto-request-list"),
     path("docs/week/", views.DOCUMENTATION.weekly, name="docs-week"),
 ]
@@ -262,13 +273,9 @@ employee_patterns = [
 
 schedule_patterns = [
     # ? ==== SCHEDULE ==== ?#
-    path(
-        "v2/generate-schedule/<int:year>/<int:n>/",
-        views2.generate_schedule_view,
-        name="v2-generate-schedule",
-    ),
-    path("schedule-list/all/", 
-         views.SCHEDULE.scheduleListView, name="schedule-list"),
+    path("v2/generate-schedule/<int:year>/<int:n>/", views2.generate_schedule_view, name="v2-generate-schedule"),
+    # path("schedule-list/all/", 
+    #      views.SCHEDULE.scheduleListView, name="schedule-list"),
     path(
         "schedule-detail/<str:schId>/",
         views.SCHEDULE.scheduleView,
@@ -320,6 +327,7 @@ schedule_patterns = [
     path('v2/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
     path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
     path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
+    path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
 ]
 
 test_patterns = [

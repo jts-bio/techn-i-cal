@@ -1,6 +1,18 @@
 
     {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
     <table class="flex basis-1 shrink bg-zinc-900 m-3 p-5 rounded">
+        <a  href="{% url 'sch:sch-sync-db' schedule.slug %}"
+            class= "rounded-full 
+                    h-6 w-6 
+                    transition 
+                    hover:scale-105 hover:bg-zinc-400
+                    active:fa-spin active:fa-animate"
+            >
+            <i class="fa-duotone 
+                      fa-arrows-rotate 
+                      text-lg">
+            </i>
+        </a>
     {% for period in schedule.periods.all %}
         <tr>
             <th rowspan="6">

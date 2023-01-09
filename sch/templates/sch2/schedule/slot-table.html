@@ -52,15 +52,16 @@
             </a>
           </td>
           <td>{{ slot.shift }}</td>
-          <td>{{ slot.employee | default: "NONE" }}</td>
+          <td>{{ slot.employee | default:"NONE" }}</td>
           <td>
               {% if slot.employee == slot.template_employee %}
                 <span class="text-2xs text-slate-600">
-                  {{ slot.template_employee | default:"" }}
+                  <i class="fa-duotone fa-user-check text-xl m-2"></i>
                 </span>
               {% else %}
                 <span class="text-pink-300 text-2xs">
-                  {{ slot.template_employee | default:"" }}
+                  <i class="fa-duotone fa-shuffle text-xl m-2"></i>
+                  {{ slot.template_employee | default:""  }}
                 </span>
               {% endif %}
             </span>

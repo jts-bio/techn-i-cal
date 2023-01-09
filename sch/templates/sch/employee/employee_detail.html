@@ -27,16 +27,23 @@
 
     
 
-    <a class= "bg-zinc-800 shadow shadow-lg px-8 m-2 rounded-sm h-20 w-32 justify-center
-              center text-center transition
-              hover:scale-125 hover:bg-indigo-700 hover:ring hover:ring-zinc-600"
-          href="{% url 'sch:employee-update' employee.pk %}">
-      <i class="text-2xl fa-duotone fa-mortar-pestle"></i>  
-      <br/>
-      Edit Employee
+    <a class= "bg-zinc-800 shadow shadow-lg 
+               px-8 m-2 
+               rounded-sm h-20 w-32 justify-center
+               center text-center transition
+               hover:scale-125 hover:bg-indigo-700
+               hover:ring hover:ring-zinc-600"
+          href="{% url 'sch:employee-update' employee.pk %}"
+          >
+        <i class="text-2xl fa-duotone fa-mortar-pestle"></i>  
+        <br/> Edit Employee
     </a>
 
-      <h1 class="text-3xl text-center">{{ employee.name }}</h1>
+    <div class="flex flex-row gap-3 rounded bg-blue-900 w-5/12 h-20 text text-center ring ring-sky-300 border-2 border-indigo-500 ring-offset-2">
+      
+      <div class="text-3xl jbm text-sky-200 center-self mx-8"> {{ employee }} </div>
+      
+  </div>
      
       <div class="flex flex-row flex-wrap">
       {% for shift in sfts_trained %} 
@@ -57,13 +64,19 @@
    <div class="center">
      
       <div class="panel w-fc">
-        <div style="float: right">
+        <div style="float:right">
           <a
             href="{% url 'sch:employee-edit-ssts' employee.slug %}"
-            class="bg-blue-400 rounded p-2 hover:bg-blue-200 hover:text-blue-900 m-1"
+            class="bg-blue-400 
+                   rounded 
+                   p-2 
+                   hover:bg-blue-200 
+                   hover:text-blue-900 
+                   m-1"
           >
-            Edit Shifts </a
-          ><br />
+            Edit Shifts </a>
+            <br />
+
         </div>
 
         <div style="float: right">

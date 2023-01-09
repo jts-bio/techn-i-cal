@@ -96,11 +96,14 @@ SCHEDULE DETAIL VIEW
                     Select schedule...</option>
 
                 {% for sch in otherSchedules %}
-                    <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}" class="text-xs font-light">
+                    <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
+                             class="text-xs 
+                                    font-light">
                         {{ sch.year }}: Schedule {{ sch.number }} 
                         (Version {{ sch.version }})
                     </option>
                 {% endfor %}
+                
         </select>
 
     </div>
@@ -221,6 +224,7 @@ SCHEDULE DETAIL VIEW
   
 
     <div class="flex basis-1 shrink text text-center">
+        
         <div class="overflow-x-auto"> 
                 {# ========= SCHEDULE TABLE ========= #}
                 {% include 'sch2/schedule/complex-table.html' %}

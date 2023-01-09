@@ -173,7 +173,10 @@ def sumSlotHours (slots):
     for slot in slots:
         total += slot.shift.hours 
     return total
-    
+
+@register.inclusion_tag('reload.svg')
+def reloadIcon():
+    return {}
 @register.inclusion_tag('employee_slot.html') 
 def get_employees_slot (workday, employee):
     for slot in workday.slots.all():

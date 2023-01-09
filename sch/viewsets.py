@@ -7,15 +7,45 @@ from django.db.models.functions import Cast
 
 from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
-from .serializers import ArticleSerializer
+from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
-    serializer_class = ArticleSerializer
+    serializer_class = EmployeeSerializer
     
 class WorkdayViewSet(viewsets.ModelViewSet):
     queryset = Workday.objects.all()
-    serializer_class = ArticleSerializer
+    serializer_class = WorkdaySerializer
+    
+class SlotViewSet (viewsets.ModelViewSet):
+    queryset = Slot.objects.all()
+    serializer_class = SlotSerializer
+    
+class WeekViewSet (viewsets.ModelViewSet):
+    queryset = Week.objects.all()
+    serializer_class = WeekSerializer
+    
+class PeriodViewSet (viewsets.ModelViewSet):
+    queryset = Period.objects.all()
+    serializer_class = PeriodSerializer 
+    
+class ScheduleViewSet (viewsets.ModelViewSet):
+    queryset = Schedule.objects.all()
+    serializer_class = ScheduleSerializer
+    
+class ShiftTemplateViewSet (viewsets.ModelViewSet):
+    queryset = ShiftTemplate.objects.all()
+    serializer_class = ShiftTemplateSerializer
+    
+class TemplatedDayOffViewSet (viewsets.ModelViewSet):
+    queryset = TemplatedDayOff.objects.all()
+    serializer_class = TemplatedDayOffSerializer
+    
+class PtoRequestViewSet (viewsets.ModelViewSet):
+    queryset = PtoRequest.objects.all()
+    serializer_class = PtoRequestSerializer
+    
+    
 
 
 
@@ -153,7 +183,7 @@ class SchViews:
         }
         return render(request, html_template, context)
 
-    def schEMUSR(request, schId, asTable=True):
+    def schEMUSR(request, schId, asTable=False):
         """Schedule Expected Morning Unpreferred Shift Requirements
         -----------------------------------------------------------
         inputs: (1) request (2) schId 
@@ -278,6 +308,14 @@ class SchViews:
             )
         return HttpResponseRedirect(schedule.url())
 
+    def syncDbSchView (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        for slot in sch.slots.all():
+            slot.save()
+        messages.success (request, f"Successfully synched database with schedule {sch.slug}" )
+        return HttpResponseRedirect (sch.url())        
+        
+        
 class WdViews:
     def wdayDetailBeta (request, slug):
         wd = Workday.objects.get(slug=slug)

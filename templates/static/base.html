@@ -94,10 +94,10 @@
 						var toast = document.createElement("div");
 						
 						// create the toast icon
-						toast.classList.add("flex", "items-center", "w-full", "max-w-xs", "p-4", "mb-4", "text-gray-500", "bg-white", "rounded-lg", "shadow", "dark:text-gray-400", "dark:bg-gray-800")
+						toast.classList.add("flex", "items-center", "w-full", "max-w-xs", "p-4", "mb-4", "text-zinc-900", "bg-zinc-200", "rounded-lg")
 					
 						var icon = document.createElement("i");
-						icon.classList.add("fa-duotone");
+						icon.classList.add("fa-duotone font-bold");
 						if (type == "success") {
 						  icon.classList.add("fa-check-circle");
 						  toast.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-800', 'dark:text-green-100')
@@ -125,6 +125,7 @@
 						  toastspan.classList.add("toast-span-info");
 						}
 						// add the toast span to the toast
+						toast.appendChild(icon);
 						toast.appendChild(toastspan);
 						// add the toast message to the toast
 						toast.appendChild(document.createTextNode(message));
@@ -132,7 +133,7 @@
 						var wrapper = document.getElementById("toast-wrapper");
 						wrapper.appendChild(toast);
 						// slide the toast in from the bottom
-						toast.style.bottom = "-50px";
+						toast.style.bottom = "-8x";
 						toast.style.opacity = 0;
 						setTimeout(function() {
 						  toast.style.bottom = "20px";

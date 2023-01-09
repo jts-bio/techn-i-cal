@@ -6,8 +6,7 @@ from .models import Employee, Workday, Shift, Slot, ShiftTemplate, TemplatedDayO
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
-        fields = ('name', 'fte_14_day', 'fte', 'shifts_trained',
-                  'shifts_available','trade_one_offs', 'cls', 'time_pref', 'slug')
+        fields = ('__all__')
         
 class ShiftSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,7 +16,7 @@ class ShiftSerializer(serializers.ModelSerializer):
 class WorkdaySerializer(serializers.ModelSerializer):
     class Meta:
         model = Workday
-        fields = ('date', 'week', 'period', 'schedule', 'slug', 'iweekday', 'iweek','iperiod','ischedule','ppd_id','sd_id')
+        fields = ('__all__')
         
 class WeekSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,19 +31,19 @@ class PeriodSerializer(serializers.ModelSerializer):
 class ScheduleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Schedule
-        fields = ('slug', 'start_date', 'number', 'year','version')
+        fields = ('__all__')
         
 class SlotSerializer(serializers.ModelSerializer):
     class Meta:
         model = Slot
-        fields = ('workday','shift','employee','week','period','schedule','is_terminal','is_turnaround','streak','template_employee')
+        fields = ('__all__')
         
 class ShiftTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShiftTemplate
         fields = ('shift','employee','sd_id')
                 
-class TemplatedDayOff (serializers.ModelSerializer):
+class TemplatedDayOffSerializer (serializers.ModelSerializer):
     class Meta:
         model = TemplatedDayOff
         fields = ('employee','sd_id')
@@ -52,29 +51,7 @@ class TemplatedDayOff (serializers.ModelSerializer):
 class PtoRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = PtoRequest
-        fields = ('employee','start_date','end_date','status','request_type','requester','reason','slug')
+        fields = ('__all__')
             
         
-
-
-# views.py
-from rest_framework import viewsets
-from .models import Article
-from .serializers import ArticleSerializer
-
-class ArticleViewSet(viewsets.ModelViewSet):
-    queryset = Article.objects.all()
-    serializer_class = ArticleSerializer
-
-# urls.py
-from django.urls import include, path
-from rest_framework import routers
-from . import views
-
-router = routers.DefaultRouter()
-router.register(r'articles', views.ArticleViewSet)
-
-urlpatterns = [
-    path('', include(router.urls)),
-]
 

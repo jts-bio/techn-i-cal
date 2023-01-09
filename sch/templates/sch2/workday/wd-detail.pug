@@ -17,15 +17,13 @@
 
     {# SLOTS -- EMPTY ONLU #}
     {% for slot in workday.slots.empty  %}
-            <div class="{{ slot_CSS }}">
-                {{ slot.shift.name }}
+            <div class="{{ slot_CSS }}"> {{ slot.shift.name }}
                 <i class="{{ missing_ICON }}"></i>
             </div>
     {% endfor %}
 
     {% for slot in workday.slots.filled  %}
-            <div class="{{ filled_CSS }}">
-                {{ slot.shift.name }}
+            <div class="{{ filled_CSS }}"> {{ slot.shift.name }}
                 <i class="{{ filled_ICON }}"></i>
             </div>
     {% endfor %}
@@ -36,5 +34,6 @@
     {% endwith %}
     {% endwith %}
     {% endwith %}
+    
 {% endblock content %}
     

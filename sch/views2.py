@@ -117,7 +117,8 @@ def schDetailView(request, schId):
         else:
             messages.warning(request, "Form is invalid")
 
-    emusr = viewsets.SchViews.schEMUSR(0, schedule.slug)
+    emusr = viewsets.SchViews.schEMUSR(None, schedule.slug, asTable=False)
+    
     emusr_differences = list(emusr.values_list('difference', flat=True))
     emusr_differences = [x for x in emusr_differences if x is not None]
 
