@@ -11,7 +11,9 @@
 			"christian-kohler.path-intellisense",
 			"mgesbert.python-path",
 			"moalamri.inline-fold",
-			"jack89ita.open-file-from-path"
+			"jack89ita.open-file-from-path",
+			"dz4k.vscode-hyperscript-org",
+			"drumworkteam.link"
 		]
 	}
 }

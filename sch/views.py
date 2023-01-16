@@ -1015,7 +1015,7 @@ class EMPLOYEE:
         def form_valid(self, form):
             schedule = form.cleaned_data['schedule']
             employee = form.cleaned_data['employee']
-            return HttpResponseRedirect(reverse('sch:v2-employee-schedule', 
+            return HttpResponseRedirect(reverse('sch:empl', 
                                                 args=[employee.slug, schedule.slug]))
 
         def get_context_data(self, **kwargs):
@@ -1115,16 +1115,14 @@ class EMPLOYEE:
                 else:
                     shiftPreference = ShiftPreference.objects.create(employee=employee, shift=shift, priority=priority)
                     shiftPreference.save()
-                    print(shiftPreference,'didntexist')
+                    print(shiftPreference,'did not exist')
                     
                 msg_body = f"{employee} - {len(formset)} Shift Preferences successfully updated!"
                 messages.success(request, msg_body )
                 
             return HttpResponseRedirect(employee.url())
         
-        initData = [
-            {'employee':employee, 'shift': s} for s in trainedFor
-        ]
+        initData = [{'employee':employee, 'shift': s} for s in trainedFor]
         for i in initData:
             if ShiftPreference.objects.filter(employee=employee, shift=i['shift']).exists():
                 i['priority'] = ShiftPreference.objects.get(employee=employee, shift=i['shift']).priority
@@ -1310,20 +1308,23 @@ class EMPLOYEE:
             if form.is_valid():
                 employee = form.cleaned_data['employee']
                 coworker = form.cleaned_data['coworker']
-                oldtdos = TemplatedDayOff.objects.filter(employee=employee)
-                for tdo in oldtdos:
+                old_tdos = TemplatedDayOff.objects.filter(employee=employee)
+                for tdo in old_tdos:
                     tdo.delete()
                 tdos = list(TemplatedDayOff.objects.filter(employee=coworker).values_list('sd_id',flat=True))
                 for tdo in tdos:
                     t = TemplatedDayOff.objects.create(employee=employee,sd_id=tdo)
                     t.save()
+                messages.success(request, f"{employee}s Templated Days Off set to match {coworker}.")
             else :
                 print(form.errors)
+                
+            
             return HttpResponseRedirect('/sch/employee/{}'.format(name))
-        
-        context['form'].initial = {'employee': employee }
-        return render (request, template_name, context)
-           
+        else:
+            context['form'].initial = {'employee': employee }
+            return render (request, template_name, context)
+            
     class EmployeeAddPtoView (FormView):
 
         template_name = 'sch/employee/employee_add_pto.html'
@@ -1709,7 +1710,7 @@ class SST:
         dayinfo = []
         days = range(42)
         for day in days:
-            dayinfo.append(ShiftTemplate.objects.filter(ppd_id=day))
+            dayinfo.append(ShiftTemplate.objects.filter(sd_id=day))
         context['days'] = dayinfo
         context['range'] = range(42)
         

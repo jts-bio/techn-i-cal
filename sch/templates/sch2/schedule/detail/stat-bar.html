@@ -30,10 +30,15 @@
           <!-- Stats -->
             {% if schedule.slots.empty.count > 0 %}
                 <a href="{% url 'sch:v2-schedule-detail-empty-slots' schedule.pk %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
-                    <span class="text-3xl font-semibold text-amber-500"
-                      script="on load repeat until event stop
-                              fetch get-sch-empty-count/ then put
-                              the result into me end then wait 2s"></span>
+                    <span id="empty-count-display"
+                      class="text-3xl font-semibold text-amber-500"
+                           _="on getLiveUpdates repeat until event stop
+                                  fetch get-sch-empty-count/ 
+                                  then put 
+                                  the result into me end 
+                                      then wait 2s">
+                              {{ schedule.slots.empty.count }}
+                    </span>
                     <span>
                     
                           <i class="fa-solid fa-person-circle-exclamation text-xl"></i>
@@ -99,6 +104,24 @@
                     </p>
                     <p class="mt-1 text-gray-500">Unfavorables Spread</p>
                 </a>
+
+                <a href="" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                  <p class="text-3xl font-semibold 
+                      {% if uf_stdev_diff < 0 %} 
+                              text-red-600
+                      {% else %} 
+                              text-emerald-300
+                      {% endif %}">
+                      {{ uf_stdev_diff }}%
+
+                      <i class="fa-duotone fa-moon-over-sun"></i>
+                      
+                  </p>
+                  <p class="mt-1 text-xs text-gray-500">
+                      of shifts assigned to employee<br/>
+                      in their "unfavorable" time of day
+                  </p>
+              </a>
           <!-- End Stats -->
       </div>
       <!-- End Col -->

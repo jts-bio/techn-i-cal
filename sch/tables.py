@@ -75,9 +75,7 @@ class ShiftListTable (tables.Table) :
     """
     SHIFT LIST TABLE
         - Summary for ALL SHIFTS
-    
-    example 
-    ---------------------------------------------------
+        
     ```
     ---------------------------------
     name| hours   | IV?  | Group

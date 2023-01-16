@@ -1,4 +1,5 @@
 import datetime as dt
+import statistics
 from re import sub
 import random
 from django.http import JsonResponse
@@ -14,7 +15,10 @@ from django.db.models.functions import Coalesce
 from django.urls import reverse
 from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
-from collections import Counter
+from django.contrib.auth.models import User
+
+
+
 """
 DJANGO PROJECT:     TECHNICAL
 APPLICATION:        FLOW-RATE SCHEDULING (SCH)
@@ -32,7 +36,7 @@ Models:
     - ShiftPreference
 """
 
-DAYCHOICES              = (
+DAYCHOICES                     =   (
                 (0, 'Sunday'),
                 (1, 'Monday'),
                 (2, 'Tuesday'),
@@ -41,9 +45,10 @@ DAYCHOICES              = (
                 (5, 'Friday'),
                 (6, 'Saturday')
             )
-WEEKABCHOICES           = (
-                (0, 'A'),
-                (1, 'B'),)
+WEEKABCHOICES                  =   (
+                        (0, 'A'),
+                        (1, 'B')
+                    )
 TODAY                   = dt.date.today ()
 TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
 SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
@@ -79,6 +84,8 @@ def YEAR_SCHDATES (year):
 #* --- ---    MANAGERS    --- --- *#
 #*--------------------------------*#
 # ============================================================================
+
+
 class ShiftManager (models.QuerySet):
 
     def on_weekday (self, weekday) -> QuerySet:
@@ -367,7 +374,6 @@ class PtoRequestManager (models.QuerySet):
 #* --- ---      MODELS      --- --- *#
 #************************************#
 # ============================================================================
-
 class Shift (models.Model) :
     """
     model SHIFT
@@ -461,7 +467,7 @@ class Employee (models.Model) :
     time_pref       = models.CharField(max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')))
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
-    
+    image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
     
     class Meta:
         ordering    = ['cls', 'name']
@@ -478,11 +484,10 @@ class Employee (models.Model) :
         return round((TODAY - self.hire_date).days / 365, 2)
     def __str__(self) :
         return self.name
-    # computed fields:
     def _set_fte (self):
         return self.fte_14_day / 80
     def url(self):
-        return reverse("sch:v2-employee-detail", kwargs={"empId": self.pk})
+        return reverse("sch:empl", kwargs={"empId": self.pk})
     def weekHours (self, wd):
         return wd.week.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def periodHours (self, wd):
@@ -559,7 +564,7 @@ class Employee (models.Model) :
         if self.weekly_hours(year,iweek) == None:
             return 0
         return  self.weekly_hours(year,iweek) / (Employee.objects.get(pk=self.pk).fte_14_day/ 2)
-    def count_shift_occurances (self):
+    def count_shift_occurances (self) -> SlotManager:
         slots = Slot.objects.filter(employee=self).values('shift__name')
         return slots.distinct().annotate(count=Count('shift__name'))
     def unfavorable_shifts (self):
@@ -615,6 +620,7 @@ class Workday (models.Model) :
     ischedule= models.IntegerField(default=-1)
     ppd_id   = models.IntegerField(default=-1)
     sd_id    = models.IntegerField(default=-1)  
+    percent  = models.IntegerField(default=0)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -695,11 +701,11 @@ class Workday (models.Model) :
     @property
     def percFilled (self) :
         return self.filledSlots.count() / self.shifts.count()
-    def percent (self):
+    def _percent (self):
         decimal = self.slots.filled().count() / self.slots.all().count()
         return int(decimal * 100)
     def url (self) :
-        return reverse("workday", kwargs={"sch": self.schedule.pk,"slug": self.slug})
+        return reverse("wday:wd-detail", kwargs={"slug": self.slug})
     def prevWD (self) :
         sd = self.sd_id 
         if sd != 0:
@@ -743,7 +749,7 @@ class Workday (models.Model) :
             print(slot.shift, slot.employee)
     def hours           (self):
         return Employee.objects.all().annotate(hours=Subquery(self.slots.exclude(employee=None).values('hours')))
-    def free_today (self):
+    def free_today      (self):
         alreadyWorking = self.slots.values('employee')
         tdos = TemplatedDayOff.objects.filter(sd_id=self.sd_id).values('employee')
         ptoRequested = self.pto().values('employee')
@@ -791,6 +797,7 @@ class Workday (models.Model) :
     def save            (self, *args, **kwargs) :
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
+        self.percent = self._percent()
         super().save(*args,**kwargs)
         self.post_save()
     def post_save       (self):
@@ -799,13 +806,24 @@ class Workday (models.Model) :
                 s = Slot.objects.create(workday=self,shift=i,week=self.week,period=self.period,schedule=self.schedule)
                 s.save()
     def url             (self):
-        return reverse('sch:v2-workday-detail', args=[self.slug])
+        return reverse('wday:wd-detail', args=[self.slug])
     def url_tooltip     (self):
         return f'/sch/{self.slug}/get-tooltip/'
     def __str__         (self) :
         return str(self.date.strftime('%Y %m %d'))
     
     objects = WorkdayManager.as_manager()
+
+WD_VIEW_PREF_CHOICES = (
+    (0,'wday/wd-detail-2.html'),
+    (1,'wday/wd-detail.html'),
+    (2,'wday/wd-detail-old')
+    )
+class WorkdayViewPreference (models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    view = models.CharField(max_length=10, choices=WD_VIEW_PREF_CHOICES, default=0)
+    def __str__ (self):
+        return f'{self.user.username} {self.view}'
 # ============================================================================  
 class Week (models.Model) :
     __all__ = [
@@ -815,7 +833,7 @@ class Week (models.Model) :
     iweek       = models.IntegerField (null=True, blank=True) 
     year        = models.IntegerField (null=True, blank=True)
     number      = models.IntegerField (null=True, blank=True)
-    version     = models.CharField (null=True,blank=True)
+    version     = models.CharField    (max_length=10, null=True, blank=True)
     period      = models.ForeignKey   ("Period", on_delete=models.CASCADE,   null=True,related_name='weeks')
     schedule    = models.ForeignKey   ("Schedule", on_delete=models.CASCADE, null=True,related_name='weeks')
     start_date  = models.DateField    (blank=True, null=True)
@@ -837,10 +855,7 @@ class Week (models.Model) :
             else:
                 ot_hrs = 0
             overtime += ot_hrs
-        return overtime 
-    @property
-    def version (self):
-        return self.schedule.version
+        return overtime
     def unfavorables (self):
         return self.slots.filter(empl_sentiment__lt=50)
     def empl_needed_hrs (self,empl):
@@ -1018,13 +1033,45 @@ class Schedule (models.Model):
     year       = models.IntegerField(null=True,default=None)
     number     = models.IntegerField(null=True,default=None)
     start_date = models.DateField()
-    status     = models.IntegerField(choices=list(enumerate("working,finished,discarded")),default=0)
+    status     = models.IntegerField( choices=list(enumerate( "working,finished,discarded".split(",") )),default=0)
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
+    # calculated fields
+    percent             = models.IntegerField(default=0)
+    unfavorable_ratio   = models.FloatField(default=0)
+    action_log          = models.TextField(default="")
     
     class Meta :
-        ordering = ['year','number','version']
+        ordering = [ 'year', 'number', 'version' ]
+    class Views :
+        detail_view_template = 'sch2/schedule/sch-detail.html'
     
+    def previous(self):
+        yr = self.year
+        num = self.number
+        ver = self.version
+        num -= 1
+        while True:
+            if Schedule.objects.filter(year=yr, number=num).exists():
+                return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
+            if num == 0:
+                yr -= 1
+                num = 9
+            num -= 1
+        
+    def next (self):
+        yr = self.year
+        num = self.number
+        ver = self.version
+        num += 1
+        while True:
+            if Schedule.objects.filter(year=yr, number=num).exists():
+                return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
+            if num == 10:
+                yr += 1
+                num = -1
+            num += 1
+            
     def save (self, *args, **kwargs) :
         if self.year    == None :
             self.year   = self.start_date.year
@@ -1032,15 +1079,16 @@ class Schedule (models.Model):
             self.number = int (self.start_date.strftime("%U")) // 6
         if self.slug    == "":
             self.slug   = f'{self.year}-S{self.number}{self.version}'
+        self.update_unfavorable_ratio()
         super().save(*args, **kwargs)
-        self.post_save()
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
                 p.save()
-    def percent (self):
-        return int((self.slots.filled().count() / self.slots.all().count()) * 100)
+    def update_percent (self):
+        self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
+        print( f'PERCENT: {self.percent}%' )
     @property
     def week_start_dates (self):
         return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
@@ -1066,12 +1114,9 @@ class Schedule (models.Model):
         return Schedule.objects.get(year=self.year,number=self.number+1,version=self.version)
     def __str__     (self):
         return f"{self.year}-S{self.number}{self.version}"
-    def unfavorableRatio (self,employee):
-        slots = self.slots.filter(employee=employee)
-        if slots.count() == 0:
-            return 0
-        unfavorable = self.slots.filter(employee=employee,shift__in=employee.unfavorable_shifts())
-        return unfavorable.count()/slots.count()
+    def update_unfavorable_ratio (self):
+        self.unfavorable_ratio = self.slots.unfavorables().count() / self.slots.all().count()
+        
     def repr_status     (self):
         return ["Working Draft","Final","Discarded"][self.status]
     @property
@@ -1117,8 +1162,10 @@ class Schedule (models.Model):
         return all_schedules
     class Actions :
         def fillTemplates (self,instance,**kwargs):
+            instance.action_log += f"ACTION F1:FILL-TEMPLATES    @{dt.datetime.now()}\n"
             print (f'===============================')
             print (f'[ACTION : SCHEDULE__FILLTEMPLATES] {dt.datetime.now()}')
+            
             for slot in instance.slots.random_order():
                 if slot.employee is None:
                     if slot.template_employee is not None:
@@ -1131,14 +1178,21 @@ class Schedule (models.Model):
                             print (f'Filled Slot {slot.workday.date.month}-{slot.workday.date.day} {slot.shift}: with {slot.employee} via Template')
             print (f'FINISHED TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
             print (f'===============================')
-        def fillSlots (self,instance):
+        def fillSlots (self,instance,request,**kwargs):
+            instance.action_log += f"ACTION F2:FILL-SLOTS    @{dt.datetime.now()}\n"
+            n_empty = instance.slots.empty.count()
+            
             print (f'STARTING SCHEDULE FILL: {dt.datetime.now()}')
+            
             for i in range(700):
                 slot = instance.slots.empty()[random.randint(0,instance.slots.empty().count()-1)]
                 slot.fillWithBestChoice()
                 print(f'Filled Slots {slot.workday.date.month}-{slot.workday.date.day} {slot.shift}: with {slot.employee}')
             print(f'Schedule-Wide Solution Completed at {dt.datetime.now()}')  
+            n_filled = n_empty - instance.slots.empty.count()
+            return {'n_filled':n_filled}
         def solveOmap (self,instance):
+            instance.action_log += f"ACTION F3:FILL-VIA-OMAP    @{dt.datetime.now()}\n"
             keeptrying = 300
             while keeptrying > 0:
                 slot = instance.slots.empty()[random.randint(0,instance.slots.empty().count()-1)]
@@ -1151,6 +1205,7 @@ class Schedule (models.Model):
                     keeptrying -= 1
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA OPTION-MAPPING ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
         def solvePmOnly (self, instance):
+            instance.action_log += f"ACTION F4:FILL-SLOTS-VIA-PM-ONLY    @{dt.datetime.now()}\n"
             for slot in instance.slots.empty().evenings().random_order():
                 choices = slot.fillable_by().filter(time_pref='Evening')
                 if choices.exists():
@@ -1184,8 +1239,8 @@ class Schedule (models.Model):
                     totalSum += 1
             return int(sameSum/totalSum * 100)
                     
-            
-    actions = Actions()
+    tags    = TaggableManager ()
+    actions = Actions ()
 # ============================================================================
 class Slot (models.Model) :
     # fields: workday, shift, employee
@@ -1195,11 +1250,12 @@ class Slot (models.Model) :
     week           = models.ForeignKey ("Week",     on_delete=models.CASCADE, null=True, related_name='slots')
     period         = models.ForeignKey ("Period",   on_delete=models.CASCADE, null=True, related_name='slots')
     schedule       = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True, related_name='slots')
-    empl_sentiment = models.SmallIntegerField   (null=True, default=None)   
-    is_turnaround  = models.BooleanField        (default=False)
-    is_terminal    = models.BooleanField        (default=False)
-    streak         = models.SmallIntegerField   (null=True, default=None)
-    template_employee = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates")
+    empl_sentiment    = models.SmallIntegerField   ( null=True, default=None )   
+    is_turnaround     = models.BooleanField        ( default=False )
+    is_terminal       = models.BooleanField        ( default=False )
+    streak            = models.SmallIntegerField   ( null=True, default=None )
+    template_employee = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates" )
+    fills_with   = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
     
     html_template = 'sch2/schedule/sch-detail.html'
     
@@ -1282,13 +1338,13 @@ class Slot (models.Model) :
         return dt.datetime.combine(self.workday.date, self.shift.start) + self.shift.duration
     def hours   (self) :
         return (self.shift.duration.total_seconds() - 1800) / 3600 
-    def __str__ (self) :
+    def __str__  (self) :
         return str(self.workday.date.strftime('%y%m%d')) + '-' + str(self.shift) + " " + str(self.employee)
-    def streak__display (self):
+    def streak__display  (self):
         return f"#{self.streak} of {self.siblings_streak().count() + 1}"
     def get_absolute_url (self):
         return reverse("slot", kwargs={"slug": self.slug})
-    def prefScore         (self) :
+    def prefScore    (self) :
         if ShiftPreference.objects.filter(shift=self.shift, employee=self.employee).exists() :
             return ShiftPreference.objects.get(shift=self.shift, employee=self.employee).score
         else:
@@ -1306,14 +1362,14 @@ class Slot (models.Model) :
             return False
         if self.shift.start > dt.time(12,0):
             return False
-    def _set_is_turnaround(self) :
+    def _set_is_turnaround (self) :
         if self.employee == None:
             self.is_turnaround = False
         if self.is_preturnaround() or self.is_postturnaround():
             self.is_turnaround = True
         else:
             self.is_turnaround = False
-    def is_preturnaround (self) :
+    def is_preturnaround  (self) :
         if not self.employee:
             return False
         if self.shift.start < dt.time(12,0):
@@ -1401,6 +1457,9 @@ class Slot (models.Model) :
             return False
     def css__fillable_by (self):
         return " ".join([ "fb-"+str(e) for e in self._fillableBy().values_list('pk',flat=True)])
+    def css__not_fillable_by (self):
+        incapable_empls = Employee.objects.exclude(pk__in=self._fillableBy())
+        return " ".join([ "nfb-"+str(e) for e in incapable_empls.values_list('pk',flat=True)])
             
     def _fillableBy (self):
         """ 
@@ -1530,7 +1589,13 @@ class Slot (models.Model) :
     def save (self, *args, **kwargs):
         self.streak = self._streak()
         self._save_empl_sentiment ()
+        if self.schedule.tags.filter(name='Save Required').exists() == False:
+            self.schedule.tags.add('Save Required')
         super().save(*args, **kwargs)
+    def update_fills_with (self):
+        self.fills_with.all().delete()
+        for empl in self.fillable_by():
+            self.fills_with.add(empl)
     def url (self):
         return reverse('sch:v2-slot-detail',args=[self.workday.slug,self.shift.name])
     def _save_empl_sentiment (self):
@@ -1644,7 +1709,6 @@ class Slot (models.Model) :
             if empl in self._get_conflicting_slots().values_list('employee__slug',flat=True):
                 turnaround += [ f"{empl.slug}-turnaround" ] 
         return " ".join(turnaround)
-    
     def fill_via_swap (self,other):
         
         selfEmployee = self.employee
@@ -1776,8 +1840,6 @@ class ShiftPreference (ComputedFieldsModel):
         unique_together = ['employee', 'shift']
     def save (self,*args,**kwargs):
         super().save(*args,**kwargs)
-        for slot in Slot.objects.filter(employee=self.employee,shift=self.shift):
-            slot.save()
     def __str__ (self):
         return f'<{self.employee} {self.shift}: {self.priority}>'
     
@@ -1807,6 +1869,15 @@ class ShiftSortPreference (models.Model):
         self.rank = self.score + 1
         super().save(**kwargs)
 # ============================================================================
+class ScheduleEmusr (models.Model):
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+
+
+
+
+
+
+
 def generate_schedule (year,number):
     """
     GENERATE SCHEDULE

@@ -74,37 +74,18 @@ def schDetailView(request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
-    schedule = Schedule.objects.get(slug=schId)
-    slots = schedule.slots.all()
-
-    action1 = {
-        "name":    "Solve: Method A",
-        "note":    "(AI trained on Shift Scheduling data) ",
-        "confirm": "Confirm you want the AI to solve the remaining slots of this schedule.",
-        "url":      schedule.url__solve_b(),
-    }
-    action2 = {
-        "name":    "Solve: Method B",
-        "note":    "(Quasi-algorithmic approach [in progress])",
-        "confirm": "This method is under construction and may take upward of 5 minutes to complete. Verify to continue.",
-        "url":      schedule.url__solve(),
-    }
-    action3 = {
-        "name":     "Maintenance: Clear Over FTE",
-        "note":     "(No changes will be made on PRN Employees)",
-        "confirm":  "Verify you will run the Maintenance Script: Clear FTE Overages.",
-        "url":      reverse('sch:sch-clear-over-fte', args=[schedule.slug])
-    }
-    actionDropdown = render_to_string( "sch/comp/dropdown_btn.html",
-        {
-            "menuItems": [
-                    action1, 
-                    action2, 
-                    action3
-                ],
-            "deleteLink": schedule.url__clear(),
-        },
-    )
+    import statistics
+    from django.core.cache import cache
+    
+    schedule = cache.get(f'schedule-{schId}')
+    if not schedule:
+        schedule = Schedule.objects.get(slug=schId)
+        cache.set(f'schedule-{schId}', schedule, 1800)
+    
+    if schedule.tags.filter(name="Save Required").exists():
+        schedule.update_percent()
+        schedule.tags.remove("Save Required")
+        schedule.save()
 
     if request.method == "POST":
         form = EmployeeSelectForm(request.POST)
@@ -117,22 +98,33 @@ def schDetailView(request, schId):
         else:
             messages.warning(request, "Form is invalid")
 
-    emusr = viewsets.SchViews.schEMUSR(None, schedule.slug, asTable=False)
-    
+    emusr = cache.get(f'schEMUSR-{schedule.slug}')
+    if not emusr:
+        emusr = viewsets.SchViews.schEMUSR(None, schedule.slug, asTable=False)
+        cache.set(f'schEMUSR-{schedule.slug}', emusr, 1800) # cache for 30 minutes
+
     emusr_differences = list(emusr.values_list('difference', flat=True))
     emusr_differences = [x for x in emusr_differences if x is not None]
+    
+    ufs = cache.get('unfavorable_ratios')
+    if not ufs:
+        ufs = list(Schedule.objects.values_list('unfavorable_ratio',flat=True))
+        cache.set('unfavorable_ratios', ufs, 1800) # cache for 30 minutes
+    mean = statistics.mean(ufs)
+    ufs_stdev = statistics.stdev(ufs)
+    uf_stdev_diff = schedule.unfavorable_ratio - ufs_stdev
 
     context = {
         "schedule": schedule,
-        "actionDropdown": actionDropdown,
         "employees": Employee.objects.all(),
         "form": EmployeeSelectForm,
         "emusr": emusr,
         "emusr_dist": max(emusr_differences) - min(emusr_differences),
         "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk),
-        # viewsets.SchViews.schEMUSR(0,schedule.slug)
+        "uf_stdev_diff": int(uf_stdev_diff*100),
     }
     return render(request, "sch2/schedule/sch-detail.html", context)
+
 
 
 def schDetailAllEmptySlots(request, schId):
@@ -158,9 +150,13 @@ def schDetailEmplGridView(request, schId):
     schedule = Schedule.objects.get(slug=schId)
     employees = Employee.objects.all()
     for employee in employees:
-        employee.unfav_ratio = int(schedule.unfavorableRatio(employee)*100)
-        employee.weekBreakdown = [int(sum(list(wk.slots.filter(employee=employee).values_list(
-            'shift__hours', flat=True)))) for wk in schedule.weeks.all()]
+        if schedule.slots.filter(employee=employee).count() != 0:
+            employee.unfav_ratio = int(schedule.slots.unfavorables().filter(employee=employee).count() / schedule.slots.filter(employee=employee).count())
+            employee.weekBreakdown = [int(sum(list(wk.slots.filter(employee=employee).values_list(
+                'shift__hours', flat=True)))) for wk in schedule.weeks.all()]
+        else:
+            employee.unfav_ratio = 0
+            employee.weekBreakdown = None
     html_template = 'sch2/schedule/sch-as-empl-grid.html'
     return render(request, html_template, {'schedule': schedule, 'employees': employees})
 
@@ -191,6 +187,7 @@ def schDetailPtoConflicts(request, schId):
             pto_conflict.employee = None
             pto_conflict.save()
         messages.success(request, f"PTO conflicts resolved")
+        return HttpResponseRedirect(reverse("sch:v2-schedule-pto-conflicts", args=[schedule.pk]))
 
     html_template = 'sch2/schedule/pto-conflicts.html'
     return render(request, html_template, {'schedule': schedule, 'pto_conflicts': pto_conflicts, 'pto_requests': pto_requests})
@@ -270,6 +267,7 @@ def weekView__employee_possible_slots(request, weekpk, emplpk):
 def workdayDetail(request, slug):
 
     html_template = "sch2/workday/wd-2.html"
+    html_template_alt = "sch2/workday/wd-detail.html"
     
     workday = Workday.objects.get(slug=slug)
     if request.method == "POST":
@@ -291,7 +289,7 @@ def workdayDetail(request, slug):
         "wd": workday,
         "workday": workday,
     }
-    return render(request, html_template, context)
+    return render(request, html_template_alt, context)
 
 
 def shiftDetailView(request, cls, name):

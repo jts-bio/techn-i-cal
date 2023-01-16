@@ -10,29 +10,30 @@
        
 
       <div class="mx-10"
-          script="on contextmenu 
-          halt the event then
-          log 'Got Right Click Event' then 
-          toggle .hidden on (<div.user-context-menu/> in me)
-           end "
+          _ ="on contextmenu 
+                halt the event then
+                log 'Got Right Click Event' then 
+                toggle .hidden on (<div.user-context-menu/> in me)
+                end "
           >
-        <a href="#"
-           class='center-self'
-           
-           > 
-          {% avatar %} 
+       
           
-          {% if user.is_authenticated %}    
+          {% if user.is_authenticated %}  
+          <a href="{% url 'sch:user-detail' user.username %}"
+          class='center-self'
+            >   
               <span class="text-2xs text-zinc-400"> LOGGED IN AS </span> <br/>
               <i class="fa-duotone fa-user-astronaut text-orange-400 text-2xl"></i> <br/>
               {{user.first_name}} {{ user.last_name }} ({{ user.username }})
           {% else %}  
-              <span class="text-2xs text-zinc-400"> LOGGED IN AS </span> 
+              <span class="text-2xs text-zinc-400"> USER IS NOT LOGGED IN CURRENTLY! </span> 
+
+          </a>
           {% endif %}
             
-        </a>
+        
           
-        <div class="user-context-menu  hidden absolute  bg-zinc-300 bg-opacity-50 rounded px-2 py-1 w-fc z-25">
+        <div class="user-context-menu hidden absolute  bg-zinc-300 bg-opacity-50 rounded px-2 py-1 w-fc z-25">
 
               <div><a href="{% url 'logout-view' %}" class="item"> Logout </a></div>
               <div><a href="{% url 'sch:empl-schedule-detail' 'Josh' '16' %}" class="item"> View current schedule  </a></div>

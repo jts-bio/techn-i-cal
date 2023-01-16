@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+
+
+{% block content %}
+
+    <div class="all-shifts">
+        {% for slot in workday.slots.all %}
+
+            <div class="slot" 
+                    id="{{ slot.shift }}" 
+                 ondrop="drop(event);">
+
+                <span class="shift"> {{ slot.shift }} </span>
+                {% if slot.employee %} 
+
+                    <span class="employee" 
+                          id="{{ slot.employee.pk }}"
+                          draggable="true"
+                          > 
+                          {{ slot.employee }}  
+                    </span> 
+
+                {% endif %}
+                
+            </div>
+
+        {% endfor %}
+    </div>
+
+
+    <div class="flex flex-row">
+
+        <div class="on-deck w-4/12 text-right">
+
+            <div class="text-2xl text-emerald-400">ON DECK</div>
+
+            {% for empl in workday.on_deck.all %}
+                <div class="employee" 
+                     id="{{ empl.pk }}"
+                     draggable="true"
+                     >
+                    <span> {{ empl }} </span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="on-pto w-4/12 text-center">
+
+            <div class="text-2xl text-amber-400">PTO</div>
+
+            {% for empl in workday.pto.all %}
+                <div class="employee" 
+                    id="{{ empl.pk }}"
+                    draggable="true"
+                    >
+                    <span> {{ empl }} </span>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="on-tdo w-4/12 text-left">
+
+            <div class="text-2xl text-gray-400">TDO</div>
+
+            {% for empl in workday.tdo.all %}
+                <div class="employee" 
+                     id="{{ empl.employee.pk }}"
+                     draggable="true"
+                     >
+                    <span> {{ empl.employee }} </span>
+                </div>
+            {% endfor %}
+        </div>
+
+    </div>
+
+
+
+<script>
+    let employees = document.querySelectorAll('.employee');
+    let slots     = document.querySelectorAll('.slot');
+
+
+    // drag and drop functions
+    // on load, get the fillable slots of each employee with api calls
+    for(let i=0; i<employees.length; i++){
+        // fetch employee's fillable shifts 
+        fetch ("api/employee-can-fill/"+ employees[i].id +"/")
+            .then(response => response.text())
+
+            .then(data => {
+                let shifts = data.split(" "); 
+                console.log(shifts);
+                for (let j=0; j<shifts.length; j++) {
+                    if (shifts[j] != "") {
+                        console.log(shifts[j]);
+                        
+                        let emplString = employees[i].children[0].innerHTML ;
+                        //strip whitespace from emplString
+                        emplString = emplString.replace(/\s/g, '');
+                        emplString = emplString + "-available";
+                        console.log(emplString);
+                        let shiftElem = document.getElementById(shifts[j]);
+                        shiftElem.classList.add(emplString);
+
+                        shiftElem.addEventListener("dragover", function(event) {
+                            event.preventDefault();
+                        });
+                    }
+                }
+            });
+    }
+
+    for(let i=0; i<employees.length; i++){
+        employees[i].addEventListener("dragstart", function(event) {
+            console.log("dragstart");
+            console.log(event.target.id);
+            event.dataTransfer.getData("text/html", event.target.id);
+            let empString = event.target.id;
+            // get elements with .$empString-available class and add .bg-green-300
+            let empElem = document.getElementsByClassName(empString + "-available");
+            for (let j=0; j<empElem.length; j++) {
+                empElem[j].classList.add("bg-green-200","text-green-800");
+                empElem[j].children[0].classList.add("text-green-800");
+                empElem[j].children[1].classList.add("text-green-800");
+            }   
+        }); 
+    }
+
+    for(let i=0; i<employees.length; i++){
+        employees[i].addEventListener("dragend", function(event) {
+            console.log("dragend");
+            console.log(event.target.id);
+            let empString = event.target.id;
+            // get elements with .$empString-available class and add .bg-green-300
+            let empElem = document.getElementsByClassName(empString + "-available");
+            for (let j=0; j<empElem.length; j++) {
+                empElem[j].classList.remove("bg-green-200","text-green-800");
+                empElem[j].children[0].classList.remove("text-green-800");
+                empElem[j].children[1].classList.remove("text-green-800");
+            }   
+        }); 
+    }
+
+    // add brighter highlight on dragover if the element aready has green background;
+    for(let i=0; i<slots.length; i++){
+        slots[i].addEventListener("dragover", function(event) {
+            event.preventDefault();
+            if (slots[i].classList.contains("bg-green-200")) {
+                slots[i].classList.add("bg-green-300");
+            }
+            else {
+                slots[i].classList.add("bg-gray-300");
+            }
+        });
+    }
+
+    // remove highlight on dragleave
+    for(let i=0; i<slots.length; i++){
+        slots[i].addEventListener("dragleave", function(event) {
+            event.preventDefault();
+            if (slots[i].classList.contains("bg-green-300")) {
+                slots[i].classList.remove("bg-green-300");
+            }
+            else {
+                slots[i].classList.remove("bg-gray-300");
+            }
+        });
+    }
+
+    
+    
+    // add employee to shift on drop
+    for(let i=0; i<slots.length; i++){
+        slots[i].addEventListener("drop", function(event) {
+            event.preventDefault();
+            if (slots[i].classList.contains("bg-green-300")) {
+                slots[i].classList.remove("bg-green-300");
+            }
+            else {
+                slots[i].classList.remove("bg-gray-300");
+            }
+            let empId = event.dataTransfer.getData("text/html");
+            let shiftId = slots[i].id;
+            shiftId = shiftId.replace("slot-", "");
+            let query = "api/shift/" + shiftId + "/update/" + empId + "/";
+            console.log('query: ' + query)
+            fetch (query) //'<slug:slug>/slot/<str:shiftId>/update/<str:empId>/', views.SlotActions.slotUpdateView, name='slot-update'),
+                .then(response => response.text())
+                console.log(response);
+        });
+    }
+
+    // add event listener for employees right clicked 
+    for(let i=0; i<employees.length; i++){
+        employees[i].addEventListener("contextmenu", function(event) {
+            event.preventDefault();
+            let empId = event.target.id;
+            // add .fa-beat to employee
+            event.target.classList.add("fa-beat");
+            // wait 1 second 
+            setTimeout(function() {
+                window.location.href = "/sch/employee/" + empId + "/";
+            }, 1000);
+            
+            // go to employee detail page
+            
+        });
+    }
+
+    
+</script>
+
+{% endblock %}
+
+
+{% block style %}
+
+    <style>
+        .all-shifts {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            margin-top: 50px;
+        }
+        .slot {
+            width: 175px;
+            height: 50px;
+            border: 1px solid white;
+            border-radius: 10px;
+            margin: 10px;
+            padding-left: 10px;
+            padding-top: 2px;
+        }
+        .employee {
+            color: #aacc99;
+            font-style: bold;
+            margin-right: 10px;
+        }
+        .shift {
+            font-style: italic;
+            font-size: 22px;
+            color: #ffffff;
+            
+        }
+        .hold {
+            opacity: 0.5;
+        }
+
+    </style>
+
+{% endblock %}

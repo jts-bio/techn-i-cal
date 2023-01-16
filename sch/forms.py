@@ -101,6 +101,7 @@ class PharmacistForm (EmployeeForm) :
 
 class EmployeeSelectForm (forms.Form):
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), required=True)
+
 class EmployeeEditForm (forms.ModelForm) :
     
     shifts_trained = forms.ModelMultipleChoiceField(
@@ -140,7 +141,7 @@ class EmployeeEditForm (forms.ModelForm) :
             'cls'             : forms.Select(attrs={'class': 'form-control h-7'}),
         }
 
-class SstEmployeeForm (forms.Form):
+class SstEmployeeForm (forms.Form) :
     
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), required=False)
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=False)
@@ -189,7 +190,8 @@ class SstEmployeeForm (forms.Form):
             self.fields['shift'].choices = [(0,"TDO")]
             
         self.fields['shift'].widget.attrs.update({'class': 'form-control'})
-class EmployeeTemplatedDaysOffForm (forms.ModelForm):
+
+class EmployeeTemplatedDaysOffForm (forms.ModelForm) :
     
     is_templated_off = forms.BooleanField(label='Day off', required=False)
     sd_id    = forms.IntegerField(widget=forms.HiddenInput(),required=True)
@@ -230,7 +232,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm):
             else:
                 pass
             
-class EmployeeMatchCoworkerTdosForm (forms.ModelForm):
+class EmployeeMatchCoworkerTdosForm (forms.ModelForm) :
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=True)
     coworker = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select(),required=True)
     
@@ -243,18 +245,16 @@ class EmployeeMatchCoworkerTdosForm (forms.ModelForm):
 
         return cleaned_data
 
-class EmployeeScheduleForm(forms.Form):
+class EmployeeScheduleForm(forms.Form) :
     schedule  = forms.ModelChoiceField(queryset=Schedule.objects.all())
     employee  = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput())
-        
-    
 
 class BulkWorkdayForm (forms.Form) :
     
     date_from = forms.DateField(label='From', widget=forms.SelectDateWidget())
     date_to   = forms.DateField(label='To', widget=forms.SelectDateWidget())
 
-class SlotForm (forms.ModelForm):
+class SlotForm (forms.ModelForm) :
 
     employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), required=False ,widget=forms.Select(attrs={'class': 'form-control'}))
     shift       = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput(), to_field_name='name')

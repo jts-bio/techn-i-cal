@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+
+
+{% block style %}
+
+    <style>
+
+    </style>
+
+{% endblock style %}
+
+
+
+{% block content %}
+
+    <div class="text text-center">
+        <h1 class="h1"> Workdays </h1>
+        <h3 class="h4">within 
+            {# ------------- SCHEDULE SELECTOR ------------- #}
+            <select name="select-sch" id="select-sch" onchange="chooseSchedule">
+                
+                {% for schedule in schedules  %}
+                        <option {% if schedule == initial_schedule %} 
+                                    selected 
+                                {% endif %}
+                            value="{{ schedule.slug }}"> 
+                            Schedule {{ schedule }} 
+                        </option>
+                {% endfor %}
+                    
+            </select>
+        </h3>
+    </div>
+
+    <div class="grid gap-2 grid-cols-1 lg:grid-cols-7 my-4">
+        {% for day in workdays %}
+
+            <a  href="{% url 'wd-detail' day.slug %}" 
+                class="card transition hover:scale-105 bg-zinc-900 border border-zinc-400 {{ day.bgColor }}">
+                <div class="card-body">
+                    <h2 class="text-sm"> {{ day.wkd }}- {{ day.date }} </h2>
+                    <p class="font-extrabold"> {{ day.percent }}% </p>
+                </div>
+            </a>
+
+        {% endfor %}
+    </div>
+
+
+
+{% endblock content %}

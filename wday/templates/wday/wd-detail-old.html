@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+<head>
+    <style>
+        {% include 'sch/css/_wikitable.css' %}
+    </style>
+
+</head>
+
+<!----------------------------
+TEMPLATE VARIABLES
+    *   workday
+------------------------------>
+
+{% block content %}
+
+    <div class="vstack center items-center">
+
+        <div class="hstack text center-text my-4">
+            <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
+            <h1 class="text-3xl text-indigo-300"> 
+                <span class="bg-sky-800 bg-sky-300 shadow-sky-500 rounded px-1 m-2 mr-3 text-slate-900 jbm">
+                    {{ workday.wkd }}
+                </span>
+                {{workday.date}} 
+            </h1>
+            <a class="ml-20" href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
+        </div> 
+
+        <div class="hstack">
+            <a href="{{workday.week.url}}" class="rounded-md p-5 hover:bg-blue-800 text text-center vstack text-center">
+                <div class="text-2xs text-gray-400">WEEK</div>
+                <div class="text-xl text-blue-200">{{workday.week.number}}</div>
+            </a>
+            <a href="{{workday.period.url}}" class="rounded-md p-5 hover:bg-indigo-800 text text-center vstack text-center"">
+                <div class="text-2xs text-gray-400">PAY PERIOD</div>
+                <div class="text-xl text-indigo-200">{{workday.period.number}}</div>
+            </a>
+            <a href="{{workday.schedule.url}}" class="rounded-md p-5 hover:bg-purple-800 text text-center vstack text-center">
+                <div class="text-2xs text-gray-400">SCHEDULE</div>
+                <div class="text-xl text-purple-200">{{workday.schedule.number}}</div>
+            </a>
+        </div> 
+        <div class="rounded-lg shadow shadow-lg px-3 py-1 m-3 mb-12 border border-slate-300 bg-zinc-900 lg:w-[70%]">
+            <span class="shrink text-3xl font-semibold text-blue-400 text-shadow"> 
+              Schedule
+              <span class="text-lg font-light text-white">
+                for {{ workday.date}}
+              </span>
+        </span>
+        
+        <div id="workday-schedule"
+            class="text text-center">
+            
+            {% regroup workday.slots.all by cls as slots_list %}
+
+            <form method="POST"> {% csrf_token %}
+            {% for cls in slots_list %}
+                <div class="grid grid-cols-2 md:grid-cols-3 w-full my-10">
+                {% for slot in cls.list %}
+                <div>
+                    <a href="{{ slot.url }}"
+                        draggable='false'
+                        class="{{ slot.css__all }} rounded p-1 m-2"
+                        _ ="on dragover or dragenter halt the event then set my style.background to '#44ff77' end
+                            on dragleave or drop set my style.background  to '' end
+                            on drop set tgt to the next <input/> then
+                                get event.dataTransfer.getData('text/plain') then
+                                log the result then
+                                set (the next <input/>)@value to result  
+                                then put the result into the next <span.output/>
+                                then add .bg-green-200 to the first <span/> in me
+                                then set @value of #savebutton to 'Updating...'
+                                then add .fa-beat .fa-fade to #savebutton 
+                                then go to url `slot/{{slot.shift}}/update/${result}` end
+                            on drop add .fa-beat-fade to #save-wrapper end
+                            on drop add .line-through .opacity-80 .px-0 to the first .empname in me end
+                            on drop remove .opacity-30 .italic from #savebutton end
+                            on contextmenu call slotContextMenu(event) end">
+                        {% if slot.employee %}
+                            {% with slot.employee as empl %}
+                                <span class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</span>
+                                <div id= "{{ empl.slug }}" 
+                                draggable="true"
+                                class="rounded px-2 mx-1 text-sm text-zinc-900 bg-sky-600"
+                                _ ="on mouseover add .bg-sky-400 to me
+                                    on click fetch url `{% url 'wday:slots--empl-can-fill' workday.slug empl.slug %}`
+                                        then log the result
+                                    on mouseleave remove .bg-sky-400 from me
+                                    on dragstart call event.dataTransfer.setData('text/plain',target.id) 
+                                        then add .bg-green-100 to .{{empl.slug}}-available 
+                                        then call event.dataTransfer.getData('text') then log the result
+                                    on dragend remove .bg-green-100 from .{{empl.slug}}-available end">
+                                <span class="font-bold text-zinc-900">
+                                    {{ empl }}
+                                </span>
+
+                                <div class="text-white text-2xs">
+                                    <span>
+                                        {% weekHours empl workday %}/ 
+                                        {% periodHours empl workday %}
+                                    </span>
+                                </div>
+                                {% endwith %}
+                         </div>
+                            {% else %}
+                                <span class="badge opacity-30 italic">{{ slot.shift }}</span>
+                                <span class="mr-3 text-2xs text-zinc-400 font-extrabold bg-opacity-60 empname">NONE</span> 
+                            
+                        {% endif %}
+                    </a>
+                    <input type="hidden" 
+                           id="{{slot.shift}}" 
+                           name="{{slot.shift}}"/>
+
+                    <span class="output text-light text-green-300 italic"></span>
+                </label>
+                </div>
+                {% endfor %}
+                </div>
+                <div id="save-wrapper">
+                    <input type="submit" id="savebutton" class="btn bg-blue-300 text-gray-300 px-2 rounded italic bg-gray-700 opacity-30"  value="Save"/>
+                </div>
+            {% endfor %}
+        </form>
+        </div>
+        </div>
+    </div>
+
+       
+        <div class="flex flex-row gap-3">
+            <div class="grow panel">
+                <h2 class="text-2xl font-light">Employees On Deck</h2>
+    
+                <div id="on-deck-container">
+
+                <div class="grid grid-cols-2 gap-2">
+                {% for empl in workday.on_deck %}
+                        <div id= "{{empl.slug}}" 
+                            draggable="true"
+                            class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600"
+                            _ ="on mouseover add .bg-emerald-400 to me
+                                on mouseleave remove .bg-emerald-400 from me
+                                on dragstart call event.dataTransfer.setData('text/plain','{{empl.employee.slug}}') 
+                                    then add .bg-green-100 to .{{empl.slug}}-available 
+                                    then call event.dataTransfer.getData('text') then log the result
+                                on dragend remove .bg-green-100 from .{{empl.slug}}-available end
+                                
+                                on click[button==0] halt the event then show .context-menu-wrapper in me">
+                            <span class="font-bold text-zinc-900">
+                                {{ empl }}
+                            </span>
+
+                            <div class="text-white text-2xs">
+                                <span>
+                                    {% weekHours empl workday %}/ 
+                                    {% periodHours empl workday %}
+                                </span>
+                            </div>
+                            <div id="context" class="hidden context-menu-wrapper">Context Menu</div>
+                        </div>
+                        
+                {% endfor %}
+                </div>
+                </div>
+            </div>
+
+        <div class="panel">
+            <h2 class="text-2xl font-light">Employees with PTO</h2>
+            {% if workday.pto.count > 0 %}
+                <div class="grid grid-cols-2 w-fc gap-2">
+                    {% for empl in workday.pto %}
+                        <div id= "{{empl.slug}}" 
+                        draggable="true"
+                        class="rounded px-2 mx-1 text-sm text-zinc-900 bg-yellow-600"
+                        _ ="on mouseover add .bg-yellow-400 to me
+                            on mouseleave remove .bg-yellow-400 from me
+                            on dragstart call event.dataTransfer.setData('text/plain',target.id) 
+                                then add .bg-orange-100 to .{{empl.slug}}-available 
+                                then call event.dataTransfer.getData('text') then log the result
+                            on dragend remove .bg-orange-100 from .{{empl.slug}}-available end">
+                        <span class="font-bold text-zinc-900">
+                            {{ empl.employee }}
+                        </span>
+                        <span>PTO</span> <i class="fa-duotone fa-alert-triangle fa-beat"></i>
+                        <div class="text-white text-2xs">
+                            <span>
+                                {% weekHours empl.employee workday %}/ 
+                                {% periodHours empl.employee workday %}
+                            </span>
+                        </div>
+
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div>No PTO Requests recorded</div>
+            {% endif %}
+        </div>
+
+        <div class="grow panel">
+            <h2 class="text-2xl font-light">Employees with Day Templated Off</h2>
+            {% if workday.tdo.count > 0 %}
+                    <div class="grid grid-cols-2 w-fc gap-2">
+
+                        {% for empl in workday.tdo %}
+                        <div id= "{{empl.slug}}" 
+                        draggable="true"
+                        class="rounded px-2 mx-1 text-sm text-zinc-900 bg-slate-600"
+                        _ ="on mouseover add .bg-slate-400 to me
+                            on mouseleave remove .bg-slate-400 from me
+                            on dragstart call event.dataTransfer.setData('text/plain', target.id) 
+                                then add .bg-green-100 to .{{empl.slug}}-available 
+                                then call event.dataTransfer.getData('text') then log the result
+                            on dragend remove .bg-green-100 from .{{empl.slug}}-available end">
+                        <span class="font-bold text-zinc-900">
+                            {{ empl.employee }}
+                        </span>
+                        <span>TDO</span>
+                        <div class="text-white text-2xs">
+                            <span>
+                                {% weekHours empl.employee workday %}/ 
+                                {% periodHours empl.employee workday %}
+                            </span>
+                        </div>
+
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div>No Employees have this day templated off.</div>
+            {% endif %}
+        </div>    
+        
+        </div>
+    </div>
+    
+
+
+<script>
+    const contextMenu = document.getElementById( "employee");
+    scope. addEventListener("contextmenu", (event) => {
+    event .preventDefault ();
+    const { clientX: mouseX, clientY: mouseY } = event;
+    contextMenu.style.top = '${mouseY}px';
+    contextMenu.style. left = '${mouseX}px';
+    contextMenu.classList.add("visible");
+    });
+</script>  
+
+
+
+
+    {% endblock content %}

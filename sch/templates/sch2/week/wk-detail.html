@@ -66,8 +66,12 @@
                     py-4 mt-2 mb-12 text-red-800 font-light 
                     text-xs px-7 rounded border border-red-700"
 
-            _="on mouseenter
-                pingEmptySlots()"
+            _="on mouseover toggle .bg-red-400 .text-white .animate-pulse .rounded
+                    on <tr.empty-slot/> 
+                    until mouseleave end
+               on mouseover toggle .text-white .font-bold 
+                    on <td.empty-slot/> 
+                    until mouseleave end"
             >
             <i class="fas">{% warnIcon %}</i>
             {{ week.slots.empty.count }} empty slots
@@ -91,10 +95,10 @@
 
                 <table class='x-overflow-scroll'>
                     {% for slot in workday.slots.all %}
-                        <tr>
+                        <tr class="{% if slot.employee == None %} empty-slot {% endif %}">
                             <td class="text-indigo-300 px-2 transition
                                     {% if slot.employee %} {% else %} 
-                                            emptyslot 
+                                            empty-slot 
                                     {% endif %}">  
                                     {{ slot.shift.name }} 
                             </td>
@@ -199,12 +203,12 @@
 
 <script type="text/hyperscript">
 
-    function pingEmptySlots 
+    def pingEmptySlots ()
         toggle .scale-125 .text-md 
                 .font-bold .m-1 
                 .animate-pulse .bg-red-100 
                 .text-red-700 
-
+        end
 </script>
 
     

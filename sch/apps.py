@@ -6,9 +6,7 @@ class SchConfig(AppConfig):
     name                = "sch"
     verbose_name        = "Scheduler"
     
-   
-        
-
 class TagsConfig(AppConfig):
     default_auto_field  = 'django.db.models.BigAutoField'
     name                = 'sch.templatetags.tags'
+    

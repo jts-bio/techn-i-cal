@@ -36,7 +36,13 @@
 
 {% block content %}
 
-<h1 style="font-size: 36px;">{{employee}}</h1>
+<!-- Back to employee -->
+<a href="{% url 'sch:empl' employee.pk %}" class="text-sm">
+    <i class="fa-duotone fa-arrow-circle-left"></i>
+    Back to Employee</a>
+
+
+<h1 style="font-size: 36px;"> {{ employee }} </h1>
 <h3 style="font-size: 18px;font-family:'JetBrains Mono';opacity:85%;">SHIFT PREFERENCE FORM</h3>
 
 <form method="POST"> {% csrf_token %}
@@ -49,17 +55,19 @@
 
         <div class="hstack panel" style="width: 220px;">
             <h2 class="text-2xl">
-                {{form.shift.initial}}
+                {{ form.shift.initial }}
             </h2>
-            <div>{{form.as_div}}</div>
+            <div> {{ form.as_div }} </div>
         </div>
 
     {% endfor %}
     
 </div>
 
-<input  class="border border-yellow-400 transition text-yelloq-300 hover:text-black hover:font-bold 
-               hover:transition border-2 w-170 hover:bg-yellow-500 hover:scale-125" 
+<input  class="border border-yellow-400 transition text-yelloq-300
+               hover:text-black hover:font-bold 
+               hover:transition border-2 w-170 
+               hover:bg-yellow-500 hover:scale-125" 
         type="submit" 
         text="Submit">
 

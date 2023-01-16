@@ -1,0 +1,30 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    <div>
+        <h1 class="text-3xl text-sky-300 font-bold jbm">
+            {{ user.first_name }} {{ user.last_name }}
+        </h1>
+        <h3 class="text-xl">{{ user.username }}</h3>
+    </div>
+
+
+    <div class="panel">
+        <form method="POST">
+            {{ form.as_p }}
+            {% csrf_token %}
+            <label for="wd-view-pref">Workday View Preference</label>
+            <select name="wd-view-pref" id="wd-view-pref">
+                <option value="0">Default</option>
+                <option value="1">New-Alternate View</option>
+                <option value="2">Old View</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div>
+
+
+{% endblock content %}

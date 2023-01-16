@@ -40,9 +40,11 @@ ALLOWED_HOSTS = [
 
 INSTALLED_APPS = [
     "flow.apps.FlowConfig",
+    "wday.apps.WdayConfig",
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
+    "wday.templatetags.wtags",
     "slippers",
     "computedfields",
     "multiselectfield",

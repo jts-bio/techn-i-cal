@@ -5,6 +5,8 @@ from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 
+
+
 from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
 from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
@@ -12,6 +14,10 @@ from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, Sc
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    
+class ShiftViewSet(viewsets.ModelViewSet):
+    queryset = Shift.objects.all()
+    serializer_class = ShiftSerializer
     
 class WorkdayViewSet(viewsets.ModelViewSet):
     queryset = Workday.objects.all()
@@ -426,28 +432,18 @@ class ShiftViews:
 
         if request.method == "POST":
             for sd_id, employee in request.POST.items():
-                if sd_id == "csrfmiddlewaretoken":
-                    continue
-                else:
-                    sst = ShiftTemplate.objects.filter(shift=shift, sd_id=sd_id)
+                if sd_id != "csrfmiddlewaretoken":
+                    sst = ShiftTemplate.objects.filter(sd_id=sd_id, shift=shift)
                     if sst.exists():
                         sst = sst.first()
-                        if employee == "":
-                            sst.delete()
-                            messages.INFO(
-                                request,
-                                sst.employee,
-                                sst.shift,
-                                "SCH DAY #",
-                                sst.sd_id,
-                                "[ DELETED SUCCESSFULLY ]",
-                            )
-                        else:
-                            if sst.employee == Employee.objects.get(pk=employee):
-                                continue
-                            else:
-                                sst.employee = Employee.objects.get(pk=employee)
-                                sst.save()
+                        employee = Employee.objects.get(pk=employee)
+                        if sst.employee != employee:
+                            sst.employee = employee
+                            sst.save()
+                            print(f"Updated {sst}")
+                    else:
+                        pass
+            return HttpRequestRedirect(shift.url())
                                 
 
         context = {"shift": shift, "days": days}
@@ -534,3 +530,17 @@ class IdealFill:
     def levelF(request, slot_id):
         for empl in IdealFill.levelE(None, slot_id):
             empl.shift
+
+
+class UserViews:
+
+    def userDetailView (request, uname):
+        html_template = "sch2/user/user-detail.html"
+        user = User.objects.get(username=uname)
+        context = {"user": user}
+        if request.method == 'POST':
+            view_pref = request.POST.get('wd-view-pref')
+            WorkdayViewPreference.objects.filter(user=user).update(view=view_pref)
+            messages.success (request, f"View preference updated to {view_pref} for {user}.")
+            
+        return render(request, html_template, context)

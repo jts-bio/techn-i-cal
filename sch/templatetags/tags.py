@@ -246,3 +246,11 @@ def emplWeekAndPeriodHours (empl, wd):
 @register.filter(name="getWeekHours")
 def employeeWeeklyHours (empl, weekId):
     return empl.get_WeeklyHours(weekId)
+
+@register.simple_tag
+def weekHours (empl, wd):
+    return empl.weekHours(wd) or 0
+
+@register.simple_tag
+def periodHours (empl, pd):
+    return empl.periodHours(pd) or 0

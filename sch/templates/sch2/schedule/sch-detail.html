@@ -36,30 +36,47 @@ SCHEDULE DETAIL VIEW
 
     <a href="{% url 'sch:sch-list' %}"><i class="fas">{% backArrow %}</i> Back to List</a>
     
-    <div class="panel text text-center">
-        <h1 class="text-3xl text-zinc-400 text-bold">
 
-                {{schedule.year}}-Schedule {{schedule.number}}
-                    
-        </h1> 
-        <h3 class="text-lg text-zinc-100 text-light">
         
+        <div class="panel text text-center">
+            <div>
+                <a href="{{ schedule.previous.url }}">
+                    <i class="fa-arrow-circle-left fa-duotone"></i>
+                </a>
+                <a href="{{ schedule.next.url }}">
+                    <i class="fa-arrow-circle-right fa-duotone"></i>
+                </a>
+            </div>
+            <h1 class="text-3xl text-zinc-400 text-bold">
+
+                    {{schedule.year}}-Schedule {{schedule.number}} 
+            </h1> 
+            <h3 class="text-lg text-zinc-100 text-light">
+            
                     VERSION {{schedule.version}}   
-        </h3>
+            </h3>
+            {% if schedule.tags.count > 0 %}
+                {% for tag in schedule.tags.all %}
+                    <div class="bg-orange-600 rounded px-2 text-slate-900">{{ tag }}</div>
+                {% endfor %}       
+            {% endif %}
 
-        <div class="text-xs text-zinc-300 italic">
+            <div class="text-xs text-zinc-300 italic">
 
-        <span>
-            {{ schedule.slots.filled.count }} 
-            / {{ schedule.slots.all.count }} 
-            SLOTS ASSIGNED 
-        </span>
-        {% if schedule.percent < 70 %} 
-        <div><i class="text-3xl text-orange-400 fa-duotone fa-dumpster-fire"></i> </div>
-        {% endif %}
+            <span>
+                {{ schedule.slots.filled.count }} 
+                / {{ schedule.slots.all.count }} 
+                SLOTS ASSIGNED 
+            </span>
+            {% if schedule.percent < 70 %} 
+                <div>
+                    <i class="text-3xl text-orange-400 fa-duotone fa-dumpster-fire"
+                    title="Dumpster Fire"></i>
+                </div>
+            {% endif %}
+        </div>
         
-
-    </div>
+    
 
     {# --- STATS BAR ---#}
     <section id="stat-bar">
@@ -71,10 +88,15 @@ SCHEDULE DETAIL VIEW
 
     <hr class="bg-slate-300 mx-12 mb-4 mt-12"/>
 
-    <div class="sm:w-9/12 lg:w-5/12 flex flex-row">
+    <div class="w-10/12 md:w-5/12 flex flex-row">
 
         <h2 id="compare-head" 
-            class="jbm text-xl text-slate-900 bg-slate-300 rounded p-2 translate-x-2">
+            class="jbm 
+                   text-xl 
+                   text-slate-900 
+                   bg-slate-300 
+                   rounded p-2 
+                   translate-x-2">
 
             <i class="text-sky-800 fa-duotone fa-code-compare"></i>
             COMPARE
@@ -259,6 +281,8 @@ SCHEDULE DETAIL VIEW
         value="Perform Time-Preference Aware Fill"/>
 
     </form>
+
+    <div class="bg-zinc-900 text-zinc-600 text-2xs jbm p-5">{{ schedule.action_log }}</div>
 </div>
 
 

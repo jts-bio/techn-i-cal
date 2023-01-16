@@ -1,7 +1,11 @@
-
 # serializers.py
+
+from taggit.serializers import (TagListSerializerField,
+                                TaggitSerializer)
 from rest_framework import serializers
-from .models import Employee, Workday, Shift, Slot, ShiftTemplate, TemplatedDayOff, Workday, Week, Period, Schedule, ShiftSortPreference, PtoRequest
+from .models import (Employee, Workday, Shift, Slot, ShiftTemplate, 
+                     TemplatedDayOff, Workday, Week, Period, 
+                     Schedule, ShiftSortPreference, PtoRequest )
 
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,7 +15,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class ShiftSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shift
-        fields = ('employee', 'slot', 'shift_template', 'week', 'period', 'schedule', 'slug')
+        fields = ('__all__')
         
 class WorkdaySerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,14 +25,16 @@ class WorkdaySerializer(serializers.ModelSerializer):
 class WeekSerializer(serializers.ModelSerializer):
     class Meta:
         model = Week
-        fields = ('start_date', 'number', 'year','period', 'version')
+        fields = ('__all__')
         
 class PeriodSerializer(serializers.ModelSerializer):
     class Meta:
         model = Period
-        fields = ('start_date', 'number', 'year','schedule','version')
+        fields = ('__all__')
         
-class ScheduleSerializer(serializers.ModelSerializer):
+class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
+    
+    tags = TagListSerializerField()
     class Meta:
         model = Schedule
         fields = ('__all__')
@@ -41,7 +47,7 @@ class SlotSerializer(serializers.ModelSerializer):
 class ShiftTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShiftTemplate
-        fields = ('shift','employee','sd_id')
+        fields = ('__all__')
                 
 class TemplatedDayOffSerializer (serializers.ModelSerializer):
     class Meta:
@@ -53,5 +59,8 @@ class PtoRequestSerializer(serializers.ModelSerializer):
         model = PtoRequest
         fields = ('__all__')
             
-        
+class ShiftSortPreferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShiftSortPreference
+        fields = ('__all__')
 

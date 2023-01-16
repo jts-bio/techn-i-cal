@@ -358,19 +358,22 @@ class ScheduleBot:
         # fill the emptySSTs left behind by pto requests
         empties = ScheduleActions.emptyUsuallyTemplatedSlots(0,yr,sch)
         
-        for empty in empties:
-            wd = sched.workdays.get(sd_id= empty.sd_id)
-            employees = Employee.objects.can_fill_shift_on_day(shift=empty.shift ,cls=empty.shift.cls,workday=wd)
+        for empty_slot in empties:
+            wd = sched.workdays.get(sd_id= empty_slot.sd_id)
+            employees = Employee.objects.can_fill_shift_on_day(shift=empty_slot.shift ,cls=empty_slot.shift.cls,workday=wd)
             
             employee_lowest_fte_percent = [emp.ftePercForWeek(wd.date.year,wd.iweek) for emp in employees]
-            onday = wd.slots.all().values('employee').distinct()
-            employees = employees.exclude(pk__in=onday)
+            on_day = wd.slots.all().values('employee').distinct()
+            employees = employees.exclude(pk__in=on_day)
         
-            if len(employees) != 0:
+            if len(employees) > 0:
                # select lowest fte
                 index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
+                if index > len (employees):
+                    index = len(employees) - 1
                 empl      = employees[index]
-                Slot.objects.filter(workday__sd_id=empty.sd_id,shift=empty.shift).update(employee=empl)
+                Slot.objects.filter(workday__sd_id=empty_slot.sd_id, employee=empl, schedule=sched).update(employee=None)
+                Slot.objects.filter(workday__sd_id=empty_slot.sd_id, shift=empty_slot.shift, schedule=sched).update(employee=empl)
                 
             
         
