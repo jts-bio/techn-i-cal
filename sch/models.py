@@ -815,15 +815,15 @@ class Workday (models.Model) :
     objects = WorkdayManager.as_manager()
 
 WD_VIEW_PREF_CHOICES = (
-    (0,'wday/wd-detail-2.html'),
-    (1,'wday/wd-detail.html'),
-    (2,'wday/wd-detail-old')
+        (0,'wday/wd-detail-2.html'),
+        (1,'wday/wd-detail.html'),
+        (2,'wday/wd-detail-old.html'),
     )
 class WorkdayViewPreference (models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     view = models.CharField(max_length=10, choices=WD_VIEW_PREF_CHOICES, default=0)
     def __str__ (self):
-        return f'{self.user.username} {self.view}'
+        return f'{self.user.username} Pref:{WD_VIEW_PREF_CHOICES[self.view]}'
 # ============================================================================  
 class Week (models.Model) :
     __all__ = [
@@ -1040,12 +1040,12 @@ class Schedule (models.Model):
     percent             = models.IntegerField(default=0)
     unfavorable_ratio   = models.FloatField(default=0)
     action_log          = models.TextField(default="")
+    last_update        = models.DateTimeField(auto_now=True)
     
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
     class Views :
         detail_view_template = 'sch2/schedule/sch-detail.html'
-    
     def previous(self):
         yr = self.year
         num = self.number
@@ -1058,7 +1058,6 @@ class Schedule (models.Model):
                 yr -= 1
                 num = 9
             num -= 1
-        
     def next (self):
         yr = self.year
         num = self.number
@@ -1071,7 +1070,6 @@ class Schedule (models.Model):
                 yr += 1
                 num = -1
             num += 1
-            
     def save (self, *args, **kwargs) :
         if self.year    == None :
             self.year   = self.start_date.year
@@ -1080,6 +1078,7 @@ class Schedule (models.Model):
         if self.slug    == "":
             self.slug   = f'{self.year}-S{self.number}{self.version}'
         self.update_unfavorable_ratio()
+        self.update_percent()
         super().save(*args, **kwargs)
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
@@ -1215,6 +1214,48 @@ class Schedule (models.Model):
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA PM ONLY ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
                 else:
                     print('SLOT NOT FILLED, NO VIABLE OPTION EXISTS VIA PM ONLY ALGORITHM')
+        def sch_solve_with_lookbehind (self,instance):
+            sch = instance
+            success_bucket = []
+            emptySlots = sch.slots.empty().order_by('?')
+            for slot in emptySlots:
+                if slot.workday.sd_id != 0:
+                    prev = slot.workday.prevWD().slots.filter(shift__start__hour__lte=slot.shift.start.hour+1, shift__start__hour__gte=slot.shift.start.hour-1)
+                    choices = []
+                    for p in prev:
+                        if p.employee != None:
+                            if p.streak < p.employee.streak_pref and p.employee not in choices and p.employee in slot.workday.on_deck():
+                                choices.append(p.employee)
+                    if len(choices) > 0:
+                        chosen = random.choice(choices)
+                        if PtoRequest.objects.filter(employee=chosen, workday=slot.workday.date).exists() == False:
+                            if TemplatedDayOff.objects.filter(employee=chosen, sd_id=slot.workday.sd_id).exists() == False:
+                                try:
+                                    slot.employee = chosen
+                                    slot.save()
+                                    success_bucket.append(slot)
+                                except:
+                                    print(f"ERROR: {slot} could not be filled")
+                            else: 
+                                print(f"{chosen} has a templated day off on {slot.workday.date}")
+                        else:
+                            print(f"{chosen} has a PTO request on {slot.workday.date}")
+                    else:
+                        print(f"No choices for {slot}")
+                        try:
+                            slot.employee = random.choice(slot.workday.on_deck())
+                            slot.save()
+                            success_bucket.append(slot)
+                        except:
+                            print(f"ERROR: Backup Fill via On Deck Employees Failed. This slot was not filled. {slot}")
+                else:
+                    print(f"{slot} is on First Sunday of Schedule")
+            print(len(success_bucket) , "slots filled via method SCHEDULE_SOLVE_WITH_LOOKBEHIND")
+            if len(success_bucket) != 0:
+                sch.percent = int(sch.slots.filled().count() / sch.slots.all().count()*100)
+                sch.save()
+                    
+                
         def stdUnfavorableSwaps (self,instance):
             for s in instance.unfavorables():
                 swaps = Slot.objects.filter(workday=s.workday).unfavorables().exclude(pk=self.pk)
@@ -1227,6 +1268,8 @@ class Schedule (models.Model):
                     print(f'UNFAVORABLE SLOT {slot} CLEARED VIA EVENING EMPLOYEE ALGORITHM')
         def deleteSlots (self,instance):
             instance.slots.all().update(employee=None)
+            instance.percent = 0
+            instance.save()
             print('All Slots Wiped on Schedule {instance.slug}')
         def calculatePercentDivergence (self, instance, other):
             sameSum = 0
@@ -1256,6 +1299,7 @@ class Slot (models.Model) :
     streak            = models.SmallIntegerField   ( null=True, default=None )
     template_employee = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates" )
     fills_with   = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
+    last_update = models.DateTimeField(auto_now=True)
     
     html_template = 'sch2/schedule/sch-detail.html'
     
@@ -1903,8 +1947,8 @@ def generate_schedule (year,number):
 def randomSlot ():
     import random 
     
-    slotn = random.randint (0,Slot.objects.count())
-    slot  = Slot.objects.all()[slotn]
+    slot_n = random.randint (0,Slot.objects.count())
+    slot  = Slot.objects.all()[slot_n]
     
     return slot
 

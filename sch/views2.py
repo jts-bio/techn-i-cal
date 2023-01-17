@@ -126,7 +126,6 @@ def schDetailView(request, schId):
     return render(request, "sch2/schedule/sch-detail.html", context)
 
 
-
 def schDetailAllEmptySlots(request, schId):
     schedule = Schedule.objects.get(pk=schId)
     slots = schedule.slots.empty()
@@ -187,7 +186,7 @@ def schDetailPtoConflicts(request, schId):
             pto_conflict.employee = None
             pto_conflict.save()
         messages.success(request, f"PTO conflicts resolved")
-        return HttpResponseRedirect(reverse("sch:v2-schedule-pto-conflicts", args=[schedule.pk]))
+        return HttpResponseRedirect(reverse("sch:sch-pto-conflicts", args=[schedule.slug]))
 
     html_template = 'sch2/schedule/pto-conflicts.html'
     return render(request, html_template, {'schedule': schedule, 'pto_conflicts': pto_conflicts, 'pto_requests': pto_requests})

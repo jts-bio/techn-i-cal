@@ -249,8 +249,14 @@ def employeeWeeklyHours (empl, weekId):
 
 @register.simple_tag
 def weekHours (empl, wd):
-    return empl.weekHours(wd) or 0
+    w = empl.weekHours(wd)
+    if w != None:
+        return int(w)
+    return 0
 
 @register.simple_tag
 def periodHours (empl, pd):
-    return empl.periodHours(pd) or 0
+    p = empl.weekHours(pd)
+    if p != None:
+        return int(p)
+    return 0

@@ -55,10 +55,7 @@
                     id= "{{ slot.slug }}"
                     data-popover-target="{{ slot.slug }}--tooltip"
                     ondragover="dragOverHandler(event);"
-                    ondrop="drop(event);"
-                    _="on dragover call event.preventDefault() end
-                       on drop call event.dataTransfer.getData('text') then append the result to me"
-                    >
+                    ondrop="drop(event);">
                     <h4> {{ slot.shift }} </h4>
 
                     {% if slot.employee %}
@@ -166,11 +163,11 @@
                     id="{{ empl.slug }}"
                     value="{{ empl.slug }}"
                     draggable="true"
-                    _=" set :slug to {{ empl.slug }}
-                        on dragstart tell <div.{{ empl.slug }}-available/> add .scale-105 .bg-green-200 end
+                    _=" on dragstart tell <div.{{ empl.slug }}-available/> add .scale-105 .bg-green-200 end
                         on dragstart call event.dataTransfer.getData('text/html') end
                         on dragend tell <div.{{ empl.slug }}-available/> remove .scale-105 .bg-green-200 end
-                        on click call showToast(`:slug`,`success`) end"
+                        on click set :slug to {{ empl.slug }} 
+                                 call showToast(`$slug`,`success`) end"
                     ondragstart="employeeDragStart(event)"
                     ondragend="employeeDragEnd(event)"
                     onmouseover="employeeMouseOver(event);"
@@ -185,7 +182,8 @@
 
         <script>
             function employeeDragStart (event) {
-                event.dataTransfer.setData("text/html", event.target.getAttribute('innerHTML'));
+                event.dataTransfer.setData("text/html", event.target.id);
+                console.log("Data Transfer During Drag Start:   ", event.target.id);
                 // make the employee ghosted
                 ghostOnDragStart(event);
                 // make the slots available for the employee highlighted
@@ -241,7 +239,7 @@
                 // if I have .${empl}-available in the classList, allow drop
                 if (event.target.classList.contains(`${empl}-available`)) {
                     event.preventDefault();
-                }
+                };
             }
 
             function drop(event) {
@@ -249,6 +247,7 @@
                 // prevent default if the event.dataTransfer.getData is not empty
                 // (i.e. if the event is a drag event)
                 let emplNode = event.dataTransfer.getData("text");
+                console.log(emplNode);
                 // set empl to the emplNode div's value
                 let empl = emplNode.getAttribute('value'); 
                 // if I have .${empl}-available in the classList, allow drop

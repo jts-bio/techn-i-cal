@@ -35,6 +35,7 @@ def wdDetailView (request, slug):
     context = {'workday': wd } 
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
     
+    # NOTE // THIS VIEW UTILIZES A USER PREFERENCE TO DETERMINE TEMPLATE USED
     return render(request, WD_VIEW_PREF_CHOICES[int(viewPref_template)][1] , context)
 
 class WdActions:

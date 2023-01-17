@@ -75,27 +75,44 @@
 
       {% for sch in schedules %}
 
-      <tr>
+      <tr class="transition
+                 hover:bg-slate-600 
+                 hover:bg-opacity-90 
+                 hover:shadow
+                 active:fa-beat">
         <td>
           
-          <a
-            href="{{sch.url}}"
+          <a href="{{sch.url}}"
             class="link bg-{{sch.versionColor}}-600 
-                                        rounded-sm shadow shadow-lg
-                                        will-change-transform
-                                        hover:scale-105 hover:transition"
-            onmousedown="appendWithSpinner (this)"
-            id="button-{{sch.slug}}"
-            onactivate="appendWithSpinner (this);"
-          >
+                   rounded-sm shadow shadow-lg
+                   transform  hover:scale-105 hover:shadow-2xl
+                   active:fa-beat"
+            onclick="appendWithSpinner(event);"
+            onmouseenter="scaleUp(event);"
+            onmouseleave="removeScale(event);"
+            id="button-{{sch.slug}}">
             Schedule {{sch.slug}}
           </a>
 
           <script type="text/javascript">
-            function appendWithSpinner(el) {
+            function appendWithSpinner(event) {
+              var el = event.target;
               var spinner = document.createElement("span");
               spinner.classList.add("spinner");
               el.appendChild(spinner);
+              el.classList.add('fa-beat');
+              // wait 300 ms 
+              setTimeout(function () {
+                window.location.href = el.href;
+              }, 300);
+              
+            }
+            function scaleUp(event) {
+              event.target.classList.add('scale-105');
+
+            }
+            function removeScale(event) {
+              event.target.classList.remove('scale-105');
             }
           </script>
         </td>
@@ -118,7 +135,9 @@
           </div>
         </td>
         <td>
-          {% if sch.status == 0 %} DRAFT {% elif sch.status == 1 %} FINAL {%endif%}
+          {% if sch.status == 0 %}   DRAFT 
+          {% elif sch.status == 1 %} FINAL 
+          {%endif%}
         </td>
       </tr>
       {% endfor %}

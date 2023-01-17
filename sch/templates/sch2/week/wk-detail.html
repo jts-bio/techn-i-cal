@@ -117,20 +117,20 @@
             {% for ptor in workday.pto %} 
                 {% if pto.stands_respected %}
                     <span class="text-sky-500"
-                        _="on mouseover 
+                        _="on mouseenter
                                 toggle .hidden 
-                                on the next <div.tooltip/>
+                                on the next .tooltips
                             until mouseleave 
                             end "> ◉ </span>
                 {% else %} 
                     <span class="text-rose-500"
-                    _="on mouseover 
+                    _="on mouseenter
                             toggle .hidden 
-                            on the next <div.tooltip/>
+                            on the next .tooltips
                         until mouseleave 
                         end "> ◉ </span>
             {% endif %}
-                <div class="tooltip hidden -translate-y-4">{{ptor.employee}}</div>
+                <div class="tooltips hidden -translate-y-4">{{ptor.employee}}</div>
             {% endfor %}
         </div>
     </div>    

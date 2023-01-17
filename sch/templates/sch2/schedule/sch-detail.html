@@ -219,7 +219,14 @@ SCHEDULE DETAIL VIEW
                     
                     <li><hr class="dropdown-divider"></li>
                     <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300" href="#"
-                        _="on click fetch '{{schedule.url__clear}}' then log 'done' then go to the top of the body smoothly">
+                        _="on click call getConfirmation() then
+                                if the result is false then break
+                                else
+                                fetch '{{schedule.url__clear}}' 
+                                log 'done' then go to the top of the body smoothly
+                                set $schedule to `{{schedule.slug}}`
+                                call showToast('Schedule $schedule slots cleared out manually.','warn') 
+                                ">
                                                     <i class="fa-duotone fa-eraser text-red-800"></i>
                                                         Clear Slots
                                                 </div>
@@ -229,12 +236,20 @@ SCHEDULE DETAIL VIEW
             </div>
     
     <script>
+        function getConfirmation () {
+            var retVal = confirm("Do you want to clear this schedule?");
+            if (retVal == false) {
+                return false;
+            }
+            return true;
+        }
+
         function loadingButton(button) {
             // reduce the opacity of the button
             button.style.opacity = 0.5;
             // create the spinner element
             var spinner = document.createElement("i");
-            spinner.classList.add("fas", "fa-spinner", "fa-spin", "text-lg", "fa-beat");
+            spinner.classList.add("fa-duotone", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "ml-2");
             var buttonWidth = button.offsetWidth + 'px';
             // replace the button text with the spinner element
             button.innerHTML = "";
@@ -247,7 +262,7 @@ SCHEDULE DETAIL VIEW
 
     <div class="flex basis-1 shrink text text-center">
         
-        <div class="overflow-x-auto"> 
+        <div id="complex-table-wrapper" class="overflow-x-auto"> 
                 {# ========= SCHEDULE TABLE ========= #}
                 {% include 'sch2/schedule/complex-table.html' %}
         </div>

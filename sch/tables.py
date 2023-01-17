@@ -87,7 +87,7 @@ class ShiftListTable (tables.Table) :
     """
     name  = tables.columns.LinkColumn    ("sch:shift-detail", args=[A("cls"),A("name")])
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
-    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900"}})
+    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900 iv-bool"}})
     on_days_display = tables.columns.Column(verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
     group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
     
@@ -95,7 +95,7 @@ class ShiftListTable (tables.Table) :
         model           = Shift
         fields          = ['name','start','hours', 'is_iv','on_days_display',]
         template_name   = 'django_tables2/bootstrap.html'
-        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
+        attrs           = { "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4"}
       
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY

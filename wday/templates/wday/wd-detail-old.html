@@ -17,15 +17,14 @@ TEMPLATE VARIABLES
 
     <div class="vstack center items-center">
 
-        <div class="hstack text center-text my-4">
-            <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
+       
             <h1 class="text-3xl text-indigo-300"> 
                 <span class="bg-sky-800 bg-sky-300 shadow-sky-500 rounded px-1 m-2 mr-3 text-slate-900 jbm">
                     {{ workday.wkd }}
                 </span>
                 {{workday.date}} 
             </h1>
-            <a class="ml-20" href="{{workday.nextWD.url}}"> {%forwardArrow%} </a>
+            
         </div> 
 
         <div class="hstack">
@@ -54,54 +53,42 @@ TEMPLATE VARIABLES
             class="text text-center">
             
             {% regroup workday.slots.all by cls as slots_list %}
-
-            <form method="POST"> {% csrf_token %}
+            <div class="hstack text center-text my-4">
+                <a class="mr-20" href="{{workday.prevWD.url}}"> {%backArrow%} </a>
+            
             {% for cls in slots_list %}
                 <div class="grid grid-cols-2 md:grid-cols-3 w-full my-10">
                 {% for slot in cls.list %}
+
+                <!----------------------------------
+                |  SLOT CONTAINER                  |
+                .==================================.
+                ----------------------------------->
                 <div>
                     <a href="{{ slot.url }}"
                         draggable='false'
-                        class="{{ slot.css__all }} rounded p-1 m-2"
-                        _ ="on dragover or dragenter halt the event then set my style.background to '#44ff77' end
-                            on dragleave or drop set my style.background  to '' end
-                            on drop set tgt to the next <input/> then
-                                get event.dataTransfer.getData('text/plain') then
-                                log the result then
-                                set (the next <input/>)@value to result  
-                                then put the result into the next <span.output/>
-                                then add .bg-green-200 to the first <span/> in me
-                                then set @value of #savebutton to 'Updating...'
-                                then add .fa-beat .fa-fade to #savebutton 
-                                then go to url `slot/{{slot.shift}}/update/${result}` end
-                            on drop add .fa-beat-fade to #save-wrapper end
-                            on drop add .line-through .opacity-80 .px-0 to the first .empname in me end
-                            on drop remove .opacity-30 .italic from #savebutton end
-                            on contextmenu call slotContextMenu(event) end">
+                        class="{{ slot.css__all }} w-full h-full"
+                        >
                         {% if slot.employee %}
                             {% with slot.employee as empl %}
-                                <span class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</span>
-                                <div id= "{{ empl.slug }}" 
-                                draggable="true"
-                                class="rounded px-2 mx-1 text-sm text-zinc-900 bg-sky-600"
-                                _ ="on mouseover add .bg-sky-400 to me
-                                    on click fetch url `{% url 'wday:slots--empl-can-fill' workday.slug empl.slug %}`
-                                        then log the result
-                                    on mouseleave remove .bg-sky-400 from me
-                                    on dragstart call event.dataTransfer.setData('text/plain',target.id) 
-                                        then add .bg-green-100 to .{{empl.slug}}-available 
-                                        then call event.dataTransfer.getData('text') then log the result
-                                    on dragend remove .bg-green-100 from .{{empl.slug}}-available end">
-                                <span class="font-bold text-zinc-900">
-                                    {{ empl }}
-                                </span>
+                                <div class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</div>
+                                <div id="{{ empl.slug }}" 
+                                    draggable="true"
+                                    class= "employee-object 
+                                            rounded px-2 mx-1 text-sm text-zinc-900 bg-sky-600">
 
-                                <div class="text-white text-2xs">
-                                    <span>
-                                        {% weekHours empl workday %}/ 
-                                        {% periodHours empl workday %}
-                                    </span>
-                                </div>
+                                    <div class="font-bold text-zinc-900">
+                                        {{ empl }}
+                                    </div>
+
+                                    <br/>
+
+                                    <div class="text-white text-2xs">
+                                        <span>
+                                            {% weekHours empl workday %}/ 
+                                            {% periodHours empl workday %}
+                                        </span>
+                                    </div>
                                 {% endwith %}
                          </div>
                             {% else %}
@@ -139,15 +126,7 @@ TEMPLATE VARIABLES
                 {% for empl in workday.on_deck %}
                         <div id= "{{empl.slug}}" 
                             draggable="true"
-                            class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600"
-                            _ ="on mouseover add .bg-emerald-400 to me
-                                on mouseleave remove .bg-emerald-400 from me
-                                on dragstart call event.dataTransfer.setData('text/plain','{{empl.employee.slug}}') 
-                                    then add .bg-green-100 to .{{empl.slug}}-available 
-                                    then call event.dataTransfer.getData('text') then log the result
-                                on dragend remove .bg-green-100 from .{{empl.slug}}-available end
-                                
-                                on click[button==0] halt the event then show .context-menu-wrapper in me">
+                            class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">
                             <span class="font-bold text-zinc-900">
                                 {{ empl }}
                             </span>
@@ -236,6 +215,7 @@ TEMPLATE VARIABLES
         </div>
     </div>
     
+
 
 
 <script>
