@@ -2,6 +2,7 @@
          id="alt-view-linkbox">
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/empl-grid/"
             hx-target="#sch-view-container"
+            hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             >
 
@@ -10,6 +11,7 @@
 
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/shift-grid/"
             hx-target="#sch-view-container"
+            hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             >
 
@@ -26,4 +28,5 @@
 
 </div>
 
+<div id="grid-indicator" class="htmx-indicator">Loading...</div>
 <div id="sch-view-container"></div>
