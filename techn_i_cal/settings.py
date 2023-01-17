@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "sch.apps.SchConfig",
     "sch.templatetags.tags",
     "wday.templatetags.wtags",
+    "debug_toolbar",
     "slippers",
     "computedfields",
     "multiselectfield",
@@ -65,6 +66,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     # "kolo.middleware.KoloMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

@@ -86,6 +86,7 @@ def logoutView (request):
 
 urlpatterns = [
     path('' ,           index,          name='index'),
+    path('__debug__/', include('debug_toolbar.urls')),
     path('login/',      loginView,      name='login-view'),
     path('logout/',     logoutView,     name='logout-view'),
     path('accounts/',   include        ('django.contrib.auth.urls')),

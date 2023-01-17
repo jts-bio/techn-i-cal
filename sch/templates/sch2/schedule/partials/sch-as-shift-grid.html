@@ -1,10 +1,7 @@
 
 
-{% extends 'base.html' %}
 {% load tags %}
 
-
-{% block style %}
 
     <style>
         tr td:nth-child(7n+1) {
@@ -23,12 +20,7 @@
         }
     </style>
 
- 
-    
-{% endblock style %}
 
-
-{% block content %}
 
 
     <a href="{% url 'sch:v2-schedule-detail' schedule.slug %}" class="hstack">
@@ -78,5 +70,5 @@
         </div>
     </div>
 
-{% endblock content %}
+
     

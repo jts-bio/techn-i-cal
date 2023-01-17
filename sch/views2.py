@@ -25,6 +25,9 @@ from .tables import *
 from .data import Images
 from . import viewsets
 
+import statistics
+from django.core.cache import cache
+
 
 # -------------------------#
 #### LIST OF SCHEDULES ####
@@ -74,8 +77,7 @@ def schDetailView(request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
-    import statistics
-    from django.core.cache import cache
+    
     
     schedule = cache.get(f'schedule-{schId}')
     if not schedule:

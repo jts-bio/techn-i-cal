@@ -255,6 +255,12 @@ schedule_patterns = [           # ? ==== SCHEDULE ==== ?#
     path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
     path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
     path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
+    
+    path('schedule-partials/<str:schId>/complex-table/', viewsets.SchPartials.schComplexTablePartial, name='sch-partial-cx-table'),
+    path('schedule-partials/<str:schId>/compare-and-select/', viewsets.SchPartials.schCompareSelectPartial, name='sch-partial-compare-select'),
+    path('schedule-partials/<str:schId>/view-select/', viewsets.SchPartials.schViewSelectPartial, name='sch-partial-view-select'),
+    path('schedule-partials/<str:schId>/empl-grid/', viewsets.SchPartials.schEmployeeGridPartial, name='sch-partial-empl-grid'),
+    path('schedule-partials/<str:schId>/shift-grid/', viewsets.SchPartials.schShiftGridPartial, name='sch-partial-shift-grid'),
 ]
 
 test_patterns = [

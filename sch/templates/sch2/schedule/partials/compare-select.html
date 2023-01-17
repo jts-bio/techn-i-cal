@@ -1,0 +1,55 @@
+<div class="w-10/12 md:w-5/12 flex flex-row">
+
+    <h2 id="compare-head" 
+        class="jbm 
+               text-xl 
+               text-slate-900 
+               bg-slate-300 
+               rounded p-2 
+               translate-x-2">
+
+        <i class="text-sky-800 fa-duotone fa-code-compare"></i>
+        COMPARE
+    </h2>
+
+    <select name="select-for-compare" 
+            id="select-for-compare"
+            class="bg-sky-100 
+                pl-2 
+                pr-7 
+                font-extralight 
+                text-sky-100 
+                hover:bg-sky-200"
+            onchange="selectLoading(this)"
+            >
+                <option value="" 
+                    selected 
+                    disabled>
+                Select schedule...</option>
+
+            {% for sch in otherSchedules %}
+                <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
+                         class="text-xs 
+                                font-light">
+                    {{ sch.year }}: Schedule {{ sch.number }} 
+                    (Version {{ sch.version }})
+                </option>
+            {% endfor %}
+            
+    </select>
+
+</div>
+
+<script>
+    function selectLoading(select) {
+            // get #compare-head and put a spinner in it 
+            var compareHead = document.getElementById("compare-head");
+            var spinner = document.createElement("i");
+            spinner.classList.add("fas", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "text-sky-800");
+            compareHead.innerHTML = "";
+            compareHead.appendChild(spinner);
+            // get the selected option in #select-for-compare and redirect to it
+            var selectedOption = select.options[select.selectedIndex];
+            window.location.href = selectedOption.value;
+    }
+</script>

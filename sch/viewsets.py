@@ -4,6 +4,7 @@ from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
+from django.template.loader import render_to_string
 
 
 
@@ -320,6 +321,48 @@ class SchViews:
             slot.save()
         messages.success (request, f"Successfully synched database with schedule {sch.slug}" )
         return HttpResponseRedirect (sch.url())        
+        
+        
+class SchPartials:
+    def schComplexTablePartial (request, schId):
+        html_template = "sch2/schedule/partials/complex-table-wrapper.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render (request, html_template, context)
+    
+    def schCompareSelectPartial (request, schId):
+        html_template = "sch2/schedule/partials/compare-select.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render (request, html_template, context)
+    
+    def schViewSelectPartial (request, schId):
+        html_template = "sch2/schedule/partials/view-select.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render(request, html_template, context)
+    
+    def schEmployeeGridPartial (request, schId):
+        html_template = "sch2/schedule/partials/sch-as-empl-grid.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render(request, html_template, context)
+    
+    def schShiftGridPartial (request, schId):
+        html_template = "sch2/schedule/partials/sch-as-shift-grid.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render(request, html_template, context)
         
         
 class WdViews:
