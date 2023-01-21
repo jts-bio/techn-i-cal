@@ -42,16 +42,16 @@
                     <th 
                     class="bg-zinc-900 stl px-2"></th>
                     {% for workday in schedule.workdays.all %}
-                        <th 
-                        class="sticky-top text-2xs">
-                            {{ workday.date }}
+                        <th class="sticky-top text-2xs">
+                            {{ workday.date }} <br/> 
+                            {{ workday.wkd }}
                         </th>
                     {% endfor %}
                 </thead>
                 <tbody>
                     {% for shift, assignments in schedule.as_shift_dict.items %}
                         <tr>
-                            <th class="stl bg-zinc-900 px-2">{{ shift }}</th>
+                            <th class="stl bg-zinc-900 px-2"><div class="bg-zinc-900 rounded p-1">{{ shift }}</div></th>
 
                             {% for assignment in assignments %}
                                 <td>

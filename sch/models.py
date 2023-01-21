@@ -1191,21 +1191,22 @@ class Schedule (models.Model):
             n_filled = n_empty - instance.slots.empty.count()
             return {'n_filled':n_filled}
         def solveOmap (self,instance):
-            instance.action_log += f"ACTION F3:FILL-VIA-OMAP    @{dt.datetime.now()}\n"
             keeptrying = 300
-            while keeptrying > 0:
-                slot = instance.slots.empty()[random.randint(0,instance.slots.empty().count()-1)]
-                omap = slot.createOptionsMap()
+            instance.action_log += f"ACTION F3:FILL-VIA-OMAP    @{dt.datetime.now()}   n_rem={keeptrying}\n"
+            empty_slots = instance.slots.empty().order_by('?') # type: SlotManager
+            for slot in empty_slots: 
+                slot = slot # type: Slot
+                omap = slot.createOptionsMap() 
                 if omap['can'].exists():
-                    n = random.randint(0,len(omap['can'])-1)
-                    emp = omap['can'][n]
+                    emp = omap['can'].order_by('?').first()
                     slot.employee = emp 
                     slot.save()
-                    keeptrying -= 1
                     print(f'SLOT {slot} FILLED {dt.datetime.now()} VIA OPTION-MAPPING ALGORITHM -- E_WK_HRS={sum(list(slot.week.slots.filter(employee=slot.employee).values_list("shift__hours",flat=True)))} ')
+                else:
+                    instance.action_log += "SLOT UNABLE TO BE SOLVED. DETERMINED TO HAVE NO VIABLE OPTIONS"
         def solvePmOnly (self, instance):
             instance.action_log += f"ACTION F4:FILL-SLOTS-VIA-PM-ONLY    @{dt.datetime.now()}\n"
-            for slot in instance.slots.empty().evenings().random_order():
+            for slot in instance.slots.empty().evenings().order_by('?'):
                 choices = slot.fillable_by().filter(time_pref='Evening')
                 if choices.exists():
                     choice = choices.order_by('?').first()
@@ -1652,11 +1653,11 @@ class Slot (models.Model) :
             self.empl_sentiment = sc[ShiftPreference.objects.filter(employee=self.employee,shift=self.shift).first().score]
         else:
             self.empl_sentiment = 50
-        if self.is_turnaround :
+        if self.is_postturnaround() :
             self.empl_sentiment -= 35
-        if self.is_preturnaround :
+        if self.is_preturnaround() :
             self.empl_sentiment -= 35
-        if self.isOverStreakPref:
+        if self.isOverStreakPref() :
             self.empl_sentiment -= 20
         if self.shouldBeTdo:
             self.empl_sentiment = 0
@@ -1698,10 +1699,21 @@ class Slot (models.Model) :
         in_conflicting = self._get_conflicting_slots()
         no_conflicting = empls.exclude(pk__in=in_conflicting.values('pk'))
         
-        can = available.intersection(not_on_day,fte_ok,overtime_ok,no_conflicting)
-
+        can = available.intersection(not_on_day)
+        can = can.intersection(fte_ok)
+        can = can.intersection(overtime_ok)
+        can = can.intersection(no_conflicting)
         
-        return {'can':can,'sameDay':already_on_day,'notTrained':not_trained,'notAvailable':not_available,'periodOvertime':no_fte_left,'weekOvertime':no_wk_hrs_left,'turnarounds':in_conflicting}
+        return {
+            'can':can,
+            'sameDay':already_on_day,
+            'notTrained':not_trained,
+            'notAvailable':not_available,
+            'periodOvertime':no_fte_left,
+            'weekOvertime':no_wk_hrs_left,
+            'turnarounds':in_conflicting
+            }
+        
     def prevSameShift (self):
         if self.workday.prevWD():
             if self.workday.prevWD().slots.filter(shift=self.shift).exists() == True: 
@@ -1777,10 +1789,13 @@ class Slot (models.Model) :
 # ============================================================================
 class ShiftTemplate (models.Model) :
     """
+    SHIFT TEMPLATE OBJECT
+    ======================
+    
     Fields:
-            -  shift
-            -  employee
-            -  ppd_id 
+        *  shift
+        *  employee
+        *  ppd_id 
     """
     # fields: name, start, duration 
     shift       = models.ForeignKey('Shift', on_delete=models.CASCADE, related_name='shift_templates')
@@ -1879,9 +1894,24 @@ class ShiftPreference (ComputedFieldsModel):
     def score (self):
         scoremap = { 'SP':2, 'P':1, 'N':0, 'D':-1, 'SD':-2 }
         return scoremap[self.priority]
+    
+    def css__all (self):
+        css = "rounded full text-center "
+        if self.priority=='SP':
+            css += "bg-emerald-300 ring border-2 ring-emerald-500 text-emerald-900"
+        elif self.priority=='P':
+            css += "bg-green-300 ring border-2 ring-green-500 text-green-900"
+        elif self.priority=='N':
+            css += "bg-gray-300 ring border-2 ring-gray-500 text-slate-900"
+        elif self.priority=='D':
+            css += "bg-amber-300 ring border-2 ring-amber-500 text-amber-900"
+        elif self.priority=='SD':
+            css += "bg-red-300 ring border-2 ring-red-500 text-red-900"
+        return css
 
     class Meta:
         unique_together = ['employee', 'shift']
+        ordering = ['shift','-score']
     def save (self,*args,**kwargs):
         super().save(*args,**kwargs)
     def __str__ (self):
@@ -1901,9 +1931,9 @@ class SchedulingMax (models.Model):
 # ============================================================================
 class ShiftSortPreference (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='shift_sort_prefs')
-    shift    = models.ForeignKey(Shift, on_delete=models.CASCADE, related_name="shift_sort_prefs")
-    score    = models.IntegerField(default=0)
-    rank     = models.IntegerField(default=1)
+    shift    = models.ForeignKey(Shift,    on_delete=models.CASCADE, related_name="shift_sort_prefs")
+    score    = models.IntegerField (default=0)
+    rank     = models.IntegerField (default=1)
     class Meta: 
         unique_together = ['employee', 'shift']
         ordering        = ['score',    'shift']

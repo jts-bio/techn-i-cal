@@ -69,12 +69,13 @@ TEMPLATE VARIABLES
                         draggable='false'
                         class="{{ slot.css__all }} w-full h-full"
                         >
+                        <div class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</div>
                         {% if slot.employee %}
                             {% with slot.employee as empl %}
-                                <div class="bg-slate-200 px-2 rounded-sm m-1 text-slate-800">{{ slot.shift }}</div>
+                                
                                 <div id="{{ empl.slug }}" 
                                     draggable="true"
-                                    class= "employee-object 
+                                    class= "employee
                                             rounded px-2 mx-1 text-sm text-zinc-900 bg-sky-600">
 
                                     <div class="font-bold text-zinc-900">
@@ -126,6 +127,13 @@ TEMPLATE VARIABLES
                 {% for empl in workday.on_deck %}
                         <div id= "{{empl.slug}}" 
                             draggable="true"
+                            _="on dragstart set dragging to me
+                                set draggingSlug to me.id
+                                add .bg-orange-100 to .{{empl.slug}}-available call event.dataTransfer.getData('text') then log the result
+                            on dragover if target.dataset.availableEmpls.split(';') contains $draggingSlug halt the event
+                                tell target add .bg-emerald-500
+                            on dragend set $draggingSlug to null set $dragging to null"
+                            
                             class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">
                             <span class="font-bold text-zinc-900">
                                 {{ empl }}
@@ -155,10 +163,7 @@ TEMPLATE VARIABLES
                         class="rounded px-2 mx-1 text-sm text-zinc-900 bg-yellow-600"
                         _ ="on mouseover add .bg-yellow-400 to me
                             on mouseleave remove .bg-yellow-400 from me
-                            on dragstart call event.dataTransfer.setData('text/plain',target.id) 
-                                then add .bg-orange-100 to .{{empl.slug}}-available 
-                                then call event.dataTransfer.getData('text') then log the result
-                            on dragend remove .bg-orange-100 from .{{empl.slug}}-available end">
+                            ">
                         <span class="font-bold text-zinc-900">
                             {{ empl.employee }}
                         </span>
@@ -186,13 +191,7 @@ TEMPLATE VARIABLES
                         {% for empl in workday.tdo %}
                         <div id= "{{empl.slug}}" 
                         draggable="true"
-                        class="rounded px-2 mx-1 text-sm text-zinc-900 bg-slate-600"
-                        _ ="on mouseover add .bg-slate-400 to me
-                            on mouseleave remove .bg-slate-400 from me
-                            on dragstart call event.dataTransfer.setData('text/plain', target.id) 
-                                then add .bg-green-100 to .{{empl.slug}}-available 
-                                then call event.dataTransfer.getData('text') then log the result
-                            on dragend remove .bg-green-100 from .{{empl.slug}}-available end">
+                        class="rounded px-2 mx-1 text-sm text-zinc-900 bg-slate-600">
                         <span class="font-bold text-zinc-900">
                             {{ empl.employee }}
                         </span>
@@ -214,20 +213,13 @@ TEMPLATE VARIABLES
         
         </div>
     </div>
+
+    <div class="text text-center text-2xs opacity-75">USING TEMPLATE: LEGACY-WORKDAY </div>
     
 
 
 
-<script>
-    const contextMenu = document.getElementById( "employee");
-    scope. addEventListener("contextmenu", (event) => {
-    event .preventDefault ();
-    const { clientX: mouseX, clientY: mouseY } = event;
-    contextMenu.style.top = '${mouseY}px';
-    contextMenu.style. left = '${mouseX}px';
-    contextMenu.classList.add("visible");
-    });
-</script>  
+
 
 
 

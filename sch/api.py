@@ -3,6 +3,19 @@ from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.db.models import Sum, Case, When, FloatField, Count, IntegerField
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+
+
+
+
+def get_n_days_away (request, wdaySlg):
+    wd = Workday.objects.get(slug=wdaySlg)
+    n = wd.days_away
+    if n < 0 :
+        return HttpResponse(f'{n * -1} days ago')
+    if n == 0 :
+        return HttpResponse(f'today')
+    return HttpResponse(f'in {n} days')
+
 class WeekApi: 
     
     class GET:

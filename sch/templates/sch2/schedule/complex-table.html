@@ -25,7 +25,9 @@
         {# WEEK ROW SPANS 7 COLUMNS PAST THE PERIOD #}
         {% for week in period.weeks.all %}
             <th colspan="8" class="center center-text text-indigo-300 font-light">
-                <a href="{{week.url}}">
+                <a  class="hover:border-b hover:border-indigo-600"
+                    href="{{week.url}}">
+                    
                     {{ week }} 
                     <span class="text-2xs md:text-xs text-indigo 600">
                         {{ week.percent }}%

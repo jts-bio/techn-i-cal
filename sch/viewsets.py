@@ -1,5 +1,5 @@
 from sch.models import *
-from . import forms
+from . import forms 
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
 from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
@@ -135,6 +135,30 @@ class SchViews:
     """ SCHEDULE VIEWS > GROUPED CLASS
     =====================================
     """
+    
+    class Calc:
+        def uf_distr (request, schId):
+            schedule = Schedule.objects.get(slug=schId)
+            
+            emusr = SchViews.schEMUSR(None, schedule.slug, asTable=False)
+
+            emusr_differences = list(emusr.values_list('difference', flat=True))
+            emusr_differences = [x for x in emusr_differences if x is not None]
+    
+            ufs = list(Schedule.objects.values_list('unfavorable_ratio',flat=True))
+            
+            mean = statistics.mean(ufs)
+            ufs_stdev = statistics.stdev(ufs)
+            uf_stdev_diff = schedule.unfavorable_ratio - mean 
+            
+            distr = uf_stdev_diff / ufs_stdev
+            
+            dist = int(distr)
+            return HttpResponse( round(distr,2) )
+        def n_empty (request, schId):
+            sch = Schedule.objects.get(slug=schId)
+            return HttpResponse(sch.slots.empty().count())
+        
     def schFtePercents(request, schId):
 
         html_template = "sch2/schedule/fte-percents.html"
@@ -301,6 +325,7 @@ class SchViews:
 
     def clearOverFteSchView (request,schId):
         schedule = Schedule.objects.get(slug=schId)
+        empty_initial = schedule.slots.empty().count()
         slots  = []
         for prd in schedule.periods.all():
             for employee in prd.slots.values("employee").distinct():
@@ -309,9 +334,11 @@ class SchViews:
                     slots += prd.slots.filter(employee=employee.first()).first()
         for slot in schedule.slots.all():
             slot.actions.clear_over_fte_slots(slot)
+        empty_final = schedule.slots.empty().count()
         messages.success (
                 request, 
-                f"Schedule {schedule.number}{schedule.version}.{schedule.year} All Employees Brought down to FTE Levels"
+                f"Schedule {schedule.number}{schedule.version}.{schedule.year} All Employees Brought down to FTE Levels."
+                f"Resulted in {empty_initial - empty_final} slot assignments being cleared."
             )
         return HttpResponseRedirect(schedule.url())
 
@@ -324,6 +351,14 @@ class SchViews:
         
         
 class SchPartials:
+    def schStatBarPartial (request, schId):
+        html_template = "sch2/schedule/partials/stat-bar.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": sch,
+        }
+        return render (request, html_template, context)
+    
     def schComplexTablePartial (request, schId):
         html_template = "sch2/schedule/partials/complex-table-wrapper.html"
         sch = Schedule.objects.get(slug=schId)
@@ -363,6 +398,36 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
+    
+    def schFteRatioPartial (request, schId):
+        html_template = "sch2/schedule/partials/fte-percents.html"
+        sch = Schedule.objects.get(slug=schId)
+        empls = (
+            Employee.objects.annotate(
+                total_hours=Sum(
+                    Case(
+                        When(slots__in=sch.slots.all(), then="slots__shift__hours"),
+                        default=0,
+                        output_field=FloatField(),
+                    )
+                )
+            )
+            .annotate(fte_percent=(F("total_hours") / (F("fte") * 240)) * 100)
+            .order_by("-fte_percent")
+        )
+        context = {
+            "sch": sch,
+            "employees": empls,
+        }
+        return render(request, html_template, context)
+
+
+class EmpPartials:
+    def tdoPreview (request, empPk):
+        empl = Employee.objects.get(pk=empPk)
+        tdos = [empl.tdos.filter(sd_id=x).count() for x in range(42)]
+        html_template = 'sch2/employee/partials/tdo-preview.html'
+        return render(request, html_template, {'tdos':tdos } )
         
         
 class WdViews:

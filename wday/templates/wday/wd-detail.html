@@ -1,291 +1,281 @@
-{% extends "base.html" %} 
-{% load wtags %}
+{% extends "base.html" %} {% load wtags %} {% block style %}
 
-{% block style %}
+<style>
+  .slots {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .slot {
+    grid-column: span 1;
+  }
+  .employee {
+    grid-column: span 1;
+    color: -#aabbaacc;
+    background-color: #3c3c3ccc;
+    width: 12rem;
+    border-radius: 0.3rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    height: fit-content;
+    margin-top: 0.5rem;
+    padding-left: 0.5rem;
+  }
+</style>
 
-    <style>
-        .slots {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        .slot {
-            grid-column: span 1;
-        }
-        .employee {
-            grid-column: span 1;
-            color: -#aabbaacc;
-            background-color: #3c3c3ccc;
-            width: 12rem;
-            border-radius: 0.3rem;
-            margin-left: 1rem;
-            margin-right: 1rem;
-            height: fit-content;
-            margin-top: 0.5rem;
-            padding-left: 0.5rem;
-        }
-        
-    </style>
+{% endblock style %} {% block content %}
 
-{% endblock style %}
+<div class="hstack">
+  <a href="{% url 'wday:wd-detail' workday.prevWD.slug %}">
+    <i class="fa-duotone fa-arrow-circle-left opacity-70 hover:opacity-100"></i>
+  </a>
+  <div class="text text-center">
+    <h1 class="h1">{{ workday.wkd }} {{ workday.date }}</h1>
+    <h3>{{ workday.percent }}% filled</h3>
+  </div>
+  <a href="{% url 'wday:wd-detail' workday.nextWD.slug %}">
+    <i
+      class="fa-duotone fa-arrow-circle-right opacity-70 hover:opacity-100"
+    ></i>
+  </a>
+</div>
+
+<div class="backdrop slots grid grid-cols-3 flex-wrap"
+    _="on dragenter tell <div.scale-105 /> remove .scale-105 .bg-green-500 .bg-amber-500
+       on mousenter tell <div.bg-green-200 /> remove .bg-green-200">
 
 
+  {% for slot in workday.slots.all %}
 
-{% block content %}
-
-        <div class="hstack">
-            <a href="{% url 'wday:wd-detail' workday.prevWD.slug %}">
-                <i class="fa-duotone fa-arrow-circle-left opacity-70 hover:opacity-100"></i>
-            </a>
-            <div class="text text-center">
-                <h1 class="h1">{{ workday.wkd }} {{ workday.date }}</h1>
-                <h3>{{ workday.percent }}% filled </h3>
-            </div>
-            <a href="{% url 'wday:wd-detail' workday.nextWD.slug %}">
-                <i class="fa-duotone fa-arrow-circle-right opacity-70 hover:opacity-100"></i>
-            </a>
-        </div>
-
-        <div class="slots grid grid-cols-3 flex-wrap">
-            {% for slot in workday.slots.all %}
-
-                <!---===================== SHIFT SLOT =====================--> 
-                <div class="slot 
+  <!---===================== SHIFT SLOT =====================-->
+  <div
+    class="slot 
                             {{ slot.css__all }}
                             bg-zinc-100 text-zinc-800 rounded
                             px-2 m-1 flex flex-row w-40 transition"
-                    id= "{{ slot.slug }}"
-                    data-popover-target="{{ slot.slug }}--tooltip"
-                    ondragover="dragOverHandler(event);"
-                    ondrop="drop(event);">
-                    <h4> {{ slot.shift }} </h4>
+    id="{{ slot.slug }}"
+    data-popover-target="{{ slot.slug }}--tooltip"
+    data-available-empls="{% for e in slot.fillable_by %}{{e.slug}};{% endfor %}"
+    _="on load log my.dataset.availableEmpls end"
+    >
+    <h4>{{ slot.shift }}</h4>
 
-                    {% if slot.employee %}
-                        <div class="employee" 
-                            draggable="true"
-                            value="{{ slot.employee.slug }}"
-                            _=" on dragstart tell <div.{{ empl.slug }}-available/> add .scale-105 .bg-green-200 end
-                                on dragend tell <div.{{ empl.slug }}-available/> remove .scale-105 .bg-green-200 end"
-                            ondragstart="employeeDragStart(event)"
-                            ondragend="employeeDragEnd(event)"
-                            onmouseover="employeeMouseOver(event);"
-                            onmouseleave="employeeMouseLeave(event);"
-                            oncontextmenu="contextMenuClearEmployee(event);">
-                            <div class='font-bold text-sky-100' 
-                                value="{{ slot.employee.slug }}">
-                                {{ slot.employee }} 
-                            </div>
-                        </div>
-                    {% endif %}
+    {% if slot.employee %}
+    <div
+      class="employee"
+      draggable="true"
+      value="{{ slot.employee.slug }}"
+      _=" on dragstart tell <div.slot /> log you.dataset.availableEmpls if you.dataset.availableEmpls contains '{{ slot.employee.slug }};' add .scale-105 .bg-green-200 end
+          on dragend tell .slot remove .scale-105 .bg-green-200 end"
+    >
+      <div class="font-bold text-sky-100" value="{{ slot.employee.slug }}">
+        {{ slot.employee }}
+      </div>
+    </div>
+    {% endif %}
+  </div>
 
-                </div>
+  <div
+    data-popover
+    id="{{ slot.slug }}--tooltip"
+    role="tooltip"
+    class="absolute z-10 transition-opacity transition invisible inline-block w-64 text-sm font-light opacity-0 text-gray-400 bg-gray-800 border-gray-600 rounded-lg"
+  >
+    <div class="p-3">
+      <div class="flex items-center justify-between mb-2">
+        <a href="{{ slot.employee.url }}">
+          <img
+            class="w-10 h-10 rounded-full"
+            src="{{ slot.employee.image_url | default:'/static/img/IsometricDrugVial_01.png' }}"
+            alt="{{ slot.employee.name }}"
+          />
+        </a>
 
-                <div data-popover 
-                    id="{{ slot.slug }}--tooltip" 
-                    role="tooltip" 
-                    class="absolute z-10 transition-opacity transition invisible inline-block 
-                           w-64 text-sm font-light opacity-0 text-gray-400 bg-gray-800 
-                           border-gray-600 rounded-lg">
-
-                    <div class="p-3">
-                        <div class="flex items-center justify-between mb-2">
-
-                            <a href="{{ slot.employee.url }}">
-                                <img class="w-10 h-10 rounded-full" 
-                                     src="{{ slot.employee.image_url | default:'/static/img/IsometricDrugVial_01.png' }}" 
-                                     alt="{{ slot.employee.name }}" />
-                            </a>
-
-                            <div>
-                            {% if slot.employee %}
-                                <a href="{% url 'wday:slot-delete'   slot.workday.slug   slot.shift.pk %}" 
-                                    class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 
-                                           focus:ring-blue-300 font-medium rounded-lg text-xs 
-                                           px-3 py-1.5 dark:bg-red-600 dark:hover:bg-red-700 
-                                           focus:outline-none dark:focus:ring-red-800" 
-                                        >
-                                        CLEAR
-                                </a>
-                            {% endif %}
-                            </div>
-                        </div>
-                        <p class="text-base font-semibold leading-none text-gray-900 dark:text-white">
-                            <a href="#">{{ slot.employee }}</a>
-                        </p>
-                        <p class="text-xs leading-none text-gray-700">
-                            {% if slot.employee %}
-                                {% weekHours slot.employee  slot.workday %}/ 
-                                {% periodHours slot.employee  slot.workday %} hrs.
-                            {% endif %}
-                        </p>
-                        <p class="mt-4 text-sm font-light">Fillable with these employees:</p>
-                        <ul class="flex flex-col text-xs font-light">
-
-                            {% for can_fill_emp in slot.fills_with.all %}
-                                <li class="mr-2">
-
-                                    <a href="{% url 'wday:slot-update' slot.workday.slug  slot.shift.pk  can_fill_emp.slug %}" 
-                                       class="hover:underline"
-                                       value="{{ can_fill_emp }}"
-                                       onclick="verifySlotAssignment(event,`{{can_fill_emp }}`)">
-
-                                        <span class="font-semibold text-gray-900 dark:text-white"> {{ can_fill_emp }} </span>
-                                        <span class="text-xs italic">
-                                            ({% weekHours can_fill_emp slot.workday %}/ 
-                                            {% periodHours can_fill_emp slot.workday %} hrs.)
-                                        </span>
-                                    </a>
-
-                                </li>
-                            {% endfor %}
-
-                        </ul>
-                    </div>
-                    <div data-popper-arrow></div>
-                </div>
-
-               
-
-
-
-
-                <div id="{{ slot.slug }}--tooltip" class="tip hidden">
-                    {% for emp in slot.fills_with.all %}
-                        <span>{{ emp }}</span>
-                    {% endfor %}
-                </div>
-
-            {% endfor %}
+        <div>
+          {% if slot.employee %}
+          <a
+            href="{% url 'wday:slot-delete'   slot.workday.slug   slot.shift.pk %}"
+            class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none dark:focus:ring-red-800"
+          >
+            CLEAR
+          </a>
+          {% endif %}
         </div>
+      </div>
+      <p
+        class="text-base font-semibold leading-none text-gray-900 dark:text-white"
+      >
+        <a href="#">{{ slot.employee }}</a>
+      </p>
+      <p class="text-xs leading-none text-gray-700">
+        {% if slot.employee %} 
+            {% weekHours slot.employee slot.workday %}/ 
+            {% periodHours slot.employee slot.workday %} hrs. 
+        {% endif %}
+      </p>
+      <p class="mt-4 text-sm font-light">Fillable with these employees:</p>
+      <ul class="flex flex-col text-xs font-light">
+        {% for can_fill_emp in slot.fills_with.all %}
+        <li class="mr-2">
+          <a
+            href="{% url 'wday:slot-update' slot.workday.slug  slot.shift.pk  can_fill_emp.slug %}"
+            class="hover:underline"
+            value="{{ can_fill_emp }}"
+          >
+            <span class="font-semibold text-gray-900 dark:text-white">
+              {{ can_fill_emp }}
+            </span>
+            <span class="text-xs italic">
+              ({% weekHours can_fill_emp slot.workday %}/ {% periodHours
+              can_fill_emp slot.workday %} hrs.)
+            </span>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div data-popper-arrow></div>
+  </div>
 
-        <div class="on-deck-container">
+  <div id="{{ slot.slug }}--tooltip" class="tip hidden">
+    {% for emp in slot.fills_with.all %}
+    <span>{{ emp }}</span>
+    {% endfor %}
+  </div>
 
-            {% for empl in workday.on_deck.all %}
-                <div class="employee" 
-                    id="{{ empl.slug }}"
-                    value="{{ empl.slug }}"
-                    draggable="true"
-                    _=" on dragstart tell <div.{{ empl.slug }}-available/> add .scale-105 .bg-green-200 end
-                        on dragstart call event.dataTransfer.getData('text/html') end
-                        on dragend tell <div.{{ empl.slug }}-available/> remove .scale-105 .bg-green-200 end
-                        on click set :slug to {{ empl.slug }} 
-                                 call showToast(`$slug`,`success`) end"
-                    ondragstart="employeeDragStart(event)"
-                    ondragend="employeeDragEnd(event)"
-                    onmouseover="employeeMouseOver(event);"
-                    onmouseleave="employeeMouseLeave(event);">
-                        {{ empl }} 
-                </div>
-            {% endfor %}
+  {% endfor %}
+</div>
 
-        </div>
+<div class="on-deck-container">
+  {% for empl in workday.on_deck.all %}
+  <div
+    class="employee"
+    id="{{ empl.slug }}"
+    value="{{ empl.slug }}"
+    draggable="true"
+    _=" on dragstart tell <div.slot /> log you.dataset.availableEmpls if you.dataset.availableEmpls contains '{{ slot.employee.slug }};' add .scale-105 .bg-green-200 end
+        on dragend tell .slot remove .scale-105 .bg-green-200 end
+        on click set :slug to {{ empl.slug }} 
+                call showToast(`$slug`,`success`) end"
+  >
+    {{ empl }}
+  </div>
+  {% endfor %}
+</div>
 
+<div class="text text-center text-2xs opacity-75">
+  USING TEMPLATE: LEGACY-WORKDAY
+</div>
 
+{% comment %} <script>
+  function employeeDragStart (event) {
+      event.dataTransfer.setData("text/html", event.target.id);
+      console.log("Data Transfer During Drag Start:   ", event.target.id);
+      // make the employee ghosted
+      ghostOnDragStart(event);
+      // make the slots available for the employee highlighted
+      highlightOnDragStart(event);
+      // make any visible data-popovers hidden
+      // (they are visible on hover)
+      let popovers = document.querySelectorAll('[data-popover]');
+      popovers.forEach( (popover) => {
+          popover.classList.add('invisible');
+      });
+  }
+  function dragOverHandler (event) {
+      event.preventDefault();
+  }
+  function employeeDragEnd (event) {
+      ghostOnDragEnd(event);
+  }
 
-        <script>
-            function employeeDragStart (event) {
-                event.dataTransfer.setData("text/html", event.target.id);
-                console.log("Data Transfer During Drag Start:   ", event.target.id);
-                // make the employee ghosted
-                ghostOnDragStart(event);
-                // make the slots available for the employee highlighted
-                highlightOnDragStart(event);
-                // make any visible data-popovers hidden 
-                // (they are visible on hover)
-                let popovers = document.querySelectorAll('[data-popover]');
-                popovers.forEach( (popover) => {
-                    popover.classList.add('invisible');
-                });
-            }
-            function dragOverHandler (event) {
-                event.preventDefault();
-            }
-            function employeeDragEnd (event) {
-                ghostOnDragEnd(event);
-            }
-            
-            function ghostOnDragStart (event) {
-                console.log('ghostOnDragStart')
-                event.target.style.opacity = "0.4";
-            }
+  function ghostOnDragStart (event) {
+      console.log('ghostOnDragStart')
+      event.target.style.opacity = "0.4";
+  }
 
-            function highlightOnDragStart (event) {
-                console.log('highlightOnDragStart')
-                let empl = event.target.getAttribute('value');
-                // get the slots with class .${empl}--available and make them green
-                let slots = document.querySelectorAll(`.${empl}-available`);
-                console.log(slots);
-                slots.forEach( (slot) => {
-                    slot.classList.add('bg-green-200');
-                    slot.classList.add('scale-105');
-                });
-            }
+  function highlightOnDragStart (event) {
+      console.log('highlightOnDragStart')
+      let empl = event.target.getAttribute('value');
+      // get the slots with class .${empl}--available and make them green
+      let slots = document.querySelectorAll(`.${empl}-available`);
+      console.log(slots);
+      slots.forEach( (slot) => {
+          slot.classList.add('bg-green-200');
+          slot.classList.add('scale-105');
+      });
+  }
 
-            function ghostOnDragEnd (event) {
-                console.log('ghostOnDragEnd')
-                event.target.style.opacity = "1";
-                // remove the green background from the slots
-                let empl = event.target.getAttribute('value');
-                // get the slots with class .${empl}--available and make them green
-                let slots = document.querySelectorAll(`.${empl}-available`);
-                slots.forEach( (slot) => {
-                    slot.classList.remove('bg-green-200');
-                    slot.classList.remove('scale-105');
-                });
-            }
+  function ghostOnDragEnd (event) {
+      console.log('ghostOnDragEnd');
+      event.target.style.opacity = "1";
+      // remove the green background from the slots
+      let empl = event.target.getAttribute('value');
+      // get the slots with class .${empl}--available and make them green
+      let slots = document.querySelectorAll(`.${empl}-available`);
+      slots.forEach( (slot) => {
+          slot.classList.remove('bg-green-200');
+          slot.classList.remove('scale-105');
+      });
+  }
 
-            function verifyDrop (event) {
-                // prevent default if the event.dataTransfer.getData is not empty
-                // (i.e. if the event is a drag event)
-                let empl = event.dataTransfer.getData("text");
-                // if I have .${empl}-available in the classList, allow drop
-                if (event.target.classList.contains(`${empl}-available`)) {
-                    event.preventDefault();
-                };
-            }
+  function verifyDrop (event) {
+      // prevent default if the event.dataTransfer.getData is not empty
+      // (i.e. if the event is a drag event)
+      let empl = event.dataTransfer.getData("text");
+      // if I have .${empl}-available in the classList, allow drop
+      if (event.target.classList.contains(`${empl}-available`)) {
+          event.preventDefault();
+      };
+  }
 
-            function drop(event) {
-                console.log('drop');
-                // prevent default if the event.dataTransfer.getData is not empty
-                // (i.e. if the event is a drag event)
-                let emplNode = event.dataTransfer.getData("text");
-                console.log(emplNode);
-                // set empl to the emplNode div's value
-                let empl = emplNode.getAttribute('value'); 
-                // if I have .${empl}-available in the classList, allow drop
-                if (event.target.classList.contains(`${empl}-available`)) {
-                    event.preventDefault();
-                    //put the employee node in me 
-                    event.target.appendChild(emplNode);
-                    // remove the green background from the slots
-                    ghostOnDragEnd(event);
-                }
-                // else alert Employee Not Available 
-                else {
-                    ghostOnDragEnd(event);
-                    alert(`${empl} is not available for this slot.`);
-                }
-            }
-
-            function employeeMouseOver(event) {
-                let can_fill_slots = document.querySelectorAll(`.${event.target.getAttribute('value')}-available`);
-                can_fill_slots.forEach( (slot) => {
-                    slot.classList.add('bg-green-200');
-                    slot.classList.add('scale-105');
-                });
-            }
-
-            function employeeMouseLeave(event) {
-                let can_fill_slots = document.querySelectorAll(`.${event.target.getAttribute('value')}-available`);
-                can_fill_slots.forEach( (slot) => {
-                    slot.classList.remove('bg-green-200');
-                    slot.classList.remove('scale-105');
-                });
-            }
+  function drop(event) {
+      event.preventDefault();
+      console.log('drop');
+      // prevent default if the event.dataTransfer.getData is not empty
+      // (i.e. if the event is a drag event)
+      let emplNode = event.dataTransfer.getData("text");
+      console.log(emplNode);
+      // set empl to the emplNode div's value
+      let empl = emplNode.getAttribute('value');
+      // if I have .${empl}-available in the classList, allow drop
+      if (event.target.classList.contains(`${empl}-available`)) {
+          event.preventDefault();
+          //put the employee node in me
+          event.target.appendChild(emplNode);
+          // remove the green background from the slots
+          ghostOnDragEnd(event);
+      }
+      // else alert Employee Not Available
+      else {
+          ghostOnDragEnd(event);
+          alert(`${empl} is not available for this slot.`);
+      }
+  }
 
 
-            function verifySlotAssignment (event, employeeName) {
-                // get alert box verification 
-                confirm(`Assign ${employeeName} to this slot?`);
-            }
-        </script>
+
+  function employeeMouseOver(event) {
+      let can_fill_slots = document.querySelectorAll(`.${event.target.getAttribute('value')}-available`);
+      can_fill_slots.forEach( (slot) => {
+          slot.classList.add('bg-green-200');
+          slot.classList.add('scale-105');
+      });
+  }
+
+  function employeeMouseLeave(event) {
+    // if the new mouseover is .backdrop
+      let can_fill_slots = document.querySelectorAll(`.${event.target.getAttribute('value')}-available`);
+      can_fill_slots.forEach( (slot) => {
+          slot.classList.remove('bg-green-500');
+          slot.classList.remove('bg-amber-500');
+          slot.classList.remove('scale-105');
+      });
+  }
+
+
+  function verifySlotAssignment (event, employeeName) {
+      // get alert box verification
+      confirm(`Assign ${employeeName} to this slot?`);
+  }
+</script> {% endcomment %}
 
 {% endblock content %}

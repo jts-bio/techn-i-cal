@@ -24,9 +24,10 @@ from .models import *
 from .tables import *
 from .data import Images
 from . import viewsets
+from .viewsets import SchViews
 
 import statistics
-from django.core.cache import cache
+from django.core.cache import cache, caches
 
 
 # -------------------------#
@@ -77,12 +78,8 @@ def schDetailView(request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
-    
-    
-    schedule = cache.get(f'schedule-{schId}')
-    if not schedule:
-        schedule = Schedule.objects.get(slug=schId)
-        cache.set(f'schedule-{schId}', schedule, 1800)
+    schedule = Schedule.objects.get(slug=schId)
+        
     
     if schedule.tags.filter(name="Save Required").exists():
         schedule.update_percent()
@@ -100,31 +97,13 @@ def schDetailView(request, schId):
         else:
             messages.warning(request, "Form is invalid")
 
-    emusr = cache.get(f'schEMUSR-{schedule.slug}')
-    if not emusr:
-        emusr = viewsets.SchViews.schEMUSR(None, schedule.slug, asTable=False)
-        cache.set(f'schEMUSR-{schedule.slug}', emusr, 1800) # cache for 30 minutes
-
-    emusr_differences = list(emusr.values_list('difference', flat=True))
-    emusr_differences = [x for x in emusr_differences if x is not None]
-    
-    ufs = cache.get('unfavorable_ratios')
-    if not ufs:
-        ufs = list(Schedule.objects.values_list('unfavorable_ratio',flat=True))
-        cache.set('unfavorable_ratios', ufs, 1800) # cache for 30 minutes
-    mean = statistics.mean(ufs)
-    ufs_stdev = statistics.stdev(ufs)
-    uf_stdev_diff = schedule.unfavorable_ratio - ufs_stdev
-
     context = {
         "schedule": schedule,
         "employees": Employee.objects.all(),
         "form": EmployeeSelectForm,
-        "emusr": emusr,
-        "emusr_dist": max(emusr_differences) - min(emusr_differences),
-        "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk),
-        "uf_stdev_diff": int(uf_stdev_diff*100),
+        "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk)
     }
+    
     return render(request, "sch2/schedule/sch-detail.html", context)
 
 
@@ -223,9 +202,16 @@ def weekView__set_ssts(request, week):
     """
     if request.method == "POST":
         week = Week.objects.filter(pk=week).first()
+        n_empty_i = week.slots.empty().count()
         for day in week.workdays.all():
             for slot in day.slots.all():
                 slot.set_sst()
+        n_empty_f = week.slots.empty().count()
+        n = n_empty_i - n_empty_f
+        if n > 0:
+            messages.success(request, f"{n} slots filled via templating")
+        else:
+            messages.warning(request, f"No slots filled via templating")
         return HttpResponseRedirect(week.url())
 
 
@@ -349,22 +335,30 @@ def shiftTrainingFormView(request, cls, sft):
     return render(request, html_template, context)
 
 
-def currentWeek(request):
+def currentWeek (request):
     workday = Workday.objects.filter(date=dt.date.today()).first()
     week = Week.objects.filter(workdays=workday).first()
     return HttpResponseRedirect(week.url())
 
 
-def currentSchedule(request):
+def currentSchedule (request):
     workday = Workday.objects.filter(date=dt.date.today()).first()
     schedule = Schedule.objects.filter(workdays=workday).first()
     return HttpResponseRedirect(schedule.url())
 
 
-def scheduleSolve(request, schId):
+def scheduleSolve (request, schId):
     sch = Schedule.objects.get(slug=schId)
-    bot = sch.Actions()
-    bot.fillSlots(sch)
+    empty_i = sch.slots.empty().count()
+    sch.actions.fillTemplates(sch)
+    sch.actions.solvePmOnly(sch)
+    sch.actions.solveOmap(sch)
+    empty_f = sch.slots.empty().count()
+    n_solved = empty_f - empty_i
+    if n_solved > 0:
+        messages.success(request, f"{n_solved} slots solved.")
+    else:
+        messages.info(request, f"No slots were filled via Algorithm B.")
     return HttpResponseRedirect(sch.url())
 
 

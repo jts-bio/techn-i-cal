@@ -1,12 +1,13 @@
-<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div id="empl-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
     
     {% for employee in employees %}
     <a href="{% url 'sch:empl' employee.slug %}" 
-    class="col-span-1 bg-zinc-900 rounded-lg shadow shadow-black shadow-lg overflow-hidden
-           hover:bg-zinc-800 hover:scale-110 hover:-translate-y-3 hover:ring hover:transition
-           {% if employee.time_pref == 'Evening' %} hover:ring-blue-300 
-           {% elif employee.time_pref == 'Overnight' %} hover:ring-indigo-600 
-           {% else %} hover:ring-amber-500 
+       value="{{ employee.name }}"
+       class="col-span-1 bg-zinc-900 rounded-lg shadow shadow-black shadow-lg overflow-hidden
+           hover:bg-zinc-800 hover:scale-110 hover:-translate-y-3 transition
+           {% if employee.time_pref == 'Evening' %}      hover:ring-blue-300 hover:ring hover:ring-2
+           {% elif employee.time_pref == 'Overnight' %}  hover:ring-indigo-600  hover:ring hover:ring-2
+           {% else %}                                    hover:ring-amber-500 hover:ring hover:ring-2
            {% endif %}
            ">
       <div class="px-6 py-4">

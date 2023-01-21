@@ -235,6 +235,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm) :
 class EmployeeMatchCoworkerTdosForm (forms.ModelForm) :
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.HiddenInput(),required=True)
     coworker = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select(),required=True)
+                                      
     
     class Meta:
         model = TemplatedDayOff

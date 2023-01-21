@@ -20,7 +20,7 @@ from .formsets import *
 from .actions import *
 from .tables import *
 from .data import Images
-from django.db.models import Q, F, Sum, Subquery, OuterRef, Count, Exists
+from django.db.models import Q, F, Sum, Subquery, OuterRef, Count, Exists, ExpressionWrapper, IntegerField
 from django_tables2 import RequestConfig
 import datetime as dt
 
@@ -705,6 +705,7 @@ class SHIFT :
         def get_context_data(self, **kwargs):
             context               = super().get_context_data(**kwargs)
             context['shifts']     = Shift.objects.all()
+                
             shiftTable            = ShiftListTable(Shift.objects.all().order_by('start'))
             context['shiftTable'] = shiftTable
             
@@ -792,15 +793,19 @@ class SHIFT :
         context = {}
         
         employees = Employee.objects.annotate(tally=Count('slots',filter=Q(slots__shift__name=shift)))
+        
         for emp in employees: 
             emp.save()
         context['shift']     = shift
-        context['employees'] = employees 
-        context['maxTally']  = max(list(employees.values_list('tally',flat=True))) 
         employees = Employee.objects.annotate(
-                            tally=Count('slots',filter=Q(slots__shift__name=shift))).annotate(
-                            normalized=(F('tally')/context['maxTally'])*100
-                        )
+                            tally=Count('slots',filter=Q(slots__shift__name=shift))
+                        ).order_by('-tally')
+        maxTally = max(list(employees.values_list('tally',flat=True)))
+        percentMax = 100 * F('tally') / Value(maxTally)
+        employees = employees.annotate(percentMax=percentMax)
+                        
+        context['maxTally']  = maxTally
+        context['employees'] = employees 
         
         return render(request, 'sch/shift/tallies.html', context)
         
@@ -1298,8 +1303,10 @@ class EMPLOYEE:
         form = EmployeeMatchCoworkerTdosForm()
         context = {}
         context['form']          = form
-        employee        = Employee.objects.get(name=name)
+        employee                 = Employee.objects.get(pk=name)
         context['employee']      = employee
+        context['other_employees'] = Employee.objects.exclude(pk=employee.pk)
+        
         
         template_name = 'sch/employee/match_tdos.html'
         
@@ -1423,8 +1430,8 @@ class EMPLOYEE:
 
     def coWorkerSelectView (request, name):
         context = {}
-        context['employee'] = Employee.objects.get(name=name)
-        context ['employees'] = Employee.objects.all().order_by('cls','name')
+        context['employee'] = Employee.objects.get(slug=name)
+        context ['employees'] = Employee.objects.exclude(slug=name).order_by('cls','name')
 
         return render(request,'sch/employee/coworker-select.html',context)
     ### COWORKER
@@ -1440,8 +1447,8 @@ class EMPLOYEE:
         -----------------------------------------------------------------------
             flowrate.herokuapp.com/sch/employees/`<employeeName>`/co-worker/`<otherEmployeeName>`/
         """
-        emp1 = Employee.objects.get(name=nameA)
-        emp2 = Employee.objects.get(name=nameB)
+        emp1 = Employee.objects.get(slug=nameA)
+        emp2 = Employee.objects.get(slug=nameB)
         
         emp1slots = Slot.objects.filter(employee=emp1).values('workday')
         emp1days  = Workday.objects.filter(pk__in=emp1slots)
@@ -1451,7 +1458,9 @@ class EMPLOYEE:
             sft1=Subquery(Slot.objects.filter(employee=emp1,workday=OuterRef('pk')).values('shift__name'))).annotate(
                 sft2=Subquery(Slot.objects.filter(employee=emp2,workday=OuterRef('pk')).values('shift__name')))
             
-        return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2})
+        percent_worked_with = int ( days.count() / emp1days.count() * 100 )
+            
+        return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2, 'percent': percent_worked_with})
     
     ### EVENING-FRACTION VIEW
     def eveningFractionView (request):
@@ -1914,9 +1923,8 @@ class SCHEDULE:
             return HttpResponseRedirect(reverse('sch:v1-schedule-detail',args=[sch.pk]))
     
         def fillSlotsWithPrefTime (request, pk):
-            
+            schedule = Schedule.objects.get(pk=pk)
             if request.method == "POST":
-                schedule = Schedule.objects.get(pk=pk)
                 for slot in schedule.slots.empty():
                     if slot.shift.group == 'AM':
                         employees = slot._fillableBy().filter(evening_pref=False)
@@ -1934,7 +1942,7 @@ class SCHEDULE:
                             messages.success(request,"Success")
                         else:
                             messages.info(request,"No Available Employee -- Slot Skipped")
-                return HttpResponseRedirect(schedule.url())
+            return HttpResponseRedirect(schedule.url())
     
     def scheduleListView (request):
         template_html = 'sch/schedule/sch_list.html'

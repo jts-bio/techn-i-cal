@@ -1,3 +1,16 @@
+// author: JOSH STEINBECKER
+//
+// -************************************
+// TOASTY.JS
+// -************************************
+//
+// A simple javascript tool for creating and displaying
+// toast messages in a Django application.
+//
+// written originally 
+// for the FlowRate Schedule Management project
+//
+
 
 function showToast(message, type) {
             //
@@ -20,22 +33,30 @@ function showToast(message, type) {
         
             var icon = document.createElement("i");
             icon.classList.add("fa-duotone","font-bold","mr-2");
-            if (type == "success") {
+            if (type == "success" || type == "s") {
                 icon.classList.add("fa-check-circle");
                 toast.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-800', 'dark:text-green-100');
-            } else if (type == "error") {
+            } else if (type == "error" || type == "e") {
                 icon.classList.add("fa-times-circle");
                 toast.classList.add('bg-amber-100', 'text-red-800', 'dark:bg-red-800', 'dark:text-red-100');
-            } else if (type == "warning") {
+            } else if (type == "warning" || type == "w" || type == "warn") {
                 icon.classList.add("fa-exclamation-circle");
                 toast.classList.add('bg-amber-100', 'text-amber-800', 'dark:bg-amber-800', 'dark:text-amber-100');
-            } else if (type == "info") {
+            } else if (type == "info" || type == "i" || type == "information") {
                 icon.classList.add("fa-info-circle");
                 toast.classList.add('bg-blue-100', 'text-blue-800', 'dark:bg-blue-800', 'dark:text-blue-100');
             }
             // create the toast span
+            var titlespan = document.createElement("span");
+            titlespan.classList.add("font-extrabold",
+                                    "text-2xs",
+                                    "text-white",
+                                    "uppercase");
+
             var toastspan = document.createElement("span");
-            toastspan.classList.add("toast-span");
+            toastspan.classList.add("toast-span",
+                                    "font-bold",
+                                    "jbm");
             // set the toast type
             if (type == "success") {
                 toastspan.classList.add("toast-span-success");
@@ -49,6 +70,7 @@ function showToast(message, type) {
             }
             // add the toast span to the toast
             toast.appendChild(icon);
+            toast.appendChild(titlespan);
             toast.appendChild(toastspan);
             toast.appendChild(document.createTextNode(message));
             // add the toast to the wrapper

@@ -652,6 +652,36 @@
 			-webkit-animation: spinner 1.5s linear infinite;
 			animation: spinner 1.5s linear infinite;
 		}
+
+
+		#schedule-body tr td:nth-child(7n+1) {
+		border-right: 1px solid #444444;
+		}     
+        .pie {
+            border: 1px solid #ffffff;
+        }
+        .stl {
+            position: sticky;
+            left: 0
+          }
+        .stt {
+            position: sticky;
+            top: 0
+        }
+        .tooltip-mono {
+            position: absolute;
+            z-index: 1000;
+            background-color: #ccc;
+            color: #333;
+            text-align: center;
+            padding: 3px 6px;
+            border-radius: 6px;
+            shadow: 1px 1px 1px #000;
+            font-family: 'JetBrains Mono', monospace;
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-left: 35px;
+        }
 		
 		@-webkit-keyframes spinner {
 			0% {

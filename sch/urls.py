@@ -1,6 +1,7 @@
 from django.urls import path, include
 from django.contrib import admin
 from . import views, actions, views2, viewsets
+from . import api
 from .api import WeekApi, WdApi, ScheduleApi, SlotApi
 from rest_framework import routers
 
@@ -60,21 +61,9 @@ week_patterns = [
     path("week/<int:year>/<int:week>/solve/", views.WEEK.solve_week_slots, name="solve-week"),
     path("week/<int:year>/<int:week>/swap-bot/",views.WEEK.make_preference_swaps,name="make-swaps-week"),
     path("week/<int:year>/<int:week>/clear-low-score-slots/",views.WEEK.clearWeekSlots_LowPrefScoresOnly, name="week-clear-low-score-slots"),
-    path(
-        "week/<int:year>/<int:week>/clear-slots-form/",
-        views.WEEK.ClearWeekSlotsView.as_view(),
-        name="clear-week-slots-form",
-    ),
-    path(
-        "week/all-weeks/", 
-        views.WEEK.all_weeks_view, 
-        name="weeks-all"
-        ),
-    path(
-        "week/weekly-hours/", 
-        views.WEEK.weeklyHoursView, 
-        name="weeks-weekly-hours"
-        ),
+    path("week/<int:year>/<int:week>/clear-slots-form/",views.WEEK.ClearWeekSlotsView.as_view(),name="clear-week-slots-form",),
+    path("week/all-weeks/", views.WEEK.all_weeks_view, name="weeks-all"),
+    path("week/weekly-hours/", views.WEEK.weeklyHoursView, name="weeks-weekly-hours"),
     path("week/<int:year>/<int:week>/table/", views.WEEK.weekHoursTable, name="weeks-table"),
     path("v2/week-detail/<int:week>/", views2.weekView, name="v2-week-detail"),
     path("v2/week/<int:week>/fill-templates/",views2.weekView__set_ssts,name="v2-week-fill-templates"),
@@ -205,7 +194,7 @@ employee_patterns = [
     path("employee/<str:name>/coworker/",views.EMPLOYEE.coWorkerSelectView, name="coworker-select"),
     path("employee/<str:nameA>/coworker/<str:nameB>/",views.EMPLOYEE.coWorkerView, name="coworker" ),
     path("employee/<str:empId>/template-days-off/",views.EMPLOYEE.employeeTemplatedDaysOffView, name="employee-tdos"),
-    path("employee/<str:name>/template-days-off/match/",views.EMPLOYEE.employeeMatchCoworkerTdosView, name="employee-days-off"),
+    path("employee/<str:name>/template-days-off/match/",views.EMPLOYEE.employeeMatchCoworkerTdosView, name="emp-match-tdos"),
     path("employee/<str:name>/pto-request/add/",views.EMPLOYEE.EmployeeAddPtoView.as_view(), name="employee-add-pto"),
     path("employee/<str:name>/pto-request/add-range/",views.EMPLOYEE.EmployeeAddPtoRangeView.as_view(), name="employee-add-pto-range"),
     path("employee/<str:name>/generate-schedule/",views.EMPLOYEE.EmployeeScheduleFormView.as_view(), name="employee-schedule-form"),
@@ -218,11 +207,14 @@ employee_patterns = [
     path('v2/employee/choose-schedule/<str:empId>/',views2.EmployeeChooseSchedule.as_view(), name="employee-choose-schedule"),
     path('v2/employee/choose-schedule/<str:empId>/<str:schId>/',views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
     path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
+    
+    path("api/match-tdo/<str:empPk>/preview/", viewsets.EmpPartials.tdoPreview, name="emp-tdo-match-preview"),
 ]
 
-schedule_patterns = [           # ? ==== SCHEDULE ==== ?#
+schedule_patterns = [   
+    path("v2/schedule/<str:schId>/", views2.schDetailView,name="v2-schedule-detail"),
+
     path("v2/generate-schedule/<int:year>/<int:n>/", views2.generate_schedule_view, name="v2-generate-schedule"),
-    path("schedule-detail/<str:schId>/",views.SCHEDULE.scheduleView,name="v1-schedule-detail"),
     path("schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/",views.SCHEDULE.scheduleSlotModalView, name="schedule-slot-modal"),
     path("schedule/current-schedule/", views2.currentSchedule, name="v2-current-schedule"),
     path("schedule/<int:year>/<int:sch>/solve/", views.SCHEDULE.solveScheduleLoader, name="schedule-print"),
@@ -232,8 +224,7 @@ schedule_patterns = [           # ? ==== SCHEDULE ==== ?#
     path("v2/schedule/generate-random-pto/<int:schpk>/",views.SCHEDULE.DO.generateRandomPtoRequest,name="gen-rand-pto"),
     path("schedule/<int:year>/<int:sch>/weekly-ot/",views.SCHEDULE.weeklyOTView,name="weekly-ot"),
     path("schedule/<int:year>/<int:sch>/del-pto-conflict-slots/",views.SCHEDULE.FX.removePtoConflictSlots,name="remove-pto-conflict-slots"),
-    path("v2/schedule/list/", views2.schListView, name="sch-list"),
-    path("v2/schedule/<str:schId>/", views2.schDetailView,name="v2-schedule-detail"),
+    path("v2/schedule/", views2.schListView, name="sch-list"),
     path('v2/schedule/<str:schId>/get-sch-empty-count/', viewsets.SchViews.getSchEmptyCount, name="get-sch-empty-count"),
     path("v2/schedule-as-empl-grid/<str:schId>/",views2.schDetailEmplGridView,name="v2-schedule-as-empl-grid"),
     path("v2/schedule-as-shift-grid/<str:schId>/",views2.schDetailShiftGridView, name='v2-schedule-as-shift-grid'),
@@ -261,6 +252,11 @@ schedule_patterns = [           # ? ==== SCHEDULE ==== ?#
     path('schedule-partials/<str:schId>/view-select/', viewsets.SchPartials.schViewSelectPartial, name='sch-partial-view-select'),
     path('schedule-partials/<str:schId>/empl-grid/', viewsets.SchPartials.schEmployeeGridPartial, name='sch-partial-empl-grid'),
     path('schedule-partials/<str:schId>/shift-grid/', viewsets.SchPartials.schShiftGridPartial, name='sch-partial-shift-grid'),
+    path('schedule-partials/<str:schId>/fte-ratios/', viewsets.SchPartials.schFteRatioPartial, name='sch-partial-fte-ratios'),
+    path('schedule-partials/<str:schId>/stat-bar/', viewsets.SchPartials.schStatBarPartial, name='sch-partial-stat-bar'),
+    
+    path('schedule-calcs/<str:schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
+    path('schedule-calcs/<str:schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),
 ]
 
 test_patterns = [
@@ -283,6 +279,7 @@ test_patterns = [
         actions.PredictBot.predict_createdStreak,
         name="predict-streak",
     ),
+    path("api/workday/n-days-away/<str:wdaySlg>/", api.get_n_days_away, name="n-days-away")
 ]
 
 htmx_patterns = [

@@ -6,18 +6,87 @@
 
 {% block content %}
 
+    
+
     <div class="text text-center w-full">
         <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Preference Ratings</h1>
     </div>
-    <div class="panel">
+    <div class="panel grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-12">
         {% for rating in shift.shift_prefs.all %}
-            <div class="bg-slate-900 ring ring-slate-300 ring-offset-3 shadow shadow-lg w-20 h-20">
-                <div class="{{ rating.cssClasses }}"> {{ rating.score }} </div>
-                {{ rating.employee }}
+
+            <div class="object shadow shadow-lg {{ rating.css__all }}"
+                data-object-link="{{ rating.employee.url }}"
+                data-object-type="employee"
+                onmouseenter="emplMouseEnter(event, '{{ rating.employee.url }}', '{{ rating.employee.slug }}')"
+                onmouseleave='emplMouseLeave(event)'>
+                <div>
+                    <div class="font-extrabold text-2xl text-black"> 
+                        {{ rating.priority }} 
+                    </div>
+                    {{ rating.employee }}
+                </div>
             </div>
+
         {% endfor %}
     </div>
+
+    <div id="contextMenu" class="my-context-menu bg-zinc-900 bg-opacity-75 rounded h-80" style="display: none"> 
+        <ul class="mx-1"> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a id="goToContextAnchor" class="text-xs" href="#"><i class="fa fa-share text-xs" aria-hidden="true"></i> View </a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-penci text-xs" aria-hidden="true"></i> Rename</a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-link text-xs" aria-hidden="true"></i> Copy Link Address</a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-paste text-xs" aria-hidden="true"></i> Move to</a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-download text-xs" aria-hidden="true"></i> Download</a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transitioh"><a class="text-xs" href="#"><i class="fa fa-trash text-xs" aria-hidden="true"></i> Delete</a></li> 
+        </ul> 
+    </div> 
+
+    <script>
+       document.onclick = hideMenu; 
+       document.oncontextmenu = rightClick;
+
+       var customContextMenu = false;
+       var urlEmployee = "#";
+       var nameEmployee = "";
+
+
+        function emplMouseEnter (event, url, name) {
+            console.log("Mouse enter");
+            $customContextMenu = true;
+            $urlEmployee = url;
+            $nameEmployee = name;
+            console.log($customContextMenu);
+        }
+        function emplMouseLeave (event) {
+            console.log("Mouse leave");
+            $customContextMenu = false;
+            console.log($customContextMenu);
+        }
+
+        function hideMenu (event) {
+            let menu = document.getElementById("contextMenu");
+            menu.style.display = "none";
+        }
+        function rightClick (event) {
+            if ($customContextMenu === true) {
+                event.preventDefault();
+                console.log(event.target.dataset.objectLink);
+                let menu = document.getElementById("contextMenu");
+                menu.style.display = "block";
+                menu.style.position = "absolute";
+                menu.style.left = event.pageX + "px";
+                menu.style.top = event.pageY + "px";
+                let anchor = document.getElementById("goToContextAnchor");
+                anchor.href = $urlEmployee;
+                anchor.innerHTML = `<i class="fa fa-user text-xs mr-1" aria-hidden="true"></i>` + "View " + $nameEmployee;
+            } else {}
+        }
+
     
+            
+    
+    </script>
+
 {% endblock content %}
 
 

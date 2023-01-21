@@ -47,7 +47,9 @@ def index(request):
             token_field = request.POST.get("token")
             print(token_field)
             return HttpResponseRedirect(reverse('index'))
-        
+    
+    print (request)
+    print (request.__dict__)
     
     context = {
     }
@@ -86,7 +88,7 @@ def logoutView (request):
 
 urlpatterns = [
     path('' ,           index,          name='index'),
-    path('__debug__/', include('debug_toolbar.urls')),
+    path('__debug__/',  include        ('debug_toolbar.urls')),
     path('login/',      loginView,      name='login-view'),
     path('logout/',     logoutView,     name='logout-view'),
     path('accounts/',   include        ('django.contrib.auth.urls')),

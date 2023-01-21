@@ -42,6 +42,13 @@
                 <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
                     {{ employees|length }} Active 
                 </div>
+
+                <input type="text" name="search-empls" id="search-empls" placeholder="Search..."
+                    _="on keyup 
+                            show <a/> in #empl-grid 
+                            when it's @value.toLowerCase() 
+                                contains my value.toLowerCase()"> 
+
             </div>
 
             {% include 'comps/card-grid.html' %}

@@ -1,4 +1,4 @@
-<div class="flex flex-row center center-content center-self gap-5 space-between"
+<div class="flex sm:flex-col sm:ml-2 md:ml-8 md:flex-row center center-content center-self gap-5 space-between"
          id="alt-view-linkbox">
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/empl-grid/"
             hx-target="#sch-view-container"
@@ -18,8 +18,9 @@
             <i class="text-lg fa-duotone fa-grid-dividers"></i><br/>
             VIEW AS SHIFT GRID </div>
 
-        <div hx-get=""
+        <div hx-get="/sch/schedule-partials/{{schedule.slug}}/fte-ratios/"
             hx-target="#sch-view-container"
+            hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
             >
             
@@ -28,5 +29,15 @@
 
 </div>
 
-<div id="grid-indicator" class="htmx-indicator">Loading...</div>
-<div id="sch-view-container"></div>
+<!-- LOADING INDICATOR -->
+<div id="grid-indicator" class="htmx-indicator my-1">
+    <i class="fa-duotone fa-spinner fa-spin"></i>
+    <span class="fa-fade mx-2">Loading...</span> 
+</div>
+
+<!--- TARGET SWAPOUT AREA -->
+<div id="sch-view-container">
+    <span class="opacity-90 italic">
+        Select from the Options above to view more content related to this schedule...
+    </span>
+</div>
