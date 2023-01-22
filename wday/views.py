@@ -56,7 +56,7 @@ def slotDetailView (request, slug, shiftId):
 class SlotActions:
     
     def slotDeleteView (request, slug, shiftId):
-        slot = Slot.objects.get(shift__pk=shiftId, workday__slug=slug)
+        slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
         slot.employee = None
         slot.save()
         messages.info(request, f"Slot {slot.shift} has been cleared successfully.")

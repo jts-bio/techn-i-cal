@@ -260,3 +260,4 @@ def periodHours (empl, pd):
     if p != None:
         return int(p)
     return 0
+

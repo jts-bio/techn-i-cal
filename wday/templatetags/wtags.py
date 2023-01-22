@@ -26,3 +26,4 @@ def periodHours (empl, period):
     if hrs == None:
         return 0
     return int(hrs)
+

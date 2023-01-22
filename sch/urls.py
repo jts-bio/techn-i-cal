@@ -43,6 +43,7 @@ workday_patterns = [
     path("days/new/", views.WORKDAY.WorkdayBulkCreateView.as_view(), name="workday-new"),
     path("workday-list-view/all/",views.WORKDAY.WorkdayListView.as_view(),name="v2-workday-list",),
     path("v1/workday-detail/<str:slug>/",views.WORKDAY.WorkDayDetailView.as_view(),name="v1-workday-detail"),
+    
     path("day/<slug:date>/fill-template/",views.WORKDAY.workdayFillTemplate,name="workdayFillTemplate"),
     path("day/<slug:date>/add-pto/",views.WORKDAY.WorkdayPtoRequest.as_view(),name="workdayAddPTO"),
     path("day/<slug:date>/run-swaps/", views.WORKDAY.runSwaps, name="run-swaps"),
@@ -209,6 +210,8 @@ employee_patterns = [
     path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
     
     path("api/match-tdo/<str:empPk>/preview/", viewsets.EmpPartials.tdoPreview, name="emp-tdo-match-preview"),
+    path("api/employee/<str:empPk>/checkPrevWd/<str:wdId>/", viewsets.EmpPartials.workPrevDay, name="emp-check-prev-wd"),
+    path("api/employee/<str:empPk>/checkNextWd/<str:wdId>/", viewsets.EmpPartials.workNextDay, name="emp-check-next-wd"),
 ]
 
 schedule_patterns = [   
@@ -242,7 +245,8 @@ schedule_patterns = [
     path("v2/compare-schedules/<str:schId1>/<str:schId2>/", viewsets.SchViews.compareSchedules, name="compare-schedules"),
     path("v2/schedule/fte-percents/<str:schId>/", viewsets.SchViews.schFtePercents, name="sch-fte-percents"),
     path('api/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSR, name='api-sch-emusr'),
-    path('v2/schedule/emusr/<str:schId>/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
+    path('v2/schedule/<str:schId>/emusr/', viewsets.SchViews.schEMUSRView, name='sch-emusr'),
+    path('v2/schedule/<str:schId>/get-emusr-distr/', viewsets.SchViews.Calc.emusr_distr, name='sch-emusr-distr'),
     path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
     path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
     path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
@@ -254,6 +258,7 @@ schedule_patterns = [
     path('schedule-partials/<str:schId>/shift-grid/', viewsets.SchPartials.schShiftGridPartial, name='sch-partial-shift-grid'),
     path('schedule-partials/<str:schId>/fte-ratios/', viewsets.SchPartials.schFteRatioPartial, name='sch-partial-fte-ratios'),
     path('schedule-partials/<str:schId>/stat-bar/', viewsets.SchPartials.schStatBarPartial, name='sch-partial-stat-bar'),
+    path('schedule-partials/<str:schId>/week-breakdown/', viewsets.SchPartials.schWeeklyBreakdownPartial, name='sch-week-brkd'),
     
     path('schedule-calcs/<str:schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
     path('schedule-calcs/<str:schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),

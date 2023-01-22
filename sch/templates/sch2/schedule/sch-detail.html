@@ -6,7 +6,7 @@ SCHEDULE DETAIL VIEW
 
 {% extends 'base.html' %}
 {% load slippers %} {% load django_tables2 %} {% load tags %}
-{% load cache %}
+
 
 {% block style %}
     <style>
@@ -34,18 +34,16 @@ SCHEDULE DETAIL VIEW
 
 
 
-    <a href="{% url 'sch:sch-list' %}"><i class="fas">{% backArrow %}</i> Back to List</a>
+    <a href="{% url 'sch:sch-list' %}"> <i class="fa-duotone fa-arrow-cirlce-left"></i>  Back to List</a>
     
 
         
         <div class="panel text text-center">
             <div>
-                <a class="transition hover:scale-105" 
-                    href="{{ schedule.previous.url }}">
+                <a class="transition hover:scale-105" href="{{ schedule.previous.url }}">
                     <i class="fa-arrow-circle-left fa-duotone transition hover:scale-105"></i>
                 </a>
-                <a class="transition hover:scale-105" 
-                    href="{{ schedule.next.url }}">
+                <a class="transition hover:scale-105"  href="{{ schedule.next.url }}">
                     <i class="fa-arrow-circle-right fa-duotone"></i>
                 </a>
             </div>
@@ -56,15 +54,14 @@ SCHEDULE DETAIL VIEW
                 VERSION {{schedule.version}}   
             </h3>
 
-            {% if schedule.tags.count > 0 %}
-                {% for tag in schedule.tags.all %}
+            {% for tag in schedule.tags.all %}
 
-                    <div class="bg-orange-600 rounded px-2 text-slate-900">
-                        {{ tag }}
-                    </div>
+                <div class="bg-orange-600 rounded px-2 text-slate-900">
+                    {{ tag }}
+                </div>
 
-                {% endfor %}       
-            {% endif %}
+            {% endfor %}       
+      
 
             <div class="text-xs text-zinc-300 italic">
 
@@ -73,81 +70,51 @@ SCHEDULE DETAIL VIEW
                 / {{ schedule.slots.all.count }} 
                 SLOTS ASSIGNED 
             </span>
+
             {% if schedule.percent < 70 %} 
+
                 <div>
                     <i class="text-3xl text-orange-400 fa-duotone fa-dumpster-fire"
                     title="Dumpster Fire"></i>
                 </div>
+
             {% endif %}
         </div>
         
     
 
     {# --- STATS BAR ---#}
-    <section id="stat-bar">
+        <section id="stat-bar">
 
-        {% include 'sch2/schedule/partials/stat-bar.html' %}
+            {% include 'sch2/schedule/partials/stat-bar.html' %}
 
-    </section>
+        </section>
 
     {# ---MAIN ICON TAB BAR ---#}
-    <section id="tab-bar">
+        <section id="tab-bar">
 
-            {% include 'sch2/schedule/partials/sch-tabBar.html' %}
+                {% include 'sch2/schedule/partials/sch-tabBar.html' %}
 
-    </section>
+        </section>
 
     <!-- LOADING INDICATOR -->
-    <div id="grid-indicator" class="htmx-indicator my-1">
-        <i class="fa-duotone fa-spinner fa-spin"></i>
-        <span class="fa-fade mx-2">Loading...</span> 
-    </div>
+        <div id="grid-indicator" class="htmx-indicator my-1">
+            <i class="fa-duotone fa-spinner fa-spin"></i>
+            <span class="fa-fade mx-2">Loading...</span> 
+        </div>
 
     <!-- SWAPPING PANE -->
-    <div id="swap-pane" class="mt-12">
-        <div class="opacity-60 text-xs italic"
-            _="on click log the closest <div.swap-pane /> end">
-            Choose an option above to view additional content about this schedule...
+        <div id="swap-pane" class="mt-12">
+            <div class="opacity-60 text-2xs font-light italic">
+                Choose an option above to view additional content about this schedule...
+            </div>
         </div>
-    </div>
     
-    <hr class="bg-slate-300 mx-12 mb-4"/>
-
-    <script>
-        function getConfirmation () {
-            var retVal = confirm("Do you want to clear this schedule?");
-            if (retVal == false) {
-                return false;
-            }
-            return true;
-        }
-
-        function loadingButton(button) {
-            // reduce the opacity of the button
-            button.style.opacity = 0.5;
-            // create the spinner element
-            var spinner = document.createElement("i");
-            spinner.classList.add("fa-duotone", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "ml-2");
-            var buttonWidth = button.offsetWidth + 'px';
-            // replace the button text with the spinner element
-            button.innerHTML = "";
-            button.appendChild(spinner);
-            button.style.width = buttonWidth;
-        }
-    </script>
-        
-    <script type="text/coffeescript">
-        square = (x) : x * x
-        console.log  square(33)
-    </script>
-  
-
-    
+        <hr class="bg-slate-300 mx-12 mb-4"/>
 
 </div>
 
-    <div class="bg-zinc-900 text-zinc-600 text-2xs jbm p-5">{{ schedule.action_log }}</div>
-    
+ 
 </div>
 
 

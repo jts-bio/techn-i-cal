@@ -158,7 +158,58 @@ class SchViews:
         def n_empty (request, schId):
             sch = Schedule.objects.get(slug=schId)
             return HttpResponse(sch.slots.empty().count())
-        
+        def emusr_distr (request, schId):
+            sch = Schedule.objects.get(slug=schId)
+            n_pm = sch.slots.evenings().count()
+            pm_empls = Employee.objects.filter(
+                time_pref__in=["Midday", "Evening", "Overnight"]
+            )
+            pm_empls_shifts = sum(list(pm_empls.values_list("fte", flat=True))) * 24
+            remaining_pm = n_pm - pm_empls_shifts
+            full_template_empls = Employee.objects.full_template_employees().values("pk")
+            am_empls_fte_sum = sum(
+                list(
+                    Employee.objects.filter(time_pref__in=["Morning"])
+                    .exclude(pk__in=full_template_empls)
+                    .values_list("fte", flat=True)
+                )
+            )
+            unfavorables = sch.slots.unfavorables().values("employee")
+            unfavorables = unfavorables.annotate(
+                count=Value(1, output_field=IntegerField())
+            )
+            unfavorables = unfavorables.values("employee").annotate(count=Sum("count"))
+
+            query = (
+                Employee.objects.filter(time_pref="Morning")
+                .exclude(pk__in=full_template_empls)
+                .annotate(
+                    emusr=Cast(
+                        F("fte") * remaining_pm / am_empls_fte_sum,
+                        output_field=IntegerField(),
+                    )
+                )
+                .order_by("-emusr")
+                .annotate(
+                    count=Subquery(
+                        unfavorables.filter(employee=OuterRef("pk")).values("count")
+                    )
+                )
+                .annotate(difference=F("emusr") - F("count"))
+            )
+            emusr_differences = list(query.values_list('difference', flat=True))
+            while None in emusr_differences:
+                emusr_differences.remove(None)
+                emusr_differences.append(0)
+            return HttpResponse (max(emusr_differences) - min(emusr_differences))
+    def schDetail(request, schId):
+        html_template = "sch2/schedule/schedule-detail.html"
+        schedule = Schedule.objects.get(slug=schId)
+        context = {
+            "schedule": schedule,
+        }
+        return render(request, html_template, context)        
+
     def schFtePercents(request, schId):
 
         html_template = "sch2/schedule/fte-percents.html"
@@ -420,6 +471,17 @@ class SchPartials:
             "employees": empls,
         }
         return render(request, html_template, context)
+    
+    def schWeeklyBreakdownPartial (request,schId):
+        html_template = "sch2/schedule/partials/sch-employee-week-breakdown.html"
+        sch = Schedule.objects.get(slug=schId)
+        context = {
+            'schedule' : sch,
+            'employees' : Employee.objects.all(),
+        }
+        return render(request, html_template, context)
+
+        
 
 
 class EmpPartials:
@@ -428,6 +490,20 @@ class EmpPartials:
         tdos = [empl.tdos.filter(sd_id=x).count() for x in range(42)]
         html_template = 'sch2/employee/partials/tdo-preview.html'
         return render(request, html_template, {'tdos':tdos } )
+    def workPrevDay (request, empPk, wdId):
+        wd = Workday.objects.get(pk=wdId)
+        empl = Employee.objects.get(pk=empPk)
+        if wd.prevDay.slots().filter(employee=empl).exists():
+            return HttpResponse (wd.prevDay.slots().filter(employee=empl).first().shift.group)
+        else :
+            return HttpResponse ("")
+    def workNextDay (request, empPk, wdId):
+        wd = Workday.objects.get(pk=wdId)
+        empl = Employee.objects.get(pk=empPk)
+        if wd.nextDay.slots().filter(employee=empl).exists():
+            return HttpResponse (wd.nextDay.slots().filter(employee=empl).first().shift.group)
+        else :
+            return HttpResponse ("")
         
         
 class WdViews:
@@ -460,7 +536,18 @@ class SlotViews:
             "streak"  : streak,
         }
         return render(request, html_template, context)
-    
+    def clearSlotViaShift (request, wdId, shiftId):
+        """
+        Clear Slot Via Shift: 
+            - Clears all slots for a given shift on a given workday
+        """
+        wd = Workday.objects.get(slug=wdId)
+        shift = Shift.objects.get(pk=shiftId)
+        slot = wd.slots.filter(shift=shift).first()
+        slot.employee = None
+        slot.save()
+        return HttpResponseRedirect(wd.url())
+        
     def slotClearActionView (request, slotId):
         """
         Slot Clear Action View

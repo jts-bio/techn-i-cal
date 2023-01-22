@@ -489,6 +489,8 @@ class Employee (models.Model) :
     def url(self):
         return reverse("sch:empl", kwargs={"empId": self.pk})
     def weekHours (self, wd):
+        if type(wd) == str:
+            wd = Workday.objects.get(slug=wd)
         return wd.week.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def periodHours (self, wd):
         return wd.period.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
@@ -564,8 +566,8 @@ class Employee (models.Model) :
         if self.weekly_hours(year,iweek) == None:
             return 0
         return  self.weekly_hours(year,iweek) / (Employee.objects.get(pk=self.pk).fte_14_day/ 2)
-    def count_shift_occurances (self) -> SlotManager:
-        slots = Slot.objects.filter(employee=self).values('shift__name')
+    def count_shift_occurances (self):
+        slots = Slot.objects.filter(employee=self).values('shift__name') 
         return slots.distinct().annotate(count=Count('shift__name'))
     def unfavorable_shifts (self):
         if self.evening_pref:
@@ -624,7 +626,6 @@ class Workday (models.Model) :
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
         self.slug = self.date.strftime("%Y-%m-%d") + self.schedule.version
         self.sd_id= (self.date - TEMPLATESCH_STARTDATE).days % 42
         actions = self.Actions()
@@ -643,6 +644,12 @@ class Workday (models.Model) :
     @property 
     def pto (self):
         return PtoRequest.objects.filter(workday=self.date)
+    
+    def on_pto(self):
+        return Employee.objects.filter(pk__in=self.pto().values('employee__pk'))
+    def on_tdo(self):
+        return Employee.objects.filter(pk__in=self.tdo().values('employee__pk'))
+    
     class Actions :
         def _set_slug (self,instance) : 
             return instance.date.strftime('%Y-%m-%d')
@@ -818,6 +825,7 @@ WD_VIEW_PREF_CHOICES = (
         (0,'wday/wd-detail-2.html'),
         (1,'wday/wd-detail.html'),
         (2,'wday/wd-detail-old.html'),
+        (3,'wday/wd-3.html')
     )
 class WorkdayViewPreference (models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -1070,16 +1078,6 @@ class Schedule (models.Model):
                 yr += 1
                 num = -1
             num += 1
-    def save (self, *args, **kwargs) :
-        if self.year    == None :
-            self.year   = self.start_date.year
-        if self.number  == None :
-            self.number = int (self.start_date.strftime("%U")) // 6
-        if self.slug    == "":
-            self.slug   = f'{self.year}-S{self.number}{self.version}'
-        self.update_unfavorable_ratio()
-        self.update_percent()
-        super().save(*args, **kwargs)
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
@@ -1256,11 +1254,30 @@ class Schedule (models.Model):
                 sch.percent = int(sch.slots.filled().count() / sch.slots.all().count()*100)
                 sch.save()
                     
+        def getUnfavorableSwaps (self,instance):
+            swaps = []
+            for s in instance.slots.unfavorables():
+                swaps += [Slot.objects.filter(workday=s.workday).unfavorables().exclude(pk=instance.pk).pk]
+            return swaps
                 
-        def stdUnfavorableSwaps (self,instance):
-            for s in instance.unfavorables():
-                swaps = Slot.objects.filter(workday=s.workday).unfavorables().exclude(pk=self.pk)
-            print(swaps)
+        def performUnfavorableSwaps (self,instance):
+            swaps = []
+            for s in instance.slots.unfavorables():
+                swaps += [Slot.objects.filter(workday=s.workday).unfavorables().exclude(pk=instance.pk)]
+            days = list(set([s.workday.pk for s in instance.slots.unfavorables()]))
+            swapped = []
+            for day in days:
+                am_slots = swaps.filter(workday__pk=day, shift__start__hour__lte=9)
+                pm_slots = swaps.filter(workday__pk=day, shift__start__hour__gte=10)
+                trade_length = min([am_slots.count(),pm_slots.count()])
+                for i in range(trade_length):
+                    am_slot = am_slots.first()
+                    pm_slot = pm_slots.order_by(ShiftPreference.objects.filter(employee=OuterRef('pk').values('score'))).first()
+                    am_slot.employee, pm_slot.employee = pm_slot.employee, am_slot.employee
+                    am_slot.save()
+                    pm_slot.save()
+                    swapped += [am_slot, pm_slot]
+            print(f"{len(swapped)} slots swapped via UNFAVORABLE SWAP ALGORITHM")
         def clearPmEmployeesAmShifts (self, instance):
             for slot in instance.slots.unfavorables():
                 if slot.employee.time_pref == 'Evening':
@@ -1699,11 +1716,13 @@ class Slot (models.Model) :
         in_conflicting = self._get_conflicting_slots()
         no_conflicting = empls.exclude(pk__in=in_conflicting.values('pk'))
         
-        can = available.intersection(not_on_day)
-        can = can.intersection(fte_ok)
-        can = can.intersection(overtime_ok)
-        can = can.intersection(no_conflicting)
-        
+    
+        can = Employee.objects.filter(
+            pk__in=available).filter(
+                pk__in=not_on_day).filter(
+                    pk__in=fte_ok).filter(
+                        pk__in=overtime_ok).filter(
+                            pk__in=no_conflicting)
         return {
             'can':can,
             'sameDay':already_on_day,
