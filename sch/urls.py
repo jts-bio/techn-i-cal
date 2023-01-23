@@ -209,13 +209,15 @@ employee_patterns = [
     path('v2/employee/choose-schedule/<str:empId>/<str:schId>/',views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
     path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
     
+    #*__________EMPLOYEE API PATHS__________*
     path("api/match-tdo/<str:empPk>/preview/", viewsets.EmpPartials.tdoPreview, name="emp-tdo-match-preview"),
     path("api/employee/<str:empPk>/checkPrevWd/<str:wdId>/", viewsets.EmpPartials.workPrevDay, name="emp-check-prev-wd"),
     path("api/employee/<str:empPk>/checkNextWd/<str:wdId>/", viewsets.EmpPartials.workNextDay, name="emp-check-next-wd"),
 ]
 
 schedule_patterns = [   
-    path("v2/schedule/<str:schId>/", views2.schDetailView,name="v2-schedule-detail"),
+    #*__________SCHEDULE DETAIL__________*
+    path("v2/schedule/<str:schId>/", viewsets.SchViews.schDetail, name="v2-schedule-detail"),
 
     path("v2/generate-schedule/<int:year>/<int:n>/", views2.generate_schedule_view, name="v2-generate-schedule"),
     path("schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/",views.SCHEDULE.scheduleSlotModalView, name="schedule-slot-modal"),
@@ -251,6 +253,7 @@ schedule_patterns = [
     path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
     path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
     
+    #*__________SCHEDULE PARTIALS__________*
     path('schedule-partials/<str:schId>/complex-table/', viewsets.SchPartials.schComplexTablePartial, name='sch-partial-cx-table'),
     path('schedule-partials/<str:schId>/compare-and-select/', viewsets.SchPartials.schCompareSelectPartial, name='sch-partial-compare-select'),
     path('schedule-partials/<str:schId>/view-select/', viewsets.SchPartials.schViewSelectPartial, name='sch-partial-view-select'),

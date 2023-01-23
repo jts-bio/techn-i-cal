@@ -7,3 +7,4 @@ python manage.py makemigrations flow
 python manage.py migrate 
 
 
+

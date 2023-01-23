@@ -13,6 +13,8 @@ urlpatterns = [
     
     
     # API paths ~~~~~~~~~~~~~~~~~~~~~~
-    path('<slug:wdSlug>/api/employee-can-fill/<slug:empSlug>/', api.empl_can_fill, name='slots--empl-can-fill')
+    path('<slug:wdSlug>/api/employee-can-fill/<slug:empSlug>/', api.empl_can_fill, name='slots--empl-can-fill'),
+    path('partial/<str:wdSlug>/spwd-breadcrumb/', views.Partials.spwdBreadcrumb, name='spwd-breadcrumb'),
+    path('partial/<str:slotId>/slot-popover/', views.Partials.slotPopover, name='slot-popover'),
     
 ]

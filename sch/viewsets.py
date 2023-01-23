@@ -132,11 +132,13 @@ class WeekViews:
         return HttpResponseRedirect(prevWeek.url())
 
 class SchViews:
-    """ SCHEDULE VIEWS > GROUPED CLASS
-    =====================================
+    """
+    _____GROUPED SCHEDULE VIEWS_____
+    =================================
     """
     
     class Calc:
+        
         def uf_distr (request, schId):
             schedule = Schedule.objects.get(slug=schId)
             
@@ -202,8 +204,9 @@ class SchViews:
                 emusr_differences.remove(None)
                 emusr_differences.append(0)
             return HttpResponse (max(emusr_differences) - min(emusr_differences))
+    
     def schDetail(request, schId):
-        html_template = "sch2/schedule/schedule-detail.html"
+        html_template = "sch2/schedule/sch-detail.html"
         schedule = Schedule.objects.get(slug=schId)
         context = {
             "schedule": schedule,
@@ -491,17 +494,17 @@ class EmpPartials:
         html_template = 'sch2/employee/partials/tdo-preview.html'
         return render(request, html_template, {'tdos':tdos } )
     def workPrevDay (request, empPk, wdId):
-        wd = Workday.objects.get(pk=wdId)
+        wd = Workday.objects.get(slug=wdId)
         empl = Employee.objects.get(pk=empPk)
-        if wd.prevDay.slots().filter(employee=empl).exists():
-            return HttpResponse (wd.prevDay.slots().filter(employee=empl).first().shift.group)
+        if wd.prevWD().slots.filter(employee=empl).exists():
+            return HttpResponse (wd.prevWD().slots.filter(employee=empl).first().shift.group)
         else :
             return HttpResponse ("")
     def workNextDay (request, empPk, wdId):
-        wd = Workday.objects.get(pk=wdId)
+        wd = Workday.objects.get(slug=wdId)
         empl = Employee.objects.get(pk=empPk)
-        if wd.nextDay.slots().filter(employee=empl).exists():
-            return HttpResponse (wd.nextDay.slots().filter(employee=empl).first().shift.group)
+        if wd.nextWD().slots.filter(employee=empl).exists():
+            return HttpResponse (wd.nextWD().slots.filter(employee=empl).first().shift.group)
         else :
             return HttpResponse ("")
         
@@ -651,18 +654,19 @@ class EmpViews:
         if request.method == "POST":
             for i in range(1, emp.shifts_available.count() + 1):
                 shift = request.POST.get(f"bin-{i}")
-                shift = Shift.objects.get(name=shift.replace("shift-", ""))
-                pref = emp.shift_sort_prefs.get_or_create(shift=shift)[0]
-                pref.score = i
-                pref.rank = i - 1
-                pref.save()
+                if shift:
+                    shift = Shift.objects.get(name=shift.replace("shift-", ""))
+                    pref = emp.shift_sort_prefs.get_or_create(shift=shift)[0]
+                    pref.score = i
+                    pref.rank = i - 1
+                    pref.save()
             sort_repr = ", ".join([f"{pref.shift} ({pref.score})" for pref in emp.shift_sort_prefs.all()])
             messages.success(
                 request,
-                f"{emp} shift sort preferences updated: {sort_repr }",
+                f"{emp} shift sort preferences updated: {sort_repr}",
             )
             print(messages.get_messages(request))
-
+            print("here is a log statement")
             return HttpResponseRedirect(emp.url())
 
         context = {

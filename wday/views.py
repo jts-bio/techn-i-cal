@@ -11,6 +11,17 @@ from django.contrib import messages
 
 
 
+class Partials:
+    def spwdBreadcrumb (request, wdSlug):
+        wd = Workday.objects.get(slug=wdSlug)
+        context = {'workday': wd}
+        return render(request, 'wday/partials/SPWD.html', context)
+    def slotPopover (request, slotId):
+        slot = Slot.objects.get(id=slotId)
+        context = {'slot': slot}
+        return render(request, 'wday/partials/popover.html', context)
+
+
 def wdListView (request, schSlug='current'):
     if schSlug == 'current' :
         schedule = Schedule.objects.filter(workdays__date__contains=dt.date.today()).first()

@@ -4,33 +4,38 @@
 
 {% block content %}
 
+    {% include 'wday/partials/SPWD.html' %}
+
     <div class="w-full">
         <div class="text text-center">
             <a href="{{ workday.prevWD.url }}"><i class="fa-duotone fa-circle-arrow-left"></i></a>
-            <span class="text-2xl"> {{ workday }} </span>
+            <span id="wdId"  class="text-2xl">{{workday.slug}}</span>
             <a href="{{ workday.nextWD.url }}"><i class="fa-duotone fa-circle-arrow-right"></i></a>
         </div>
     </div>
 
-    <div class="all-shifts">
+    <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
-        <div class="opacity-0 trashbin text-center p-4" 
+        <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg border border-red-800 ring ring-red-300" 
                 ondragover="event.preventDefault();"
                 ondragleave="backdropDragLeave(event);"
                 ondrop="dropInTrash(event);"
                 ondragend="backdropDragEnd(event);">
-                <i class="fa-duotone fa-dumpster text-xl bg-red-400 h-12 w-12 rounded-full border border-red-800"></i>
+                <i class="fa-duotone fa-trash-can text-2xl"></i>
+                <div class="text-2xs italic"> Drop here to remove...</div>
             </div>
 
         {% for slot in workday.slots.all %}
+        <div>
+            <span id="popover-container-{{slot.id}}"></span> 
 
-            <div class="slot flex flex-row" 
+            <div class="slot w-11/12" 
                  id="{{ slot.shift }}" 
-                 data-available="{% for e in slot.fills_with.all %}{{ e }} {% endfor %}"
+                 data-available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
                  ondragover="dragOverVerify(event);"
                  ondrop="drop(event);"
                  ondragleave="dragLeave(event);"
-                 >
+                 onclick="getPopover(event,'{{slot.shift}}');">
 
                 <span class="shift px-1"> 
                     {{ slot.shift }} 
@@ -38,7 +43,7 @@
 
                 {% if slot.employee %} 
 
-                    <span class="employee" 
+                    <span class="employee bg-emerald-400 rounded px-3 text-zinc-900" 
                           id="{{ slot.employee.pk }}"
                           draggable="true"
                           ondragstart="emplInSlotDragStart(event);revealTrashbins(event);"
@@ -50,39 +55,34 @@
                 {% endif %}
                 
             </div>
-
-        {% endfor %}
-
-        <div class="opacity-0 trashbin text-center p-4 py-8" 
-            ondragover="dragOverTrash(event);"
-            ondragenter="dragEnterTrash(event);"
-            ondragleave="backdropDragLeave(event);"
-            ondrop="dropInTrash(event);"
-            ondragend="backdropDragEnd(event);">
-            <i class="fa-duotone fa-dumpster text-xl bg-red-400 h-12 w-12 rounded-full border border-red-800"></i>
         </div>
+        {% endfor %}
 
     </div>
 
 
-    <div class="flex flex-row">
+    
 
         <div class="on-deck w-4/12 text-right">
             
             <!------ CONTAINER FOR EMPLOYEES ON DECK -------
             ________________________________________________-->
             <div class="text-2xl text-emerald-400">ON DECK</div>
-
+            
+            
             {% for empl in workday.on_deck.all %}
-                <div class="employee" 
-                     id="{{ empl.pk }}"
-                     draggable="true"
-                     ondragstart="employeeDragStart(event);"
-                     ondragend="employeeDragEnd(event);">
-                    <span class="bg-emerald-400 rounded px-3"> {{ empl }} </span>
-                </div>
+                
+                    <span id="{{ empl.pk }}" 
+                        draggable="true" 
+                        ondragstart="employeeDragStart(event);"
+                        ondragend="employeeDragEnd(event);"
+                        class="employee bg-emerald-300 rounded px-3 text-zinc-900"> 
+                        {{ empl }} 
+                    </span>
+                
             {% endfor %}
-        </div>
+            
+         </div>
 
         <div class="on-pto w-4/12 text-center">
 
@@ -90,33 +90,44 @@
             ________________________________________________-->
             <div class="text-2xl text-amber-400">PTO</div>
 
+            
             {% for empl in workday.pto.all %}
-                <div class="employee" 
-                    id="{{ empl.pk }}"
-                    draggable="true"
-                    >
-                    <span class="bg-amber-400 rounded px-3"> {{ empl.employee }} </span>
-                </div>
+                
+                    <span id="{{ empl.employee.pk }}" 
+                        draggable="true" 
+                        ondragstart="employeeDragStart(event);"
+                        ondragend="employeeDragEnd(event);"  
+                        class="employee bg-amber-400 rounded px-3 text-zinc-900"> 
+                        {{ empl.employee }} 
+                    </span>
+                
             {% endfor %}
+            
+
         </div>
 
         <div class="on-tdo w-4/12 text-left">
 
             <div class="text-2xl text-gray-400">TDO</div>
 
+            
             {% for empl in workday.tdo.all %}
-                <div class="employee" 
-                     id="{{ empl.employee.pk }}"
-                     draggable="true"
-                     >
-                    <span class="bg-slate-400 bg-opacity-60  rounded px-3"> {{ empl.employee }} </span>
-                </div>
+                
+                    <span id="{{ empl.employee.pk }}" 
+                        draggable="true" 
+                        class="employee w-fc bg-slate-400 bg-opacity-60 rounded px-3 text-zinc-900"> 
+                        {{ empl.employee }} 
+                    </span>
+                
             {% endfor %}
+        
         </div>
 
-    </div>
+        </div>
 
-    <div class="text text-center text-2xs opacity-75">USING TEMPLATE: WD-DEFAULT </div>
+    
+
+    <div class="text text-center text-2xs opacity-75 italic"> USING TEMPLATE: WD-DEFAULT </div>
 
 
     <script>
@@ -133,7 +144,6 @@
                 if (slot.dataset.available.split(" ").includes(event.target.id)) {
                     slot.classList.add('bg-green-400');
                     // add a visible dropzone to the edge of the slots
-                    slot.innerHTML += '<div class="dropzone"><i class="fa-duotone fa-target text-xl text-zinc-800 opacity-70"></i></div>';
                 }
             })
             
@@ -194,7 +204,9 @@
             // for child in event.target.children  if child.class == employee remove child
             for (let i = 0; i < event.target.children.length; i++) {
                 if (event.target.children[i].classList.contains('employee')) {
+                    if (event.target.children[i].id !== event.dataTransfer.getData('text')) {
                     event.target.children[i].remove();
+                    }
                 }
             }
             // get data from drop
@@ -272,7 +284,7 @@
                 slot.classList.remove('bg-green-400','ring','ring-green-300','ring-offset-2');
             })
 
-            
+    
             const employee = data;
             const url = `slot/${shift}/delete/`;
 
@@ -289,8 +301,65 @@
                     }, 750);
                 })
         }
-    
 
+        function getPopover (event, slotId) {
+            // wait 1 second then fetch $slotId/popover/ 
+            const url = `/wday/partial/${slotId}/slot-popover/`;
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('popover-container-${slotId}').innerHTML = data;
+                })
+        }
+    
+        //get all .employee and fetch api/employee/<str:empPk>/checkPrevWd/<str:wdId>/
+        document.querySelectorAll('.employee').forEach(employee => {
+            const wdId = document.getElementById('wdId').innerHTML;
+            const empPk = employee.id;
+            const url = `/sch/api/employee/${empPk}/checkPrevWd/${wdId}/`;
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    console.log(data);
+                  
+                    if (data =='PM' || data =='XN') {
+                        // append a circle icon <i> before the slot name
+                        var i = document.createElement('i');
+                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-indigo-800','dark:text-indigo-700','text-2xs');
+                        employee.prepend(i);
+                    }
+                    if (data =='AM') {
+                        // append a circle icon <i> before the slot name
+                        var i = document.createElement('i');
+                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-yellow-800','text-2xs');
+                        employee.prepend(i);
+                    }
+                
+
+                })
+            })
+        document.querySelectorAll('.employee').forEach(employee => {
+            const wdId = document.getElementById('wdId').innerHTML;
+            const empPk = employee.id;
+            const url = `/sch/api/employee/${empPk}/checkNextWd/${wdId}/`;
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+        
+                    if (data =='PM' || data =='XN') {
+                        // append a circle icon <i> before the slot name
+                        var i = document.createElement('i');
+                        i.classList.add('fa-duotone', 'fa-arrow-circle-right','text-indigo-700','dark:text-indigo-700','text-2xs');
+                        employee.append(i);
+                    }
+                    if (data =='AM') {
+                        // append a circle icon <i> before the slot name,'text-2xs'
+                        var i = document.createElement('i');
+                        i.classList.add('fa-duotone', 'fa-arrow-cirlce-right','text-yellow-800','text-2xs');
+                        employee.append(i);
+                    }
+                })
+            })
     </script>
 
 {% endblock %}

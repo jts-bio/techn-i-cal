@@ -79,12 +79,6 @@ def schDetailView(request, schId):
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
     schedule = Schedule.objects.get(slug=schId)
-        
-    
-    if schedule.tags.filter(name="Save Required").exists():
-        schedule.update_percent()
-        schedule.tags.remove("Save Required")
-        schedule.save()
 
     if request.method == "POST":
         form = EmployeeSelectForm(request.POST)

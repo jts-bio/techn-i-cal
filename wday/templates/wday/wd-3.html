@@ -44,17 +44,6 @@
     </div>
 </div>
 
-<script type="text/coffeescript">
-    $(".empl") .on "dragstart", (e) ->
-        e.originalEvent.dataTransfer.setData("text/plain", e.target.innerHTML)
-        e.originalEvent.dataTransfer.effectAllowed = "move"
-    $(".dz") .on "dragover", (e) ->
-        e.preventDefault()
-        e.originalEvent.dataTransfer.dropEffect = "move"
-    $(".dz") .on "drop", (e) ->
-        e.preventDefault()
-        e.target.innerHTML = e.originalEvent.dataTransfer.getData("text/plain")
-    $(".slot") .on "load"
-</script>
+
 
 {% endblock content %}
