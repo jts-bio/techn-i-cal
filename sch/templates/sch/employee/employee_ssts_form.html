@@ -21,6 +21,11 @@
 
 {% block content %}
 
+    <a href="{{employee.url}}">
+        <i class="fa-duotone fa-arrow-circle-left"></i>
+        Cancel
+    </a>
+
     {% with "border border-amber-200 rounded transition hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition" as INPUT_CSS %}
     {% with "panel w-full grid-7-by-2" as DAYWRAPPER_CSS %}
   

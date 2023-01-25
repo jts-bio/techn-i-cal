@@ -39,9 +39,18 @@
 
 <script src="https://unpkg.com/hyperscript.org@0.9.7"></script>
 
+<a href="{{employee.url}}">
+    <i class="fa-duotone fa-arrow-circle-left"></i>
+    Cancel
+</a>
+
+
 {#---HEADING---#}
-<h1>Templated Days Off</h1>
-<h2>{{employee}}</h2>
+<div class="text text-center">
+    <h1 class="text-3xl">Templated Days Off</h1>
+    <h2 class="text-lg font-bold text-indigo-300">{{employee}}</h2>
+</div>
+
 
 {#---MATCH COWORKER BUTTON---#}
 <a href="match/" class=""><div class="hstack rounded-sm bg-gray-900 w-fc py-2 m-2 hover:bg-gray-600 px-1 border border-white">
@@ -54,12 +63,12 @@
     {% csrf_token %}
     {{ formset.management_form }}
         
-    <div class="bg-slate-700 rounded-lg border border-slate-400  overflow-x-auto overscroll-x-auto grid-7-by-2">
+    <div class="bg-slate-700 rounded-lg border border-slate-400 w-full  overflow-x-auto overscroll-x-auto grid-7-by-2">
 
         {% for day_of_week in DAYS_OF_WEEK %}
             <div clickCount=0 
                 class="lg hover:font-bold hover:text-yellow-300" 
-                script="on click if my @clickCount is '0' then set <input.{{ day_of_week }}/>@checked to 'checked' then set my @clickCount to '1' end">
+                _="on click if my @clickCount is '0' then set <input.{{ day_of_week }}/>@checked to 'checked' then set my @clickCount to '1' end">
                 {{ day_of_week }}
             </div>
         {% endfor %}
@@ -75,7 +84,8 @@
 
     </div>
 
-    <input type="submit" value="Submit" />
+    <input class="border border-amber-200 rounded transition hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition"
+        type="submit" value="Submit"/>
 </form>    
     
 {% endblock content %}

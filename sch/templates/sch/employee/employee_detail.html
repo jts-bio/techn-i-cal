@@ -52,7 +52,7 @@
     
   
 </div>  
-<div class="ml-32 flex flex-row gap-12">
+<div class=" flex flex-col md:flex-row md:ml-32 gap-12">
    <div class="center">
      
       <div class="panel w-full md:w-fc">
@@ -115,7 +115,7 @@
 
       <!-- DOCUMENTS PANEL -->
       <div class="vstack">
-        <div class="panel p-8 w-[300px]">
+        <div class="panel p-8 md:w-[300px]">
 
           <h2 class="text-lg font-semibold text-yellow-600 pt-2">Documents</h2>
 
@@ -154,14 +154,14 @@
           </span>
 
         </div>
-        <div class="panel w-[300px]">
+        <div class="panel md:w-[300px]">
           <div class="hstack">
-            <span> {% vacationIcon %}</span>
+            <span> {% vacationIcon %} </span>
             <h2 class="text-lg font-semibold text-yellow-600 pt-2">PTO Requests</h2>
           </div>
           <a href="pto-request/add-range/"
              class="rounded p-1 text-2xs bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">
-              <i class="fas align-center">{% plusIcon '13px' '13px' 'black' %}</i>
+              <i class="fas align-center fa-plus"></i>
               NEW
           </a>
 
