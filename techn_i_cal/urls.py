@@ -48,12 +48,12 @@ def index(request):
             print(token_field)
             return HttpResponseRedirect(reverse('index'))
     
-    print (request)
-    print (request.__dict__)
-    
     context = {
     }
     return HttpResponse(template.render(context, request))
+
+def mail (request):
+    return render(request, 'mail.html', {'slots': Slot.objects.all()})
 
 @public
 def loginView (request):
@@ -99,6 +99,7 @@ urlpatterns = [
     path('wday/',       include('wday.urls'),   name='wday'),
     path('pds/',        include('pds.urls'),    name="pds"),
     path('flow/',       include('flow.urls'),   name='flow'),
+    path('mail/',       mail,                   name='mail'),
 
 ] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

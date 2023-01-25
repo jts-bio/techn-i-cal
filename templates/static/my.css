@@ -191,6 +191,9 @@
 			border: none;
 			border-radius: 3px;
 		}
+		.pointer {
+			cursor: pointer;
+		}
 		.hstack {
 			display: flex;
 			flex-direction: row;

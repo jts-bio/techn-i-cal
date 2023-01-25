@@ -149,16 +149,15 @@
             </button>
             </form>
             
-            <form action="{% url 'sch:v2-week-clear-slots' week.pk %}"
-                  method="POST"> {% csrf_token %}
-            <button type="submit"
-            hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."
-                class="bg-red-100 text-red-800 hover:bg-red-200 p-2 m-2 rounded" 
-                _="on mousedown 
-                        remove .hidden from the next <span#spinner/> 
-                    end"/>
+            <form method="POST" 
+                hx-post="{% url 'sch:v2-week-clear-slots' week.pk %}"
+                hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."> 
+                {% csrf_token %}
+                <button type="submit"
+                
+                class="bg-red-100 text-red-800 hover:bg-red-200 p-2 m-2 rounded" >
                     <span id="spinner" class="hidden animate animate-spin">{% include 'sch/comp/spinners/spinner-1.svg' %}</span> CLEAR SLOTS (WITHIN WEEK)
-            </button>
+                </button>
             </form>
         </div>
 
@@ -175,22 +174,35 @@
 
        
         {% for slot in empl.list %}
-            <a href="{{ slot.url }}">
+            <a 
+                draggable=true 
+                ondragstart="dragStartSlot(event);" ondragend="dragEndSlot(event);"
+                data-slot="{{slot.employee.slug}}"
+                href="{{ slot.url }}">
+
                 {% if slot.shouldBeTdo %}
-                    <span class='bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
+                    <span 
+                        class='slot bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
+                {% elif slot.shouldBePto %}
+                    <span 
+                        class='slot bg-red-600 ring border-2 border-red-100 ring-offset-3 ring-red-300  px-2 rounded-lg'> 
                 {% else %}
-                    <span class='bg-blue-600 px-2 rounded-lg'>
+                    <span 
+                        class='slot bg-blue-600 px-2 rounded-lg'>
                 {% endif %}
-                    <span class='text-white italic text-xs'>
-                        {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+                        <span class='text-white italic text-xs'>
+                            {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+                        </span>
+                        <span class="text-xs text-indigo-200">
+                            {{ slot.shift }} 
+                        </span>
                     </span>
-                    <span class="text-xs text-indigo-200">
-                        {{ slot.shift }} 
-                    </span>
-                </span>
-            </a>
+            </a>  
+                
+
         {% endfor slot %}     
 
+      
     {% endfor empl %}
     
     </div>
@@ -209,7 +221,30 @@
                 .animate-pulse .bg-red-100 
                 .text-red-700 
         end
+
 </script>
+
+
+    <script>
+        function dragStartSlot(event) {
+            event.dataTransfer.setData("slotId", event.target.dataset.slotFor);
+            var trashcan = document.createElement("div");
+            trashcan.outerHTML = `<div class="trashbin text-center bg-red-700 rounded-lg border border-red-800 ring ring-red-300 w-20 h-8" ondragover="event.preventDefault();"ondragenter="dragEnterTrash(event);"ondragleave="dragLeaveTrash(event);"ondrop="dropInTrash(event);"ondragend="backdropDragEnd(event);"data-trashbin-for="{{ slot.employee.slug }}"><i class="fa-duotone fa-trash-can text-2xl"></i><div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div></div>` ;
+            trashcan.classList.add("trashcan");
+            event.target.parentNode.appendChild(trashcan);
+            console.log(trashcan);
+        }
+        
+        function dragEndSlot(event) {
+            var trashcan = event.target.parentNode.querySelector(".trashcan");
+            if (event.relatedTarget == trashcan) {
+                // Delete the slot from the data source
+            }
+            trashcan.remove();
+        }
+    </script>
+
+
 
     
 {% endblock content %}

@@ -6,17 +6,38 @@
     <h2 class="text-2xl">Weekly Breakdown</h2>
 
     <table class="table">
+
+        <thead>
+            <tr>
+                <th>Employee</th>
+                {% for week in schedule.weeks.all %}
+                <th class="hover:bg-indigo-900"><a href="{{week.url}}">WEEK {{ week.number }}</a> </th>
+                {% endfor %}
+            </tr>
+        </thead>
+
         {% for employee in employees %}
 
            <tr>
                 <th>{{ employee }}</th>
 
                 {% for week in schedule.weeks.all %}
-                <td> {{ week.workday.first }} {% weekHours employee   week.workday.first %} </td>
+                <td class="hours" data-value="{% weekHours employee   week.workdays.first %}"
+                    >{% weekHours employee   week.workdays.first %} hrs.</td>
                 {% endfor %}
            </tr>
 
         {% endfor %}
     </div>
+
+
+    <script>
+        var hours = document.querySelectorAll('.hours');
+        hours.forEach(function(hour) {
+            if (hour.dataset.value > 40) {
+                hour.classList.add('text-red-500','font-bold');
+            }
+        });
+    </script>
     
 </section>

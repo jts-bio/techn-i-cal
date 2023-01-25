@@ -23,47 +23,39 @@
     <i class="fa-duotone fa-arrow-circle-left pr-2"></i>Back to All Employees
   </a>
 
-  <div class="flex flex-row gap-12 w-full md:mx-30 md:gap-40">
+  <div class="flex flex-row gap-12 w-full mt-3 ml-2 md:mx-30 md:gap-40">
 
-    
+    <div class="flex flex-row gap-3 center-self rounded bg-blue-900 w-full md:w-5/12 h-20 text text-center ring ring-sky-300 border-2 border-indigo-500 ring-offset-2">
 
-    <a class= "bg-zinc-800 shadow shadow-lg 
-               px-8 m-2 
-               rounded-sm h-20 w-32 justify-center
-               center text-center transition
-               hover:scale-125 hover:bg-indigo-700
-               hover:ring hover:ring-zinc-600"
-          href="{% url 'sch:employee-update' employee.pk %}"
+      <img src="{{ employee.image_url }}" alt="{{ employee.name.0 }}" 
+          class="w-20 h-20 rounded-full ring-2 ring-zinc-900 ring-offset-2"
+          hx-prompt="Set User image via URL:"
+          hx-trigger="click"
+          hx-post="set-image/"
           >
-        <i class="text-2xl fa-duotone fa-mortar-pestle"></i>  
-        <br/> Edit Employee
-    </a>
 
-    <div class="flex flex-row gap-3 rounded bg-blue-900 w-5/12 h-20 text text-center ring ring-sky-300 border-2 border-indigo-500 ring-offset-2">
-      
-      <div class="text-3xl jbm text-sky-200 center-self mx-8"> {{ employee }} </div>
-      
-  </div>
-     
-      <div class="flex flex-row flex-wrap">
-      {% for shift in sfts_trained %} 
-        {% if shift in sfts_avail %}
-            <div class="green-glow mx-6 p-2"> 
-              {{ shift.name }} 
-            </div>
-        {% else %} 
-            <div>
-              {{shift.name}} 
-            </div>
-        {% endif %} 
-      {% endfor %}
+      <div class="flex flex-col">
+        <div class="text-3xl jbm text-sky-200 center-self mx-8"> {{ employee }} </div>
+        <a class= "bg-zinc-800 shadow shadow-lg 
+                px-8
+                rounded shadow shadow-lg w-40 justify-center
+                center text-center transition mb-4
+                hover:scale-125 hover:bg-indigo-700
+                hover:ring hover:ring-zinc-600"
+            href="{% url 'sch:employee-update' employee.pk %}"
+              >
+            <i class="text-2xl fa-duotone fa-mortar-pestle"></i>  
+            Edit
+        </a>
       </div>
+    </div>
+    
   
 </div>  
 <div class="ml-32 flex flex-row gap-12">
    <div class="center">
      
-      <div class="panel w-fc">
+      <div class="panel w-full md:w-fc">
         <div style="float:right">
           <a
             href="{% url 'sch:employee-edit-ssts' employee.slug %}"
@@ -88,10 +80,10 @@
           ><br />
         </div>
 
-        <h2 style="color: orange; font-size: 18px">Templating</h2>
+        <h2 class="text-lg font-semibold text-yellow-600 pt-2">Templating</h2>
 
         <p
-          class="text-xs text-sky-200 italic my-5"
+          class="text-xs text-sky-200 italic my-1"
           style="font-family: 'Helvetica Neue'"
         >
           {{employee}} is templated for {{sstHours}} hours / pay period.
@@ -123,10 +115,9 @@
 
       <!-- DOCUMENTS PANEL -->
       <div class="vstack">
-        <div class="panel p-8">
+        <div class="panel p-8 w-[300px]">
 
-          <h2 class="text-xs text-zinc-500 text-shadow spacing-wide font-light mb-7">
-            DOCUMENTS </h2>
+          <h2 class="text-lg font-semibold text-yellow-600 pt-2">Documents</h2>
 
           <a href="{% url 'sch:employee-choose-schedule' employee.pk %}" class="hover:text-sky-200">
             <i class="text-sky-200 fa-duotone fa-calendar-circle-plus"></i>  
@@ -163,10 +154,10 @@
           </span>
 
         </div>
-        <div class="panel w-fc">
+        <div class="panel w-[300px]">
           <div class="hstack">
             <span> {% vacationIcon %}</span>
-            <h2 style="font-size: 22px; color: orange">PTO Requests</h2>
+            <h2 class="text-lg font-semibold text-yellow-600 pt-2">PTO Requests</h2>
           </div>
           <a href="pto-request/add-range/"
              class="rounded p-1 text-2xs bg-pink-300 ring ring-pink-300 text-slate-800 hover:bg-pink-300 hover:ring hover:ring-pink-100">

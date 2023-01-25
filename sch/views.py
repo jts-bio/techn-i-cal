@@ -1006,8 +1006,15 @@ class EMPLOYEE:
                 e.shifts_available.set(form.cleaned_data['shifts_available'])
                 e.save()
             return HttpResponseRedirect(e.url())
-                
-        
+    
+    @csrf_exempt          
+    def setEmployeeImage(request, empId):
+        # get HX-PROMPT from header
+        url = request.session['HX-PROMPT'] = request.headers['HX-PROMPT']
+        empl = Employee.objects.get(pk=empId)
+        empl.image_url = url
+        empl.save()
+        return HttpResponseRedirect(empl.url())
         
 
     ### SCH-FORM

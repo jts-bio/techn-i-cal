@@ -80,37 +80,49 @@
                     </p>
                 </a>
                 
-                <a href="{% url 'sch:sch-emusr' schedule.slug %}" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
-                        <div hx-get="get-emusr-distr/"
+                <div 
+                    hx-get="{% url 'sch:sch-emusr' schedule.slug %}" 
+                    hx-target="#swap-pane"
+                    hx-trigger="click"
+                    hx-indicator="#grid-indicator"
+                    class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
+                        <div 
+                            hx-get="get-emusr-distr/"
                             hx-indicator="#emusrIndicator"
                             hx-trigger="load"
                             hx-target="#emusrFigure">
+
                             <span>
-                                <span class="text-3xl font-semibold"
+                                <span 
+                                    class="text-3xl font-semibold"
                                     id="emusrFigure" _="on mutation of my.innerHTML
                                         if my.innerText > 4 add .text-yellow-600 to #emusrBadge
                                         if my.innerText < 5 add .text-gray-600 to #emusrBadge">
-                                <span class="htmx-indicator" id="emusrIndicator"><i class="opacity-60 fa-duotone text-xl fa-loader fa-spin fa-pulse fa-fade"></i></span>
+                                <span 
+                                    class="htmx-indicator" 
+                                    id="emusrIndicator">
+                                    <i class="opacity-60 fa-duotone text-xl fa-loader fa-spin fa-pulse fa-fade"></i>
                                 </span>
+                            </span>
 
                                 <!-- SCALES Icon -->
                                 <i class="text-xl fa-duotone fa-scale-unbalanced"></i>
 
                                 <!-- EQUITABLE? Badge -->
-                                <span id="emusrBadge" class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 text-2xs rounded-full h-3 px-1
-                                                {% if emusr_dist > 4 %}     text-yellow-600 
-                                                {% else %}    text-gray-800 
-                                                {% endif %}">
+                                <span 
+                                    id="emusrBadge" 
+                                    class="ml-1 inline-flex items-center gap-x-1 bg-gray-200 text-2xs rounded-full h-3 px-1
+                                        {% if emusr_dist > 4 %}    text-yellow-600 
+                                        {% else %}    text-gray-800    {% endif %}">
                                     {% if emusr_dist > 4 %}  UNEQUITABLE 
                                     {% else %}   EQUITABLE 
                                     {% endif %}
                                 </span><br/>
                             </span>
                         </div>
-
-                    <!-- Description Text -->
-                    <p class="mt-1 text-gray-500">Unfavorables Distribution</p>
-                </a>
+                        <!-- Description Text -->
+                        <p class="mt-1 text-gray-500">Unfavorables Distribution</p>
+                </div>
 
                 <a href="" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
                   <p class="text-3xl font-semibold 
@@ -143,6 +155,6 @@
   </div>
   <!-- End Features -->
 
-  <pre _="on load wait 10ms if #tdoConflictCount.innerText > 8 add .text-red-500 to #tdoConflictCount
-          on load wait 10ms if #tdoConflictCount.innerText < 8 and #tdoConflictCount.innerText > 1 add .text-amber-500 to #tdoConflictCount
-          on load wait 10ms if #tdoConflictCount.innerText < 2 add .text-emerald-500 to #tdoConflictCount  "></pre>
+  <pre _="init if #tdoConflictCount.innerText > 8 add .text-red-500 to #tdoConflictCount
+          if #tdoConflictCount.innerText < 8 and #tdoConflictCount.innerText > 1 add .text-amber-500 to #tdoConflictCount
+          if #tdoConflictCount.innerText < 2 add .text-emerald-500 to #tdoConflictCount  "></pre>

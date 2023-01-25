@@ -187,6 +187,7 @@ employee_patterns = [
     path("employees/new-pharmacist/", views.EMPLOYEE.PharmacistCreateView.as_view(), name="create-rph"),
     path("employees/new-technician/", views.EMPLOYEE.TechnicianCreateView.as_view(), name="create-cpht"),
     path("employee/<str:empId>/", views.EMPLOYEE.EmployeeDetailView.as_view(), name="empl"),
+    path("employee/<str:empId>/set-image/", views.EMPLOYEE.setEmployeeImage, name="set-employee-image"),
     path("employee/<str:empId>/shift-tallies/", views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name="employee-shift-tallies"),
     path("employee/<str:empId>/shift-preferences/", views.EMPLOYEE.shift_preference_form_view, name="shift-preferences-form"),
     path("employee/<str:empId>/update/",views.EMPLOYEE.EmployeeUpdateView.as_view(), name="employee-update"),

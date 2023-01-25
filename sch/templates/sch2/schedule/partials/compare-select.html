@@ -20,17 +20,22 @@
                 font-extralight 
                 text-sky-100 
                 hover:bg-sky-200"
-            onchange="selectLoading(this)"
             >
-                <option value="" 
+                <option 
+                    value="" 
                     selected 
                     disabled>
-                Select schedule...</option>
+                    Select schedule...
+                </option>
 
-            {% for sch in otherSchedules %}
-                <option value="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
-                         class="text-xs 
-                                font-light">
+            {% for sch in other_schedules %}
+                <option 
+                    hx-get="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
+                    hx-target="#swap-pane"
+                    hx-indicator="#grid-indicator"
+                    hx-trigger="click"
+                    class="text-xs font-light"
+                    >
                     {{ sch.year }}: Schedule {{ sch.number }} 
                     (Version {{ sch.version }})
                 </option>
@@ -38,34 +43,25 @@
             
     </select>
 
-    <form method="POST">{% csrf_token %}
+    <form method="POST"> {% csrf_token %}
+
         <select name="view-pto-empl-select" id="view-pto-empl" 
                 class="bg-amber-100 pl-3 pr-7 font-light text-slate-700" 
                 onchange="location = this.value;">
+
             <option value="">
                 View Employee Schedule PTO 
             </option>
-        {% for employee in employees %}
+
+        {% for employee in schedule.employees.all %}
             <option class="px-3 font-light text-slate-700"
-                value="{% url 'sch:v2-schedule-empl-pto' schedule.pk employee.pk %}">
+                    value="{% url 'sch:v2-schedule-empl-pto' schedule.pk employee.pk %}">
                 {{ employee }}'s PTO Requests
             </option>
         {% endfor %}
+
         </select>
     </form>
 
 </div>
 
-<script>
-    function selectLoading(select) {
-            // get #compare-head and put a spinner in it 
-            var compareHead = document.getElementById("compare-head");
-            var spinner = document.createElement("i");
-            spinner.classList.add("fas", "fa-spinner", "fa-spin", "text-lg", "fa-beat", "text-sky-800");
-            compareHead.innerHTML = "";
-            compareHead.appendChild(spinner);
-            // get the selected option in #select-for-compare and redirect to it
-            var selectedOption = select.options[select.selectedIndex];
-            window.location.href = selectedOption.value;
-    }
-</script>

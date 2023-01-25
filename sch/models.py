@@ -382,8 +382,6 @@ class Shift (models.Model) :
     >>>    hours               ---> 10.0
     >>>    on_days_display     ---> "Sun Mon Tue Wed Thu Fri Sat"
     >>>    ppd_ids             ---> 0,1,2,3,4,5,6,7,8,9,10,11,12,13
-        
-    
     """
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
@@ -468,6 +466,7 @@ class Employee (models.Model) :
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
+    active          = models.BooleanField (default=True)
     
     class Meta:
         ordering    = ['cls', 'name']
@@ -1042,14 +1041,17 @@ class Schedule (models.Model):
     number     = models.IntegerField(null=True,default=None)
     start_date = models.DateField()
     status     = models.IntegerField( choices=list(enumerate( "working,finished,discarded".split(",") )),default=0)
+    employees  = models.ManyToManyField ('employee', related_name='schedules')
     version    = models.CharField(max_length=1,default='A')
     slug       = models.CharField(max_length=20,default="")
     # calculated fields
     percent             = models.IntegerField(default=0)
     unfavorable_ratio   = models.FloatField(default=0)
     action_log          = models.TextField(default="")
-    last_update        = models.DateTimeField(auto_now=True)
+    last_update         = models.DateTimeField(auto_now=True)
     
+    
+
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
     class Views :
@@ -1059,25 +1061,40 @@ class Schedule (models.Model):
         num = self.number
         ver = self.version
         num -= 1
-        while True:
+        i = 0
+        while i < 3:
             if Schedule.objects.filter(year=yr, number=num).exists():
                 return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
             if num == 0:
                 yr -= 1
                 num = 9
             num -= 1
+            i += 1
+        return self
     def next (self):
         yr = self.year
         num = self.number
         ver = self.version
         num += 1
-        while True:
+        i = 0
+        while i < 3:
             if Schedule.objects.filter(year=yr, number=num).exists():
                 return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
             if num == 10:
                 yr += 1
-                num = -1
+                num = 0
             num += 1
+            i += 1
+        return self
+    def save (self, *args, **kwargs) :
+        self.update_percent()
+        if self.employees.count() == 0:
+            self.employees.set(Employee.objects.filter(active=True))
+        self.last_update = dt.datetime.now()
+        if 'Save Required' in self.tags.all():
+            self.tags.remove('Save Required')
+        super().save(*args,**kwargs)
+        self.post_save()
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
@@ -1085,7 +1102,6 @@ class Schedule (models.Model):
                 p.save()
     def update_percent (self):
         self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
-        print( f'PERCENT: {self.percent}%' )
     @property
     def week_start_dates (self):
         return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
@@ -1138,12 +1154,12 @@ class Schedule (models.Model):
             for wd in self.workdays.all():
                 assignment = wd.slots.filter(employee=empl)
                 if assignment.exists():
-                    empl_schedule += [wd.slots.filter(employee=empl).first()]
+                    empl_schedule += [ wd.slots.filter(employee=empl).first() ]
                 elif self.pto_requests.filter(employee=empl,workday=wd.date).exists():
-                    empl_schedule += ["PTO"]
+                    empl_schedule += [ "PTO" ]
                 else:
                     empl_schedule += [None]
-            all_schedules[empl] = empl_schedule
+            all_schedules[str(empl)] = empl_schedule
         return all_schedules
     def as_shift_dict (self):
         all_schedules = {}
@@ -1515,8 +1531,11 @@ class Slot (models.Model) :
         """EMPLOYEE SHOULD NOT WORK THIS DAY BECAUSE OF A TEMPLATED DAY OFF OBJECT"""
         if TemplatedDayOff.objects.filter(employee=self.employee, sd_id=self.workday.sd_id).exists():
             return True
-        else:
-            return False
+        return False
+    def shouldBePto (self):
+        if PtoRequest.objects.filter(employee=self.employee, workday=self.workday.date).exists():
+            return True
+        return False
     def css__fillable_by (self):
         return " ".join([ "fb-"+str(e) for e in self._fillableBy().values_list('pk',flat=True)])
     def css__not_fillable_by (self):

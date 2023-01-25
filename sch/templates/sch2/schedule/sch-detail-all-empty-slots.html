@@ -18,7 +18,8 @@
         <div class="grid grid-cols-1 md:grid-cols-3">
         {% for slot in schedule.slots.empty %}
         <form method="POST"
-            script="on mouseover send loadSignal to <option/> in me">
+            _="on mouseover send loadSignal to <option/> in me"
+            class="transition">
             {% csrf_token %}   
             <div class="my-2">
                 <input type="hidden" name="slot" value="{{slot.pk}}"/>
@@ -33,17 +34,11 @@
 
                     <select name="employee" 
                             id="employee"
-                            _="on focus 
-                            add .hidden 
-                                to <input/> then
-                            remove .hidden
-                                from the next <input/> 
-                            then add .bg-indigo-900 .ring 
-                                        .ring-indigo-300 
-                                        .p-3 .rounded 
-                                to the closest <form/>
-                            end"
-                            class="bg-zinc-900 rounded w-full border-zinc-400 mr-8
+                            _="on focus add .hidden to <input/> then remove .hidden from the next <input/> 
+                                then remove .bg-indigo-900 .ring .ring-indigo-300 .p-3 .rounded from <form/>
+                                then add .bg-indigo-900 .ring .ring-indigo-300 .p-3 .rounded to the closest <form/> 
+                                end"
+                            class="bg-zinc-900 rounded w-[200px] border-zinc-400 mr-8
                                    shadow shadow-lg"
                                 {% if slot.fillable_by.count == 0 %} disabled {% endif %}
                                 >
@@ -54,10 +49,11 @@
                         {% for employee in slot.fillable_by %}
                             <option id="{{employee}}" 
                                 value="{{employee.pk}}"
-                                _="on load
-                                        fetch {% url 'sch:api-week-empl-hours' slot.week.pk employee %} then
+                                _="init set :x to 0
+                                    on loadSignal if :x == 0 fetch {% url 'sch:api-week-empl-hours' slot.week.pk employee %} then
                                         set @wk to the result then 
                                         append the result to my innerHTML
+                                        then increment :x
                                     end"> 
                                 {{ employee.name }}
                             </option>    
@@ -67,8 +63,8 @@
                 </div>
                 </label>
                 <input type="submit" 
-                       class="hidden bg-zinc-900 rounded w-full border-zinc-400
-                              shadow shadow-lg hover:bg-indigo-500 hover:transition hover:duration-1700 hover:rotate-6 hover:scale-110 hover:ring hover:ring-amber-300" 
+                       class="hidden bg-zinc-900 rounded w-full border-zinc-400 transition
+                              shadow shadow-lg hover:bg-indigo-500 hover:transition hover:duration-1700 hover:scale-110 hover:ring hover:ring-yellow-300" 
                         id="{{slot.shift}}-{{slot.workday.slug}}-submit" 
                         value="ASSIGN" />
             </div>

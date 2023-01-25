@@ -4,7 +4,7 @@
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/empl-grid/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
             <i class="text-lg fa-duotone fa-poll-people"></i><br/>
             VIEW AS EMPLOYEE GRID 
@@ -13,7 +13,7 @@
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/shift-grid/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
             <i class="text-lg fa-duotone fa-grid-dividers"></i><br/>
             VIEW AS SHIFT GRID 
@@ -22,7 +22,7 @@
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/fte-ratios/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
             <i class="text-lg fa-duotone fa-chart-bullet"></i><br/>
             VIEW FTE-SCHEDULED RATIOS 
@@ -31,7 +31,7 @@
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/week-breakdown/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs"
+            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
             <i class="text-lg fa-duotone fa-ball-pile"></i><br/>
             VIEW WEEKLY HOURS BREAKDOWN 
@@ -41,7 +41,7 @@
 
 <!-- LOADING INDICATOR -->
 <div id="grid-indicator" class="htmx-indicator my-1">
-    <i class="fa-duotone fa-spinner fa-spin"></i>
+    <i class="fa-duotone fa-spinner fa-spin fa-fade"></i>
     <span class="fa-fade mx-2">Loading...</span> 
 </div>
 

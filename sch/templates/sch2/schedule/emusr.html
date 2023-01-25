@@ -1,18 +1,8 @@
-{% extends 'base.html' %}
+
 
 {% load tags %}
 
-
-
-{% block style %}
-
-{% endblock style %}
-    
-
-
-{% block content %}
-
-    <a href="{{ sch.url }}"><i class="fas">{% backArrow %}</i>Back</a>
+<div class="bg-zinc-900 p-3 rounded border border-zinc-800">
 
     <h1 class="text-2xl font-bold text-indigo-200 jbm">{{ sch }} EMUSR View</h1>
 
@@ -97,7 +87,7 @@
                                 {{ empl.name }}
                             </div>
                             <div class="text-lg text-slate-100">
-                                {{ empl.count }}
+                                {{ empl.count | default:"0" empl.count }}
                                 <span class="text-slate-400 font-light text-xs"> / {{ empl.emusr }} expected unfavorable shifts</span>
                             </div>
                         </div>
@@ -129,8 +119,5 @@
                 {% endif %}
 
         {% endfor %}
-    
     </div>
-    
-{% endblock content %}
-    
+</div>

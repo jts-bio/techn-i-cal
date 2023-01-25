@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
 
+{% load tags %}
+{% load wtags %}
+
 
 
 {% block content %}
@@ -9,52 +12,65 @@
     <div class="w-full">
         <div class="text text-center">
             <a href="{{ workday.prevWD.url }}"><i class="fa-duotone fa-circle-arrow-left"></i></a>
-            <span id="wdId"  class="text-2xl">{{workday.slug}}</span>
+            <span class="text-3xl mt-2 font-semibold text-orange-500">{{workday.date}}</span>
+            <span id="wdId" class="hidden">{{workday.slug}}</span>
             <a href="{{ workday.nextWD.url }}"><i class="fa-duotone fa-circle-arrow-right"></i></a>
         </div>
     </div>
+
+    
 
     <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
         <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg border border-red-800 ring ring-red-300" 
                 ondragover="event.preventDefault();"
-                ondragleave="backdropDragLeave(event);"
+                ondragenter="dragEnterTrash(event);"
+                ondragleave="dragLeaveTrash(event);"
                 ondrop="dropInTrash(event);"
-                ondragend="backdropDragEnd(event);">
+                ondragend="backdropDragEnd(event);"
+                >
                 <i class="fa-duotone fa-trash-can text-2xl"></i>
-                <div class="text-2xs italic"> Drop here to remove...</div>
-            </div>
+                <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+        </div>
 
         {% for slot in workday.slots.all %}
         <div>
-            <span id="popover-container-{{slot.id}}"></span> 
-
-            <div class="slot w-11/12" 
+            <div class="slot w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row" 
                  id="{{ slot.shift }}" 
                  data-available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
                  ondragover="dragOverVerify(event);"
                  ondrop="drop(event);"
                  ondragleave="dragLeave(event);"
-                 onclick="getPopover(event,'{{slot.shift}}');">
+                 data-popover-target="{{ slot.slug }}--popover">
 
-                <span class="shift px-1"> 
+                <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
                 </span>
 
-                {% if slot.employee %} 
+                <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
+                    <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
+                </span>
 
-                    <span class="employee bg-emerald-400 rounded px-3 text-zinc-900" 
-                          id="{{ slot.employee.pk }}"
-                          draggable="true"
-                          ondragstart="emplInSlotDragStart(event);revealTrashbins(event);"
-                          ondragend="employeeDragEnd(event);hideTrashbins(event);"
-                          > 
-                          {{ slot.employee }}  
-                    </span> 
+                {% if slot.employee %} 
+                    <div 
+                        id="{{ slot.employee.pk }}"
+                        draggable="true"
+                        ondragstart="emplInSlotDragStart(event);
+                                  revealTrashbins(event);"
+                        ondragend="employeeDragEnd(event);
+                        hideTrashbins(event);"
+                        data-available="{% for s in slot.employee.shifts_available.all %}{{ s }} {% endfor %}"
+                        class="employee bg-emerald-300 rounded px-3 text-zinc-900 flex flex-row w-fc place-center"> 
+                        <div class="flex flex-col text-center">
+                            <div class="font-light text-emerald-800"> {{ slot.employee }} </div>
+                            <div class='text-black text-2xs font-semibold'> {% weekHours slot.employee workday %} {% periodHours slot.employee workday %} </div>
+                        </div>
+                    </div>
 
                 {% endif %}
                 
             </div>
+            <span id="popover-container-{{slot.id}}">{% include 'wday/partials/popover.html' %}</span> 
         </div>
         {% endfor %}
 
@@ -62,69 +78,61 @@
 
 
     
+    <div class="flex flex-row flex-wrap gap-4">
 
-        <div class="on-deck w-4/12 text-right">
-            
-            <!------ CONTAINER FOR EMPLOYEES ON DECK -------
-            ________________________________________________-->
-            <div class="text-2xl text-emerald-400">ON DECK</div>
-            
             
             {% for empl in workday.on_deck.all %}
                 
-                    <span id="{{ empl.pk }}" 
+                    <div id="{{ empl.pk }}" 
                         draggable="true" 
                         ondragstart="employeeDragStart(event);"
                         ondragend="employeeDragEnd(event);"
-                        class="employee bg-emerald-300 rounded px-3 text-zinc-900"> 
-                        {{ empl }} 
-                    </span>
+                        data-available="{% for s in empl.shifts_available.all %}{{ s }} {% endfor %}"
+                        class="employee bg-emerald-300 rounded px-3 text-zinc-900 flex flex-row w-fc"> 
+                        <div class="flex flex-col text-center">
+                            <div class="font-light text-emerald-800"> {{ empl }} </div>
+                            <div class='text-black text-2xs font-semibold'> {% weekHours empl workday %} {% periodHours empl workday %} </div>
+                        </div>
+                    </div>
                 
             {% endfor %}
-            
-         </div>
-
-        <div class="on-pto w-4/12 text-center">
-
-            <!------ CONTAINER FOR EMPLOYEES ON PTO -------
-            ________________________________________________-->
-            <div class="text-2xl text-amber-400">PTO</div>
+    
 
             
             {% for empl in workday.pto.all %}
                 
-                    <span id="{{ empl.employee.pk }}" 
-                        draggable="true" 
-                        ondragstart="employeeDragStart(event);"
-                        ondragend="employeeDragEnd(event);"  
-                        class="employee bg-amber-400 rounded px-3 text-zinc-900"> 
-                        {{ empl.employee }} 
-                    </span>
+                <div id="{{ empl.employee.pk }}" 
+                    draggable="true" 
+                    ondragstart="employeeDragStart(event);"
+                    ondragend="employeeDragEnd(event);"
+                    data-available="{% for s in empl.employee.shifts_available.all %}{{ s }} {% endfor %}"
+                    class="employee bg-amber-300 rounded px-3 text-zinc-900 flex flex-row w-fc"> 
+                    <div class="flex flex-col text-center">
+                        <div class="font-light text-amber-800"> {{ empl.employee }} </div>
+                        <div class='text-black text-2xs font-semibold'> {% weekHours empl.employee workday %} {% periodHours empl.employee workday %} </div>
+                    </div>
+                </div>
                 
             {% endfor %}
             
-
-        </div>
-
-        <div class="on-tdo w-4/12 text-left">
-
-            <div class="text-2xl text-gray-400">TDO</div>
-
             
             {% for empl in workday.tdo.all %}
                 
-                    <span id="{{ empl.employee.pk }}" 
-                        draggable="true" 
-                        class="employee w-fc bg-slate-400 bg-opacity-60 rounded px-3 text-zinc-900"> 
-                        {{ empl.employee }} 
-                    </span>
-                
+                <div id="{{ empl.employee.pk }}" 
+                    draggable="true" 
+                    ondragstart="employeeDragStart(event);"
+                    ondragend="employeeDragEnd(event);"
+                    data-available="{% for s in empl.employee.shifts_available.all %}{{ s }} {% endfor %}"
+                    class="employee bg-zinc-300 bg-opacity-30 rounded px-3 text-zinc-900 flex flex-row w-fc"> 
+                    <div class="flex flex-col text-center">
+                        <div class="font-light text-zinc-800"> {{ empl.employee }} </div>
+                        <div class='text-black text-2xs font-semibold'> {% weekHours empl.employee workday %} {% periodHours empl.employee workday %} </div>
+                    </div>
+                </div>
+                    
             {% endfor %}
-        
+    
         </div>
-
-        </div>
-
     
 
     <div class="text text-center text-2xs opacity-75 italic"> USING TEMPLATE: WD-DEFAULT </div>
@@ -200,6 +208,7 @@
         }
 
         function drop (event) {
+
             // remove my last child 
             // for child in event.target.children  if child.class == employee remove child
             for (let i = 0; i < event.target.children.length; i++) {
@@ -224,16 +233,22 @@
             const slot = event.target.id;
             const employee = data;
             const url = `slot/${slot}/update/${employee}/`;
-            
-            fetch(url)
-                .then(response => response)
-                .then(data => {
-                    console.log(data);
-                    // wait 750ms then reload the page
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 750);
-                })
+
+            const available = event.target.dataset.available.split(" ");
+            if (available.includes(data)) {
+                fetch(url)
+                    .then(response => response)
+                    .then(data => {
+                        console.log(data);
+                        // wait 750ms then reload the page
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 750);
+                    })
+            } else {
+                alert ('Employee not available for this shift');
+                window.location.reload();
+            }
         }
         function emplInSlotDragStart (event) {
             event.dataTransfer.setData('text', event.target.id);
@@ -250,14 +265,11 @@
             })
             dragType = 'inSlot';
         }
-        function backdropDragOver (event) {
-            if (dragType == 'inSlot') {
-                event.preventDefault();
-                event.target.classList.add('bg-slate-600');
-            }
+        function dragEnterTrash (event) {
+                event.target.classList.add('bg-red-600','ring','ring-red-300','ring-offset-2');
         }
-        function backdropDragLeave (event) {
-            event.target.classList.remove('bg-slate-600');
+        function dragLeaveTrash (event) {
+            event.target.classList.remove('bg-slate-600','ring','ring-red-300','ring-offset-2');
         }
 
         function backdropDragEnd (event) {
@@ -325,13 +337,13 @@
                     if (data =='PM' || data =='XN') {
                         // append a circle icon <i> before the slot name
                         var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-indigo-800','dark:text-indigo-700','text-2xs');
+                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-indigo-800','dark:text-indigo-700','text-xs');
                         employee.prepend(i);
                     }
                     if (data =='AM') {
                         // append a circle icon <i> before the slot name
                         var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-yellow-800','text-2xs');
+                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-amber-800','text-xs');
                         employee.prepend(i);
                     }
                 
@@ -349,13 +361,13 @@
                     if (data =='PM' || data =='XN') {
                         // append a circle icon <i> before the slot name
                         var i = document.createElement('i');
-                        i.classList.add('fa-duotone', 'fa-arrow-circle-right','text-indigo-700','dark:text-indigo-700','text-2xs');
+                        i.classList.add('fa-duotone','fa-arrow-circle-right','text-indigo-800','dark:text-indigo-700','text-xs');
                         employee.append(i);
                     }
                     if (data =='AM') {
                         // append a circle icon <i> before the slot name,'text-2xs'
                         var i = document.createElement('i');
-                        i.classList.add('fa-duotone', 'fa-arrow-cirlce-right','text-yellow-800','text-2xs');
+                        i.classList.add('fa-duotone','fa-arrow-circle-right','text-amber-800','text-xs');
                         employee.append(i);
                     }
                 })

@@ -28,8 +28,8 @@
                             {% for workday in schedule.workdays.all %}
                                 <td>
                                     <span class="pie text-green-300">
-                                        {{workday.slots.filled.count}} {{workday.slots.empty.count}}
-                                </span>
+                                        {{ workday.slots.filled.count }} {{ workday.slots.empty.count }}
+                                    </span>
                                 </td>
                             {% endfor %}
                         </tr>
@@ -48,39 +48,10 @@
                                             hover:scale=110
                                             text
                                             text-right
-                                            text-slate-300"
-
-                                        _="on click remove @hidden from <div.tooltip-mono /> in me end">
-                                        
+                                            text-slate-300">
+                                            
                                     {{ employee }}
-                                    
-                                    <!-- POPUP: Employee info -->   
-                                    <div hidden class="tooltip-mono">
 
-                                            <!--NAME-->
-                                            <div class="text-lg 
-                                                        jbm 
-                                                        text-sky-400"> 
-                                            {{ employee.name}} 
-                                            </div>
-
-                                            <!--LINK TO SCHEDULE VIEW FOR SINGLE EMPLOYEE-->
-                                            <a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug  %}" 
-                                            class= "text-xs transition helv font-light
-                                                    text-indigo-500 hover:text-indigo-200 hover:scale-105"> 
-                                            Go to Employee Schedule
-                                            </a>
-
-                                            <br/>
-
-                                            <!--LINK TO SCHEDULE PTO VIEW FOR SINGLE EMPLOYEE-->
-                                            <a href="{% url 'sch:v2-schedule-empl-pto' schedule.slug employee.slug %}"
-                                            class= "text-xs transition helv font-light
-                                                    text-indigo-500 hover:text-indigo-200 hover:scale-105">
-                                            Go to Employee PTO 
-                                            </a>
-
-                                    </div>
                                 </th>
 
                                 <!-- ROW BODY: Employee assignments within schedule -->
@@ -94,8 +65,8 @@
                                                     font-light 
                                                     text-2xs 
                                                     text-indigo-600"
-                                                href="{{assignment.url|default:'#'}}">
-                                            {{ assignment|default:"PTO" }}
+                                                href="{{ assignment.url | default:'#' }}">
+                                            {{ assignment | default:"PTO" }}
                                             </a>
                                         </td>
                                     </div>
@@ -113,7 +84,7 @@
                                                             text-shadow text-red-300 font-bold pl-1 
                                                     {% endif %}"
                                                 href="{{assignment.url|default:'#'}}">
-                                            {{ assignment.shift|default:"." }}
+                                            {{ assignment.shift | default:"." }}
 
                                             {% if assignment.is_unfavorable %} 
                                                 <span class="text-amber-300 font-bold">
@@ -144,7 +115,9 @@
 
 
 
-    <script> // SCRIPT : POPUP EMPLOYEE INFO
+    <script> 
+        
+        // SCRIPT : POPUP EMPLOYEE INFO
         const toggleElement = document.querySelector('.employee-header');
         const tooltipElement = document.querySelector('.tooltip-mono');
 
@@ -158,7 +131,6 @@
                 }
             }
         }
-        
 
     </script>
 

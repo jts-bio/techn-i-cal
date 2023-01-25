@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.template.loader import render_to_string
+from filters.mixins import FiltersMixin
 
 
 
@@ -12,9 +13,19 @@ from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
 from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
 
-class EmployeeViewSet(viewsets.ModelViewSet):
+class EmployeeViewSet(FiltersMixin, viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    
+    filter_mappings = {
+        'id': 'id',
+        'name': 'name__icontains',
+        'time_pref': 'time_pref__icontains',
+        'streak_pref__gte': 'streak_pref__gte',
+        'streak_pref__lte': 'streak_pref__lte',
+        'available': 'shifts_available',
+    }
+    
     
 class ShiftViewSet(viewsets.ModelViewSet):
     queryset = Shift.objects.all()
@@ -207,7 +218,10 @@ class SchViews:
     
     def schDetail(request, schId):
         html_template = "sch2/schedule/sch-detail.html"
+        
         schedule = Schedule.objects.get(slug=schId)
+        schedule.save()
+        
         context = {
             "schedule": schedule,
         }
@@ -426,6 +440,7 @@ class SchPartials:
         sch = Schedule.objects.get(slug=schId)
         context = {
             "schedule": sch,
+            "other_schedules": Schedule.objects.exclude(slug=schId),
         }
         return render (request, html_template, context)
     
@@ -652,6 +667,7 @@ class EmpViews:
         html_template = "sch2/employee/shift-sort.html"
         emp = Employee.objects.get(pk=empId)
         if request.method == "POST":
+            print(request.POST)
             for i in range(1, emp.shifts_available.count() + 1):
                 shift = request.POST.get(f"bin-{i}")
                 if shift:

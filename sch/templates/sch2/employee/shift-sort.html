@@ -86,14 +86,9 @@
             ev.dataTransfer.setData("text", ev.target.id);
             ev.dataTransfer.effectAllowed = "move";
 
-            document.querySelectorAll('.bin-empty').forEach(bin => {
-                bin.style.width = bin.outerWidth + 10;
-                bin.style.height = bin.outerHeight + 10;
-            });
           }
 
           function dragLeave(ev) {
-            ev.preventDefault();
             ev.target.style.background = "";
           }
           
@@ -107,7 +102,6 @@
           }
 
           function drop(ev) {
-            console.log(`drop: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
             ev.preventDefault();
             ev.target.style.background = "";
           
