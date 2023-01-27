@@ -5,6 +5,7 @@ from django.contrib import admin, messages
 from django.contrib.auth.forms import UserCreationForm
 from django.core.serializers import serialize
 from django.db.models import Count, F, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 from django.forms import formset_factory
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
@@ -16,6 +17,7 @@ from django.views.generic.edit import DeleteView, FormView, UpdateView
 from django.views.generic.list import ListView
 from django_tables2 import RequestConfig
 from django.views.generic.base import View
+
 
 from .actions import *
 from .forms import *
@@ -40,7 +42,10 @@ def schListView(request):
         'C': 'blue',
         'D': 'pink',
     }
-    schedules = Schedule.objects.all()
+    schedules = Schedule.objects.annotate(nEmpty=Count('slots', filter=Q(slots__employee=None)))
+    for schedule in schedules:
+        schedule.n_empty = schedule.nEmpty
+
     for sch in schedules:
         sch.versionColor = VERSION_COLORS[sch.version]
 
@@ -247,7 +252,7 @@ def weekView__employee_possible_slots(request, weekpk, emplpk):
 
 def workdayDetail(request, slug):
 
-    html_template = "sch2/workday/wd-2.html"
+    html_template     = "sch2/workday/wd-2.html"
     html_template_alt = "sch2/workday/wd-detail.html"
     
     workday = Workday.objects.get(slug=slug)

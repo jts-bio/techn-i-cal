@@ -38,6 +38,7 @@
             <div class="slot w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row" 
                  id="{{ slot.shift }}" 
                  data-available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
+                 data-time-of-day="{{ slot.shift.group }}"
                  ondragover="dragOverVerify(event);"
                  ondrop="drop(event);"
                  ondragleave="dragLeave(event);"
@@ -81,42 +82,23 @@
     <div class="flex flex-row flex-wrap gap-4">
 
             
-            {% for empl in workday.on_deck.all %}
-                
-                    <div id="{{ empl.pk }}" 
-                        draggable="true" 
-                        ondragstart="employeeDragStart(event);"
-                        ondragend="employeeDragEnd(event);"
-                        data-available="{% for s in empl.shifts_available.all %}{{ s }} {% endfor %}"
-                        class="employee bg-emerald-300 rounded px-3 text-zinc-900 flex flex-row w-fc"> 
-                        <div class="flex flex-col text-center">
-                            <div class="font-light text-emerald-800"> {{ empl }} </div>
-                            <div class='text-black text-2xs font-semibold'> {% weekHours empl workday %} {% periodHours empl workday %} </div>
-                        </div>
-                    </div>
-                
+            {% for employee in workday.on_deck.all %}
+                {% include 'wday/partials/employeeChip.html' %}
             {% endfor %}
+
+                   
     
 
             
             {% for empl in workday.pto.all %}
-                
-                <div id="{{ empl.employee.pk }}" 
-                    draggable="true" 
-                    ondragstart="employeeDragStart(event);"
-                    ondragend="employeeDragEnd(event);"
-                    data-available="{% for s in empl.employee.shifts_available.all %}{{ s }} {% endfor %}"
-                    class="employee bg-amber-300 rounded px-3 text-zinc-900 flex flex-row w-fc"> 
-                    <div class="flex flex-col text-center">
-                        <div class="font-light text-amber-800"> {{ empl.employee }} </div>
-                        <div class='text-black text-2xs font-semibold'> {% weekHours empl.employee workday %} {% periodHours empl.employee workday %} </div>
-                    </div>
-                </div>
-                
+            {% with empl.employee as employee %}
+                {% include 'wday/partials/employeeChip.html' %}
+            {% endwith %} 
             {% endfor %}
             
             
             {% for empl in workday.tdo.all %}
+            
                 
                 <div id="{{ empl.employee.pk }}" 
                     draggable="true" 
@@ -129,7 +111,6 @@
                         <div class='text-black text-2xs font-semibold'> {% weekHours empl.employee workday %} {% periodHours empl.employee workday %} </div>
                     </div>
                 </div>
-                    
             {% endfor %}
     
         </div>
@@ -141,26 +122,34 @@
     <script>
 
         var dragType = '';
-        // on load get all slots attr data-available and split it by " " into an array
-        // then for each employee in the array, check if the employee is in the on-deck
+        // Employee: DRAGSTART
+        // 1:  amber highlights to turnarounds 
+        // 2: green highlights to slots
+
         function employeeDragStart (event) {
             event.dataTransfer.setData('text', event.target.id);
-            console.log(event.target.id);
+            console.log(event.target.dataset.available.split(" "));
+
             // select slots with event.target.id in data-available.split(" ")
             // add class hold to each slot
             document.querySelectorAll('.slot').forEach(slot => {
-                if (slot.dataset.available.split(" ").includes(event.target.id)) {
+                if (event.target.dataset.available.split(" ").includes(slot.id)) {
                     slot.classList.add('bg-green-400');
                     // add a visible dropzone to the edge of the slots
                 }
             })
-            
+            document.querySelectorAll('.slot.bg-green-400').forEach(slot => {
+                if (event.target.dataset.turnarounds.split(" ").includes(slot.dataset.timeOfDay)) {
+                    slot.classList.add('bg-amber-400');
+                    // add a visible dropzone to the edge of the slots
+                }
+            })
             }
         
         function employeeDragEnd (event) {
             // remove class hold from all slots
             document.querySelectorAll('.slot').forEach(slot => {
-                slot.classList.remove('bg-green-400','ring','ring-green-300','ring-offset-2');
+                slot.classList.remove('bg-green-400','ring','ring-green-300','ring-offset-2','bg-amber-400');
             })
             // remove all dropzones
             document.querySelectorAll('.dropzone').forEach(dropzone => {
@@ -301,8 +290,6 @@
             const url = `slot/${shift}/delete/`;
 
             dragType = '';
-
-
             fetch(url)
                 .then(response => response)
                 .then(data => {
@@ -335,16 +322,12 @@
                     console.log(data);
                   
                     if (data =='PM' || data =='XN') {
-                        // append a circle icon <i> before the slot name
-                        var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-indigo-800','dark:text-indigo-700','text-xs');
-                        employee.prepend(i);
+                        // remove .hidden from #ind-prev-pm
+                        document.getElementById(`${empPk}-ind-prev-pm`).classList.remove('hidden');
+                        employee.dataset.turnarounds += 'AM ';
                     }
                     if (data =='AM') {
-                        // append a circle icon <i> before the slot name
-                        var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-left','text-amber-800','text-xs');
-                        employee.prepend(i);
+                        document.getElementById(`${empPk}-ind-prev-am`).classList.remove('hidden');
                     }
                 
 
@@ -357,18 +340,17 @@
             fetch(url)
                 .then(response => response.text())
                 .then(data => {
-        
+                    
+                    console.log(`${empPk}-ind-next-pm`);
+
                     if (data =='PM' || data =='XN') {
-                        // append a circle icon <i> before the slot name
-                        var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-right','text-indigo-800','dark:text-indigo-700','text-xs');
-                        employee.append(i);
+                        // remove .hidden from #ind-prev-pm
+                        document.getElementById(`${empPk}-ind-next-pm`).classList.remove('hidden');
+                        
                     }
                     if (data =='AM') {
-                        // append a circle icon <i> before the slot name,'text-2xs'
-                        var i = document.createElement('i');
-                        i.classList.add('fa-duotone','fa-arrow-circle-right','text-amber-800','text-xs');
-                        employee.append(i);
+                        document.getElementById(`${empPk}-ind-next-am`).classList.remove('hidden');
+                        employee.dataset.turnarounds += 'PM ';
                     }
                 })
             })

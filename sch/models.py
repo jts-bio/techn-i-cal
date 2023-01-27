@@ -209,7 +209,13 @@ class SlotManager (models.QuerySet):
         return self.annotate(score=
                         Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
                     ).filter(score__lte=0)
-                
+    def mistemplated (self):
+        errors = []
+        potentials = self.exclude(employee=F('template_employee')).exclude(template_employee=None).exclude(employee=None)
+        for i in potentials:
+            if PtoRequest.objects.filter(employee=i.template_employee,workday=i.workday.date).exists() == False:
+                    errors += [i.pk]
+        return Slot.objects.filter(pk__in=errors)         
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -388,19 +394,14 @@ class Shift (models.Model) :
     cls             = models.CharField (max_length=20, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
     start           = models.TimeField()
     duration        = models.DurationField()
-    hours           = models.FloatField() # audo set on save
+    hours           = models.FloatField() 
     group           = models.CharField(max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')), null=True)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
-
     class Meta: 
         
         ordering = ['start']
         
-    def save (self, *args, **kwargs):
-        if self.hours == None:
-            self.hours = self._set_hours()
-        super().save(*args, **kwargs)
     def __str__(self) :
         return self.name
     def url(self):
@@ -470,10 +471,6 @@ class Employee (models.Model) :
     
     class Meta:
         ordering    = ['cls', 'name']
-
-    def __init__(self,*args,**kwargs):
-        super().__init__(*args,**kwargs)
-        self.fte = self.fte_14_day / 80
     def url__tallies (self):
         return reverse("sch:employee-shift-tallies", kwargs={"empId":self.pk})
     def url__update (self):
@@ -622,23 +619,6 @@ class Workday (models.Model) :
     ppd_id   = models.IntegerField(default=-1)
     sd_id    = models.IntegerField(default=-1)  
     percent  = models.IntegerField(default=0)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.slug = self.date.strftime("%Y-%m-%d") + self.schedule.version
-        self.sd_id= (self.date - TEMPLATESCH_STARTDATE).days % 42
-        actions = self.Actions()
-        actions._set_iperiod(self)
-        actions._set_iweek(self)
-        actions._set_iweekday(self)
-        actions._set_ppd_id(self)
-        actions._set_sd_id(self)
-        actions._set_slug(self)
-        actions._set_slugid(self)
-    __all__ = ['date','slug','iweekday','iweek','iperiod','ppd_id','weekday',
-               'shifts',
-               'filledSlots','n_slots',"n_emptySlots",'n_shifts','percFilled',
-               'siblings_iweek']
     
     @property 
     def pto (self):
@@ -801,10 +781,10 @@ class Workday (models.Model) :
         print(not_on_deck)
         return Employee.objects.all().exclude(pk__in=not_on_deck)
     def save            (self, *args, **kwargs) :
+        super().save(*args,**kwargs)
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
         self.percent = self._percent()
-        super().save(*args,**kwargs)
         self.post_save()
     def post_save       (self):
         for i in self.shifts:
@@ -990,8 +970,7 @@ class Period (models.Model):
     def post_save (self):
         for i in self.week_start_dates:
             if not Week.objects.filter(start_date=i,period=self).exists():
-                w = Week.objects.create(start_date=i,year=i.year,number=i.strftime("%U"),period=self,schedule=self.schedule)
-                w.save()  
+                Week.objects.create(start_date=i,year=i.year,number=i.strftime("%U"),period=self,schedule=self.schedule)
     def url (self):
         return reverse('sch:period-detail', args=[self.pk])
     def url__fill_one_with_best (self):
@@ -1049,6 +1028,7 @@ class Schedule (models.Model):
     unfavorable_ratio   = models.FloatField(default=0)
     action_log          = models.TextField(default="")
     last_update         = models.DateTimeField(auto_now=True)
+    n_empty             = models.IntegerField(default=0)
     
     
 
@@ -1087,19 +1067,17 @@ class Schedule (models.Model):
             i += 1
         return self
     def save (self, *args, **kwargs) :
-        self.update_percent()
+        super().save(*args,**kwargs)
         if self.employees.count() == 0:
             self.employees.set(Employee.objects.filter(active=True))
         self.last_update = dt.datetime.now()
         if 'Save Required' in self.tags.all():
             self.tags.remove('Save Required')
-        super().save(*args,**kwargs)
         self.post_save()
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
-                p.save()
     def update_percent (self):
         self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
     @property
@@ -1668,10 +1646,6 @@ class Slot (models.Model) :
                 return "ASSIGNED VIA TEMPLATE"
         return
     def save (self, *args, **kwargs):
-        self.streak = self._streak()
-        self._save_empl_sentiment ()
-        if self.schedule.tags.filter(name='Save Required').exists() == False:
-            self.schedule.tags.add('Save Required')
         super().save(*args, **kwargs)
     def update_fills_with (self):
         self.fills_with.all().delete()

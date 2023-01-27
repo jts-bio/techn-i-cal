@@ -22,6 +22,27 @@
         PTO Request Manager
     </h1>
 
+
+    <form method="POST"> {% csrf_token %}
+
+        <select name="view-pto-empl-select" id="view-pto-empl" 
+                class="bg-amber-100 pl-3 pr-7 font-light text-slate-700" 
+                onchange="location = this.value;">
+
+            <option value="">
+                View Employee Schedule PTO 
+            </option>
+
+        {% for employee in schedule.employees.all %}
+            <option class="px-3 font-light text-slate-700"
+                    value="{% url 'sch:v2-schedule-empl-pto' schedule.pk employee.pk %}">
+                {{ employee }}'s PTO Requests
+            </option>
+        {% endfor %}
+
+        </select>
+    </form>
+
     <form method='POST'> 
         {% csrf_token %} 
         <button type="submit" 
@@ -53,12 +74,10 @@
                 <td> {{ pto.employee }} </td>
                 {% if pto.slot_conflicts.exists %}
                 <td>
-                    <a class="bg-transparent" 
-                        href="{{ pto.conflict.first.url }}">
-                        {{ pto.conflict }} 
-                        <span class="text-2xs text-red-300 bg-red-900 rounded px-2">
-                            CONFLICT 
-                        </span>   
+                    <a class="bg-red-400 text-rose-800 px-5" 
+                        href="{{ pto.slot_conflict.first.url }}">
+                        {{ pto.slot_conflict }} 
+                        CONFLICT
                     </a>
                 </td>
                 {% else %}

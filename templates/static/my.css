@@ -7,6 +7,10 @@
 			letter-spacing: 0px;
 			text-shadow: #1a202c66;
 		}
+				html, body {
+			max-width: 100%;
+			overflow-x: hidden;
+		}
 		html {
 			background-color: #0f172a!important;
 		}
@@ -71,11 +75,26 @@
 			margin-left: 15px;
 			justify-content: center!important;
 		}
+
+		.compact > select {
+			padding-right: 2px!important;
+			padding-left: 2px!important;
+			font-size: 9px;
+		}
+
 		select[disabled] {
 			background-color: #001a1d!important;
 			border: 2px solid rgb(31, 31, 31);	
 			color: #484848aa!important;
 			padding-right: 8px!important;
+		}
+		.compact > select[disabled] {
+			color: #484848aa!important;
+			background-color: #001a1d!important;
+			font-size: 9px;
+			background-color: #001a1d!important;
+			padding-left: 2px!important;
+			padding-right: 2px!important;
 		}
 		select option {
 			background: #32362a!important;

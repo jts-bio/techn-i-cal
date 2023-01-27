@@ -1,6 +1,7 @@
 <div class="w-10/12 md:w-5/12 flex flex-row">
 
-    <h2 id="compare-head" 
+    <label id="compare-head" 
+        for="select-for-compare"
         class="jbm 
                text-xl 
                text-slate-900 
@@ -10,7 +11,7 @@
 
         <i class="text-sky-800 fa-duotone fa-code-compare"></i>
         COMPARE
-    </h2>
+    </label>
 
     <select name="select-for-compare" 
             id="select-for-compare"
@@ -33,7 +34,7 @@
                     hx-get="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
                     hx-target="#swap-pane"
                     hx-indicator="#grid-indicator"
-                    hx-trigger="click"
+                    hx-trigger="select"
                     class="text-xs font-light"
                     >
                     {{ sch.year }}: Schedule {{ sch.number }} 
@@ -41,27 +42,10 @@
                 </option>
             {% endfor %}
             
-    </select>
-
-    <form method="POST"> {% csrf_token %}
-
-        <select name="view-pto-empl-select" id="view-pto-empl" 
-                class="bg-amber-100 pl-3 pr-7 font-light text-slate-700" 
-                onchange="location = this.value;">
-
-            <option value="">
-                View Employee Schedule PTO 
-            </option>
-
-        {% for employee in schedule.employees.all %}
-            <option class="px-3 font-light text-slate-700"
-                    value="{% url 'sch:v2-schedule-empl-pto' schedule.pk employee.pk %}">
-                {{ employee }}'s PTO Requests
-            </option>
-        {% endfor %}
-
         </select>
-    </form>
+
+   
+    
 
 </div>
 

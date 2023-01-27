@@ -20,6 +20,8 @@ class Partials:
         slot = Slot.objects.get(id=slotId)
         context = {'slot': slot}
         return render(request, 'wday/partials/popover.html', context)
+    def events (request):
+        return render(request, 'wday/partials/events.html')
 
 
 def wdListView (request, schSlug='current'):

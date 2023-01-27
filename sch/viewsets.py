@@ -5,7 +5,8 @@ from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.template.loader import render_to_string
-from filters.mixins import FiltersMixin
+
+from django_require_login.decorators import  public
 
 
 
@@ -13,7 +14,7 @@ from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
 from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
 
-class EmployeeViewSet(FiltersMixin, viewsets.ModelViewSet):
+class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     
@@ -215,13 +216,14 @@ class SchViews:
                 emusr_differences.remove(None)
                 emusr_differences.append(0)
             return HttpResponse (max(emusr_differences) - min(emusr_differences))
+        def n_mistemplated (request, schId):
+            sch = Schedule.objects.get(slug=schId)
+            n = sch.slots.mistemplated().count()
+            return HttpResponse(n)
     
     def schDetail(request, schId):
         html_template = "sch2/schedule/sch-detail.html"
-        
-        schedule = Schedule.objects.get(slug=schId)
-        schedule.save()
-        
+        schedule = Schedule.objects.prefetch_related('slots__employee').get(slug=schId)
         context = {
             "schedule": schedule,
         }
@@ -416,6 +418,12 @@ class SchViews:
             slot.save()
         messages.success (request, f"Successfully synched database with schedule {sch.slug}" )
         return HttpResponseRedirect (sch.url())        
+    
+    def mistemplatedView (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        n = sch.slots.mistemplated().count()
+        return render(request, 'sch3/schedule/partials/mistemplated.html', {'schedule':sch,'n':n })
+        
         
         
 class SchPartials:

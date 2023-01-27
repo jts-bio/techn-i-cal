@@ -54,7 +54,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "django_filters",
     "url_filter",
-    "filters",
     "django_tables2",
     "grappelli",
     "django.contrib.admin",

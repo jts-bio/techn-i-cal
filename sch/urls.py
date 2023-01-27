@@ -266,6 +266,7 @@ schedule_patterns = [
     
     path('schedule-calcs/<str:schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
     path('schedule-calcs/<str:schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),
+    path('schedule-calcs/<str:schId>/n-mistemplated/', viewsets.SchViews.Calc.n_mistemplated, name="sch-n-mistemplated"),
 ]
 
 test_patterns = [
