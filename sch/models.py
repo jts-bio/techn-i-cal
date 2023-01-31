@@ -694,7 +694,7 @@ class Workday (models.Model) :
         decimal = self.slots.filled().count() / self.slots.all().count()
         return int(decimal * 100)
     def url (self) :
-        return reverse("wday:detail", kwargs={"slug": self.slug})
+        return reverse("wday:detail", args=[self.slug])
     def prevWD (self) :
         sd = self.sd_id 
         if sd != 0:
@@ -795,7 +795,7 @@ class Workday (models.Model) :
                 s = Slot.objects.create(workday=self,shift=i,week=self.week,period=self.period,schedule=self.schedule)
                 s.save()
     def url             (self):
-        return reverse('wday:wd-detail', args=[self.slug])
+        return reverse('wday:detail', args=[self.slug])
     def url_tooltip     (self):
         return f'/sch/{self.slug}/get-tooltip/'
     def __str__         (self) :

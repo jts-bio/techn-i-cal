@@ -27,7 +27,7 @@
             </h3>
 
             <a
-            href="{{ slot.workday.url }}"
+            href="{% url 'wday:detail' slot.workday.slug %}"
             class="block mb-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
                 {{ slot.workday.wkd }} {{ slot.workday.date }} 
             </a>
@@ -35,8 +35,11 @@
             {% if slot.pto_conflicts.count > 0 %}
                 <form action="{% url 'sch:slot-clear-action' slot.pk %}" method="POST"
                     class="text-base text-2xs text-red-800 bg-red-200 rounded-full px-2 py-1"
-                    _="on mouseover wait 100ms then remove .hidden from the first button in me end 
-                       on mouseleave wait 400ms then add .hidden to the first button in me end"> {% csrf_token %}
+                    _="on mouseover wait 100ms then remove .hidden from the first button in me 
+                        end 
+                       on mouseleave wait 400ms then add .hidden to the first button in me 
+                        end"> 
+                       {% csrf_token %}
                     <i class="fas align-top">{% warnIcon %}</i>
                     PTO Conflict Exists
                     <button type='submit' class="fas align-top deletebutton"

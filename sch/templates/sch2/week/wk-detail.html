@@ -83,7 +83,7 @@
     
     {% for workday in workdays %}
     <div class="hover:ring hover:ring-yellow-200 hover:bg-slate-700  transition ">
-    <a href="{{workday.url}}">
+    <a href="{% url 'wday:detail' workday.slug %}">
         <div class="panel">
             <div 
             class= "text-2xs text-bold text-amber-300">
@@ -117,11 +117,10 @@
             {% for ptor in workday.pto %} 
                 {% if pto.stands_respected %}
                     <span class="text-sky-500"
-                        _="on mouseenter
-                                toggle .hidden 
-                                on the next .tooltips
-                            until mouseleave 
-                            end "> ◉ </span>
+                        _="on mouseenter toggle .hidden  on the next .tooltips until mouseleave 
+                            end ">
+                     ◉ 
+                    </span>
                 {% else %} 
                     <span class="text-rose-500"
                     _="on mouseenter

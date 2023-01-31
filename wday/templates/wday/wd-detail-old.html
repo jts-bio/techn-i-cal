@@ -161,8 +161,7 @@ TEMPLATE VARIABLES
                         <div id= "{{empl.slug}}" 
                         draggable="true"
                         class="rounded px-2 mx-1 text-sm text-zinc-900 bg-yellow-600"
-                        _ ="on mouseover add .bg-yellow-400 to me
-                            on mouseleave remove .bg-yellow-400 from me
+                        _ ="on mouseover toggle .bg-yellow-400 on me until mouseleave
                             ">
                         <span class="font-bold text-zinc-900">
                             {{ empl.employee }}
