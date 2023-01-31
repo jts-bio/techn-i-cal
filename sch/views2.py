@@ -288,7 +288,7 @@ def shiftDetailView(request, cls, name):
     context = {
         "shift": shift,
         "days": days,
-        "upcoming": shift.slots.filter(workday__date__gte=dt.date.today()).order_by("workday__date"),
+        "upcoming": shift.slots.filter(workday__date__gte=dt.date.today()).order_by("workday__date")[:28],
     }
     return render(request, html_template, context)
 

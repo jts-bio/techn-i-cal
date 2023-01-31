@@ -3,16 +3,19 @@
 
 
 <div 
-    class="employee relative w-24 h-14 bg-zinc-100 border border-gray-200 rounded-lg"
+    class="employee relative w-24 h-14 bg-zinc-100 border border-gray-200 rounded-lg
+            {% if desig == 'PTO' %}   opacity-60 {% endif %}
+            {% if desig == 'TDO' %}   opacity-80 {% endif %}"
     id="{{ employee.pk }}" 
     draggable="true" 
-    ondragstart="employeeDragStart(event);"
-    ondragend="employeeDragEnd(event);"
+    ondragstart="employeeDragStart(event); revealTrashbins(event);"
+    ondragend="employeeDragEnd(event); hideTrashbins(event);"
     data-available="{% for s in employee.shifts_available.all %}{{ s }} {% endfor %}"
     data-trained="{% for s in employee.shifts_trained.all %}{{ s }} {% endfor %}"
     data-turnarounds="{% for s in employee.turnarounds %}{{ s }} {% endfor %}"
     data-week-hours="{% weekHours employee workday %}"
     data-period-hours="{% periodHours employee workday %}"
+    data-is-slotted="{{ slot.shift }}"
     >
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
@@ -20,21 +23,29 @@
         <i class="fa-duotone fa-arrow-circle-left text-black"></i>
     </span>
     <span id="{{employee.pk}}-ind-next-am"
-        class="hidden bg-yellow-200 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
+        class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 absolute -translate-y-1/2 translate-x-1/2 left-auto top-0 right-0">
         <i class="fa-duotone fa-arrow-circle-right text-black"></i>
     </span>
     <span 
-        class="bg-slate-200 text-2xs font-light text-zinc-800 text-center p-0.5 leading-none rounded-full 
+        class="bg-slate-200 text-2xs font-light scale-[0.9] text-zinc-800 text-center p-0.5 leading-none rounded-full 
                px-2 absolute translate-y-1/2 translate-x-1/2 bottom-0 right-1/2">
         <i class="fas fa-stopwatch text-black"></i><br/>
         {% weekHours employee workday  %}/
         {% periodHours employee workday %}
     </span>
     <span 
-        class="text-sm font-bold text-zinc-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute -translate-y-1/2 -translate-x-1/2 top-2/4 left-1/2">
-        {{ employee }}
+        class="text-3xl font-thin italic opacity-40 text-zinc-800 text-center p-0.5 leading-none rounded-full 
+               px-2 absolute -translate-y-1/2 -translate-x-1/2 top-1/4 left-1/2 z-20
+               {% if desig == 'PTO' %} text-rose-900 bg-amber-400 p-1 rounded shadow {% endif %}
+               {% if desig == 'TDO' %} text-yellow-800 bg-rose-200 p-1 rounded shadow {% endif %}">
+        {{ desig }}
+    </span>
+    <span 
+        class="text-sm font-bold text-zinc-800 center text-center p-0.5 leading-none rounded-full 
+               px-2 absolute -translate-y-3/4 -translate-x-1/2 top-2/4 left-1/2 shrink">
+        <img src="{{employee.image_url}}" alt="{{employee}}" draggable=false class="w-10 h-10 rounded-full">
+        {{ employee.slug }}
     </span>
     <span id="{{employee.pk}}-ind-prev-pm"
         class="hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 

@@ -96,11 +96,7 @@ shift_patterns = [
     path("shifts/all/overview/", views.SHIFT.shiftOverview, name="shift-overview"),
     path("v2/shift/<str:cls>/<str:name>/", views2.shiftDetailView, name="shift-detail"),
     path("shift/<str:name>/update/", views.SHIFT.ShiftUpdateView.as_view(), name="shift-update"),
-    path(
-        "v2/shift/<str:cls>/<str:sft>/trained/update/",
-        views.SHIFT.trainedShiftView,
-        name="shift-training-update",
-    ),
+    path("v2/shift/<str:cls>/<str:sft>/trained/update/", views.SHIFT.trainedShiftView, name="shift-training-update"),
     path("shifts/new/", views.SHIFT.ShiftCreateView.as_view(), name="shift-new"),
     path(
         "shift/<str:shift>/upcoming/",
@@ -263,16 +259,16 @@ schedule_patterns = [
     path('schedule-partials/<str:schId>/fte-ratios/', viewsets.SchPartials.schFteRatioPartial, name='sch-partial-fte-ratios'),
     path('schedule-partials/<str:schId>/stat-bar/', viewsets.SchPartials.schStatBarPartial, name='sch-partial-stat-bar'),
     path('schedule-partials/<str:schId>/week-breakdown/', viewsets.SchPartials.schWeeklyBreakdownPartial, name='sch-week-brkd'),
+    path('schedule-partials/<str:schId>/mistemplated/', viewsets.SchPartials.schMistemplatedPartial, name='sch-mistemplated'),
     
     path('schedule-calcs/<str:schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
     path('schedule-calcs/<str:schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),
     path('schedule-calcs/<str:schId>/n-mistemplated/', viewsets.SchViews.Calc.n_mistemplated, name="sch-n-mistemplated"),
+    path('schedule-calcs/<str:schId>/all-calcs/', viewsets.SchViews.Calc.all_calcs, name="sch-all-calcs"),
 ]
 
 test_patterns = [
-    path(
-        "test/<slug:workday>/<str:shift>/", views.TEST.allOkIntraWeekSwaps, name="test1"
-    ),
+    path("test/<slug:workday>/<str:shift>/", views.TEST.allOkIntraWeekSwaps, name="test" ),
     path(
         "test/<slug:workday>/<str:shift>/i-s/",
         views.TEST.possibleInterWeekSlotSwaps,

@@ -27,3 +27,13 @@ def periodHours (empl, period):
         return 0
     return int(hrs)
 
+@register.simple_tag
+def isSlotted (empl, wd):
+    """ 
+    CHECK EMPLOYEE IS SLOTTED ON WORKDAY
+    """
+    if empl in wd.slots.filled().filter(employee=empl).values('employee'):
+        return True
+    return False
+
+

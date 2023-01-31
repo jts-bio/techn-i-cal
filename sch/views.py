@@ -2142,7 +2142,6 @@ class SCHEDULE:
         for slot in slots:
             if slot.employee.streak_pref - slot.streak ==1:
                 oneOverStreak += [slot]
-        oneOverStreak
         for slot in oneOverStreak:
             if not ShiftTemplate.objects.filter(ppd_id=slot.workday.sd_id, employee=slot.employee).exists():
                 print(f"DELETING SLOT : {slot}")
@@ -2280,24 +2279,22 @@ class TEST:
         ============================
         -> list [Slot]
         Get All the Slots that could be traded with this input slot with respect to training,
-        and would NOT create any inappropraite turnarounds.
+        and would NOT create any inappropriate turnarounds.
         """
-        slot = Slot.objects.get(workday__slug=workday,shift__name=shift)
+        slot = Slot.objects.get(workday__slug=workday, shift__name=shift)
         empA = slot.employee    #type: Employee 
         shiftA = slot.shift     #type: Shift
         
         # potential slots employee A can swap into within this week
         potential = Slot.objects.filter(
-            workday__iweek=slot.workday.iweek,
-            workday__date__year=slot.workday.date.year,
-            shift__in=empA.shifts_trained.all())
+            workday__iweek= slot.workday.iweek,
+            workday__date__year= slot.workday.date.year,
+            shift__in= empA.shifts_trained.all()
+            )
         
         # build list of employeeA currentSlots
-        empA_weekslots = Slot.objects.filter(employee=empA, workday__iweek=slot.workday.iweek).exclude(workday=slot.workday)
-        weekbeforeSat = (slot.workday.iweek_of).prevWD()
-        weekafterSun = Slot.objects.filter(workday__date=weekbeforeSat.date+dt.timedelta(days=7),employee=empA)
-        weekbeforeSat = Slot.objects.filter(workday=weekbeforeSat,employee=empA)
-        empA_allslots = empA_weekslots & weekbeforeSat & weekafterSun
+        empA_weekslots = Slot.objects.filter(employee=empA, workday__iweek=slot.workday.iweek).exclude(workday=slot.workday)      
+        empA_allslots = empA_weekslots
         
         # use the incompatible_slots method of employeeA's slots to exculde slots to not consider
         for s in empA_allslots:
@@ -2307,7 +2304,7 @@ class TEST:
             'empA':empA,
             'shiftA':shiftA,
             'empA_allSlots':empA_allslots,
-            'potential':potential,
+            'potential':potential
         }
         return render(request, 'sch/test/test.html', context=context)
     

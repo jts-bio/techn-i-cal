@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    "schedule.apps.ScheduleConfig",
     "flow.apps.FlowConfig",
     "wday.apps.WdayConfig",
     "pds.apps.PdsConfig",

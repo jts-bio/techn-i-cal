@@ -53,8 +53,20 @@
             <div class="hstack">
                 <a href="{{ shift.prevUrl }}"> 
                     {% backArrow %} </a>
-                <div class="vstack">
-                    <h1 class="text-3xl">{{shift}}</h1>
+                <div class="vstack place-items-center  mx-5 bg-zinc-900 p-2 rounded-lg">
+                    <div class="hstack">
+                         <!--SHIFT IMAGE -->
+                        <img src="{{ shift.image_url }}" 
+                            alt="{{ shift.name }}" 
+                            class="w-20 h-20 rounded-full ring-2 ring-zinc-900 
+                                    ring-offset-2 pointer
+                                    hover:scale-[175%] hover:ring-sky-200 
+                                    transition"
+                            hx-prompt="Set Shift image via URL:"
+                            hx-trigger="click"
+                            hx-post="/api/shift/{{shift.name}}/actions/set-img/" />
+                        <h1 class="text-3xl font-bold">{{shift}}</h1>
+                    </div>
                     <h3 class="text-md">{{shift.cls}} Shift</h3>
                 </div>
                 <a href="{{ shift.nextUrl }}"> 

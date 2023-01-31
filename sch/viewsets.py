@@ -1,18 +1,20 @@
 from sch.models import *
 from . import forms 
 from django.shortcuts import render, HttpResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.template.loader import render_to_string
+from django.views.decorators.csrf import csrf_exempt
 
-from django_require_login.decorators import  public
-
-
+from django_require_login.decorators import public
 
 from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
 from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
+
+
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -105,6 +107,16 @@ class Actions:
                     messages.success(request, msg)
                     return HttpResponseRedirect(slot.workday.url())
 
+    class ShiftActions: 
+        @csrf_exempt          
+        def set__shift_img(request, empId):
+            # get HX-PROMPT from header
+            url = request.session['HX-PROMPT'] = request.headers['HX-PROMPT']
+            empl = Employee.objects.get(pk=empId)
+            empl.image_url = url
+            empl.save()
+            return HttpResponseRedirect(empl.url())
+        
     class PeriodActions:
         def fill_slot_with_lowest_hour_employee(request, prdId):
             period = Period.objects.get(pk=prdId)
@@ -166,12 +178,15 @@ class SchViews:
             uf_stdev_diff = schedule.unfavorable_ratio - mean 
             
             distr = uf_stdev_diff / ufs_stdev
-            
-            dist = int(distr)
-            return HttpResponse( round(distr,2) )
+            return JsonResponse(round(distr,2), safe=False)
         def n_empty (request, schId):
             sch = Schedule.objects.get(slug=schId)
-            return HttpResponse(sch.slots.empty().count())
+            return sch.slots.empty().count()
+        def percent (request, schId):
+            sch = Schedule.objects.get(slug=schId)
+            n_slots = sch.slots.count()
+            n_filled = sch.slots.filled().count()
+            return int(round(n_filled/n_slots,2)*100)
         def emusr_distr (request, schId):
             sch = Schedule.objects.get(slug=schId)
             n_pm = sch.slots.evenings().count()
@@ -215,15 +230,26 @@ class SchViews:
             while None in emusr_differences:
                 emusr_differences.remove(None)
                 emusr_differences.append(0)
-            return HttpResponse (max(emusr_differences) - min(emusr_differences))
+            return JsonResponse(max(emusr_differences) - min(emusr_differences), safe=False)
         def n_mistemplated (request, schId):
             sch = Schedule.objects.get(slug=schId)
             n = sch.slots.mistemplated().count()
-            return HttpResponse(n)
-    
+            return n
+        def all_calcs (request, schId):
+            sch = Schedule.objects.get(slug=schId)
+            return JsonResponse(
+                {
+                'uf_distr': SchViews.Calc.uf_distr(request, schId),
+                'n_empty': SchViews.Calc.n_empty(request, schId),
+                'emusr_distr': SchViews.Calc.emusr_distr(request, schId),
+                'n_mistemplated': SchViews.Calc.n_mistemplated(request, schId),
+                'percent': SchViews.Calc.percent(request, schId)
+                }
+            )
+        
     def schDetail(request, schId):
         html_template = "sch2/schedule/sch-detail.html"
-        schedule = Schedule.objects.prefetch_related('slots__employee').get(slug=schId)
+        schedule = Schedule.objects.get(slug=schId)
         context = {
             "schedule": schedule,
         }
@@ -507,7 +533,10 @@ class SchPartials:
         }
         return render(request, html_template, context)
 
-        
+    def schMistemplatedPartial (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        mistemplated = sch.slots.mistemplated().all()
+        return render(request,'sch2/schedule/partials/mistemplated.html',{'sch' : sch , 'mistemplated' : mistemplated })
 
 
 class EmpPartials:

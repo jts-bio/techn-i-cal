@@ -1,0 +1,22 @@
+<div class="flex items-center space-x-4">
+    <div class="flex-shrink-0">
+        <div class="h-7 w-7 pl-2 pt-[1.5px] rounded-full  bg-amber-300">
+            <i class="fa-duotone text-black fa-island-tropical"></i>
+        </div>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+            Total 'Unfavorables'
+        </p>
+        <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">
+            Goal: n < 30
+        </p>
+    </div>
+    <div class="inline-flex items-center text-base font-semibold text-gray-100"
+    hx-get="/api/schedule/{{schedule.slug}}/n-unfavorables/"
+    hx-trigger='load'
+    hx-target="#n-ufs">
+        <span id="n-ufs"></span>
+        <span class="opacity-70 text-xs font-light italic pl-2"> slots</span>
+    </div>
+</div>

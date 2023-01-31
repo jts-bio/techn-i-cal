@@ -93,12 +93,13 @@ urlpatterns = [
     path('accounts/',   include        ('django.contrib.auth.urls')),
     path('grappelli/',  include        ('grappelli.urls')),
     path('admin/doc/',  include        ('django.contrib.admindocs.urls')),
-    path('admin/',      admin.site.urls,        name='admin'),
-    path('sch/',        include('sch.urls'),    name='sch'),
-    path('wday/',       include('wday.urls'),   name='wday'),
-    path('pds/',        include('pds.urls'),    name="pds"),
-    path('flow/',       include('flow.urls'),   name='flow'),
-    path('mail/',       mail,                   name='mail'),
+    path('admin/',      admin.site.urls,          name='admin'),
+    path('sch/',        include('sch.urls'),      name='sch'),
+    path('schedule/',   include('schedule.urls'), name='schedule'),
+    path('wday/',       include('wday.urls'),     name='wday'),
+    path('pds/',        include('pds.urls'),      name="pds"),
+    path('api/',       include('flow.urls'),      name='flow'),
+    path('mail/',       mail,                     name='mail'),
 
 ] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

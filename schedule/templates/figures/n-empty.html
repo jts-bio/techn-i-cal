@@ -1,0 +1,20 @@
+<div class="flex items-center space-x-4">
+    <div class="flex-shrink-0">
+        <div class="h-7 w-7 pl-[3.5px] pt-[1.5px] rounded-full border border-white  bg-amber-300"><i class="fa-duotone text-black fa-person-circle-question"></i></div>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+            Empty Slots
+        </p>
+        <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">
+            Goal: n < 8 
+        </p>
+    </div>
+    <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+        hx-get="/api/schedule/{{schedule.slug}}/n-empty/"
+        hx-trigger='load'
+        hx-target="#n-empty">
+        <span id="n-empty"></span>
+        <span class="opacity-70 text-xs font-light italic pl-1"> empty</span>
+    </div>
+</div>

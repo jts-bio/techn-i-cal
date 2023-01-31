@@ -1,0 +1,14 @@
+
+
+<h1 class="text-3xl">{{ sch }}: Mistemplated Slots</h1>
+<table>
+    
+    {% for m in mistemplated %}
+    <tr>
+        <td>{{ m.workday.date }}</td>
+        <td> {{ m.shift }}</td>
+        <td> {{ m.employee }}</td>
+    </tr>
+    {% endfor %}
+    
+</table>

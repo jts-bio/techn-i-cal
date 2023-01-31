@@ -42,64 +42,49 @@
             height: 28px;
             font-family: "JetBrains Mono", sans-serif;
         }
-                /* prepare wrapper element */
-        div {
+        /* prepare wrapper element */
+        #my-input-container {
             display: inline-block;
             position: relative;
-        }
-        
-        /* position the unit to the right of the wrapper */
-        div::after {
-            position: absolute;
-            top: 2px;
-            right: .5em;
-            transition: all .05s ease-in-out;
-        }
-        
-        /* move unit more to the left on hover or focus within
-            for arrow buttons will appear to the right of number inputs */
-        div:hover::after,
-        div:focus-within::after {
-            right: 1.5em;
-        }
-        
-        /* handle Firefox (arrows always shown) */
-        @supports (-moz-appearance:none) {
-            div::after {
-            right: 1.5em;
+            font: 12px 'JetBrains Mono';
             }
-        }
-        
-        /* set the unit abbreviation for each unit class */
-        .hrsWrapper::after {
-            content: 'hrs.';
+            
+        #my-input-container > input {
+            font: inherit;
+            wicth: 100%!important;
+            }
+            
+            #my-suffix {
+                position: absolute;
+                left: 3px;
+                top: 10px;
+                color: #bbb;
+                padding-left: 45px;
+                margin-left: 4px;
+                font: inherit;
+                font-size: 9px;
+                }
+        #my-input-container-2 {
+            display: inline-block;
+            position: relative;
+            font: 12px 'JetBrains Mono';
+            }
+            
+        #my-input-container-2 > input {
+            font: inherit;
+            }
+            
+        #my-suffix-2 {
+            position: absolute;
+            left: 3px;
+            top: 10px;
+            color: #bbb;
+            padding-left: 25px;
+            margin-left: 4px;
+            font: inherit;
             font-size: 9px;
-            margin-right: 1em;
-            margin-top: 0.75em;
-            margin-left: 1em;
-            font-style: italic;
-            font-family: "Montserrat", sans-serif;
-        }
-        .inARowWrapper::after {
-            content: 'in-a-row';
-            font-size: 8px;
-            opacity: 80%;
-            margin-right: 1em;
-            margin-top: 0.75em;
-            margin-left: 1em;
-            font-style: italic;
-            font-family: "Montserrat", sans-serif;
-        }
-        .percent::after {
-            content: '%';
-        }
-        input[type="number"] {
-            width: 7em;
-            text-align: right;
-            font-family: "JetBrains Mono", sans-serif;
-            color: indigo;
-        }
-        
+            }
+
     </style> 
 {% endblock style %}
 
@@ -122,12 +107,18 @@
                     {%if field.name == 'fte_14_day'%}
                     <tr>
                         <td>{{field.label}}</td>
-                        <td> <div class="hrsWrapper px-2"> {{field}} </div> </td>
+                        <td> <div id="my-input-container" class=""> 
+                            {{ field }}
+                            <span id="my-suffix" class="suffix">hrs.</span> 
+                        </div> </td>
                     </tr>
                     {%elif field.name == 'streak_pref' %}
                     <tr>
                         <td>{{field.label}}</td>
-                        <td> <div class="inARowWrapper"> {{field}} </div> </td>
+                        <td> <div id="my-input-container-2" class="">
+                             {{field}}
+                             <span id="my-suffix-2" class="suffix">in-a-row</span> 
+                        </div> </td>
                     </tr>
                     {% else %}
                     <tr>
@@ -135,14 +126,20 @@
                         <td>{{field}}</td>
                     </tr>
                     {%endif%}
-                {%endfor%}
-            </table>
-            <input class="border float-right border-yellow-400 rounded 
+                {%endfor%} 
+                
+                <input class="border float-right border-yellow-400 rounded 
+                          float-left
                           mt-3 px-3 py-1 hover:scale-[110%] 
                           hover:bg-yellow-400
                           hover:border-white transition hover:text-black"
                     type="submit" value="Update">
+            </table>
+           
         </form>
     </div>
+
+
+   
 
 {% endblock %}

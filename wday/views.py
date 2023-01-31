@@ -36,7 +36,7 @@ def wdListView (request, schSlug='current'):
                                     When(percent__lte=50, then=Value('bg-indigo-900 bg-opacity-70')),
                                     When(percent__lte=75, then=Value('bg-indigo-800 bg-opacity-80')),
                                     When(percent__lte=85, then=Value('bg-indigo-700 bg-opacity-90')),
-                                    When(percent__lte=100, then=Value('bg-indigo-600 border-indigo-400')),
+                                    When(percent__lte=100,then=Value('bg-indigo-600 border-indigo-400')),
                                 )            
                             )
     context = {'view_schedule': schedule, 'schedules': Schedule.objects.all(), 'workdays': workdays}
@@ -73,7 +73,7 @@ class SlotActions:
         slot.employee = None
         slot.save()
         messages.info(request, f"Slot {slot.shift} has been cleared successfully.")
-        return HttpResponseRedirect( reverse('wd-detail', kwargs={'slug': slug} ))
+        return HttpResponseRedirect( reverse('wday:detail', kwargs={'slug': slug} ))
     
     def slotUpdateView (request, slug, shiftId, empId):
         slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
@@ -84,4 +84,4 @@ class SlotActions:
         slot.employee = Employee.objects.get(slug=empId)
         slot.save()
         messages.success(request, f"Slot {slot.shift} has been filled successfully.")
-        return HttpResponseRedirect( reverse('wday:wd-detail', kwargs={'slug': slug} ))
+        return HttpResponseRedirect( reverse('wday:detail', kwargs={'slug': slug} ))

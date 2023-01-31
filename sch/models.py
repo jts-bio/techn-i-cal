@@ -137,9 +137,8 @@ class SlotManager (models.QuerySet):
             if i.is_preturnaround:
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
-    def unfavorables    (self):
-        ufs = [i.pk for i in self if i.is_unfavorable() == True]
-        return Slot.objects.filter(pk__in=ufs)
+    def unfavorables(self):
+        return self.exclude(employee__time_pref=F('shift__group'))
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
@@ -209,13 +208,16 @@ class SlotManager (models.QuerySet):
         return self.annotate(score=
                         Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
                     ).filter(score__lte=0)
-    def mistemplated (self):
-        errors = []
-        potentials = self.exclude(employee=F('template_employee')).exclude(template_employee=None).exclude(employee=None)
-        for i in potentials:
-            if PtoRequest.objects.filter(employee=i.template_employee,workday=i.workday.date).exists() == False:
-                    errors += [i.pk]
-        return Slot.objects.filter(pk__in=errors)         
+    def mistemplated(self):
+        return self.exclude(
+            employee=F('template_employee')).exclude(
+            template_employee=None).exclude(
+            employee=None).exclude(
+            template_employee__ptorequest__workday=F('workday')) 
+    def conflictsWithPto(self):
+        return self.filter(Q(employee__ptorequest__workday=F('workday__date')))
+              
+              
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -398,8 +400,9 @@ class Shift (models.Model) :
     group           = models.CharField(max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')), null=True)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
-    class Meta: 
-        
+    image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
+    
+    class Meta:     
         ordering = ['start']
         
     def __str__(self) :
@@ -463,7 +466,7 @@ class Employee (models.Model) :
     trade_one_offs  = models.BooleanField (default=True)
     cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=20)
     evening_pref    = models.BooleanField (default=False)
-    time_pref       = models.CharField(max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')))
+    time_pref       = models.CharField(max_length=10, choices=(('AM','Morning'),('PM','Evening'),('XN','Overnight')))
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
@@ -691,7 +694,7 @@ class Workday (models.Model) :
         decimal = self.slots.filled().count() / self.slots.all().count()
         return int(decimal * 100)
     def url (self) :
-        return reverse("wday:wd-detail", kwargs={"slug": self.slug})
+        return reverse("wday:detail", kwargs={"slug": self.slug})
     def prevWD (self) :
         sd = self.sd_id 
         if sd != 0:

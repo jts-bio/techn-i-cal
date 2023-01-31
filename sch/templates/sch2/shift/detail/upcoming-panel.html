@@ -4,7 +4,7 @@
 
         {% for instance in upcoming %}
         <div class="flex flex-col align-center">
-            <a class="calendar-page bg-zinc-900 shadow shadow-lg" href="{{ instance.workday.url }}">
+            <a class="calendar-page bg-zinc-900 shadow shadow-lg" href="{{ instance.url }}">
                 <div class="calendar-header">{{ instance.workday.wkd }}</div>
                 <div class="calendar-date jbm text-2xl mb-3">{{ instance.workday.date.month }}/{{ instance.workday.date.day }}</div>
                 <div class="calendar-name {% if instance.employee == None %}  text-zinc-900 text-shadow {% endif %}"> {{ instance.employee }}</div>
