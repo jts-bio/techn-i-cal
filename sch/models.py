@@ -216,8 +216,6 @@ class SlotManager (models.QuerySet):
             template_employee__ptorequest__workday=F('workday')) 
     def conflictsWithPto(self):
         return self.filter(Q(employee__ptorequest__workday=F('workday__date')))
-              
-              
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -693,8 +691,6 @@ class Workday (models.Model) :
     def _percent (self):
         decimal = self.slots.filled().count() / self.slots.all().count()
         return int(decimal * 100)
-    def url (self) :
-        return reverse("wday:detail", args=[self.slug])
     def prevWD (self) :
         sd = self.sd_id 
         if sd != 0:

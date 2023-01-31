@@ -1,17 +1,20 @@
 {% extends 'base.html' %}
 {% load tags %}
 
-<head>
+<!--
+TEMPLATE:  WORKDAY_DETAIL
+-->
+
+{% block style %}
     <style>
         {% include 'sch/css/_wikitable.css' %}
     </style>
+{% endblock style %}
 
-</head>
-
-<!----------------------------
+{#----------------------------
 TEMPLATE VARIABLES
     *   workday
------------------------------->
+------------------------------#}
 
 {% block content %}
 
@@ -124,15 +127,20 @@ TEMPLATE VARIABLES
                 <div id="on-deck-container">
 
                 <div class="grid grid-cols-2 gap-2">
+
                 {% for empl in workday.on_deck %}
                         <div id= "{{empl.slug}}" 
                             draggable="true"
                             _="on dragstart set dragging to me
                                 set draggingSlug to me.id
-                                add .bg-orange-100 to .{{empl.slug}}-available call event.dataTransfer.getData('text') then log the result
-                            on dragover if target.dataset.availableEmpls.split(';') contains $draggingSlug halt the event
+                                add .bg-orange-100 to .{{empl.slug}}-available 
+                                call event.dataTransfer.getData('text')
+                                log the result
+                            on dragover if target.dataset.availableEmpls.split(';') contains $draggingSlug 
+                                halt the event
                                 tell target add .bg-emerald-500
-                            on dragend set $draggingSlug to null set $dragging to null"
+                            on dragend set $draggingSlug to null 
+                                set $dragging to null"
                             
                             class="rounded px-2 mx-1 text-sm text-zinc-900 bg-emerald-600">
                             <span class="font-bold text-zinc-900">
@@ -147,8 +155,8 @@ TEMPLATE VARIABLES
                             </div>
                             <div id="context" class="hidden context-menu-wrapper">Context Menu</div>
                         </div>
-                        
                 {% endfor %}
+                
                 </div>
                 </div>
             </div>

@@ -230,6 +230,8 @@ class SchViews:
             while None in emusr_differences:
                 emusr_differences.remove(None)
                 emusr_differences.append(0)
+            if len(emusr_differences) == 0:
+                emusr_differences.append(0)
             return JsonResponse(max(emusr_differences) - min(emusr_differences), safe=False)
         def n_mistemplated (request, schId):
             sch = Schedule.objects.get(slug=schId)
