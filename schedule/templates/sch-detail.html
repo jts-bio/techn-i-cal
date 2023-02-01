@@ -4,12 +4,37 @@
 
 
 {% block content %}
+    <div class="panel text text-center mt-2">
+        <div>
+            <a class="transition hover:scale-105" href="{% url 'schd:detail' schedule.previous.slug %}">
+                <i class="fa-arrow-circle-left fa-duotone transition hover:scale-105"></i>
+            </a>
+            <a class="transition hover:scale-105"  href="{% url 'schd:detail' schedule.next.slug %}">
+                <i class="fa-arrow-circle-right fa-duotone"></i>
+            </a>
+        </div>
+        <h1 class="text-3xl text-zinc-400 font-bold">
+            Schedule {{schedule.number}} ({{ schedule.year }})
+        </h1> 
+        <h3 class="text-lg text-zinc-100 font-light">
+            VERSION {{schedule.version}}   
+        </h3>
+    </div>
 
-    <h1 class="text-3xl text-indigo-300">Schedule {{ schedule.slug }}</h1>
-
-    <section>
-        {% include 'stats.html' %}
-    </section>
+    <div class="flex flex-col">
+        <section>
+            {% include 'sch2/schedule/partials/sch-tabBar.html' %}
+        </section>
+        <section>
+            <div class="flex flex-row mb-3">
+                {% include 'stats.html' %}
+                <div id="swap-pane"
+                    class="container ml-2 bg-zinc-900 rounded shadow border-zinc-300 border-2">
+                </div>
+            </div>
+        </section>
+    </div>
+    
 
 {% endblock %}
 

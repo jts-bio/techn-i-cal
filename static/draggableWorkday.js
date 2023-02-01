@@ -112,51 +112,59 @@ function drop (event) {
     var availableFor = emplObj.dataset.available.split(" ");
 
     var allowContinue = false;
-    console.log(availableFor);
     availableFor.forEach(slot => {
         if (slot == event.target.id) {
             allowContinue = true;
         }
-    })
+    });
+
+    // return swapEmployee fx if dragging employee from slot to slot
+    if (dragSource == 'slot') {
+        swapEmployee(event, emplObj, allowContinue);
+        return;
+    }
+
+    // Remove the employee from the previous slot if they were already in another slot
+    const previousSlot = emplObj.parentElement;
+    if (previousSlot && previousSlot != event.target) {
+        previousSlot.removeChild(emplObj);
+    }
 
     if (allowContinue) {
-        for (let i = 0; i < event.target.children.length; i++) {
-            if (event.target.children[i].classList.contains('employee')) {
-                if (event.target.children[i].id != event.dataTransfer.getData('text')) {
-                event.target.children[i].remove();
-                }
-            }
-        }
-    // set animation on slot being updated
-    event.target.classList.add('fa-fade');
-    event.target.appendChild(document.getElementById(data));
+        event.target.appendChild(emplObj);
+        // set animation on slot being updated
+        event.target.classList.add('fa-fade');
 
-    document.querySelectorAll('.slot').forEach(slot => {
-        slot.classList.remove('bg-green-400','ring','ring-green-300','ring-offset-2');
-    })
+        document.querySelectorAll('.slot').forEach(slot => {
+            slot.classList.remove('bg-green-400','ring','ring-green-300','ring-offset-2');
+        });
 
-    // update the database
-    const slot = event.target.id;
-    const employee = data;
-    const url = `slot/${slot}/update/${employee}/`;
+        // update the database
+        const slot = event.target.id;
+        const employee = event.dataTransfer.getData('text');
+        const oldSlot = document.getElementById(employee).dataset.slottedAs;
+        console.log(`${oldSlot},${oldSlotId}, ${slot}`);
+        const url = `slot/${slot}/update/${employee}/`;
 
-    const available = event.target.dataset.available.split(" ");
-    if (available.includes(data)) {
-        fetch(url)
-            .then(response => response)
-            .then(data => {
-                console.log(data);
-                // wait 750ms then reload the page
-                setTimeout(() => {
-                    window.location.reload();
-                }, 750);
-            })
-    } else {
-        alert ('PERMISSION DENIED: Employee would be placed in a turnaround.');
-        window.location.reload();
+        const available = event.target.dataset.available.split(" ");
+        if (available.includes(data)) {
+            console.log('Available includes targetSlot');
+            fetch(url)
+                .then(response => response)
+                .then(data => {
+                    console.log(data);
+                    // wait 750ms then reload the page
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 750);
+                });
+        } else {
+            alert ('PERMISSION DENIED: Employee would be placed in a turnaround.');
+            window.location.reload();
         }
     }
 }
+
 function emplInSlotDragStart (event) {
     event.dataTransfer.setData('text', event.target.id);
     console.log(event.target.id);
@@ -249,6 +257,22 @@ function mouseLeaveEllipsis (event) {
         employee.classList.remove('bg-green-400');
         employee.classList.remove('scale-[115%]');
     })
+}
+function swapEmployees (event) {
+    const slotA = event.target.dataset.slottedAs;
+    const slotB = event.target.id;
+    const empA = document.getElementById(slotA).dataset.slottedAs;
+    const empB = document.getElementById(slotB).dataset.slottedAs;
+    const url = `/wday/partial/${slotA}/swap/${slotB}/`;
+    fetch(url)
+        .then(response => response)
+        .then(data => {
+            console.log(data);
+            // wait 750ms then reload the page
+            setTimeout(() => {
+                window.location.reload();
+            }, 750);
+        })
 }
 //get all .employee and fetch api/employee/<str:empPk>/checkPrevWd/<str:wdId>/
 document.querySelectorAll('.employee').forEach(employee => {

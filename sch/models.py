@@ -609,17 +609,17 @@ class Employee (models.Model) :
 class Workday (models.Model) :
     # fields: date, shifts 
     date     = models.DateField()
-    week     = models.ForeignKey("week",     on_delete=models.CASCADE, null=True, related_name='workdays')
-    period   = models.ForeignKey("Period",   on_delete=models.CASCADE, null=True, related_name='workdays')
-    schedule = models.ForeignKey("Schedule", on_delete=models.CASCADE, null=True, related_name='workdays')
-    slug     = models.CharField   (max_length=30, null=True, blank=True)
+    week     = models.ForeignKey ("week",     on_delete=models.CASCADE, null=True, related_name='workdays')
+    period   = models.ForeignKey ("Period",   on_delete=models.CASCADE, null=True, related_name='workdays')
+    schedule = models.ForeignKey ("Schedule", on_delete=models.CASCADE, null=True, related_name='workdays')
+    slug     = models.CharField  (max_length=30, null=True, blank=True)
     iweekday = models.IntegerField(default=-1)
     iweek    = models.IntegerField(default=-1)
     iperiod  = models.IntegerField(default=-1)
     ischedule= models.IntegerField(default=-1)
     ppd_id   = models.IntegerField(default=-1)
     sd_id    = models.IntegerField(default=-1)  
-    percent  = models.IntegerField(default=0)
+    percent  = models.IntegerField(default=0 )
     
     @property 
     def pto (self):
@@ -689,6 +689,8 @@ class Workday (models.Model) :
     def percFilled (self) :
         return self.filledSlots.count() / self.shifts.count()
     def _percent (self):
+        if self.slots.all().count() == 0:
+            return 0
         decimal = self.slots.filled().count() / self.slots.all().count()
         return int(decimal * 100)
     def prevWD (self) :
@@ -789,11 +791,11 @@ class Workday (models.Model) :
         for i in self.shifts:
             if not Slot.objects.filter(workday=self,shift=i).exists():
                 s = Slot.objects.create(workday=self,shift=i,week=self.week,period=self.period,schedule=self.schedule)
-                s.save()
     def url             (self):
         return reverse('wday:detail', args=[self.slug])
     def url_tooltip     (self):
         return f'/sch/{self.slug}/get-tooltip/'
+
     def __str__         (self) :
         return str(self.date.strftime('%Y %m %d'))
     
@@ -803,7 +805,8 @@ WD_VIEW_PREF_CHOICES = (
         (0,'wday/wd-detail-2.html'),
         (1,'wday/wd-detail.html'),
         (2,'wday/wd-detail-old.html'),
-        (3,'wday/wd-3.html')
+        (3,'wday/wd-3.html'),
+        (4,'wday/partials/hs_wday.html')
     )
 class WorkdayViewPreference (models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -1066,12 +1069,15 @@ class Schedule (models.Model):
             i += 1
         return self
     def save (self, *args, **kwargs) :
-        super().save(*args,**kwargs)
+        if self.slug !=  f'{self.year}-S{self.number}{self.version}':
+            self.slug = f'{self.year}-S{self.number}{self.version}'
+            super().save(*args,**kwargs)
         if self.employees.count() == 0:
             self.employees.set(Employee.objects.filter(active=True))
         self.last_update = dt.datetime.now()
         if 'Save Required' in self.tags.all():
             self.tags.remove('Save Required')
+        super().save(*args,**kwargs)
         self.post_save()
     def post_save (self) :
         for pp in self.payPeriod_start_dates:
@@ -1982,7 +1988,6 @@ def generate_schedule (year,number):
     if Schedule.objects.filter(year=year, number=number).exists(): 
         n_same = Schedule.objects.filter(year=year, number=number).count()
     version = "ABCDEFGHIJKLMNOP"[n_same]
-
     Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
     
 def randomSlot ():

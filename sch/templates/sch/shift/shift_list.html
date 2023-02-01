@@ -14,12 +14,17 @@
 
 {% block content %}
 
-    <a href="/sch/sst-by-day/" class="btn btn-xs btn-info">Day Templating</a>
+    <a href="/sch/sst-by-day/" 
+        class="bg-sky-200 text-sky-900 px-3 transition  border-3 border-blue-500 
+            rounded hover:bg-white hover:border-sky-300 
+            hover:scale-110">
+        Day Templating
+    </a>
 
     <h1 class="text-center" style="font-size:32px;">MANAGE SHIFTS</h1>
     
     <div class="lg:hstack center sm:vstack">
-    <div class="w-fc">
+    <div class="bg-zinc-900 border-2 border-sky-200 rounded p-3 mb-3">
 
             <a href="/sch/shifts/new/" 
                class="bg-blue-900 border px-4 m-2 hover:bg-blue-700 
@@ -34,7 +39,7 @@
             <div>{% render_table shiftTable %}</div>
         </div>
 
-        <div class="block grid grid-cols-2 gap-5 sm:grid-cols-3 md:hidden">
+        <div class="block grid grid-cols-2 gap-5 bg-zinc-900 p-2 rounded sm:grid-cols-3 md:hidden">
             {% for shift in shifts %}
                 <a  href ="{{shift.url}}" 
                     class="bg-zinc-900 border border-zinc-200 rounded py-2 w-24 center text-center

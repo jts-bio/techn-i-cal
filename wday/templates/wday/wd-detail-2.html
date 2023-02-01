@@ -10,6 +10,10 @@
 
     {% include 'wday/partials/SPWD.html' %}
 
+    {}
+
+
+
     <div class="container w-full mx-auto">
         <div class="text text-center flex flex-row">
             <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]"><i class="fa-duotone fa-circle-arrow-left"></i></a>
@@ -21,9 +25,7 @@
             <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]"><i class="fa-duotone fa-circle-arrow-right"></i></a>
         </div>
     </div>
-
     
-
     <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
         {# _____ OBJECT: TRASHCAN ______ #}

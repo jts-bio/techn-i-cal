@@ -1,23 +1,8 @@
-{% extends 'base.html' %}
 {% load tags %}
 
-
-
-{% block content %}
-
-    <div class="panel">
-        <div>
-            <a href="{{schedule.url}}">
-                <i class="fas">{% backArrow %}</i>
-                Back
-            </a>
-        </div>
-        <h2 class="text-xl text-bold jbm text-amber-300">
-            Schedule Empty Slots
-        </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3">
+        <div class="grid grid-cols-1 overflow-y-scroll">
         {% for slot in schedule.slots.empty %}
-        <form method="POST"
+        <form method="POST" action="{% url 'schd:all-empty' schedule.slug %}"
             _="on mouseover send loadSignal to <option/> in me"
             class="transition">
             {% csrf_token %}   
@@ -73,5 +58,4 @@
     </div>
 </div>
     
-{% endblock content %}
     

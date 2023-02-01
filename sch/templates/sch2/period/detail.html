@@ -3,7 +3,7 @@
 
 {% block content %}
 
-    <a href="{{ period.schedule.url }}">
+    <a href="{% url 'schd:detail' period.schedule.slug %}">
         <div class="hstack">{% backArrow %} Back</div>
     </a>
 

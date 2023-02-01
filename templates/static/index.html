@@ -65,7 +65,7 @@
   <div
     class="flex flex-col md:flex-row flex-1 md:flex-0 overscroll-x-auto mx-12 md:mx-52 gap-10 my-3"
   >
-    <a href="{% url 'sch:sch-list' %}">
+    <a href="{% url 'schd:list' %}">
       <div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5">
         <img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png" alt="Schedules"/>
         <div class="absolute top-0 left-0 px-6 py-4">
@@ -101,10 +101,10 @@
 
       {% #toggle-section title="Messages" %}
 
-      <div class="p-3 bg-slate-700 rounded border-1 border-slate-500 text-xs text-slate-200 font-light w-full my-2">
-        THERE ARE EMPTY SLOTS COMING UP SOON. SEE THEM IN
-        <a href="{% url 'sch:v2-current-schedule' %}">IN THE SCHEDULE VIEW</a>
-      </div>
+        <div class="p-3 bg-slate-700 rounded border-1 border-slate-500 text-xs text-slate-200 font-light w-full my-2">
+          THERE ARE EMPTY SLOTS COMING UP SOON. SEE THEM IN
+          <a href="{% url 'sch:v2-current-schedule' %}">IN THE SCHEDULE VIEW</a>
+        </div>
   
       {% /toggle-section %} 
   </div>

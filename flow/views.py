@@ -12,12 +12,6 @@ from django.views.generic.base import TemplateView, RedirectView, View
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
-
-
-
-
-
-
     
         
 class ApiViews :
@@ -88,11 +82,17 @@ class ApiViews :
         )
         emusr_differences = list(query.values_list("difference", flat=True))
         emusr_differences = [x for x in emusr_differences if x is not None]
+        if len(emusr_differences) == 0:
+            emusr_dist = 0
+            return JsonResponse(emusr_dist, safe=False)
         emusr_dist = max(emusr_differences) - min(emusr_differences)
         return JsonResponse ( emusr_dist, safe=False )
     
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
+        calculatedPercent = int(sch.slots.filled().count()/ sch.slots.count() * 100)
+        if sch.percent != calculatedPercent:
+            sch.percent = calculatedPercent
         return JsonResponse ( int(sch.slots.filled().count()/ sch.slots.count() * 100), safe=False)
     
     def schedule__get_n_pto_conflicts (request, schId):

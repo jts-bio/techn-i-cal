@@ -10,7 +10,7 @@ from django.forms import formset_factory
 from django.http import JsonResponse
 from django.shortcuts import HttpResponse, HttpResponseRedirect, render
 from django.template.loader import get_template, render_to_string
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, FormView, UpdateView
@@ -35,39 +35,6 @@ from django.core.cache import cache, caches
 # -------------------------#
 #### LIST OF SCHEDULES ####
 # -------------------------#
-def schListView(request):
-    VERSION_COLORS = {
-        'A': 'amber',
-        'B': 'emerald',
-        'C': 'blue',
-        'D': 'pink',
-    }
-    schedules = Schedule.objects.annotate(nEmpty=Count('slots', filter=Q(slots__employee=None)))
-    for schedule in schedules:
-        schedule.n_empty = schedule.nEmpty
-
-    for sch in schedules:
-        sch.versionColor = VERSION_COLORS[sch.version]
-
-    if request.method == "POST":
-        sd = request.POST.get("start_date")
-        start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
-        print(start_date)
-        i = 0
-        idate = start_date
-        while idate.year == start_date.year:
-            i += 1
-            idate = idate - dt.timedelta(days=42)
-        generate_schedule(year=start_date.year, number=i)
-
-        return HttpResponseRedirect(reverse("sch:sch-list"))
-
-    context = {
-        "schedules": schedules,
-        "new_schedule_form": GenerateNewScheduleForm(),
-    }
-    return render(request, "sch2/schedule/sch-list.html", context)
-
 
 def schDayPopover(request, year, num, ver, day):
     schedule = Schedule.objects.get(year=year, number=num, version=ver)
@@ -79,7 +46,7 @@ def schDayPopover(request, year, num, ver, day):
     return render(request, "sch2/schedule/sch-day-popover2.html", context)
 
 
-def schDetailView(request, schId):
+def schDetailView (request, schId):
     """
     ---------- SCHEDULE DETAIL VIEW  ----------
     """
@@ -106,10 +73,11 @@ def schDetailView(request, schId):
     return render(request, "sch2/schedule/sch-detail.html", context)
 
 
-def schDetailAllEmptySlots(request, schId):
-    schedule = Schedule.objects.get(pk=schId)
+def schDetailAllEmptySlots (request, schId):
+    schedule = Schedule.objects.get(slug=schId)
     slots = schedule.slots.empty()
     html_template = 'sch2/schedule/sch-detail-all-empty-slots.html'
+
 
     if request.method == "POST":
         form = EmployeeSelectForm(request.POST)
@@ -121,11 +89,12 @@ def schDetailAllEmptySlots(request, schId):
         slot.save()
         messages.success(
             request, f"Slot {slot.workday.wkd()}-{slot.shift} assigned to {employee}")
+        return HttpResponseRedirect(f'/schedule/detail/{schedule.slug}/')
 
     return render(request, html_template, {'schedule': schedule, 'slots': slots})
 
 
-def schDetailEmplGridView(request, schId):
+def schDetailEmplGridView (request, schId):
     schedule = Schedule.objects.get(slug=schId)
     employees = Employee.objects.all()
     for employee in employees:
@@ -140,14 +109,14 @@ def schDetailEmplGridView(request, schId):
     return render(request, html_template, {'schedule': schedule, 'employees': employees})
 
 
-def schDetailShiftGridView(request, schId):
+def schDetailShiftGridView (request, schId):
     schedule = Schedule.objects.get(slug=schId)
     shifts = Shift.objects.all()
     html_template = 'sch2/schedule/sch-as-shift-grid.html'
     return render(request, html_template, {'schedule': schedule, 'shifts': shifts})
 
 
-def schDetailSingleEmployeeView(request, schId, empId):
+def schDetailSingleEmployeeView (request, schId, empId):
     schedule = Schedule.objects.get(slug=schId)
     employee = Employee.objects.get(slug=empId)
     empl_schedule = employee.schedule_data(schedule.slug)
@@ -156,7 +125,7 @@ def schDetailSingleEmployeeView(request, schId, empId):
     return render(request, html_template, {'schedule': empl_schedule, 'employee': employee, 'sch': schedule})
 
 
-def schDetailPtoConflicts(request, schId):
+def schDetailPtoConflicts (request, schId):
     schedule = Schedule.objects.get(slug=schId)
     pto_conflicts = schedule.pto_conflicts()
     pto_requests = schedule.pto_requests.all()
@@ -172,7 +141,7 @@ def schDetailPtoConflicts(request, schId):
     return render(request, html_template, {'schedule': schedule, 'pto_conflicts': pto_conflicts, 'pto_requests': pto_requests})
 
 
-def weekView(request, week):
+def weekView (request, week):
     week = Week.objects.filter(pk=week).first()
     week.save()
     employees = Employee.objects.all()
@@ -191,7 +160,7 @@ def weekView(request, week):
     return render(request, "sch2/week/wk-detail.html", context)
 
 
-def weekView__set_ssts(request, week):
+def weekView__set_ssts (request, week):
     """
     If SST exists and filling employee is appropriate, Slot is filled.
     Exceptions that will result in no change:
