@@ -17,7 +17,14 @@
 
 <h2  class="text-3xl font-extrabold text-indigo-300">
     View of {{ employee}}'s Schedule
-</h2>   []
+</h2> 
+
+<a href="{% url 'sch:empl-schedule-detail' employee.slug sch.previous.slug %}">
+    <i class="fa-duotone fa-arrow-circle-left"></i>
+</a>
+<a href="{% url 'sch:empl-schedule-detail' employee.slug sch.next.slug %}">
+    <i class="fa-duotone fa-arrow-circle-right"></i>
+</a>
 
 <div class="bg-zinc-900 shadow shadow-lg shadow-indigo-400 ring ring-indigo-300 p-7 rounded-lg w-fc">
     {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
@@ -59,22 +66,34 @@
                 {# DAY BODY CONTAINS THE PERCENT #}
                 {% for workday in week.workdays.all %}
                     <td class="h-16 w-26">
-                        <div class="text-2xs text-gray-400">
-                            {% for st in workday.slots.all %} 
-
-                                    {% if st.employee == employee %} 
-                                    <span class="text-xl font-light 
-                                                 bg-sky-500   bg-opacity-30   rounded 
-                                                 shadow    shadow-lg    shadow-sky-100">
-
-                                        {{ st.shift }}
-
-                                    </span>
-                                    {% else %}
-
-                                {% endif %} 
-                            {% endfor %}
-                        </div>
+                            <div class="text-2xs text-gray-400 flex flex-col">
+                                {% for st in workday.slots.all %} 
+                                        {% if st.employee == employee %} 
+                                        <span class="text-xl font-light p-2
+                                                    bg-sky-500   bg-opacity-30   rounded 
+                                                    shadow    shadow-lg    shadow-sky-100
+                                                    {% if employee in workday.on_pto %} bg-red-500 {% endif %}">
+                                            {{ st.shift }}
+                                        </span>
+                                        {% else %}
+                                    {% endif %} 
+                                {% endfor %}
+                            
+                                {% if employee in workday.on_pto %}
+                                <span class="text-xs font-light 
+                                                bg-red-200   bg-opacity-30 bg-red-900   rounded-full
+                                                shadow  shadow-lg w-9 p-1  shadow-red-100">
+                                    PTO
+                                </span>
+                                {% endif %}
+                                {% if employee in workday.on_tdo %}
+                                <span class="text-xs  font-light 
+                                                bg-gray-200   bg-opacity-30 bg-indigo-900   rounded-full
+                                                shadow  shadow-lg  w-9 p-1 shadow-indigo-100">
+                                    TDO
+                                </span>
+                                {% endif %}
+                            </div>
                     </td>
                 {% endfor %}
 

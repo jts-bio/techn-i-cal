@@ -33,5 +33,6 @@
         "occurances",
         "Perc",
         "unfavorables"
-    ]
+    ],
+    "remote.SSH.remoteServerListenOnSocket": false,
 }

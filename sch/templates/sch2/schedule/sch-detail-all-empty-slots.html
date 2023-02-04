@@ -1,9 +1,15 @@
 {% load tags %}
 
-        <div class="grid grid-cols-1 overflow-y-scroll">
+        <h3 class="text-xl font-bold leading-none text-sky-700 m-5">Empty Slots</h3>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 overflow-y-scroll">
+
         {% for slot in schedule.slots.empty %}
         <form method="POST" action="{% url 'schd:all-empty' schedule.slug %}"
-            _="on mouseover send loadSignal to <option/> in me"
+             _="on mouseover
+                    send loadSignal to <option/> in me end
+                on submit
+                    log result "
             class="transition">
             {% csrf_token %}   
             <div class="my-2">
@@ -14,7 +20,7 @@
                     <div class="flex flex-col mx-2 px-1">
                     <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
                     <span>{{ slot.workday.date }}</span>
-                    </div>
+            </div>
 
 
                     <select name="employee" 
@@ -34,8 +40,10 @@
                         {% for employee in slot.fillable_by %}
                             <option id="{{employee}}" 
                                 value="{{employee.pk}}"
+                                data-emp-hrs-url="{% url 'sch:api-week-empl-hours' slot.week.pk employee %}"
+                                
                                 _="init set :x to 0
-                                    on loadSignal if :x == 0 fetch {% url 'sch:api-week-empl-hours' slot.week.pk employee %} then
+                                    on loadSignal if :x == 0 fetch `$my@data-emp-hrs-url/` then
                                         set @wk to the result then 
                                         append the result to my innerHTML
                                         then increment :x

@@ -45,10 +45,7 @@ def wdListView (request, schSlug='current'):
 
 def wdDetailView (request, slug):
     wd = Workday.objects.get(slug=slug)
-    context = {'workday': wd,
-               'prevUrl': wd.prevURL(),
-               'nextUrl':wd.nextURL() 
-               } 
+    context = {'workday': wd, 'slots': wd.slots.all()} 
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
     
     # NOTE // THIS VIEW UTILIZES A USER PREFERENCE TO DETERMINE TEMPLATE USED

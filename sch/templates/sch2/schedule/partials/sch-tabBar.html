@@ -6,7 +6,7 @@
             <ul class="flex flex-row -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
                 <li class="mr-2">
                     <div hx-get="/sch/schedule-partials/{{schedule.slug}}/view-select/" 
-                        hx-target="#swap-pane"
+                        hx-target="#swap-panel"
                         class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
                         aria-current="page"
                         _="on click remove .border-blue-600 .border-b-2 .active from .main-tab 
@@ -20,7 +20,7 @@
                 </li>
                 <li class="mr-2">
                     <div hx-get="/sch/schedule-partials/{{schedule.slug}}/complex-table/" 
-                         hx-target="#swap-pane" 
+                         hx-target="#swap-panel" 
                          class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
                         aria-current="page"
                         _="on click remove .border-blue-600 .border-b-2 .active from .main-tab
@@ -34,7 +34,7 @@
                 </li>
                 <li class="mr-2">
                     <div hx-get="/sch/schedule-partials/{{schedule.slug}}/compare-and-select/" 
-                         hx-target="#swap-pane" 
+                         hx-target="#swap-panel"p 
                          class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
                          aria-current="page"
                          _="on click remove .border-blue-600 .border-b-2 .active from .main-tab 
@@ -55,6 +55,9 @@
                         <i class="fa-duotone fa-trash-can"></i>
                         Delete
                     </a>
+                </li>
+                <li>
+                    <div id="actionMarker"></div>
                 </li>
             </ul>
         </div>

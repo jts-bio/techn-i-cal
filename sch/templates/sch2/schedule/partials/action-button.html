@@ -29,15 +29,17 @@
                                         </span>
                                     </a>
                                 </li>
-        <li> <a class="dropdown-item hover:bg-indigo-200 font-bold pointer" 
-                href="{% url 'sch:sch-time-pref-fill' schedule.pk %}">
+        <li> <div class="dropdown-item hover:bg-indigo-200 font-bold pointer" 
+                hx-post="actions/solve-tca/"
+                hx-trigger="click"
+                hx-target="#actionMarker">
                                         <i class="fa-duotone fa-clock text-lg text-indigo-500"></i>
                                             Solve:  Method C
                                         <span class="text-2xs font-thin text-indigo-500">USING <br/>
                                              TIME-AWARE VARIANT 
                                         </span>
-                                    </a>
-                                </li>
+             </div>
+        </li>
 
         <hr/>
 
@@ -59,16 +61,12 @@
         
         <li><hr class="dropdown-divider"></li>
         <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300 pointer"
-             _="on click call prompt('Type `clear` to continue')
-                    if it is not 'clear' then go to the top of the body smoothly
-                    if it is 'clear' fetch '{{schedule.url__clear}}' 
-                    log 'done' then go to the top of the body smoothly
-                    set $schedule to `{{schedule.slug}}`
-                    call showToast('Schedule $schedule slots cleared out manually.','warn') 
-                end">
-                                        <i class="fa-duotone fa-eraser text-red-800"></i>
-                                            Clear Slots
-                                    </div>
-                                </li>
+                hx-prompt="This action will delete all assigned slots within the schedule. To continue, please type `clear`"
+                hx-post="{% url 'schd:clear-all' schedule.slug %}"
+                hx-target="#actionMarker">
+                    <i class="fa-duotone fa-eraser text-red-800"></i>
+                        Clear Slots
+                </div>
+            </li>
         </ul>
     </div>

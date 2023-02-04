@@ -7,8 +7,12 @@ import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
 from django.db.models import Count, Q
+from flow.views import ApiViews
+from django.views.decorators.csrf import csrf_exempt
 
 from sch.models import Schedule, Week, Slot, Employee, Shift
+import json
+
 
 def schListView(request):
     VERSION_COLORS = {
@@ -51,25 +55,61 @@ class Sections:
     def schStats (request, schId):
         sch = Schedule.objects.get (slug = schId )
         statPartials = [ 
-            {'title': 'EMUSR (SDfµ)',
-             'goal': '< 1',
-             'url': '{% url "sch:sch-calc-uf-distr" schedule.slug %}',
-             'color': ['bg-red-500',
-                       'bg-emerald-500'],
-             'icon': 'fa fa-chart-bar'
-             }, 
-            {'title': None,
-             'goal': None,
-             'url': None,
-             'color': None,
-             'icon': None
-             }
+            dict(title="EMUSR (SDfµ)", name="emusr-sd",
+                 goal=[1,1.01,1.01], url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
+                 icon='fa-chart-bar'),
+            dict(title="EMUSR",name="emusr",
+                 goal=[4,8,10], url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
+                 icon='fa-moon'),
+            dict(title="Mistemplated", name="mistemplated", 
+                 goal=[0,0,0], url="{% url 'sch:sch-mistemplated' schedule.slug %}",
+                 icon="fa-exclamation-triangle")
         ]
-        return render(request, 'stats.html', {'schedule': sch, 'statPartials': statPartials})
+        statsHtml = ""
+        for stat in statPartials:
+            statsHtml += render_to_string('stats__figure.html', stat)
+        return render(request, 'stats.html', {'schedule': sch, 'statPartials': statsHtml})
     
+    def schMistemplated (request, schId):
+        sch = Schedule.objects.get (slug = schId )
+        data = ApiViews.schedule__get_mistemplated_list(request, schId).content
+        data = json.loads(data)
+        return render(request, 'tables/mistemplated.html', {'data': data})
     
+    def schUnfavorables (request,schId):
+        sch = Schedule.objects.get(slug=schId)
+        data = ApiViews.schedule__get_unfavorables_list(request, schId).content
+        data = json.loads(data)
+        return render(request, 'tables/unfavorables.html', {'data': data})
     
+    def schEmusr (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        data = ApiViews.schedule__get_emusr_list(request, schId).content
+        data = json.loads(data)
+        return render(request, 'tables/emusr.html', {'data': data}) 
 class Actions:
+    @csrf_exempt
+    def solveTca (request, schId):
+        sch = Schedule.objects.get (slug = schId )
+        if request.method == "POST":
+            sch.actions.sch_solve_with_lookbehind(sch)
+            return render(request, 'data-responses/clearAll.html', {'result': 'success','message': 'TCA solved'})
+        return render(request, 'data-responses/clearAll.html', {'result': 'error','message': 'Invalid request method'})
+    @csrf_exempt
+    def clearAll (request, schId):
+        sch = Schedule.objects.get (slug = schId )
+        if request.method == "POST":
+            sch.actions.deleteSlots(sch)
+            return render(request, 'data-responses/clearAll.html', {'result': 'success','message': 'All slots cleared'})
+        return render(request, 'data-responses/clearAll.html', {'result': 'error','message': 'Invalid request method'})
+    @csrf_exempt
+    def clearSlot (request, schId, wd, sft):
+        sch = Schedule.objects.get (slug = schId )
+        slot = Slot.objects.get (schedule=sch,workday__slug__contains=wd, shift__name=sft)
+        if request.method == "POST":
+            slot.actions.clear_employee(slot)
+            return HttpResponse("<div class='text-red-300 font-light'> Cleared </div>")
+    
     def clearOvertimeSlotsByRefillability (request,schId):
         sch = Schedule.objects.get (slug =schId )
         for empl in sch.employees.all():
@@ -77,6 +117,7 @@ class Actions:
             emplSlots = emplSlots.annotate(n_fillableBy=Count(F('fills_with')))
             if sum(list(emplSlots.values_list('shift__hours',flat=True))) > 40:
                 print(emplSlots.order_by('empl_sentiment','n_fillableBy'))
+                
 
         
         

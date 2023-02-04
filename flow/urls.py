@@ -13,7 +13,7 @@ schedule_urls = [
     path('<schId>/percent/', ApiViews.schedule__get_percent, name='sch__get_percent'),
     path('<schId>/n-pto-conflicts/', ApiViews.schedule__get_n_pto_conflicts, name='sch__get_n_pto_conflicts'), 
     path('<schId>/n-mistemplated/', ApiViews.schedule__get_n_mistemplated, name='sch__get_n_mistemplated'),
-    path('<schId>/mistemplated-list/', ApiViews.schedule__get_mistemplated_list, name='sch__get_n_employees'),
+    path('<schId>/mistemplated-list/', ApiViews.schedule__get_mistemplated_list, name='mistemplated'),
     path('<schId>/n-unfavorables/', ApiViews.schedule__get_n_unfavorables, name='sch__get_n_unfavorables'),
     
 ]

@@ -369,7 +369,7 @@ class ScheduleBot:
             if len(employees) > 0:
                # select lowest fte
                 index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
-                if index > len (employees):
+                if index >= len (employees):
                     index = len(employees) - 1
                 empl      = employees[index]
                 Slot.objects.filter(workday__sd_id=empty_slot.sd_id, employee=empl, schedule=sched).update(employee=None)

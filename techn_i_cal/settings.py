@@ -86,21 +86,49 @@ REQUIRE_LOGIN_PUBLIC_NAMED_URLS = (LOGIN_URL, LOGOUT_REDIRECT_URL)
 
 ROOT_URLCONF = "techn_i_cal.urls"
 
+# TEMPLATES = [
+#     {
+#         "BACKEND": "django.template.backends.django.DjangoTemplates",
+#         "DIRS": [
+#             BASE_DIR / "templates/static",
+#         ],
+#         "OPTIONS": {
+#             "context_processors": [
+#                 "django.template.context_processors.debug",
+#                 "django.template.context_processors.request",
+#                 "django.contrib.auth.context_processors.auth",
+#                 "django.contrib.messages.context_processors.messages",
+#             ],
+#             "builtins": [],
+#              "loaders": [
+#                 (
+#                     "pypugjs.ext.django.Loader",
+#                     ("django.template.loaders.filesystem.Loader", "django.template.loaders.app_directories.Loader",),
+#                 )
+#             ],
+#         },
+#     },
+# ]
 TEMPLATES = [
     {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [
-            BASE_DIR / "templates/static",
-        ],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [ BASE_DIR / "templates/static" ],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
             ],
-            "builtins": ["slippers.templatetags.slippers"],
+            'loaders': [
+                # PyPugJS part:   ##############################
+                ('pypugjs.ext.django.Loader', (
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ))
+            ],
+            'builtins': ["slippers.templatetags.slippers",
+                         'pypugjs.ext.django.templatetags'],  # Remove this line for Django 1.8
         },
     },
 ]

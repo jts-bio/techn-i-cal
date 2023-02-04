@@ -250,12 +250,8 @@ class SchViews:
             )
         
     def schDetail(request, schId):
-        html_template = "sch2/schedule/sch-detail.html"
         schedule = Schedule.objects.get(slug=schId)
-        context = {
-            "schedule": schedule,
-        }
-        return render(request, html_template, context)        
+        return HttpResponseRedirect(f'/schedule/detail/{schedule.slug}/')      
 
     def schFtePercents(request, schId):
 
@@ -466,6 +462,8 @@ class SchPartials:
     def schComplexTablePartial (request, schId):
         html_template = "sch2/schedule/partials/complex-table-wrapper.html"
         sch = Schedule.objects.get(slug=schId)
+        for wd in sch.workdays.all():
+            wd.save()
         context = {
             "schedule": sch,
         }

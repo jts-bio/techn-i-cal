@@ -1,0 +1,26 @@
+extends 'base.html'
+block content 
+
+    h1 Slots 
+
+    div#slots.grid.grid-cols-3.lg-grid-cols-6.gap-4.mx-12
+
+        for slot in slots
+            .slot
+                .bg-zinc-900.rounded.p-3 
+                    .shift-name= slot.shift.name
+                    .employee(draggable='true', data-employee-id=slot.employee.pk)
+                        .bg-slate-700.rounded.p-3.border-white.border
+                            img(src=slot.employee.image_url ).w-10.h-10.rounded-full
+                            span= slot.employee.name
+        
+    div.flex.flex-row.overflow-x-scroll 
+
+        for empl in workday.on_deck.all
+            .employee(draggable='true', data-employee-id=slot.employee.pk)
+                .bg-slate-700.rounded.p-3.border-white.border
+                    img.w-5.h-5(src=empl.image_url ).w-10.h-10.rounded-full
+                    span.font-thin= empl.name.upper
+
+    script
+        include wday/src/main.js

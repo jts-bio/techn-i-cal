@@ -64,9 +64,9 @@ def schDetailView (request, schId):
             messages.warning(request, "Form is invalid")
 
     context = {
-        "schedule": schedule,
-        "employees": Employee.objects.all(),
-        "form": EmployeeSelectForm,
+        "schedule":        schedule,
+        "employees":       Employee.objects.all(),
+        "form":            EmployeeSelectForm,
         "otherSchedules" : Schedule.objects.exclude(pk=schedule.pk)
     }
     
@@ -77,7 +77,6 @@ def schDetailAllEmptySlots (request, schId):
     schedule = Schedule.objects.get(slug=schId)
     slots = schedule.slots.empty()
     html_template = 'sch2/schedule/sch-detail-all-empty-slots.html'
-
 
     if request.method == "POST":
         form = EmployeeSelectForm(request.POST)

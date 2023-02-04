@@ -1,9 +1,15 @@
+{% load static %}
+
+
 <div class="flex items-center space-x-4"
     hx-get="{% url 'schd:all-empty' schedule.slug %}"
     hx-trigger="click"
-    hx-target="#swap-pane">
+    hx-target="#swap-panel">
     <div class="flex-shrink-0">
-        <div class="h-7 w-7 pl-[3.5px] pt-[1.5px] rounded-full border border-white  bg-amber-300"><i class="fa-duotone text-black fa-person-circle-question"></i></div>
+        <div id="nEmptyBadge"
+            class="h-7 w-7 pl-[3.5px] pt-[1.5px] rounded-full border border-white  bg-amber-300">
+            <i class="fa-duotone text-black fa-person-circle-question"></i>
+        </div>
     </div>
     <div class="flex-1 min-w-0">
         <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
@@ -21,3 +27,40 @@
         <span class="opacity-70 text-2xs font-light italic pl-1"> empty</span>
     </div>
 </div>
+
+
+
+<script>
+
+    function getNEmpty() {
+        var empty = document.getElementById("n-empty").innerHTML;
+        var nEmpty = parseInt(empty);
+        console.log(nEmpty);
+        if (nEmpty <= 5) {
+            document.getElementById("nEmptyBadge").classList.remove("bg-amber-300");
+            document.getElementById("nEmptyBadge").classList.add("bg-green-300");
+        } else if (nEmpty <= 12) {
+            document.getElementById("nEmptyBadge").classList.remove("bg-amber-300");
+            document.getElementById("nEmptyBadge").classList.add("bg-amber-300");
+        } else {
+            document.getElementById("nEmptyBadge").classList.remove("bg-amber-300");
+            document.getElementById("nEmptyBadge").classList.add("bg-red-300");
+        }
+    }
+
+    // listen for mutation of #percent
+    var targetNode = document.getElementById('n-empty');
+    var config = { attributes: true, childList: true, subtree: true };
+    var callback = function(mutationsList, observer) {
+        for(var mutation of mutationsList) {
+            if (mutation.type == 'childList') {
+                getNEmpty();
+            }
+        }
+    };
+    var observer = new MutationObserver(callback);
+    observer.observe(targetNode, config);
+    
+    
+
+</script>

@@ -1,0 +1,36 @@
+<table>
+
+    <tr>    
+        {% for d,v in data.0.items %}
+            <th>{{ d }}</th>
+        {% endfor %}
+    </tr>
+
+    {% for slot in data %}
+    <tr>
+        {% for k in slot.values %}
+            <td>{{ k }}</td>
+        {% endfor %}
+    </tr>
+    {% endfor %}
+
+</table>
+
+<script>
+    // if a td in table is in the workday column (3nd column) of a <tr> then wrap with a <a> tag
+    var table = document.getElementsByTagName('table')[0];
+    var rows = table.getElementsByTagName('tr');
+    var version = document.getElementById('scheduleVersionId').innerHTML.trim();
+    for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName('td');
+        for (var j = 0; j < cells.length; j++) {
+            if (j == 2) {
+                var a = document.createElement('a');
+                a.href = '/wday/' + cells[j].innerHTML + version + '/';
+                a.innerHTML = cells[j].innerHTML;
+                cells[j].innerHTML = '';
+                cells[j].appendChild(a);
+            }
+        }
+    }
+</script>

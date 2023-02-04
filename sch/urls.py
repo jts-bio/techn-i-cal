@@ -98,26 +98,10 @@ shift_patterns = [
     path("shift/<str:name>/update/", views.SHIFT.ShiftUpdateView.as_view(), name="shift-update"),
     path("v2/shift/<str:cls>/<str:sft>/trained/update/", views.SHIFT.trainedShiftView, name="shift-training-update"),
     path("shifts/new/", views.SHIFT.ShiftCreateView.as_view(), name="shift-new"),
-    path(
-        "shift/<str:shift>/upcoming/",
-        views.SHIFT.shiftComingUpView,
-        name="shift-coming-up",
-    ),
-    path(
-        "shift-tallies/<str:shiftpk>/tallies/",
-        views.SHIFT.shiftTalliesView,
-        name="shift-tallies-view",
-    ),
-    path(
-        "shift-templates/<int:sftId>/",
-        views.SHIFT.shiftTemplateView,
-        name="shift-template-view",
-    ),
-    path(
-        "v2/shift-pref-scores/<str:pk>/",
-        views.SHIFT.shiftPrefScores,
-        name="shift-pref-scores"
-    ),
+    path("shift/<str:shift>/upcoming/",views.SHIFT.shiftComingUpView,name="shift-coming-up",),
+    path("shift-tallies/<str:shiftpk>/tallies/",views.SHIFT.shiftTalliesView,name="shift-tallies-view",),
+    path("shift-templates/<int:sftId>/",views.SHIFT.shiftTemplateView,name="shift-template-view",),
+    path("v2/shift-pref-scores/<str:pk>/",views.SHIFT.shiftPrefScores,name="shift-pref-scores"),
     path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
 ]
 
@@ -203,7 +187,7 @@ employee_patterns = [
     path("v2/sort-shift-prefs/<str:slug>/",views2.EmployeeSortShiftPreferences.as_view(),name="employee-sort-shift-prefs"),
     path("v2/employee/pto-form/<str:empl>/<int:year>/<int:num>/", views.EMPLOYEE.EmployeePtoFormView.as_view(), name="employee-sortable-down"),
     path('v2/employee/choose-schedule/<str:empId>/',views2.EmployeeChooseSchedule.as_view(), name="employee-choose-schedule"),
-    path('v2/employee/choose-schedule/<str:empId>/<str:schId>/',views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
+    path('v2/employee/choose-schedule/<empId>/<schId>/',views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
     path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
     
     #*__________EMPLOYEE API PATHS__________*
@@ -233,7 +217,7 @@ schedule_patterns = [
     path("v2/S<int:year>-<int:num><str:ver>/<str:day>/as-popover/",views2.schDayPopover, name="sch-day-popover"),
     path("v2/schedule-solve/<str:schId>/", views2.scheduleSolve, name="v2-schedule-solve" ),
     path("v2/schedule-solve-alg-2/<str:schId>/",views.SCHEDULE.solveScheduleSlots, name="v2-schedule-solve-alg2"),
-    path('v2/schedule-detail/<str:schId>/empty-slots/', views2.schDetailAllEmptySlots, name='schd:all-empty'),
+    path('v2/schedule-detail/<str:schId>/empty-slots/', views2.schDetailAllEmptySlots, name='all-empty'),
     path("v2/lazy-popover-load/<str:schSlug>/<str:wdSlug>/",views.SCHEDULE.FX.lazy_popover_load, name="lazy-popover-load",),
     path("v2/generate-new-schedule/",views2.generate_schedule_form, name="generate-new-schedule",),
     path("v2/schedule-empl-pto/<str:schId>/<str:empl>/", views2.pto_schedule_form, name="v2-schedule-empl-pto"),

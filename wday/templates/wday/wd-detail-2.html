@@ -8,51 +8,38 @@
 
 {% block content %}
 
+
+
     {% include 'wday/partials/SPWD.html' %}
-
-    {}
-
-
 
     <div class="container w-full mx-auto">
         <div class="text text-center flex flex-row">
             <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]"><i class="fa-duotone fa-circle-arrow-left"></i></a>
             <div class="flex flex-col center text-center">
-                <span class="text-3xl mt-2 font-semibold text-orange-500">{{workday.date}}</span>
+                <span class="text-3xl mt-2 font-semibold text-orange-500">{{ workday.date }}</span>
                 <span class="text-sm font-thin">{{ workday.wkd }}</span>
-                <span id="wdId" class="hidden">{{workday.slug}}</span>
+                <span id="wdId" class="hidden">{{ workday.slug }}</span>
             </div>
-            <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]"><i class="fa-duotone fa-circle-arrow-right"></i></a>
+            <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]">
+                <i class="fa-duotone fa-circle-arrow-right"></i>
+            </a>
         </div>
     </div>
     
     <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
-        {# _____ OBJECT: TRASHCAN ______ #}
-        <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg" 
-                ondragover="event.preventDefault();"
-                ondragenter="dragEnterTrash(event);"
-                ondragleave="dragLeaveTrash(event);"
-                ondrop="dropInTrash(event);"
-                ondragend="backdropDragEnd(event);"
-                >
-                <i class="fa-duotone fa-trash-can text-2xl"></i>
-                <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
-        </div>
+        
 
         {% for slot in workday.slots.all %}
         <div>
             
             {# _____ OBJECT: SLOT ______ #}
             <div class="slot w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20
-                        {% if slot.employee == None %} bg-amber-800 {% endif %}" 
+                        {% if slot.employee == None %} bg-amber-800 {% endif %}"
                  id="{{ slot.shift }}" 
                  data-available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
                  data-time-of-day="{{ slot.shift.group }}"
-                 ondragover="dragOverVerify(event);"
-                 ondrop="drop(event);"
-                 ondragleave="dragLeave(event);"
-                 data-popover-target="{{ slot.slug }}--popover">
+                 data-empty="{% if slot.employee %}true{%else%}false{%endif%}">
 
                 <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
@@ -68,8 +55,8 @@
                     {% endwith %}
                 {% else %}
                         <i data-slot="{{slot.shift.name}}"
-                            data-group="{{slot.shift.group}}"
-                            class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"></i>
+                           data-group="{{slot.shift.group}}"
+                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"></i>
                 {% endif %}
                 
             </div>
@@ -111,13 +98,27 @@
                 {% endwith %}
                 {% endwith %}
             {% endfor %}
-    
+
+                {# _____ OBJECT: TRASHCAN ______ #}
+            <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg">
+                <i class="fa-duotone fa-trash-can text-2xl"></i>
+                <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+            </div>
+        
         </div>
     
+    <div id="current-employee" class="text text-center text-2xs opacity-75 italic"> </div>
+    <div id="current-allowed-drops" class="text text-center text-2xs opacity-75 italic"> </div>
+    <div id="is-drop-allowed" class="text text-center text-2xs opacity-75 italic"> </div>
+    <div id="current-dropzone" class="text text-center text-2xs opacity-75 italic"></div>
 
-    <div class="text text-center text-2xs opacity-75 italic"> USING TEMPLATE: WD-DEFAULT </div>
+    <div class="text text-center text-2xs opacity-75 italic"> 
+        USING TEMPLATE: WD-DEFAULT 
+    </div>
 
-    <script src="{% static 'draggableWorkday.js' %}" type="text/javascript"></script>
+    <script src="{% static 'dragWd2.js' %}"></script>
+
+    <script src="{% static 'dragWd.js' %}"></script>
 
 {% endblock %}
 
@@ -156,6 +157,18 @@
         }
         .hold {
             opacity: 0.5;
+        }
+        .allowed-drop {
+            background-color: #33ffaa;
+            border: 1px dashed #00cc66aa;
+        }
+        .over-allowed-drop {
+            background-color: #77ffcc;
+            border: 2px solid #00cc66aa;
+        }
+        .over-prohibited-drop {
+            background-color: #ffaa77;
+            border: 2px solid #cc6600aa;
         }
 
     </style>

@@ -1,6 +1,6 @@
 <div class="flex items-center space-x-4">
     <div class="flex-shrink-0">
-        <div class="h-7 w-7 pl-[6px] pt-[2.5px] rounded-full  bg-amber-300">
+        <div id="percentBadge" class="h-7 w-7 pl-[4px] pt-[1.5px] rounded-full border-2 border-white bg-amber-300">
             <i class="fa-solid text-black fa-badge-percent"></i>
         </div>
     </div>
@@ -20,3 +20,37 @@
         <span class="opacity-70 text-2xs font-light italic pr-1">%</span>
     </div>
 </div>
+
+<script>
+
+    function percentFilled() {
+        var percent = document.getElementById("percent").innerHTML;
+        nPercent = parseInt(percent);
+        if (nPercent >= 98) {
+            document.getElementById("percentBadge").classList.remove("bg-amber-300");
+            document.getElementById("percentBadge").classList.add("bg-green-300");
+        } else if (nPercent >= 90) {
+            document.getElementById("percentBadge").classList.remove("bg-red-300");
+            document.getElementById("percentBadge").classList.add("bg-amber-300");
+        } else {
+            document.getElementById("percentBadge").classList.remove("bg-amber-300");
+            document.getElementById("percentBadge").classList.add("bg-red-300");
+        }
+    }
+
+    // listen for mutation of #percent
+    var targetNode = document.getElementById('percent');
+    var config = { attributes: true, childList: true, subtree: true };
+    var callback = function(mutationsList, observer) {
+        for(var mutation of mutationsList) {
+            if (mutation.type == 'childList') {
+                percentFilled();
+            }
+        }
+    };
+    var observer = new MutationObserver(callback);
+    observer.observe(targetNode, config);
+    
+    
+
+</script>

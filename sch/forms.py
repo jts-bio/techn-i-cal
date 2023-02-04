@@ -135,10 +135,10 @@ class EmployeeEditForm (forms.ModelForm) :
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
-            'fte_14_day'      : forms.NumberInput(attrs={'class': 'w-24 form-control'}),
+            'fte_14_day'      : forms.NumberInput(attrs={'class': 'w-28 form-control'}),
             'shifts_available': forms.CheckboxSelectMultiple(attrs={'class':'grid-cols-3'}),
-            'streak_pref'     : forms.NumberInput(attrs={'class': 'w-24 form-control'}),
-            'cls'             : forms.Select(attrs={'class': 'form-control h-7'}),
+            'streak_pref'     : forms.NumberInput(attrs={'class': 'w-28 form-control'}),
+            'cls'             : forms.Select(attrs={'class': 'form-control h-10'}),
         }
 
 class SstEmployeeForm (forms.Form) :

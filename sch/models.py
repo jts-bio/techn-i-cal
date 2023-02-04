@@ -138,7 +138,7 @@ class SlotManager (models.QuerySet):
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
     def unfavorables(self):
-        return self.exclude(employee__time_pref=F('shift__group'))
+        return self.exclude(employee__time_pref=F('shift__group')).exclude(employee=None)
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
@@ -559,8 +559,10 @@ class Employee (models.Model) :
         return Employee.objects.filter(pk__in=weekend_group)
     def ftePercForWeek (self, year, iweek):
         if self.fte == 0:
-            return 0.8
+            return 0.5
         if self.weekly_hours(year,iweek) == None:
+            return 0
+        if (Employee.objects.get(pk=self.pk).fte_14_day/ 2) == 0:
             return 0
         return  self.weekly_hours(year,iweek) / (Employee.objects.get(pk=self.pk).fte_14_day/ 2)
     def count_shift_occurances (self):
@@ -624,7 +626,6 @@ class Workday (models.Model) :
     @property 
     def pto (self):
         return PtoRequest.objects.filter(workday=self.date)
-    
     def on_pto(self):
         return Employee.objects.filter(pk__in=self.pto().values('employee__pk'))
     def on_tdo(self):
@@ -782,10 +783,10 @@ class Workday (models.Model) :
         print(not_on_deck)
         return Employee.objects.all().exclude(pk__in=not_on_deck)
     def save            (self, *args, **kwargs) :
-        super().save(*args,**kwargs)
         self.slug = self.date.strftime('%Y-%m-%d') + self.schedule.version
         self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
         self.percent = self._percent()
+        super().save(*args,**kwargs)
         self.post_save()
     def post_save       (self):
         for i in self.shifts:
@@ -797,7 +798,7 @@ class Workday (models.Model) :
         return f'/sch/{self.slug}/get-tooltip/'
 
     def __str__         (self) :
-        return str(self.date.strftime('%Y %m %d'))
+        return str(self.date.strftime('%Y-%m-%d'))
     
     objects = WorkdayManager.as_manager()
 
@@ -806,7 +807,8 @@ WD_VIEW_PREF_CHOICES = (
         (1,'wday/wd-detail.html'),
         (2,'wday/wd-detail-old.html'),
         (3,'wday/wd-3.html'),
-        (4,'wday/partials/hs_wday.html')
+        (4,'wday/partials/hs_wday.html'),
+        (5,'wday/wday-4.pug'),
     )
 class WorkdayViewPreference (models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -879,7 +881,6 @@ class Week (models.Model) :
         # Annotate the Employee queryset with the total hours for each employee
         return Employee.objects.annotate(hours=Subquery(total_hours_subquery)).annotate(
             overtime_hours=40 - F('hours')).filter(overtime_hours__gt=0).order_by('-overtime_hours')
-        
     def needed_hours (self):
         """
         >>> {<Josh> : 10, <Sabrina> : 5 }
@@ -1033,7 +1034,6 @@ class Schedule (models.Model):
     n_empty             = models.IntegerField(default=0)
     
     
-
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
     class Views :
@@ -1080,6 +1080,8 @@ class Schedule (models.Model):
         super().save(*args,**kwargs)
         self.post_save()
     def post_save (self) :
+        if self.periods.count()==0:
+            self.actions.buildPeriods(self)
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
@@ -1298,7 +1300,15 @@ class Schedule (models.Model):
                         sameSum += 1
                     totalSum += 1
             return int(sameSum/totalSum * 100)
-                    
+        def buildPeriods (self, instance):
+            deltas = [0,14,28]
+            n_initial = calculate_period(instance.number)
+            for i in range(3):
+                Period(
+                    year=instance.year,
+                    number=n_initial+i,
+                    start_date=instance.start_date+dt.timedelta(days=deltas[i])
+                )
     tags    = TaggableManager ()
     actions = Actions ()
 # ============================================================================
@@ -1316,7 +1326,7 @@ class Slot (models.Model) :
     streak            = models.SmallIntegerField   ( null=True, default=None )
     template_employee = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates" )
     fills_with   = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
-    last_update = models.DateTimeField(auto_now=True)
+    last_update  = models.DateTimeField ( auto_now=True )
     
     html_template = 'sch2/schedule/sch-detail.html'
     
@@ -1651,6 +1661,8 @@ class Slot (models.Model) :
                 return "ASSIGNED VIA TEMPLATE"
         return
     def save (self, *args, **kwargs):
+        if self.is_preturnaround() | self.is_postturnaround():
+            self.is_turnaround = True
         super().save(*args, **kwargs)
     def update_fills_with (self):
         self.fills_with.all().delete()
@@ -1988,7 +2000,8 @@ def generate_schedule (year,number):
     if Schedule.objects.filter(year=year, number=number).exists(): 
         n_same = Schedule.objects.filter(year=year, number=number).count()
     version = "ABCDEFGHIJKLMNOP"[n_same]
-    Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
+    sch = Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
+    return 'Complete'
     
 def randomSlot ():
     import random 
@@ -2029,3 +2042,5 @@ def analyzeTrade (pkA, pkB):
     if slotA.employee == slotB.employee:
         return False
     
+def calculate_period(schedule_number):
+    return (schedule_number - 1) * 3 + 1

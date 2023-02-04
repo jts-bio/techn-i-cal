@@ -1,4 +1,7 @@
-<div class="flex items-center space-x-4">
+<div class="flex items-center space-x-4"
+    hx-get="{% url 'schd:mistemplated' schedule.slug %}"
+    hx-trigger="click"
+    hx-target="#swap-panel">
     <div class="flex-shrink-0">
         <div class="h-7 w-7 pl-1 pt-[2.5px] rounded-full  bg-amber-300">
             <i class="fa-duotone text-black fa-arrows-retweet"></i>

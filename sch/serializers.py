@@ -40,6 +40,9 @@ class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
         fields = ('__all__')
         
 class SlotSerializer(serializers.ModelSerializer):
+    employee= serializers.StringRelatedField()
+    workday = serializers.StringRelatedField()
+    shift   = serializers.StringRelatedField()
     class Meta:
         model = Slot
         fields = ('__all__')

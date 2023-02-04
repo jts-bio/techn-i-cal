@@ -12,6 +12,7 @@ from django.views.generic.base import TemplateView, RedirectView, View
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
+from sch.viewsets import SchViews
     
         
 class ApiViews :
@@ -42,51 +43,9 @@ class ApiViews :
         return JsonResponse ( employee.weekBreakdown, safe=False )
     
     def schedule__get_emusr ( request, schId ):
-        sch = Schedule.objects.get(slug=schId)
-        n_pm = sch.slots.evenings().count()
-        pm_empls = Employee.objects.filter(
-            time_pref__in=["Midday", "Evening", "Overnight"]
-        )
-        pm_empls_shifts = sum(list(pm_empls.values_list("fte", flat=True))) * 24
-        remaining_pm = n_pm - pm_empls_shifts
-        full_template_empls = Employee.objects.full_template_employees().values("pk")
-        am_empls_fte_sum = sum(
-            list(
-                Employee.objects.filter(time_pref__in=["Morning"])
-                .exclude(pk__in=full_template_empls)
-                .values_list("fte", flat=True)
-            )
-        )
-        unfavorables = sch.slots.unfavorables().values("employee")
-        unfavorables = unfavorables.annotate(
-            count=Value(1, output_field=IntegerField())
-        )
-        unfavorables = unfavorables.values("employee").annotate(count=Sum("count"))
-
-        query = (
-            Employee.objects.filter(time_pref="Morning")
-            .exclude(pk__in=full_template_empls)
-            .annotate(
-                emusr=Cast(
-                    F("fte") * remaining_pm / am_empls_fte_sum,
-                    output_field=IntegerField(),
-                )
-            )
-            .order_by("-emusr")
-            .annotate(
-                count=Subquery(
-                    unfavorables.filter(employee=OuterRef("pk")).values("count")
-                )
-            )
-            .annotate(difference=F("emusr") - F("count"))
-        )
-        emusr_differences = list(query.values_list("difference", flat=True))
-        emusr_differences = [x for x in emusr_differences if x is not None]
-        if len(emusr_differences) == 0:
-            emusr_dist = 0
-            return JsonResponse(emusr_dist, safe=False)
-        emusr_dist = max(emusr_differences) - min(emusr_differences)
-        return JsonResponse ( emusr_dist, safe=False )
+        sch = Schedule.objects.get (slug = schId )
+        fig = SchViews.Calc.emusr_distr(request,sch).contentP
+        return JsonResponse (dict(sch=fig))
     
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -95,18 +54,24 @@ class ApiViews :
             sch.percent = calculatedPercent
         return JsonResponse ( int(sch.slots.filled().count()/ sch.slots.count() * 100), safe=False)
     
-    def schedule__get_n_pto_conflicts (request, schId):
+    def schedule__get_n_pto_conflicts (request, schId ):
+        sch = Schedule.objects.get( slug=schId)
+        return JsonResponse ( sch.slots.conflictsWithPto().count(), safe=False )
+    def schedule__get_n_mistemplated ( request, schId ):
         sch = Schedule.objects.get(slug=schId)
-        return JsonResponse ( sch.slots.conflictsWithPto().count(), safe=False)
-    def schedule__get_n_mistemplated (request, schId):
+        return JsonResponse ( sch.slots.mistemplated().count(), safe=False )
+    def schedule__get_mistemplated_list (request, schId ):
         sch = Schedule.objects.get(slug=schId)
-        return JsonResponse ( sch.slots.mistemplated().count(), safe=False)
-    def schedule__get_mistemplated_list (request, schId):
+        return JsonResponse ( SlotSerializer(sch.slots.mistemplated(), many=True).data, safe=False )
+    def schedule__get_n_unfavorables ( request, schId ):
         sch = Schedule.objects.get(slug=schId)
-        return JsonResponse ( SlotSerializer(sch.slots.mistemplated(), many=True).data, safe=False)
-    def schedule__get_n_unfavorables (request, schId):
+        return JsonResponse ( sch.slots.unfavorables().count(), safe=False )
+    def schedule__get_unfavorables_list (request, schId ):
         sch = Schedule.objects.get(slug=schId)
-        return JsonResponse ( sch.slots.unfavorables().count(), safe=False)
+        return JsonResponse ( SlotSerializer(sch.slots.unfavorables(), many=True).data, safe=False )
+    def schedule__get_emusr_list (request, schId ):
+        sch = Schedule.objects.get(slug=schId)
+        return JsonResponse ( EmployeeSerializer(sch.employees.all(), many=True).data, safe=False )
     
 
 class ApiActionViews:

@@ -2,6 +2,7 @@
 
 var dragType = '';
 var dragSource ;
+var allowedTargets ;
 var currentDropTarget;
 // Employee: DRAGSTART
 // 1:  amber highlights to turnarounds 
@@ -13,7 +14,8 @@ function employeeDragStart (event) {
     document.querySelectorAll('.slot').forEach(slot => {
         if (event.target.dataset.available.split(" ").includes(slot.id)) {
             slot.classList.add('bg-green-400');
-            // add a visible dropzone to the edge of the slots
+            // add to allowedTargets
+            allowedTargets = event.target.dataset.available.split(" ");
         }
     })
     document.querySelectorAll('.slot.bg-green-400').forEach(slot => {
@@ -45,12 +47,12 @@ function dragLeaveSlot (event) {
     }
 }
 document.querySelectorAll('.slot').forEach(slot => {
-    slot.addEventListener('dragenter', dragEnterSlot);
+    slot.addEventListener('dragover', dragEnterSlot);
     slot.addEventListener('dragleave', dragLeaveSlot);
 })
 
 document.querySelectorAll('.fa-circle-ellipsis').forEach(slot => {
-    slot.addEventListener('mouseenter', mouseEnterEllipsis);
+    slot.addEventListener('mouseover', mouseEnterEllipsis);
     slot.addEventListener('mouseleave', mouseLeaveEllipsis);
 })
 
@@ -82,12 +84,14 @@ function dragOverVerify (event) {
 function dragOverTrash (event) {
     if (dragSource != 'slot') {} else {
         event.preventDefault();
-        event.preventPropagation();
     }
-    event.preventDefault();
 }
 function dragEnterTrash (event) {
-    event.target.classList.add('ring','ring-red-300','ring-offset-2');
+    event.target.classList.add('ring','ring-red-300','ring-offset-2','cursor-add');
+    event.target.addEventListener("dragenter", function(event) {
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "copy";
+      });      
 }
 function dragLeaveTrash (event) {
     event.target.classList.remove('ring','ring-red-300','ring-offset-2');
@@ -106,7 +110,6 @@ function dragLeave (event) {
     event.target.classList.remove('ring','ring-green-300','ring-offset-2');
 }
 function drop (event) {
-    event.preventDefault();
     const data = event.dataTransfer.getData('text');
     const emplObj = document.getElementById(data);
     var availableFor = emplObj.dataset.available.split(" ");
