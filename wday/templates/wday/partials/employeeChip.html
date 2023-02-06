@@ -9,12 +9,20 @@
             {% if desig == 'PTO' %}   opacity-60   {% endif %}
             {% if desig == 'TDO' %}   opacity-80   {% endif %}"
     draggable="true" 
-    data-available="{% for s in employee.shifts_available.all %}{{ s }} {% endfor %}"
+    available="{% for s in employee.shifts_available.all %}{{ s }} {% endfor %}"
     data-trained="{% for s in employee.shifts_trained.all %}{{ s }} {% endfor %}"
-    data-turnarounds="{% for s in employee.turnarounds %}{{ s }} {% endfor %}"
+    turnarounds="{% for s in employee.turnarounds %}{{ s }} {% endfor %}"
     data-week-hours="{% weekHours employee workday %}"
+    
     data-period-hours="{% periodHours employee workday %}"
-    data-slotted-as="{{ slot.shift }}">
+    slottedAs="{{ slot.shift }}"
+    _="init fetch api/check-employee-surrounding/{{employee.pk}}/ then append result to my@innerHTML end
+       on dragstart if @slottedAs != `` toggle .opacity-0 on .trashbin until dragend end
+       on dragstart set $emp to @id then log $emp end
+       on dragstart set $allow to @available
+       on dragstart add .dragging end
+       on dragstart call event.dataTransfer.setData('text/plain',target.outerHTML) set $target to target end
+       on dragend remove .ring-green-500 from .slot then remove .dragging from me end">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">

@@ -47,42 +47,37 @@
     _="on dragenter tell <div.scale-105 /> remove .scale-105 .bg-green-500 .bg-amber-500
        on mousenter tell <div.bg-green-200 /> remove .bg-green-200">
 
-
   {% for slot in workday.slots.all %}
-
   <!---===================== SHIFT SLOT =====================-->
   <div
-    class="slot    {{ slot.css__all }}
+    class="slot   
+           {{ slot.css__all }}
            bg-zinc-100 text-zinc-800 rounded
            px-2 m-1 flex flex-row w-40 transition"
     id= "{{ slot.slug }}"
     data-popover-target="{{ slot.slug }}--tooltip"
     data-available-empls="{% for e in slot.fillable_by %}{{e.slug}};{% endfor %}"
-    _="on load log my.dataset.availableEmpls 
-       end" >
+    _="on load log my.dataset.availableEmpls end" >
 
-    <h4>{{ slot.shift }}</h4>
+      <h4>{{ slot.shift }}</h4>
 
-    {% if slot.employee %}
+      {% if slot.employee %}
 
-    <div class="employee"
-      draggable="true"
-      value="{{ slot.employee.slug }}"
-      _=" on dragstart tell <div.slot /> log you.dataset.availableEmpls 
-              if you.dataset.availableEmpls contains '{{ slot.employee.slug }};' 
-              add .scale-105 .bg-green-200 
-              then add .hidden to .popover
-          end
-          on dragend tell .slot 
-              remove .scale-105 .bg-green-200 
-          end" >
-      <div class="font-bold text-sky-100" value="{{ slot.employee.slug }}">
-        {{ slot.employee }}
+      <div class="employee"
+        draggable="true"
+        data-value="{{ slot.employee.slug }}"
+        _=" on dragstart tell .slot
+                if you.dataset.availableEmpls contains '{{ slot.employee.slug }}' 
+                add .scale-105 .bg-green-200 then add .hidden to .popover end
+            on dragend or dragleave or tell .slot 
+                remove .scale-105 .bg-green-200 end" >
+        <div class="font-bold text-sky-100">
+          {{ slot.employee }}
+        </div>
       </div>
-    </div>
 
-    {% endif %}
-  </div>
+      {% endif %}
+    </div>
 
   <!------------DATA POPOVER ----------------->
   <div
@@ -110,8 +105,7 @@
             class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 
             focus:ring-blue-300 font-medium rounded-lg text-xs px-3 py-1.5 
             dark:bg-red-600 dark:hover:bg-red-700 focus:outline-none 
-            dark:focus:ring-red-800"
-          >
+            dark:focus:ring-red-800"]>
             CLEAR
           </a>
           {% endif %}
@@ -170,7 +164,7 @@
     id="{{ empl.slug }}"
     value="{{ empl.slug }}"
     draggable="true"
-    _=" on dragstart tell <div.slot /> log you.dataset.availableEmpls 
+    _=" on dragstart tell <div.slot/> log you.dataset.availableEmpls 
           if you.dataset.availableEmpls contains '{{ slot.employee.slug }};' 
           add .scale-105 .bg-green-200 
           then add .hidden to .popover

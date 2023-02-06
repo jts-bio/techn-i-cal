@@ -120,18 +120,29 @@
         
         // SCRIPT : POPUP EMPLOYEE INFO
         const toggleElement = document.querySelector('.employee-header');
-        const tooltipElement = document.querySelector('.tooltip-mono');
 
-        function createClickOutsideTooltipListener (tooltipElement, toggleElement) {
-            return function (event) {
-                const isClickInsideTooltip = tooltipElement.contains(event.target);
-                const isClickInsideToggle = toggleElement.contains(event.target);
-
-                if (!isClickInsideTooltip && !isClickInsideToggle) {
-                    tooltipElement.hidden = true;
-                }
-            }
-        }
+        toggleElement.addEventListener('contextmenu', () => {
+            // get cursor position of event 
+            const { clientX, clientY } = event;
+            const employeeSlug = event.target.innerText;
+            // create a tooltip 
+            const tooltip = document.createElement('div');
+            tooltip.classList.add('tooltip-mono','absolute','bg-opacity-40');
+            // add anchor to tooltip
+            tooltip.innerHTML = `<a href="/employee/${employeeSlug.trim()}/" class="text-amber-300">Employee Info</a>`;
+            // focus on anchor
+            tooltip.querySelector('a').focus();
+            // add tooltip to body
+            document.body.appendChild(tooltip);
+            // position tooltip
+            tooltip.style.left = `${clientX}px`;
+            tooltip.style.top = `${clientY}px`;
+            // remove tooltip on blur
+            tooltip.querySelector('a').addEventListener('blur', () => {
+                tooltip.remove();
+            });
+            
+        });
 
     </script>
 

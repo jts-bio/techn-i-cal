@@ -426,7 +426,7 @@ class ScheduleBot:
             
             for possibleSlot in possible:
                 # check to make sure employeeB is trained for the shift they would be swapping into
-                if possibleSlot.employee.shifts_trained.contains(slot.shift):
+                if possibleSlot.employee.shifts_trained.all().contains(slot.shift):
                     # dont include in possiblities if employeeB would be traded into a turnaround
                     if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
                         pass

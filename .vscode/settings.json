@@ -35,4 +35,7 @@
         "unfavorables"
     ],
     "remote.SSH.remoteServerListenOnSocket": false,
+    "githubPullRequests.ignoredPullRequestBranches": [
+        "beforeSlow"
+    ],
 }

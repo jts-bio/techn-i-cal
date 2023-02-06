@@ -3,8 +3,8 @@ from django.contrib import admin
 # Register your models here.
 from .models import (
     Shift, Employee, TemplatedDayOff, Workday, Slot, 
-    ShiftTemplate, PtoRequest, Week, Period, Schedule
-
+    ShiftTemplate, PtoRequest, Week, Period, Schedule,
+    RoutineLog, LogEvent
 )
 
 @admin.register(Shift)
@@ -63,3 +63,12 @@ class ScheduleAdmin (admin.ModelAdmin):
     fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts' )
     readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts')
     list_display        = ('slug','start_date', 'percent',)
+
+@admin.register(RoutineLog)
+class RoutineLogAdmin (admin.ModelAdmin):
+    fields          = ['schedule']
+    list_display    = ['schedule']
+@admin.register(LogEvent)
+class LogEventAdmin (admin.ModelAdmin):
+    fields          = ('log', 'event_type', 'description')
+    list_display    = ('log', 'event_type', 'description')

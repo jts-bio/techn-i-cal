@@ -6,10 +6,8 @@
 
         {% for slot in schedule.slots.empty %}
         <form method="POST" action="{% url 'schd:all-empty' schedule.slug %}"
-             _="on mouseover
-                    send loadSignal to <option/> in me end
-                on submit
-                    log result "
+             _="on mouseover send loadSignal to <option/> in me end
+                on submit log result "
             class="transition">
             {% csrf_token %}   
             <div class="my-2">
@@ -19,16 +17,14 @@
                     <span class="font-extrabold text-slate-900 bg-slate-100 rounded-sm text-xl pl-1 w-8">{{ slot.shift }}</span> 
                     <div class="flex flex-col mx-2 px-1">
                     <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
-                    <span>{{ slot.workday.date }}</span>
+                    <a href="/wday/{{slot.workday.slug}}">{{ slot.workday.date }}</a>
             </div>
 
 
                     <select name="employee" 
                             id="employee"
-                            _="on focus add .hidden to <input/> then remove .hidden from the next <input/> 
-                                then remove .bg-indigo-900 .ring .ring-indigo-300 .p-3 .rounded from <form/>
-                                then add .bg-indigo-900 .ring .ring-indigo-300 .p-3 .rounded to the closest <form/> 
-                                end"
+                            updateUrl="/schedule/detail/{{slot.schedule.slug}}/actions/update/{{slot.workday.slug}}/{{slot.shift.name}}/"
+                           _="on change get the  then log the result"
                             class="bg-zinc-900 rounded w-[200px] border-zinc-400 mr-8
                                    shadow shadow-lg"
                                 {% if slot.fillable_by.count == 0 %} disabled {% endif %}
@@ -40,15 +36,15 @@
                         {% for employee in slot.fillable_by %}
                             <option id="{{employee}}" 
                                 value="{{employee.pk}}"
-                                data-emp-hrs-url="{% url 'sch:api-week-empl-hours' slot.week.pk employee %}"
-                                
-                                _="init set :x to 0
-                                    on loadSignal if :x == 0 fetch `$my@data-emp-hrs-url/` then
-                                        set @wk to the result then 
-                                        append the result to my innerHTML
-                                        then increment :x
+                                incr="0"
+                                 _="on click fetch /schedule/detail/{{slot.schedule.slug}}/actions/update/{{slot.workday.slug}}/{{slot.shift.name}}/ then 
+                                       call window.location.reload() end
+                                 on loadSignal increment @incr 
+                                    if result == 1 
+                                        fetch /wday/{{slot.workday.slug}}/api/empl-check-hours/{{employee.pk}}/
+                                        then append the result to my innerHTML
                                     end"> 
-                                {{ employee.name }}
+                                {{ employee.name }} 
                             </option>    
                         {% endfor %}
 
@@ -57,7 +53,8 @@
                 </label>
                 <input type="submit" 
                        class="hidden bg-zinc-900 rounded w-full border-zinc-400 transition
-                              shadow shadow-lg hover:bg-indigo-500 hover:transition hover:duration-1700 hover:scale-110 hover:ring hover:ring-yellow-300" 
+                              shadow shadow-lg hover:bg-indigo-500 
+                              hover:duration-1700 hover:scale-110 hover:ring-2 hover:ring-yellow-300" 
                         id="{{slot.shift}}-{{slot.workday.slug}}-submit" 
                         value="ASSIGN" />
             </div>

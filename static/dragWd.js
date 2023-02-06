@@ -24,6 +24,7 @@ function employeeDragStart (event) {
             // add a visible dropzone to the edge of the slots
         }
     })
+    console.log('Slotted As', event.target.dataset.slottedAs);
     if (event.target.dataset.slottedAs  != "") {
         revealTrashbins();
         }
@@ -50,13 +51,10 @@ document.querySelectorAll('.slot').forEach(slot => {
     slot.addEventListener('dragover', dragEnterSlot);
     slot.addEventListener('dragleave', dragLeaveSlot);
 })
-
 document.querySelectorAll('.fa-circle-ellipsis').forEach(slot => {
     slot.addEventListener('mouseover', mouseEnterEllipsis);
     slot.addEventListener('mouseleave', mouseLeaveEllipsis);
 })
-
-
 function dragFromSlot (event) {
     dragSource = 'slot';
 }
@@ -76,8 +74,6 @@ function dragOverVerify (event) {
             event.preventDefault();
             event.target.classList.add('ring','ring-green-300','ring-offset-2');
         } else {
-            // dont allow a drop to occur over this
-            
         }
     }
 }
@@ -113,20 +109,18 @@ function drop (event) {
     const data = event.dataTransfer.getData('text');
     const emplObj = document.getElementById(data);
     var availableFor = emplObj.dataset.available.split(" ");
-
     var allowContinue = false;
+
     availableFor.forEach(slot => {
         if (slot == event.target.id) {
             allowContinue = true;
         }
     });
-
     // return swapEmployee fx if dragging employee from slot to slot
     if (dragSource == 'slot') {
         swapEmployee(event, emplObj, allowContinue);
         return;
     }
-
     // Remove the employee from the previous slot if they were already in another slot
     const previousSlot = emplObj.parentElement;
     if (previousSlot && previousSlot != event.target) {

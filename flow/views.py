@@ -2,7 +2,7 @@ from django.shortcuts import render
 
 # Create your views here.
 from sch.models import *
-from sch.serializers import SlotSerializer
+from sch.serializers import SlotSerializer, EmployeeSerializer
 
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect
 from django.shortcuts import render
@@ -21,17 +21,15 @@ class ApiViews :
         sch = Schedule.objects.get (slug = schId )
         return JsonResponse ( sch.slots.empty().count(), safe=False )
     
-    def schedule__get_weekly_hours (request, schId ):
-        sch = Schedule.objects.get (slug = schId )
-        # on each employee, annotate the sum of thier weekly hours from slots assigned to them. Each
-        # employee will have a list of 6 numbers, one for each week.
-        for sch in Schedule.objects.all():
-            for employee in sch.employees.all():
-                employee.weekBreakdown = [ sum(list(week.slots.filter(
-                    employee=employee).values_list(
-                        'shift__hours',flat=True))) for week in sch.weeks.all() ]
-    
-        return JsonResponse ( sch.employees.values_list('name','weekBreakdown'), safe=False )
+    def schedule__get_weekly_hours(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        employee_week_breakdowns = {}
+        for employee in sch.employees.all():
+            employee_week_breakdowns[employee.name] = [
+                sum(list(week.slots.filter(employee=employee).values_list(
+                    'shift__hours', flat=True))) for week in sch.weeks.all()
+            ]
+        return JsonResponse ( employee_week_breakdowns , safe=False )
     
     def schedule__get_weekly_hours__employee ( request, schId, empName ):
         employee     = Employee.objects.filter ( name__contains= empName ).first()
@@ -44,8 +42,9 @@ class ApiViews :
     
     def schedule__get_emusr ( request, schId ):
         sch = Schedule.objects.get (slug = schId )
-        fig = SchViews.Calc.emusr_distr(request,sch).contentP
-        return JsonResponse (dict(sch=fig))
+        fig = SchViews.Calc.emusr_distr(request,sch)
+        return JsonResponse (fig, safe=False )
+    
     
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -86,27 +85,3 @@ class ApiActionViews:
         sft.save()
         return HttpResponseRedirect(sft.url())
     
-
-# <a href="" class="rounded hover:transition hover:bg-slate-700 hover:scale-110">
-#           <p class="text-3xl font-semibold 
-#                   {% if uf_stdev_diff < 0 %}  text-red-600
-#                   {% else %}                  text-emerald-300   
-#                   {% endif %}"
-#               hx-get="{% url 'sch:sch-calc-uf-distr' schedule.slug %}"
-#               hx-target="#uf-stdev-diff"
-#               hx-trigger="load">
-                
-#               <!-- SWAP AREA FOR UF-DISTR -->
-#                 <span id="uf-stdev-diff">
-#                           <i class="fa-loader fa-duotone fa-spin fa-beat opacity-60"></i>
-#                 </span>
-#                 <span class="opacity-80 text-sm">SDfµ</span>
-#               <!-- icon ECLIPSE -->
-#               <i class="fa-duotone fa-moon-over-sun"></i>
-                
-#           </p>
-#           <p class="mt-1 text-xs font-light text-gray-500">
-#               Unfavorable Slots
-#               <span class="italic text-xs font-light opacity-80">(n={{ schedule.slots.unfavorables.count }} slots) </span>
-#           </p> 
-#       </a>

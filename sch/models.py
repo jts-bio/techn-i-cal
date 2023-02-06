@@ -631,6 +631,11 @@ class Workday (models.Model) :
     def on_tdo(self):
         return Employee.objects.filter(pk__in=self.tdo().values('employee__pk'))
     
+    def show_prev_am (self):
+        return self.prevWD().slots.filter(shift__group='AM').values('employee')
+    def show_prev_pm (self):
+        return self.prevWD().slots.filter(shift__group=['PM','XN']).values('employee')
+    
     class Actions :
         def _set_slug (self,instance) : 
             return instance.date.strftime('%Y-%m-%d')
@@ -1077,6 +1082,8 @@ class Schedule (models.Model):
         self.last_update = dt.datetime.now()
         if 'Save Required' in self.tags.all():
             self.tags.remove('Save Required')
+        if self.routine_log == None:
+            RoutineLog.objects.create(schedule=self)
         super().save(*args,**kwargs)
         self.post_save()
     def post_save (self) :
@@ -1163,7 +1170,7 @@ class Schedule (models.Model):
             instance.action_log += f"ACTION F1:FILL-TEMPLATES    @{dt.datetime.now()}\n"
             print (f'===============================')
             print (f'[ACTION : SCHEDULE__FILLTEMPLATES] {dt.datetime.now()}')
-            
+            n_empty_init = instance.slots.empty().count()
             for slot in instance.slots.random_order():
                 if slot.employee is None:
                     if slot.template_employee is not None:
@@ -1174,8 +1181,15 @@ class Schedule (models.Model):
                             slot.employee = slot.template_employee
                             slot.save()
                             print (f'Filled Slot {slot.workday.date.month}-{slot.workday.date.day} {slot.shift}: with {slot.employee} via Template')
+            n_empty_f = instance.slots.empty().count()
+            empty_delta = n_empty_init - n_empty_f
+            LogEvent.objects.create(
+                log=instance.routine_log,
+                event_type="ACTIONS.FILL_TEMPLATES", 
+                description=f"{n_empty_init} Empty -> {n_empty_f} [∆ {empty_delta}]" )
             print (f'FINISHED TEMPLATED SHIFT ASSIGNMENTS {dt.datetime.now()}')
             print (f'===============================')
+        
         def fillSlots (self,instance,request,**kwargs):
             instance.action_log += f"ACTION F2:FILL-SLOTS    @{dt.datetime.now()}\n"
             n_empty = instance.slots.empty.count()
@@ -1311,6 +1325,16 @@ class Schedule (models.Model):
                 )
     tags    = TaggableManager ()
     actions = Actions ()
+
+class RoutineLog (models.Model):
+    schedule = models.OneToOneField("Schedule", on_delete=models.CASCADE, related_name='routine_log')
+    def __str__(self):
+        return f'{self.schedule.slug} Routine Log'
+
+class LogEvent (models.Model):
+    log = models.ForeignKey(RoutineLog, on_delete=models.CASCADE, related_name='events')
+    event_type = models.CharField(max_length=100)
+    description = models.TextField()
 # ============================================================================
 class Slot (models.Model) :
     # fields: workday, shift, employee
@@ -1398,7 +1422,20 @@ class Slot (models.Model) :
                 print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')               
         
     actions = Actions()
-    
+    def show_surrounds (self):
+        if self.employee == None:
+            return None
+        prev = self.workday.prevWD().slots.filter(employee=self.employee)
+        if prev.exists():
+            p = prev.first().shift.group
+        else:
+            p = None
+        nxt = self.workday.nextWD().slots.filter(employee=self.employee)
+        if nxt.exists():
+            n = nxt.first().shift.group
+        else:
+            n = None
+        return (p,n)
     def template (self):
         return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
     def slug    (self):

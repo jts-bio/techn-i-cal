@@ -52,6 +52,9 @@ def schDetailView (request, schId):
 
 class Sections: 
     
+    def modal (request):
+        return render(request, 'modal.html')
+    
     def schStats (request, schId):
         sch = Schedule.objects.get (slug = schId )
         statPartials = [ 
@@ -109,6 +112,18 @@ class Actions:
         if request.method == "POST":
             slot.actions.clear_employee(slot)
             return HttpResponse("<div class='text-red-300 font-light'> Cleared </div>")
+    @csrf_exempt
+    def updateSlot(request,schId,wd,sft):
+        employee = request.POST.get('employee')
+        slot = Slot.objects.get (schedule__slug=schId,workday__slug__contains=wd, shift__name=sft)
+        if slot.workday.on_deck.all().filter(slug=employee).exclude(shift=slot.shift).exists():
+            otherSlot = slot.workday.on_deck.all().filter(slug=employee).exclude(shift=slot.shift).first()
+            otherSlot.employee= None
+            otherSlot.save()
+        slot.actions.update_employee(slot,employee)
+        return HttpResponse("<div class='text-green-300 font-light'> Updated </div>")
+        
+    
     
     def clearOvertimeSlotsByRefillability (request,schId):
         sch = Schedule.objects.get (slug =schId )

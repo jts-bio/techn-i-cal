@@ -22,5 +22,9 @@ block content
                     img.w-5.h-5(src=empl.image_url ).w-10.h-10.rounded-full
                     span.font-thin= empl.name.upper
 
+    for emp in slot.fills_with.all
+        div.text-xs(_="on click set my *background-color to red end")= emp.name
+
+
     script
         include wday/src/main.js

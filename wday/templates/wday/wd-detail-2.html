@@ -14,21 +14,27 @@
 
     <div class="container w-full mx-auto">
         <div class="text text-center flex flex-row">
-            <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]"><i class="fa-duotone fa-circle-arrow-left"></i></a>
+
+            <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]">
+                <i class="fa-duotone fa-circle-arrow-left"></i>
+            </a>
+
             <div class="flex flex-col center text-center">
                 <span class="text-3xl mt-2 font-semibold text-orange-500">{{ workday.date }}</span>
                 <span class="text-sm font-thin">{{ workday.wkd }}</span>
                 <span id="wdId" class="hidden">{{ workday.slug }}</span>
             </div>
+
             <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]">
                 <i class="fa-duotone fa-circle-arrow-right"></i>
             </a>
+            
         </div>
     </div>
     
-    <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
-        
+    {# _____ SECTION: SLOT GRID ______ #}
+    <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
 
         {% for slot in workday.slots.all %}
         <div>
@@ -37,9 +43,21 @@
             <div class="slot w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20
                         {% if slot.employee == None %} bg-amber-800 {% endif %}"
                  id="{{ slot.shift }}" 
-                 data-available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
+                 available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
+                 current="{{ slot.employee }}"
                  data-time-of-day="{{ slot.shift.group }}"
-                 data-empty="{% if slot.employee %}true{%else%}false{%endif%}">
+                 a='0' b='0'
+                 _="on dragover or dragenter if $allow.split(' ').includes(@id) halt the event
+                        else add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end
+                on dragover or dragenter if $emp != @current then 
+                        add .bg-emerald-500 then halt the event then log 'ok' end
+                on dragleave remove .ring .ring-2 .ring-green-400 .bg-emerald-500 .bg-opacity-80 .bg-red-300 .ring-red-600  end
+                on drop remove .ring .ring-2 .ring-green-400 end
+                on drop log $emp end
+                on fetch:beforeRequest(headers) set headers['empId'] to $emp end
+                on drop fetch slot/{{slot.shift}}/update/ end
+                on drop tell .dragging remove you then add .fa-fade .fa-beat to me then
+                wait 1s then call window.location.reload() end ">
 
                 <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
@@ -48,7 +66,7 @@
                 <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
                 </span>
-
+                <div class="inner-slot">
                 {% if slot.employee %} 
                     {% with slot.employee as employee %}
                         {% include 'wday/partials/employeeChip.html' %}
@@ -56,18 +74,30 @@
                 {% else %}
                         <i data-slot="{{slot.shift.name}}"
                            data-group="{{slot.shift.group}}"
-                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"></i>
+                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2">
+                        </i>
                 {% endif %}
+                </div>
                 
             </div>
-            <span data-popover id="popover-container-{{slot.id}}">{% include 'wday/partials/popover.html' %}</span> 
         </div>
         {% endfor %}
+
+        {# _____ OBJECT: TRASHCAN ______ #}
+        <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg"
+            _="on dragenter or dragover log 'hi' then add .fa-fade .fa-beat then halt the event end
+            on fetch:beforeRequest(headers) set headers['empId'] to $emp end
+            on drop fetch slot/delete/ end
+            on drop wait 1s then call window.location.reload() end ">
+            <i class="fa-duotone fa-trash-can text-2xl"></i>
+            <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+        </div>
 
     </div>
 
     <hr class="text-white my-3"/>
     
+    {# _____ SECTION: ON DECK ______ #}
     <div class="container flex flex-rows-1 gap-[50px] bg-zinc-900 overflow-x-scroll overscroll-x-auto h-50 snap-x">
 
             <!---- Employees: ON DECK ----->
@@ -98,12 +128,6 @@
                 {% endwith %}
                 {% endwith %}
             {% endfor %}
-
-                {# _____ OBJECT: TRASHCAN ______ #}
-            <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg">
-                <i class="fa-duotone fa-trash-can text-2xl"></i>
-                <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
-            </div>
         
         </div>
     
@@ -115,10 +139,10 @@
     <div class="text text-center text-2xs opacity-75 italic"> 
         USING TEMPLATE: WD-DEFAULT 
     </div>
-
+{% comment %} 
     <script src="{% static 'dragWd2.js' %}"></script>
 
-    <script src="{% static 'dragWd.js' %}"></script>
+    <script src="{% static 'dragWd.js' %}"></script> {% endcomment %}
 
 {% endblock %}
 
@@ -170,7 +194,9 @@
             background-color: #ffaa77;
             border: 2px solid #cc6600aa;
         }
-
+        .dragging {
+            opacity: 0.5;
+        }
     </style>
 
 {% endblock %}

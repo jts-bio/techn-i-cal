@@ -8,8 +8,13 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 from sch.models import Schedule, Workday, Employee, Slot, WorkdayViewPreference, WD_VIEW_PREF_CHOICES
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
-
+def testing (request, wdSlug):
+    context= {
+        'workday': Workday.objects.get(slug=wdSlug),
+    }
+    return render(request, 'wday/testing.html', context)
 
 class Partials:
     def spwdBreadcrumb (request, wdSlug):
@@ -68,16 +73,24 @@ def slotDetailView (request, slug, shiftId):
 
 class SlotActions:
     
-    def slotDeleteView (request, slug, shiftId):
-        slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
+    @csrf_exempt
+    def slotDeleteView (request, slug):
+        shiftId = request.headers['empId']
+        if Slot.objects.filter(shift__name=shiftId,workday__slug=slug).exists():
+            slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
+        elif Slot.objects.filter(employee__pk=shiftId,workday__slug=slug).exists():
+            slot = Slot.objects.get(employee__pk=shiftId, workday__slug=slug)
         slot.employee = None
         slot.save()
         messages.info(request, f"Slot {slot.shift} has been cleared successfully.")
-        return HttpResponseRedirect( reverse('wday:detail', kwargs={'slug': slug} ))
-    
-    def slotUpdateView (request, slug, shiftId, empId):
+        return HttpResponse (f"Slot {slot.shift} has been cleared successfully.")
+
+    def slotUpdateView (request, slug, shiftId):
+        # get the employee to update to from request header
+        print(request.headers)
+        empId = request.headers['empId']
+        emp = Employee.objects.get(slug=empId)
         slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
-        empl = Employee.objects.get(slug=empId)
         if slot.siblings_day.filter(employee__slug=empId).exists():
             slot.siblings_day.filter(employee__slug=empId).update(employee=None)
         slot.employee = None

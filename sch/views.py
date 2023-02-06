@@ -2166,8 +2166,6 @@ class SCHEDULE:
                 s = Slot.objects.get(pk=tdo.overlapped)
                 tdos_notblank.append(s)
         return tdos_notblank
-   
-    
     
 class HTMX:
     def radProgress (request, progress):

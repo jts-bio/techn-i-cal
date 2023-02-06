@@ -8,12 +8,15 @@ currentAllowedDrops.innerHTML = "...";
 
 document.querySelectorAll(".employee-chip").forEach(function (chip) {
   chip.addEventListener("dragstart", dragStartChip);
+  chip.addEventListener("dragstart", revealTrashBin);
   chip.addEventListener("dragend", dragEndChip);
+  chip.addEventListener("dragend", hideTrashBin);
 });
 
 function dragStartChip(event) {
   var allowedSlotIds = event.target.dataset.available.split(" ");
   var slots = document.querySelectorAll(".slot");
+
   slots.forEach(function (slot) {
     if (allowedSlotIds.includes(slot.id)) {
       slot.classList.add("allowed-drop", "bg-emerald-400");
@@ -22,6 +25,7 @@ function dragStartChip(event) {
         slot.addEventListener("dragover", dragOverVerify);
         slot.addEventListener("drop", drop);
     })
+  
   });
 
   currentEmployee.innerHTML = event.target.id;
@@ -29,6 +33,18 @@ function dragStartChip(event) {
   event.dataTransfer.setData("text/plain", event.target.id);
   event.dataTransfer.dropEffect = "move";
   event.target.classList.add("dragging");
+}
+function revealTrashBin(event) {
+  var trashBin = document.getElementById("trashbin");
+  trashBin.classList.add("opacity-100");
+  trashBin.addEventListener("dragover", dragOverTrash);
+  trashBin.addEventListener("drop", dropTrash);
+}
+function hideTrashBin(event) {
+  var trashBin = document.getElementById("trashbin");
+  trashBin.classList.remove("opacity-100");
+  trashBin.removeEventListener("dragover", dragOverTrash);
+  trashBin.removeEventListener("drop", dropTrash);
 }
 
 function dragEndChip(event) {
@@ -58,8 +74,10 @@ document.querySelectorAll(".slot").forEach(function (slot) {
         var allowedSlotIds = event.target.dataset.available.split(" ");
         currentDropzone.innerHTML = event.target.id;
         if (allowedSlotIds.includes(event.target.id)) {
+          if (currentEmployee.innerHTML == event.target.dataset.current) {
             event.preventDefault();
-            event.dataTransfer.dropEffect = "move";
+            event.dataTransfer.dropEffect = "move"; 
+          }
         } else {
         if (currentAllowedDrops.innerHTML.split(" ").includes(event.target.id)) {
             isCurDropAllowed.innerHTML = "ALLOWED";
@@ -82,11 +100,12 @@ document.querySelectorAll(".slot").forEach(function (slot) {
             event.target.classList.remove('allowed-drop','bg-emerald-400','over-allowed-drop','bg-emerald-400','over-prohibited-drop','bg-orange-400');
           }
           function drop (event) {
+            var data = event.dataTransfer.getData('text/plain');
+            console.log(data);
             var currentEmployeeChip;
             if (isCurDropAllowed.innerHTML == 'ALLOWED') {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
-                var data = event.dataTransfer.getData('text/plain');
                 event.target.appendChild(document.getElementById(data));
                 
             } else {

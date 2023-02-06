@@ -12,17 +12,16 @@
     {% for slot in workday.slots.all %}
 
         <div class="bg-zinc-900 px-5 py-2 rounded-lg shadow">
-            <span _="on load 
-                set avbl to [{{slot.employee.shiftsAvailable}}] as Array
-                set trnd to [{{slot.employee.shiftsTrained }}] as Array
-                set slottedAs to `{{slot.shift.name}}` as String end
-                    on click
-                call console.log(slottedAs)">{{ slot.employee }}>
-            {{ slot.employee }}
+            <span data-available='[{{slot.employee.shifts_available.all}}]'
+                _="on click put my@dataset.available into #output end">
+                {{ slot.employee }}
+                {{ slot.employee }}
             </span>
         </div>
     
     {% endfor %}
+
+    <output id="output"></output>
 
     <script type="text/hyperscript" src="{% static 'drag-race._hs' %}"></script>
         
