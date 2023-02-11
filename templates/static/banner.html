@@ -1,44 +1,26 @@
 
 
 <header class='flex flex-row items-center center justify-center text-center
-               mx-2 mb-4 bg-zinc-900 
-               opacity-20 hover:opacity-100 hover:transition hover:scale-110 
+               mx-2 mb-4 bg-zinc-900 transition
+               opacity-20 hover:opacity-100 hover:scale-105
                hover:ring hover:ring-orange-500'
-        style= 'width:100%;'>
+        style= 'width:100%;'
+        _="on mouseleave add .hidden to .user-context-menu end">
   
-  <div class="bg-zinc-900 px-5 py-1 rounded opacity-60 hover:opacity-100 vstack">
+  <div class="bg-zinc-900 px-5 py-1 rounded opacity-90 hover:opacity-100 vstack">
        
 
-      <div class="mx-10"
-          _ ="on contextmenu 
-                halt the event then
-                log 'Got Right Click Event' then 
-                toggle .hidden on (<div.user-context-menu/> in me)
-                end "
-          >
-       
-          
+      <div>
           {% if user.is_authenticated %}  
-          <a href="{% url 'sch:user-detail' user.username %}"
-          class='center-self'
-            >   
-              <span class="text-2xs text-zinc-400"> LOGGED IN AS </span> <br/>
-              <i class="fa-duotone fa-user-astronaut text-orange-400 text-2xl"></i> <br/>
-              {{user.first_name}} {{ user.last_name }} ({{ user.username }})
+              <a href="{% url 'sch:user-detail' user.username %}"
+                class='center-self'>   
+                  <span class="text-2xs text-zinc-400"> LOGGED IN AS </span> <br/>
+                  <i class="fa-duotone fa-user-astronaut text-orange-400 text-2xl"></i> <br/>
+                  {{user.first_name}} {{ user.last_name }} ({{ user.username }})
           {% else %}  
-              <span class="text-2xs text-zinc-400"> USER IS NOT LOGGED IN CURRENTLY! </span> 
-
-          </a>
+                  <span class="text-2xs text-zinc-400"> USER IS NOT LOGGED IN CURRENTLY! </span> 
+              </a>
           {% endif %}
-            
-        
-          
-        <div class="user-context-menu hidden absolute  bg-zinc-300 bg-opacity-50 rounded px-2 py-1 w-fc z-25">
-
-              <div><a href="{% url 'logout-view' %}" class="item"> Logout </a></div>
-              <div><a href="{% url 'sch:empl-schedule-detail' 'Josh' '16' %}" class="item"> View current schedule  </a></div>
-          
-        </div>
         
 
       </div>

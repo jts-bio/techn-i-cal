@@ -1,9 +1,13 @@
 <table>
 
     <tr>    
-        <th>Workday</th>
+        <th class="text-amber-200" _="on click take .text-amber-200 from <th/> end">
+            Workday
+        </th>
         <th>Shift</th>
-        <th>Employee</th>
+        <th _="on click take .text-amber-200 from <th/> end">
+            Employee
+        </th>
         <th>Actions</th>
     </tr>
 
@@ -26,7 +30,12 @@
 </table>
 
 <script>
-    // if a td in table is in the workday column (3nd column) of a <tr> then wrap with a <a> tag
+    /* 
+    ADD WORKDAY LINK
+    ------------------------------------------------------
+    if a td in table is in the workday column (3nd column) 
+    of a <tr> then wrap with a <a> tag 
+    */
     var table = document.getElementsByTagName('table')[0];
     var rows = table.getElementsByTagName('tr');
     var version = document.getElementById('scheduleVersionId').innerHTML.trim();
@@ -42,4 +51,109 @@
             }
         }
     }
+
+    /* 
+    ORDER TABLE ON EMPLOYEE HEADER CLICK
+    ------------------------------------------------------
+    */
+    var table = document.getElementsByTagName('table')[0];
+    var header = table.getElementsByTagName('th')[2];
+    header.addEventListener('click', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[2].innerHTML;
+            var b = b.getElementsByTagName('td')[2].innerHTML;
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /* 
+    REVERSE ON SECOND CLICK
+    ------------------------------------------------------
+    */
+    header.addEventListener('dblclick', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[2].innerHTML;
+            var b = b.getElementsByTagName('td')[2].innerHTML;
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /* 
+    ORDER TABLE ON WORKDAY HEADER CLICK
+    ------------------------------------------------------
+    */
+    var table = document.getElementsByTagName('table')[0];
+    var header = table.getElementsByTagName('th')[0];
+    header.addEventListener('click', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[0].innerHTML;
+            var b = b.getElementsByTagName('td')[0].innerHTML;
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /*
+    REVERSE ON SECOND CLICK
+    ------------------------------------------------------
+    */
+    header.addEventListener('dblclick', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[0].innerHTML;
+            var b = b.getElementsByTagName('td')[0].innerHTML;
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
 </script>

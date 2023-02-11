@@ -1,0 +1,9 @@
+<div class="flex flex-row">
+    {% for day in workday.week.workdays.all %}
+        {% if day != workday %}
+            <a href="{{ day.url }}" class="text-2xs px-1 fa-solid fa-circle opacity-30 hover:opacity-90"></a>
+        {% else %}      
+            <i class="fa-solid text-2xs px-1 fa-circle"></i>
+        {% endif %}
+    {% endfor %}
+</div>

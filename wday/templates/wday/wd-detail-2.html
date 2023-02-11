@@ -12,26 +12,31 @@
 
     {% include 'wday/partials/SPWD.html' %}
 
-    <div class="container w-full mx-auto">
-        <div class="text text-center flex flex-row">
+    <div class="w-fc flex flex-col">
 
-            <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]">
-                <i class="fa-duotone fa-circle-arrow-left"></i>
-            </a>
+        <div class="mx-auto">{% include 'wday/partials/week-dots.html' %}</div>
+        
+        <div class="container w-full mx-auto">
+            <div class="text text-center flex flex-row">
 
-            <div class="flex flex-col center text-center">
-                <span class="text-3xl mt-2 font-semibold text-orange-500">{{ workday.date }}</span>
-                <span class="text-sm font-thin">{{ workday.wkd }}</span>
-                <span id="wdId" class="hidden">{{ workday.slug }}</span>
+                <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]">
+                    <i class="fa-duotone fa-circle-arrow-left"></i>
+                </a>
+
+                <div class="flex flex-col center text-center">
+                    <span class="text-3xl mt-2 font-semibold text-orange-500">{{ workday.date }}</span>
+                    <span class="text-sm font-thin">{{ workday.wkd }}</span>
+                    <span id="wdId" class="hidden">{{ workday.slug }}</span>
+                </div>
+
+                <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]">
+                    <i class="fa-duotone fa-circle-arrow-right"></i>
+                </a>
+                
             </div>
-
-            <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]">
-                <i class="fa-duotone fa-circle-arrow-right"></i>
-            </a>
-            
         </div>
-    </div>
-    
+
+   </div>
 
     {# _____ SECTION: SLOT GRID ______ #}
     <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
@@ -47,17 +52,24 @@
                  current="{{ slot.employee }}"
                  data-time-of-day="{{ slot.shift.group }}"
                  a='0' b='0'
-                 _="on dragover or dragenter if $allow.split(' ').includes(@id) halt the event
+                 _="on dragover or dragenter if $allow.includes(@id) halt the event 
                         else add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end
-                on dragover or dragenter if $emp != @current then 
-                        add .bg-emerald-500 then halt the event then log 'ok' end
-                on dragleave remove .ring .ring-2 .ring-green-400 .bg-emerald-500 .bg-opacity-80 .bg-red-300 .ring-red-600  end
+                on dragover or dragenter if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 end
+                on dragleave set $empCardSecondary to `` end
+                on dragleave or dragend remove .ring .ring-2 .ring-green-400 
+                                    .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
+                                    .bg-red-300 .ring-red-600 end
                 on drop remove .ring .ring-2 .ring-green-400 end
-                on drop log $emp end
                 on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-                on drop fetch slot/{{slot.shift}}/update/ end
-                on drop tell .dragging remove you then add .fa-fade .fa-beat to me then
-                wait 1s then call window.location.reload() end ">
+                on drop 
+                    js event.dataTransfer.dropEffect = 'move' end then 
+                    call event.dataTransfer.getData('text') set $empCard to result then 
+                    send addCard to .inner-slot in me then  
+                    fetch slot/{{slot.shift}}/update/ then 
+                    call window.location.reload() end
+                on drop tell .dragging remove you then add .fa-fade .fa-beat to me end
+                on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
+                on hideHl remove .bg-green-600 .ring .ring-green-500 end">
 
                 <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
@@ -66,7 +78,8 @@
                 <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
                 </span>
-                <div class="inner-slot">
+                <div id="inner-slot-{{ slot.shift}}" class="inner-slot"
+                        _="on addCard put $empCard into me end">
                 {% if slot.employee %} 
                     {% with slot.employee as employee %}
                         {% include 'wday/partials/employeeChip.html' %}
@@ -74,7 +87,9 @@
                 {% else %}
                         <i data-slot="{{slot.shift.name}}"
                            data-group="{{slot.shift.group}}"
-                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2">
+                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
+                           _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-{{ slot.shift.name }} end
+                              on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-{{ slot.shift.name }} end">
                         </i>
                 {% endif %}
                 </div>
@@ -84,11 +99,14 @@
         {% endfor %}
 
         {# _____ OBJECT: TRASHCAN ______ #}
-        <div class="opacity-0 trashbin text-center bg-red-700 rounded-lg"
-            _="on dragenter or dragover log 'hi' then add .fa-fade .fa-beat then halt the event end
+        <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 rounded-lg"
+            _="on dragenter or dragover add .ring .ring-red-200 then halt the event end
             on fetch:beforeRequest(headers) set headers['empId'] to $emp end
+            on dragleave remove .ring .ring-red-200 end
+            on drop js event.dataTransfer.dropEffect = 'move' end
+            on drop call event.dataTransfer.getData('text/plain') end
             on drop fetch slot/delete/ end
-            on drop wait 1s then call window.location.reload() end ">
+            on drop call window.location.reload() end ">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
             <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>
@@ -131,10 +149,12 @@
         
         </div>
     
-    <div id="current-employee" class="text text-center text-2xs opacity-75 italic"> </div>
-    <div id="current-allowed-drops" class="text text-center text-2xs opacity-75 italic"> </div>
-    <div id="is-drop-allowed" class="text text-center text-2xs opacity-75 italic"> </div>
-    <div id="current-dropzone" class="text text-center text-2xs opacity-75 italic"></div>
+    <div id="dragged-data-display" class="text text-center border border-zinc-300 opacity-50 rounded p-2">
+            <div id="dragged-employee-name" class="text-2xs italic"></div>
+            <div id="dragged-employee-shift" class="text-2xs text-blue-500"></div>
+            <div id="dragged-allowed" clas="text-green-900 bg-green-300 rounded px-2 text-2xs"></div>
+    </div>
+        
 
     <div class="text text-center text-2xs opacity-75 italic"> 
         USING TEMPLATE: WD-DEFAULT 

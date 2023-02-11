@@ -1,7 +1,7 @@
 {% load static %}
 
 
-<div class="flex items-center space-x-4 mouse-pointer"
+<div class="flex items-center space-x-4 cursor-pointer"
     hx-get="{% url 'schd:unfavorables' schedule.slug %}"
     hx-trigger="click"
     hx-target="#swap-panel">

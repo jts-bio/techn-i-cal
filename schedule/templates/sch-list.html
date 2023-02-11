@@ -29,32 +29,33 @@
 {% endblock style %} {% block content %}
 
 <div class="w-full">
-  <div class="sticky t-2 -r-0 w-50 mt-3 mr-3">
+  <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
 
     {% #toggle-section title="New Schedule Dialog" %}
-
     <div class="border-2 border-slate-300 rounded">
-      <div class="w-56 px-3 py-2 bg-zinc-900 rounded">
-        <h2 class="text-lg">Generate New Schedule</h2>
+      <div class="px-3 py-2 bg-zinc-900 rounded">
+        <h2 class="text-lg">New Schedule Wizard</h2>
       </div>
-
       <div class="px-3 py-2 bg-slate-700">
-        <p class="w-56">
-          Select the start date for a new schedule to Generate.
-          <span class="info">
-            Note, you can have more than one schedule for the same date range in
-            order to test multiple scenarios.
+        <p class="font-light text-sm">
+          Select the start date for a new schedule to Generate. <br/>
+          <span class="text-indigo-200">
+            Note, you can have more than one schedule for the same <br/>
+            date range in order to test multiple scenarios.
           </span>
         </p>
       </div>
-
-      <form method="POST" class="pl-3 bg-zinc-900" action="">
-        {% csrf_token %} {{ new_schedule_form }}
-        <input type="submit" value="Generate" />
+      <form method="POST">
+        {% csrf_token %} 
+        {{ new_schedule_form }}
+        <input type="submit" 
+               value="Generate Schedule Draft"
+               class="transition hover:scale-105 hover:text-indigo-300 hover:font-bold" />
       </form>
     </div>
-
     {% /toggle-section %}
+
+
   </div>
 </div>
 <div class="hidden md:block">

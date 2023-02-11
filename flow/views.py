@@ -12,10 +12,16 @@ from django.views.generic.base import TemplateView, RedirectView, View
 from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, IntegerField, F, Value
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
-from sch.viewsets import SchViews
+import json
     
         
 class ApiViews :
+    def schedule__list (request):
+        schs = Schedule.objects.all()
+        page = request.GET.get('page', 1)
+        page_size = 5
+        return JsonResponse(schs[(page*page_size)-1:(page+1)*page_size])
+    
     
     def schedule__get_n_empty (request, schId ):
         sch = Schedule.objects.get (slug = schId )
@@ -30,6 +36,7 @@ class ApiViews :
                     'shift__hours', flat=True))) for week in sch.weeks.all()
             ]
         return JsonResponse ( employee_week_breakdowns , safe=False )
+        
     
     def schedule__get_weekly_hours__employee ( request, schId, empName ):
         employee     = Employee.objects.filter ( name__contains= empName ).first()
@@ -71,7 +78,11 @@ class ApiViews :
     def schedule__get_emusr_list (request, schId ):
         sch = Schedule.objects.get(slug=schId)
         return JsonResponse ( EmployeeSerializer(sch.employees.all(), many=True).data, safe=False )
+    def schedule__get_empty_list (request,schId):
+        sch = Schedule.objects.get(slug=schId)
+        return JsonResponse ( SlotSerializer(sch.slots.empty(), many=True).data, safe=False )
     
+   
 
 class ApiActionViews:
     

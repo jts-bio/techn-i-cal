@@ -234,20 +234,20 @@ schedule_patterns = [
     path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
     
     #*__________SCHEDULE PARTIALS__________*
-    path('schedule-partials/<str:schId>/complex-table/', viewsets.SchPartials.schComplexTablePartial, name='sch-partial-cx-table'),
-    path('schedule-partials/<str:schId>/compare-and-select/', viewsets.SchPartials.schCompareSelectPartial, name='sch-partial-compare-select'),
-    path('schedule-partials/<str:schId>/view-select/', viewsets.SchPartials.schViewSelectPartial, name='sch-partial-view-select'),
-    path('schedule-partials/<str:schId>/empl-grid/', viewsets.SchPartials.schEmployeeGridPartial, name='sch-partial-empl-grid'),
-    path('schedule-partials/<str:schId>/shift-grid/', viewsets.SchPartials.schShiftGridPartial, name='sch-partial-shift-grid'),
-    path('schedule-partials/<str:schId>/fte-ratios/', viewsets.SchPartials.schFteRatioPartial, name='sch-partial-fte-ratios'),
-    path('schedule-partials/<str:schId>/stat-bar/', viewsets.SchPartials.schStatBarPartial, name='sch-partial-stat-bar'),
-    path('schedule-partials/<str:schId>/week-breakdown/', viewsets.SchPartials.schWeeklyBreakdownPartial, name='sch-week-brkd'),
-    path('schedule-partials/<str:schId>/mistemplated/', viewsets.SchPartials.schMistemplatedPartial, name='sch-mistemplated'),
+    path('schedule-partials/<schId>/complex-table/', viewsets.SchPartials.schComplexTablePartial, name='sch-partial-cx-table'),
+    path('schedule-partials/<schId>/compare-and-select/', viewsets.SchPartials.schCompareSelectPartial, name='sch-partial-compare-select'),
+    path('schedule-partials/<schId>/view-select/', viewsets.SchPartials.schViewSelectPartial, name='sch-partial-view-select'),
+    path('schedule-partials/<schId>/empl-grid/', viewsets.SchPartials.schEmployeeGridPartial, name='sch-partial-empl-grid'),
+    path('schedule-partials/<schId>/shift-grid/', viewsets.SchPartials.schShiftGridPartial, name='sch-partial-shift-grid'),
+    path('schedule-partials/<schId>/fte-ratios/', viewsets.SchPartials.schFteRatioPartial, name='sch-partial-fte-ratios'),
+    path('schedule-partials/<schId>/stat-bar/', viewsets.SchPartials.schStatBarPartial, name='sch-partial-stat-bar'),
+    path('schedule-partials/<schId>/week-breakdown/', viewsets.SchPartials.schWeeklyBreakdownPartial, name='sch-week-brkd'),
+    path('schedule-partials/<schId>/mistemplated/', viewsets.SchPartials.schMistemplatedPartial, name='sch-mistemplated'),
     
-    path('schedule-calcs/<str:schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
-    path('schedule-calcs/<str:schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),
-    path('schedule-calcs/<str:schId>/n-mistemplated/', viewsets.SchViews.Calc.n_mistemplated, name="sch-n-mistemplated"),
-    path('schedule-calcs/<str:schId>/all-calcs/', viewsets.SchViews.Calc.all_calcs, name="sch-all-calcs"),
+    path('schedule-calcs/<schId>/uf-distr/', viewsets.SchViews.Calc.uf_distr, name='sch-calc-uf-distr'),
+    path('schedule-calcs/<schId>/n-empty/', viewsets.SchViews.Calc.n_empty, name='sch-calc-n-empty'),
+    path('schedule-calcs/<schId>/n-mistemplated/', viewsets.SchViews.Calc.n_mistemplated, name="sch-n-mistemplated"),
+    path('schedule-calcs/<schId>/all-calcs/', viewsets.SchViews.Calc.all_calcs, name="sch-all-calcs"),
 ]
 
 test_patterns = [

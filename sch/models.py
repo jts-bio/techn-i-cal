@@ -1084,6 +1084,7 @@ class Schedule (models.Model):
             self.tags.remove('Save Required')
         if self.routine_log == None:
             RoutineLog.objects.create(schedule=self)
+        self._update_percent()
         super().save(*args,**kwargs)
         self.post_save()
     def post_save (self) :
@@ -1092,7 +1093,7 @@ class Schedule (models.Model):
         for pp in self.payPeriod_start_dates:
             if not Period.objects.filter(start_date=pp,schedule=self).exists():
                 p = Period.objects.create(start_date=pp,year=pp.year,number=int(pp.strftime("%U"))//2,schedule=self)
-    def update_percent (self):
+    def _update_percent (self):
         self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
     @property
     def week_start_dates (self):

@@ -2,8 +2,8 @@
 
 
 <div class="flex items-center space-x-4"
-    hx-get="{% url 'schd:all-empty' schedule.slug %}"
-    hx-trigger="click"
+    hx-get="/schedule/partials/{{schedule.slug}}/empty-list/"
+    hx-trigger='click'
     hx-target="#swap-panel">
     <div class="flex-shrink-0">
         <div id="nEmptyBadge"

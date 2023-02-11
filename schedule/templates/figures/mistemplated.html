@@ -1,9 +1,9 @@
-<div class="flex items-center space-x-4"
+<div class="flex items-center space-x-4 cursor-pointer"
     hx-get="{% url 'schd:mistemplated' schedule.slug %}"
     hx-trigger="click"
     hx-target="#swap-panel">
     <div class="flex-shrink-0">
-        <div class="h-7 w-7 pl-1 pt-[2.5px] rounded-full  bg-amber-300">
+        <div id="mistemplated-badge" class="h-7 w-7 pl-1 pt-[2.5px] rounded-full  border-white border-2 bg-amber-300">
             <i class="fa-duotone text-black fa-arrows-retweet"></i>
         </div>
     </div>
@@ -15,11 +15,14 @@
             Goal: n = 0
         </p>
     </div>
-    <div class="inline-flex items-center text-base font-semibold text-gray-100"
-    hx-get="/api/schedule/{{schedule.slug}}/n-mistemplated/"
-    hx-trigger='load'
-    hx-target="#mistmpl">
-        <span id="mistmpl"></span>
+    <div class="inline-flex items-center text-base font-semibold text-gray-100">
+        <span id="mistmpl"
+               _="init fetch /api/schedule/{{schedule.slug}}/n-mistemplated/ 
+                        set $nMistmpl to result 
+                        put $nMistmpl into me
+                        if $nMistmpl == 0 add .bg-emerald-300 to #mistemplated-badge 
+                        end">
+        </span>
         <span class="opacity-70 text-2xs font-light italic pl-2"> slots</span>
     </div>
 </div>

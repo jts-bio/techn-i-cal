@@ -1,18 +1,15 @@
 
 {% load tags %} {% load static %}
-
-
-<script type="text/javascript" src="{% static 'piety.min.js' %}"></script>
    
  
 
-    <div class="bg-zinc-900 rounded p-2 shadow ring ring-indigo-300">
-        <div class="overscroll-x-auto overflow-x-auto">
+    <div class="bg-zinc-900 rounded px-2 shadow ring ring-indigo-300">
+        <div class="overscroll-x-auto overflow-x-auto rounded border border-2 border-zinc-300">
             <div id="schedule-grid">
-                <table class='table display table-auto'>
+                <table>
                     <thead>
                         <tr>
-                            <th class="stl bg-sky-800 ring ring-sky-800"></th>
+                            <th></th>
 
                             {% for workday in schedule.workdays.all %}
                                 <th>
@@ -38,18 +35,7 @@
                         {% for employee, assignments in schedule.as_empl_dict.items %}
                             <tr>
                                 <!-- ROW HEADER: Employee name -->
-                                <th class="employee-header 
-                                            stl 
-                                            bg-sky-800 
-                                            ring 
-                                            ring-sky-800
-                                            transition
-                                            hover:bg-sky-600 hover:font-bold
-                                            hover:scale=110
-                                            text-xs
-                                            h-4
-                                            text-right
-                                            text-slate-300">
+                                <th class="stl bg-zinc-700 text-xs helv font-light">
                                             
                                     {{ employee }}
 
@@ -81,7 +67,7 @@
                                                             text-amber-600 font-bold 
                                                     {% endif %}
                                                     {% if assignment.pto_conflicts.exists %} 
-                                                            bg-red-200 shadow w-2 h-2 bg-opacity-40 
+                                                            bg-red-200 shadow w-2 bg-opacity-40 
                                                             text-shadow text-red-300 font-bold pl-1 
                                                     {% endif %}"
                                                 href="{{assignment.url|default:'#'}}">

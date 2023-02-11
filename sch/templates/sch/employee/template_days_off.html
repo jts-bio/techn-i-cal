@@ -53,7 +53,7 @@
 
 
 {#---MATCH COWORKER BUTTON---#}
-<a href="match/" class=""><div class="hstack rounded-sm bg-gray-900 w-fc py-2 m-2 hover:bg-gray-600 px-1 border border-white">
+<a href="match/" class=""><div class="hstack rounded bg-gray-900 w-fc py-2 m-2 hover:bg-gray-600 px-1 border border-white">
     <div>{% robotIcon %}</div>
     <div>Match Template of Coworker</div>
 </div></a>
@@ -66,19 +66,20 @@
     <div class="bg-slate-700 rounded-lg border border-slate-400 w-full  overflow-x-auto overscroll-x-auto grid-7-by-2">
 
         {% for day_of_week in DAYS_OF_WEEK %}
-            <div clickCount=0 
+            <div clicks=0 
                 class="lg hover:font-bold hover:text-yellow-300" 
-                _="on click if my @clickCount is '0' then set <input.{{ day_of_week }}/>@checked to 'checked' then set my @clickCount to '1' end">
+                _="on click if @clicks is '0' then set <input.{{ day_of_week }}/>@checked to 'checked' 
+                        then set my @clicks to '1' end
+                   on click if @clicks is '1' set <input.{{ day_of_week }}/>@checked to '' 
+                        then set my @clicks to '0' end">
                 {{ day_of_week }}
             </div>
         {% endfor %}
         
 
         {% for form in formset %}
-            <div>
-                
-                {{ form.as_div }}
-                
+            <div data-day-of-week="{% cycle 'Sun' 'Mon' 'Tue' 'Wed' 'Thu' 'Fri' 'Sat' %}">
+                {{ form.as_div }}  
             </div>
         {% endfor %}
 

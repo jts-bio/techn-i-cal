@@ -9,10 +9,14 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from django_require_login.decorators import public
+from flow.views import ApiViews
 
 from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
-from .serializers import WorkdaySerializer, WeekSerializer, PeriodSerializer, ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, ShiftSerializer
+from .serializers import (WorkdaySerializer, WeekSerializer, PeriodSerializer, 
+                          ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, 
+                          TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, 
+                          ShiftSerializer)
 
 
 
@@ -21,12 +25,12 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     
     filter_mappings = {
-        'id': 'id',
-        'name': 'name__icontains',
-        'time_pref': 'time_pref__icontains',
-        'streak_pref__gte': 'streak_pref__gte',
-        'streak_pref__lte': 'streak_pref__lte',
-        'available': 'shifts_available',
+        'id'                : 'id',
+        'name'              : 'name__icontains',
+        'time_pref'         : 'time_pref__icontains',
+        'streak_pref__gte'  : 'streak_pref__gte',
+        'streak_pref__lte'  : 'streak_pref__lte',
+        'available'         : 'shifts_available',
     }
     
     
@@ -191,14 +195,14 @@ class SchViews:
             sch = Schedule.objects.get(slug=schId)
             n_pm = sch.slots.evenings().count()
             pm_empls = Employee.objects.filter(
-                time_pref__in=["Midday", "Evening", "Overnight"]
+                time_pref__in=["PM", "XN"]
             )
-            pm_empls_shifts = sum(list(pm_empls.values_list("fte", flat=True))) * 24
+            pm_empls_shifts = sum(list(pm_empls.values_list("fte", flat=True))) * 40 * 6
             remaining_pm = n_pm - pm_empls_shifts
             full_template_empls = Employee.objects.full_template_employees().values("pk")
             am_empls_fte_sum = sum(
                 list(
-                    Employee.objects.filter(time_pref__in=["Morning"])
+                    Employee.objects.filter(time_pref__in=["AM"])
                     .exclude(pk__in=full_template_empls)
                     .values_list("fte", flat=True)
                 )
@@ -208,46 +212,42 @@ class SchViews:
                 count=Value(1, output_field=IntegerField())
             )
             unfavorables = unfavorables.values("employee").annotate(count=Sum("count"))
-
-            query = (
-                Employee.objects.filter(time_pref="Morning")
-                .exclude(pk__in=full_template_empls)
-                .annotate(
-                    emusr=Cast(
-                        F("fte") * remaining_pm / am_empls_fte_sum,
-                        output_field=IntegerField(),
-                    )
-                )
-                .order_by("-emusr")
-                .annotate(
-                    count=Subquery(
-                        unfavorables.filter(employee=OuterRef("pk")).values("count")
-                    )
-                )
-                .annotate(difference=F("emusr") - F("count"))
-            )
-            emusr_differences = list(query.values_list('difference', flat=True))
+            emusr_differences = list(unfavorables.values_list("count", flat=True))
             while None in emusr_differences:
                 emusr_differences.remove(None)
                 emusr_differences.append(0)
             if len(emusr_differences) == 0:
                 emusr_differences.append(0)
-            return max(emusr_differences) - min(emusr_differences)
+            return JsonResponse(max(emusr_differences) - min(emusr_differences), safe=False)
         def n_mistemplated (request, schId):
             sch = Schedule.objects.get(slug=schId)
             n = sch.slots.mistemplated().count()
             return n
-        def all_calcs (request, schId):
+        def ot_hours (request, schId):
             sch = Schedule.objects.get(slug=schId)
-            return JsonResponse(
-                {
-                'uf_distr': SchViews.Calc.uf_distr(request, schId),
+            employee_week_breakdowns = {}
+            for employee in sch.employees.all():
+                employee_week_breakdowns[employee.name] = [
+                    sum(list(week.slots.filter(employee=employee).values_list(
+                        'shift__hours', flat=True))) for week in sch.weeks.all()
+                ]
+            ot = 0 
+            for wkHrs in employee_week_breakdowns.values():
+                for hrs in wkHrs :
+                    if hrs > 40 :
+                        ot += hrs - 40
+            return ot
+        def all_calcs (request, schId):
+            output =  {
+                'percent': SchViews.Calc.percent(request, schId),
                 'n_empty': SchViews.Calc.n_empty(request, schId),
-                'emusr_distr': SchViews.Calc.emusr_distr(request, schId),
+                'emusr': SchViews.Calc.emusr_distr(request, schId),
+                'emusr__sdfm': float(SchViews.Calc.uf_distr(request, schId).content),
                 'n_mistemplated': SchViews.Calc.n_mistemplated(request, schId),
-                'percent': SchViews.Calc.percent(request, schId)
+                'ot_hours': SchViews.Calc.ot_hours(request, schId),
                 }
-            )
+            return JsonResponse(output, safe=False)
+            
         
     def schDetail(request, schId):
         schedule = Schedule.objects.get(slug=schId)

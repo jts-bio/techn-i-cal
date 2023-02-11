@@ -1,0 +1,30 @@
+<table>
+        <tr>
+                <th>Slot</th>
+                <th>Tenable Options</th>
+        </tr>
+        {% for slot in data %}
+        <tr>
+                <td>
+                        <div class="flex flex-row">
+                                <div class="bg-zinc-50 text-black text-lg font-bold rounded pt-1 pl-2 w-9 h-9">{{ slot.shift }}</div>
+                                <div class="flex flex-col px-1 text-sm">
+                                        <div>{{ slot.workday }}</div>
+                                        <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {%endif%}">
+                                                {{ slot.n_options }} Options
+                                        </div> 
+                                                 
+                                </div>
+                        </div>
+                </td>
+                <td>
+                        <select class="text-lg" name="{{slot.slug}}" id="{{slot.slug}}" {% if slot.n_options == 0 %} disabled {% endif %}>
+                                <option disabled selected value=""></option>
+                                {% for emp in slot.fills_with %}
+                                        <option value="{{ emp|slugify }}">{{emp}}</option>
+                                {% endfor %}
+                        </select>
+                </td>
+        </tr>
+        {% endfor %}
+</table>

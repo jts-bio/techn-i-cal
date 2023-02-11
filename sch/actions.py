@@ -426,18 +426,19 @@ class ScheduleBot:
             
             for possibleSlot in possible:
                 # check to make sure employeeB is trained for the shift they would be swapping into
-                if possibleSlot.employee.shifts_trained.all().contains(slot.shift):
-                    # dont include in possiblities if employeeB would be traded into a turnaround
-                    if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
-                        pass
-                    else:
-                        if possibleSlot.workday.iweekday in [1,2,3,4,5]:
-                            pos.append(possibleSlot)
+                if possibleSlot.employee != None:
+                    if possibleSlot.employee.shifts_trained.all().contains(slot.shift):
+                        # dont include in possiblities if employeeB would be traded into a turnaround
+                        if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
+                            pass
+                        else:
+                            if possibleSlot.workday.iweekday in [1,2,3,4,5]:
+                                pos.append(possibleSlot)
                         
                         
             possibilities = []    
             for p in pos:
-                if not ShiftTemplate.objects.filter(shift=p.shift,ppd_id=p.workday.ppd_id).exists():
+                if not ShiftTemplate.objects.filter(shift=p.shift,sd_id=p.workday.sd_id).exists():
                     if not Slot.objects.incompatible_slots(workday=p.workday,shift=p.shift).filter(employee=slot.employee).exists():
                         if not Slot.objects.filter(workday=slot.workday, employee=p.employee).exists():
                             possibilities.append(p)

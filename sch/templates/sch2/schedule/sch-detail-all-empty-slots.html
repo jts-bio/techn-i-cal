@@ -10,36 +10,37 @@
                 on submit log result "
             class="transition">
             {% csrf_token %}   
-            <div class="my-2">
-                <input type="hidden" name="slot" value="{{slot.pk}}"/>
-                <label class="text-xs">
-                    <div class="flex flex-row">
-                    <span class="font-extrabold text-slate-900 bg-slate-100 rounded-sm text-xl pl-1 w-8">{{ slot.shift }}</span> 
-                    <div class="flex flex-col mx-2 px-1">
-                    <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
-                    <a href="/wday/{{slot.workday.slug}}">{{ slot.workday.date }}</a>
-            </div>
-
-
+                <div class="my-2">
+                    <input type="hidden" name="slot" value="{{slot.pk}}"/>
+                    <label class="text-xs">
+                        <div class="flex flex-row">
+                        <span class="font-extrabold text-slate-900 bg-slate-100 rounded-sm text-xl pl-1 w-8">{{ slot.shift }}</span> 
+                        <div class="flex flex-col mx-2 px-1">
+                        <span class="text-gray-600 italic w-9 mx-1"> {{ slot.workday.wkd }} </span>
+                        <a class="opacity-60 hover:text-blue-200 hover:opacity-100" href="/wday/{{slot.workday.slug}}/">
+                            {{ slot.workday.date }}
+                        </a>
+                </div>
                     <select name="employee" 
                             id="employee"
                             updateUrl="/schedule/detail/{{slot.schedule.slug}}/actions/update/{{slot.workday.slug}}/{{slot.shift.name}}/"
-                           _="on change get the  then log the result"
+                            _="on change get the  then log the result"
                             class="bg-zinc-900 rounded w-[200px] border-zinc-400 mr-8
-                                   shadow shadow-lg"
+                                    shadow shadow-lg"
                                 {% if slot.fillable_by.count == 0 %} disabled {% endif %}
                                 >
                         <option value="" selected disabled>
-                            {{ slot.fillable_by.count }} options.. 
+                            {{ slot.fillable_by.count }} options... 
                         </option>
 
                         {% for employee in slot.fillable_by %}
-                            <option id="{{employee}}" 
+                            <option id="{{employee.pk}}" 
                                 value="{{employee.pk}}"
                                 incr="0"
-                                 _="on click fetch /schedule/detail/{{slot.schedule.slug}}/actions/update/{{slot.workday.slug}}/{{slot.shift.name}}/ then 
-                                       call window.location.reload() end
-                                 on loadSignal increment @incr 
+                                    _="on mutation of selected submit the closest form then 
+                                    -- /schedule/detail/{{slot.schedule.slug}}/actions/update/{{slot.workday.slug}}/{{slot.shift.name}}/ 
+                                        call window.location.reload() end
+                                    on loadSignal increment @incr 
                                     if result == 1 
                                         fetch /wday/{{slot.workday.slug}}/api/empl-check-hours/{{employee.pk}}/
                                         then append the result to my innerHTML
@@ -51,12 +52,6 @@
                     </select>
                 </div>
                 </label>
-                <input type="submit" 
-                       class="hidden bg-zinc-900 rounded w-full border-zinc-400 transition
-                              shadow shadow-lg hover:bg-indigo-500 
-                              hover:duration-1700 hover:scale-110 hover:ring-2 hover:ring-yellow-300" 
-                        id="{{slot.shift}}-{{slot.workday.slug}}-submit" 
-                        value="ASSIGN" />
             </div>
         </form>
         {% endfor %}
