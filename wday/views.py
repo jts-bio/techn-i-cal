@@ -75,11 +75,10 @@ class SlotActions:
     
     @csrf_exempt
     def slotDeleteView (request, slug):
-        shiftId = request.headers['empId']
-        if Slot.objects.filter(shift__name=shiftId,workday__slug=slug).exists():
-            slot = Slot.objects.get(shift__name=shiftId, workday__slug=slug)
-        elif Slot.objects.filter(employee__pk=shiftId,workday__slug=slug).exists():
-            slot = Slot.objects.get(employee__pk=shiftId, workday__slug=slug)
+        print (request.headers)
+        empId = request.headers['empId']
+        if Slot.objects.filter(employee__pk=empId,workday__slug=slug).exists():
+            slot = Slot.objects.get(employee__pk=empId, workday__slug=slug)
         slot.employee = None
         slot.save()
         messages.info(request, f"Slot {slot.shift} has been cleared successfully.")

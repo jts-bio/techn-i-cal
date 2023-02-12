@@ -63,7 +63,12 @@
         <li><hr class="dropdown-divider"></li>
         <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300 pointer"
                 hx-target="#actionMarker"
-                _="on click fetch actions/clear-all/ with method:'POST' then wait 1.5s then call window.location.reload() end">
+                _="on click call prompt('This action will delete all assigned slots within the schedule. To continue, please type `clear`') then
+                    if result is not 'clear' 
+                        go to the top of body smoothly then call showToast('No action taken-- Slot Clearing was not properly verified.','warn') 
+                    else if result is 'clear' 
+                        fetch actions/clear-all/ with method:'POST' then 
+                        wait 200ms then call window.location.reload() end">
                     <i class="fa-duotone fa-eraser text-red-800"></i>
                         Clear Slots
                 </div>

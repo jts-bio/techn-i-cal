@@ -51,25 +51,24 @@
                  available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
                  current="{{ slot.employee }}"
                  data-time-of-day="{{ slot.shift.group }}"
+                 template-employee="{{ slot.template_employee }}"
                  a='0' b='0'
-                 _="on dragover or dragenter if $allow.includes(@id) halt the event 
+                 _="on dragover or dragenter if $allow.includes(@id) 
+                        halt the event 
                         else add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end
-                on dragover or dragenter if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 end
-                on dragleave set $empCardSecondary to `` end
-                on dragleave or dragend remove .ring .ring-2 .ring-green-400 
+                    on dragover or dragenter if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 end
+                    on dragleave set $empCardSecondary to `` end
+                    on dragleave or dragend remove .ring .ring-2 .ring-green-400 
                                     .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
                                     .bg-red-300 .ring-red-600 end
-                on drop remove .ring .ring-2 .ring-green-400 end
-                on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-                on drop 
-                    js event.dataTransfer.dropEffect = 'move' end then 
-                    call event.dataTransfer.getData('text') set $empCard to result then 
-                    send addCard to .inner-slot in me then  
-                    fetch slot/{{slot.shift}}/update/ then 
-                    call window.location.reload() end
-                on drop tell .dragging remove you then add .fa-fade .fa-beat to me end
-                on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
-                on hideHl remove .bg-green-600 .ring .ring-green-500 end">
+                    on drop remove .ring .ring-2 .ring-green-400 end
+                    on fetch:beforeRequest(headers) set headers['empId'] to $emp end
+                    on drop send addCard to #inner-slot-{{slot.shift}} then
+                        fetch slot/{{slot.shift}}/update/ then 
+                        call window.location.reload() end
+                    on drop tell .dragging remove you then add .fa-fade .fa-beat to me end
+                    on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
+                    on hideHl remove .bg-green-600 .ring .ring-green-500 end">
 
                 <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
@@ -79,19 +78,24 @@
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
                 </span>
                 <div id="inner-slot-{{ slot.shift}}" class="inner-slot"
-                        _="on addCard put $empCard into me end">
-                {% if slot.employee %} 
-                    {% with slot.employee as employee %}
-                        {% include 'wday/partials/employeeChip.html' %}
-                    {% endwith %}
-                {% else %}
-                        <i data-slot="{{slot.shift.name}}"
-                           data-group="{{slot.shift.group}}"
-                           class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
-                           _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-{{ slot.shift.name }} end
-                              on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-{{ slot.shift.name }} end">
-                        </i>
-                {% endif %}
+                    _="on addCard set my@innerHTML to $empCard.outerHTML end">
+                        {% if slot.employee %} 
+                            {% with slot.employee as employee %}
+                                {% include 'wday/partials/employeeChip.html' %}
+                            {% endwith %}
+                        {% else %}
+                                <i data-slot="{{slot.shift.name}}"
+                                data-group="{{slot.shift.group}}"
+                                class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
+                                _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-{{ slot.shift.name }} end
+                                    on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-{{ slot.shift.name }} end">
+                                </i>
+                                {% if slot.template_employee %}
+                                    <div class="bg-rose-900 text-white text-2xs uppercase rounded-full px-2">
+                                        FILL WILL TEMPLATE EMPLOYEE
+                                    </div>
+                                {% endif %}
+                        {% endif %}
                 </div>
                 
             </div>
@@ -105,7 +109,7 @@
             on dragleave remove .ring .ring-red-200 end
             on drop js event.dataTransfer.dropEffect = 'move' end
             on drop call event.dataTransfer.getData('text/plain') end
-            on drop fetch slot/delete/ end
+            on drop fetch delete/ end
             on drop call window.location.reload() end ">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
             <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>

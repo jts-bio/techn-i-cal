@@ -41,7 +41,7 @@ def schListView(request):
         return HttpResponseRedirect(reverse("schd:list"))
 
     context = {
-        "schedules": schedules,
+        "schedules": schedules.order_by('-start_date'),
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)
@@ -96,10 +96,12 @@ class Sections:
             page = int(request.headers.get('page'))
         else:
             page = 1
+        version = schId[-1]
         data = ApiViews.schedule__get_empty_list(request,schId)
         data = json.loads(data.content)
         for d in data:
             d['n_options'] = len(d['fills_with'])
+            d['workday_slug'] = d['workday'] + version
         return render(request, 'tables/empty-actionable.html', {'data': data })
     
 class Actions:

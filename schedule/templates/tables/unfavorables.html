@@ -15,12 +15,14 @@
     <tr>
         <td>{{ slot.workday }}</td>
         <td>{{ slot.shift }}</td>
-        <td>{{ slot.employee }}</td>
+        <td class="empl-cell">{{ slot.employee }}</td>
         <td>
-            <div  hx-post="actions/clear-slot/{{slot.workday}}/{{slot.shift}}/"
+            <div  hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
                   hx-trigger="click"
-                  hx-swap="innerHTML">
-                <i class="clear-icon fas text-zinc-300 rounded-full p-1 fa-trash"></i>
+                  hx-swap="innerHTML"
+                  _="on click add .line-through to previous .empl-cell then
+                        send recheck to #n-unfav-check end">
+                <i class="clear-icon fas text-zinc-300 rounded-full p-1 fa-trash hover:text-rose-400"></i>
                 <i id="{{slot.workday}}-{{slot.shift}}-indicaator" class="fa-spinner fas fa-fade fa-spin htmx-indicator"></i>
             </div>
         </td>

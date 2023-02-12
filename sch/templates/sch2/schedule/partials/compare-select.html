@@ -1,5 +1,5 @@
 <div class="w-10/12 md:w-5/12 flex flex-row">
-
+    
     <label id="compare-head" 
         for="select-for-compare"
         class="jbm 
@@ -31,11 +31,7 @@
 
             {% for sch in other_schedules %}
                 <option 
-                    hx-get="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
-                    hx-target="#swap-pane"
-                    hx-indicator="#grid-indicator"
-                    hx-trigger="select"
-                    class="text-xs font-light"
+                    get="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
                     >
                     {{ sch.year }}: Schedule {{ sch.number }} 
                     (Version {{ sch.version }})
@@ -43,6 +39,7 @@
             {% endfor %}
             
         </select>
+        <button type="submit">GET</button>
 
    
     

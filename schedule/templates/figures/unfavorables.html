@@ -20,9 +20,12 @@
         </p>
     </div>
     <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+        id="n-unfav-check"
         hx-get="/api/schedule/{{schedule.slug}}/n-unfavorables/"
         hx-trigger='load'
-        hx-target="#n-unfav">
+        hx-target="#n-unfav"
+        _="on recheck fetch /api/schedule/{{schedule.slug}}/n-unfavorables/ 
+                put result into #n-unfav end">
         <span id="n-unfav"></span>
         <span class="opacity-70 text-2xs font-light italic pl-1"> instances</span>
     </div>

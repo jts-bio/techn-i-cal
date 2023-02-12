@@ -412,7 +412,10 @@ class ScheduleBot:
             allinWeek       = Slot.objects.filter(workday__date__year=slot.workday.date.year,workday__iweek=slot.workday.iweek)
             daysWorked      = allinWeek.filter(employee=slot.employee).values('workday')
             dropDaysWork    = allinWeek.exclude(workday__in=daysWorked)
-            dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+            if slot.employee != None:
+                dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+            else:
+                dropUntrained   = dropDaysWork
             empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
             dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
             #conflicting are Slots that create turnaround interference with the potential trade
