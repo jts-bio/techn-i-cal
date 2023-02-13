@@ -261,3 +261,17 @@ def periodHours (empl, pd):
         return int(p)
     return 0
 
+@register.simple_tag
+def emplPrevSlot (empl, wd):
+    s = wd.prevWD().slots.filter(employee=empl)
+    if s.exists():
+        return s.first().shift.group 
+    return None 
+
+@register.simple_tag
+def emplNextSlot (empl, wd):
+    s = wd.nextWD().slots.filter(employee=empl)
+    if s.exists():
+        return s.first().shift.group 
+    return None
+

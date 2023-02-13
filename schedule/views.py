@@ -86,6 +86,11 @@ class Sections:
         data = json.loads(data)
         return render(request, 'tables/unfavorables.html', {'data': data})
     
+    def schPtoConflicts (request,schId):
+        sch = Schedule.objects.get(slug=schId )
+        data = sch.slots.conflictsWithPto().all()
+        return render(request, 'tables/pto-conflicts.html', {'data': data})
+    
     def schEmusr (request, schId):
         sch = Schedule.objects.get(slug=schId )
         data = ApiViews.schedule__get_emusr_list(request, schId).content
@@ -103,6 +108,10 @@ class Sections:
             d['n_options'] = len(d['fills_with'])
             d['workday_slug'] = d['workday'] + version
         return render(request, 'tables/empty-actionable.html', {'data': data })
+    def schUntrained (request, schId):
+        sch = Schedule.objects.get(slug=schId )
+        data = sch.slots.untrained().all()
+        return render(request, 'tables/untrained.html', {'data': data})
     
 class Actions:
     

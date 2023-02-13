@@ -1,15 +1,4 @@
-{% extends 'base.html' %}
-
 {% load tags %}
-
-
-
-{% block content %}
-
-    <a href="{{ sch1.url }}"><i class="fa-solid fa-square-caret-left"></i> Back </a>
-
-
-
     <div>
         <h1>Schedule Compare View</h1>
 
@@ -40,20 +29,17 @@
         <div class="block grid grid-cols-7 gap-1 md:gap-5">
             {% for workday in workdays %}
             <div class="bg-zinc-900 rounded p-1 border border-white shadow shadow-md center text-center">
-                <div class="flex flex-wrap">
+                <div class="grid grid-cols-3">
                 {% for slot in workday %}
                    
                         {% if slot.equal == True %}
-                            <span class="bg-zinc-700 text-zinc-100 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                            <span class="shrink bg-zinc-700 text-xs text-zinc-100 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
                         {% else %}
-                            <span class="bg-amber-300 text-amber-900 border border-amber-600 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                            <span class="shrink bg-amber-300 text-xs text-amber-900 border border-amber-600 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
                         {% endif %}
                 {% endfor %}
                 </div>
             </div>
             {% endfor %}
         </div>
-
-    
-{% endblock content %}
     

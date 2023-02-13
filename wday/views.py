@@ -50,6 +50,9 @@ def wdListView (request, schSlug='current'):
 
 def wdDetailView (request, slug):
     wd = Workday.objects.get(slug=slug)
+    wd.save()
+    for slot in wd.slots.all():
+        slot.save()
     context = {'workday': wd, 'slots': wd.slots.all()} 
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
     

@@ -7,6 +7,8 @@ from .models import (Employee, Workday, Shift, Slot, ShiftTemplate,
                      TemplatedDayOff, Workday, Week, Period, 
                      Schedule, ShiftSortPreference, PtoRequest )
 
+
+
 class EmployeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Employee
@@ -35,14 +37,17 @@ class PeriodSerializer(serializers.ModelSerializer):
 class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
     
     tags = TagListSerializerField()
+    
     class Meta:
         model = Schedule
         fields = ('__all__')
         
 class SlotSerializer(serializers.ModelSerializer):
+    
     employee= serializers.StringRelatedField()
     workday = serializers.StringRelatedField()
     shift   = serializers.StringRelatedField()
+    
     class Meta:
         model = Slot
         fields = ('__all__')

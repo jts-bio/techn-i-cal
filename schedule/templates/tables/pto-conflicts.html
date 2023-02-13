@@ -1,0 +1,42 @@
+<h1 class="text-2xl">PTO Management</h1>
+
+<div class="bg-slate-300 text-slate-800 font-bold rounded border border-white h-7 w-[32em] px-3">
+    Total PTO Requests: {{ data|length }}
+</div>
+
+<div class="border rounded border-sky-200 p-3 m-4">
+<h3 class="text-lg">PTO Conflicts</h3>
+<table>
+    <tr>
+        <th>Employee</th>
+        <th>Shift</th>
+        <th>Workday</th>
+        <th>Actions</th>
+    </tr>
+    {% for slot in data %}
+        <tr>
+            <td class="empl-cell">{{ slot.employee }}</td>
+            <td>{{ slot.shift }}</td>
+            <td>{{ slot.workday }}</td>
+            <td id="{{ slot.slug }}-actions">
+                <div hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
+                    hx-trigger="click"
+                    hx-swap="innerHTML"
+                  _="on click add .line-through to previous .empl-cell then tell next .fa-hospital remove you end">
+                  <i class="mx-1 fa-thin fa-island-tropical text-xl hover:text-emerald-400"
+                  title="Grant PTO and Resolve"></i>
+                </div>
+                <i class="mx-1 fa-thin fa-hospital text-xl hover:text-rose-600"
+                    title="Deny PTO and Schedule Slot" ></i>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+</div>
+
+<div class="border rounded border-emerald-200 p-3 m-4">
+    <h3 class="text-lg">Manage Requests by Employee</h3>
+    {% for employee in sch.employees.all %}
+    <i>{{ employee }}</i>
+    {% endfor %}
+</div>

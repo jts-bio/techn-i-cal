@@ -104,15 +104,18 @@
 
         {# _____ OBJECT: TRASHCAN ______ #}
         <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 rounded-lg"
-            _="on dragenter or dragover add .ring .ring-red-200 then halt the event end
+            _="on dragenter or dragover add .ring .ring-red-200 then halt the event then 
+            call event.dataTransfer.getData('text') log result end
             on fetch:beforeRequest(headers) set headers['empId'] to $emp end
             on dragleave remove .ring .ring-red-200 end
             on drop js event.dataTransfer.dropEffect = 'move' end
-            on drop call event.dataTransfer.getData('text/plain') end
+            on drop put `Removing $emp` into #trash-message end
+            on drop tell .dragging remove you then add .fa-fade .fa-beat to me end 
+            on drop call event.dataTransfer.getData('text/plain') then put result into me end
             on drop fetch delete/ end
-            on drop call window.location.reload() end ">
+            on drop call window.location.reload() end">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
-            <div class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+            <div id="trash-message" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>
 
     </div>

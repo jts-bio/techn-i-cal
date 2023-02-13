@@ -12,15 +12,25 @@
     draggable="true" 
     available="{% for s in employee.shifts_available.all %}{% if s != slot.shift %} {{ s }} {% endif %}{% endfor %}"
     data-trained="{% for s in employee.shifts_trained.all %} {{ s }} {% endfor %}"
-    turnarounds="{% for s in employee.turnarounds %}{{ s }} {% endfor %}"
+    turnaround="{% if slot.is_preturnaround %} -1
+                {% elif slot.is_postturnaround %} 1
+                {% else %} 0 {% endif %}"
     week-hours="{% weekHours employee workday %}"
-    period-hours="{% periodHours employee workday %}"
+    period-hours="{% periodHours employee workday %}" 
     slotted-as="{{ slot.shift }}"
+    previous-slot="{% emplPrevSlot employee workday %}"
+    next-slot="{% emplNextSlot employee workday %}"
     _="init if @week-hours > 40 add .bg-red-500 to .clock in me end
        init if @period-hours > 80 add .bg-red-500 to .clock in me end
        init if @week-hours == 40 add .bg-slate-900 .text-white to .clock in me end
        init if @period-hours == 80 add .bg-slate-900 .text-white to .clock in me end
+       init if @turnaround != 0 add .bg-rose-700 .bg-opacity-30 end
+       init if @previous-slot == `AM` remove .hidden from #{{employee.pk}}-ind-prev-am end
+       init if @previous-slot == `PM` remove .hidden from #{{employee.pk}}-ind-prev-pm end
+       init if @next-slot == `AM` remove .hidden from #{{employee.pk}}-ind-next-am end
+       init if @next-slot == `PM` remove .hidden from #{{employee.pk}}-ind-next-pm end
        on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
+       on dragstart call event.dataTransfer.setData('text/html', event) then call event.dataTransfer.getData('text') then log result end
        on dragstart set $emp to @id then set $empCard to me end
        on dragstart set $allow to @available.split(' ') end
        on dragstart send hlAllowed to .slot end
@@ -54,7 +64,7 @@
                {% if desig == 'TDO' %} text-yellow-800 bg-rose-200 p-1 rounded shadow {% endif %}">
         {{ desig }}
     </span>
-    <span class="text-sm font-bold text-zinc-800 center text-center p-0.5
+    <span class="text-sm font-bold text-zinc-200 center text-center p-0.5
                px-2 absolute -translate-y-3/4 -translate-x-1/2 top-2/4 left-1/2 truncate">
         <img src="{{employee.image_url}}" alt="{{employee}}" draggable=false class="w-10 h-10 rounded-full mx-auto border-2 border-white shadow">
         {{ employee.slug }}

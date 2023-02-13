@@ -213,9 +213,14 @@ class SlotManager (models.QuerySet):
             employee=F('template_employee')).exclude(
             template_employee=None).exclude(
             employee=None).exclude(
-            template_employee__ptorequest__workday=F('workday')) 
+            template_employee__ptorequest__workday=F('workday__date')) 
     def conflictsWithPto(self):
         return self.filter(Q(employee__ptorequest__workday=F('workday__date')))
+    def untrained(self):
+        return self.exclude(
+            employee__shifts_trained=F('shift__pk')).exclude(
+                employee=None
+        )
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
@@ -1493,11 +1498,12 @@ class Slot (models.Model) :
             return False
         if self.shift.start > dt.time(18,0):
             return False
-        elif self.shift.start > dt.time(13,0) and self.shift.start < dt.time(18,0) :
-            if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
-                return True
-            else:
-                return False
+        elif self.shift.start > dt.time(13,0) :
+            if self.shift.start < dt.time(18,0) :
+                if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+                    return True
+                else:
+                    return False
         elif self.shift.start < dt.time(18,0) :
             if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
                 return True

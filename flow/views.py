@@ -63,6 +63,12 @@ class ApiViews :
     def schedule__get_n_pto_conflicts (request, schId ):
         sch = Schedule.objects.get( slug=schId)
         return JsonResponse ( sch.slots.conflictsWithPto().count(), safe=False )
+    def schedule__get_n_untrained (request, schId ):
+        sch = Schedule.objects.get(slug=schId)
+        return JsonResponse ( sch.slots.untrained().count(), safe=False )
+    def schedule__get_untrained_list (request, schId ):
+        sch = Schedule.objects.get(slug=schId)
+        return JsonResponse ( SlotSerializer(sch.slots.untrained(), many=True).data, safe=False )
     def schedule__get_n_mistemplated ( request, schId ):
         sch = Schedule.objects.get(slug=schId)
         return JsonResponse ( sch.slots.mistemplated().count(), safe=False )

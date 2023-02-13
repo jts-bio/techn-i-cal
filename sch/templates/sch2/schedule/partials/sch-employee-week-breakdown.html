@@ -19,7 +19,7 @@
         {% for employee in employees %}
 
            <tr>
-                <th>{{ employee }}</th>
+                <th><a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">{{ employee }}</a></th>
 
                 {% for week in schedule.weeks.all %}
                 <td class="hours" data-value="{% weekHours employee   week.workdays.first %}"

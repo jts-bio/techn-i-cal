@@ -16,6 +16,8 @@ schedule_urls = [
     path('<schId>/n-mistemplated/', ApiViews.schedule__get_n_mistemplated, name='sch__get_n_mistemplated'),
     path('<schId>/mistemplated-list/', ApiViews.schedule__get_mistemplated_list, name='mistemplated'),
     path('<schId>/n-unfavorables/', ApiViews.schedule__get_n_unfavorables, name='sch__get_n_unfavorables'),
+    path('<schId>/n-untrained/', ApiViews.schedule__get_n_untrained, name='sch__get_n_untrained'),
+    path('<schId>/untrained-list/', ApiViews.schedule__get_untrained_list, name='sch__get_untrained_list'),
     
 ]
 

@@ -15,8 +15,10 @@ urlpatterns = [
     path('partials/<schId>/empty/', schDetailAllEmptySlots, name="all-empty"),
     path('partials/<schId>/mistemplated/', Sections.schMistemplated, name="mistemplated"),
     path('partials/<schId>/unfavorables/', Sections.schUnfavorables, name="unfavorables"),
+    path('partials/<schId>/untrained/', Sections.schUntrained, name="untrained"),
     path('partials/<schId>/emusr/', ApiViews.schedule__get_emusr, name="emusr"),
     path('partials/<schId>/empty-list/', Sections.schEmptyList, name="empty-actionable-list"),
+    path('partials/<schId>/pto-conflicts/', Sections.schPtoConflicts, name="pto-conflicts"),
     
     
     #~~ ACTIONS ~~#
