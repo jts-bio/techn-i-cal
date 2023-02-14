@@ -6,11 +6,11 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import Count, Q
+from django.db.models import Count, Q, F
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 
-from sch.models import Schedule, Week, Slot, Employee, Shift
+from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest
 import json
 
 
@@ -89,13 +89,19 @@ class Sections:
     def schPtoConflicts (request,schId):
         sch = Schedule.objects.get(slug=schId )
         data = sch.slots.conflictsWithPto().all()
-        return render(request, 'tables/pto-conflicts.html', {'data': data})
+        return render(request, 'tables/pto-conflicts.html', {'data': data, 'schedule': sch})
+    
+    def schPtoGrid (request, schId, emp):
+        sch = Schedule.objects.get(slug=schId )
+        emp = Employee.objects.get(slug=emp)
+        ptoreqs = PtoRequest.objects.filter(employee=emp, workday__gte=sch.start_date, workday__lte=sch.start_date + dt.timedelta(days=42))
+        return render(request, 'pto-chart.html', {'ptoreqs': ptoreqs, 'sch': sch, 'empl': emp })
     
     def schEmusr (request, schId):
         sch = Schedule.objects.get(slug=schId )
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/emusr.html', {'data': data}) 
+        return render(request, 'tables/emusr.html', {'data': data }) 
     def schEmptyList (request,schId ):
         if request.headers.get('page'):
             page = int(request.headers.get('page'))
@@ -170,19 +176,20 @@ class Actions:
             CHECKMARK = "<i class='fas fa-check'></i>"
             return HttpResponse(f"<div class='text-green-300 font-light'> {CHECKMARK} Updated </div>")
         return HttpResponse("<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>")
-        
-        
+    
     
     @csrf_exempt
-    def updateSlot(request,schId,wd,sft):
-        employee = request.POST.get('employee')
-        slot = Slot.objects.get (schedule__slug=schId,workday__slug__contains=wd, shift__name=sft)
-        if slot.workday.on_deck.all().filter(slug=employee).exclude(shift=slot.shift).exists():
-            otherSlot = slot.workday.on_deck.all().filter(slug=employee).exclude(shift=slot.shift).first()
+    def updateSlot(request,schId,wd,sft,empl):
+        employee = Employee.objects.get(slug=empl)
+        slot = Slot.objects.get (schedule=schId,workday__slug__contains=wd, shift__name=sft)
+        if slot.workday.slots.all().filter(employee=employee).exclude(shift=slot.shift).exists():
+            otherSlot = slot.workday.slots.all().filter(employee=employee).exclude(shift=slot.shift).first()
             otherSlot.employee= None
             otherSlot.save()
-        slot.actions.update_employee(slot,employee)
-        return HttpResponse("<div class='text-green-300 font-light'> Updated </div>")
+        slot.employee = employee
+        slot.save()
+        CHECKMARK = "<i class='fas fa-check'></i>"
+        return HttpResponse(f"<div class='text-green-300 font-light'>{CHECKMARK} Updated </div>")
         
     
     

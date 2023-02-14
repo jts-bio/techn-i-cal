@@ -463,11 +463,11 @@ class ScheduleBot:
             slotBWD    = slot_b.workday
             slotBShift = slot_b.shift
             
-            slot_a.delete()
-            slot_b.delete()
+            slot_a.employee = None ; slot_a.save()
+            slot_b.employee = None ; slot_b.save()
             
-            Slot.objects.create(employee=slotBEmpl, workday=slotAWD, shift=slotAShift)
-            Slot.objects.create(employee=slotAEmpl, workday=slotBWD, shift=slotBShift)
+            slot_a.employee = slotBEmpl ; slot_a.save()
+            slot_b.employee = slotAEmpl ; slot_b.save()
             
             
             turnarounds  = Slot.objects.filter(workday__date__year=yr,workday__ischedule=sch, is_turnaround=True)

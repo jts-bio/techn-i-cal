@@ -63,22 +63,23 @@
                                     .bg-red-300 .ring-red-600 end
                     on drop remove .ring .ring-2 .ring-green-400 end
                     on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-                    on drop send addCard to #inner-slot-{{slot.shift}} then
+                    on drop send addcard to #inner-slot-{{slot.shift}} then
                         fetch slot/{{slot.shift}}/update/ then 
                         call window.location.reload() end
                     on drop tell .dragging remove you then add .fa-fade .fa-beat to me end
                     on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
                     on hideHl remove .bg-green-600 .ring .ring-green-500 end">
 
-                <span class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
+                <a href="/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/" 
+                    class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
-                </span>
+                </a>
 
                 <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
                 </span>
                 <div id="inner-slot-{{ slot.shift}}" class="inner-slot"
-                    _="on addCard set my@innerHTML to $empCard.outerHTML end">
+                    _="on addcard put $emp into me end">
                         {% if slot.employee %} 
                             {% with slot.employee as employee %}
                                 {% include 'wday/partials/employeeChip.html' %}
@@ -109,7 +110,7 @@
             on fetch:beforeRequest(headers) set headers['empId'] to $emp end
             on dragleave remove .ring .ring-red-200 end
             on drop js event.dataTransfer.dropEffect = 'move' end
-            on drop put `Removing $emp` into #trash-message end
+            on drop remove .hidden from me then put `Removing $emp` into #trash-message end
             on drop tell .dragging remove you then add .fa-fade .fa-beat to me end 
             on drop call event.dataTransfer.getData('text/plain') then put result into me end
             on drop fetch delete/ end
@@ -123,11 +124,12 @@
     <hr class="text-white my-3"/>
     
     {# _____ SECTION: ON DECK ______ #}
-    <div class="container flex flex-rows-1 gap-[50px] bg-zinc-900 overflow-x-scroll overscroll-x-auto h-50 snap-x">
+    <div class="container flex flex-rows-1 gap-[50px] bg-zinc-900 snap-mandatory scroll-px-1 
+                shadow-inner border border-white shadow-xl overflow-x-scroll overscroll-x-auto h-50 snap-x">
 
             <!---- Employees: ON DECK ----->
             {% for employee in workday.on_deck.all %}
-                <div class="shrink-0 snap-start my-6">
+                <div class="shrink-0 snap-start snap-always my-6">
                     {% include 'wday/partials/employeeChip.html' %}
                 </div>
             {% endfor %}
@@ -136,7 +138,7 @@
             {% for empl in workday.pto.all %}
                 {% with empl.employee as employee %} 
                 {% with 'PTO' as desig %}
-                    <div class="shrink-0 snap-start my-6">
+                    <div class="shrink-0 snap-start snap-always my-6">
                         {% include 'wday/partials/employeeChip.html' %}
                     </div>
                 {% endwith %} 
@@ -147,7 +149,7 @@
             {% for empl in workday.tdo.all %}
                 {% with empl.employee as employee %}
                 {% with 'TDO' as desig %}
-                    <div class="shrink-0 snap-start my-6">
+                    <div class="shrink-0 snap-start snap-always my-6">
                         {% include 'wday/partials/employeeChip.html' %}
                     </div>
                 {% endwith %}
@@ -166,11 +168,7 @@
     <div class="text text-center text-2xs opacity-75 italic"> 
         USING TEMPLATE: WD-DEFAULT 
     </div>
-{% comment %} 
-    <script src="{% static 'dragWd2.js' %}"></script>
-
-    <script src="{% static 'dragWd.js' %}"></script> {% endcomment %}
-
+    
 {% endblock %}
 
 

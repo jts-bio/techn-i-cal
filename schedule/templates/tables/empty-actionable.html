@@ -20,12 +20,7 @@
             </div>
         </td>
         <td>
-            <select class="text-lg" name="{{slot.slug}}" id="{{slot.slug}}" {% if slot.n_options == 0 %} disabled {% endif %}>
-                <option disabled selected value=""></option>
-                {% for emp in slot.fills_with %}
-                <option value="{{ emp|slugify }}">{{emp}}</option>
-                {% endfor %}
-            </select>
+            {% include "./empty-dropdown.html" %}
         </td>
     </tr>
     {% endfor %}

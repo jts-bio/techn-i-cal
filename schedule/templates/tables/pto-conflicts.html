@@ -36,7 +36,12 @@
 
 <div class="border rounded border-emerald-200 p-3 m-4">
     <h3 class="text-lg">Manage Requests by Employee</h3>
-    {% for employee in sch.employees.all %}
-    <i>{{ employee }}</i>
+    {% for employee in schedule.employees.all %}
+        <span class="bg-zinc-800 rounded p-1 hover:bg-orange-900 m-1"
+            hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
+            hx-trigger="click"
+            hx-target="#emp-pto">{{ employee }}
+        </span>
     {% endfor %}
+    <div id="emp-pto"></div>
 </div>

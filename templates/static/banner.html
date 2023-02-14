@@ -1,30 +1,25 @@
-
-
-<header class='flex flex-row items-center center justify-center text-center
-               mx-2 mb-4 bg-zinc-900 transition
-               opacity-20 hover:opacity-100 hover:scale-105
-               hover:ring hover:ring-orange-500'
-        style= 'width:100%;'
-        _="on mouseleave add .hidden to .user-context-menu end">
-  
+<header
+  class="items-center center justify-center text-center mx-2 mb-4 bg-zinc-900 
+         transition opacity-20 
+         hover:opacity-100 hover:scale-105 hover:ring hover:ring-orange-500"
+  style="width: 100%">
   <div class="bg-zinc-900 px-5 py-1 rounded opacity-90 hover:opacity-100 vstack">
-       
-
-      <div>
-          {% if user.is_authenticated %}  
-              <a href="{% url 'sch:user-detail' user.username %}"
-                class='center-self'>   
-                  <span class="text-2xs text-zinc-400"> LOGGED IN AS </span> <br/>
-                  <i class="fa-duotone fa-user-astronaut text-orange-400 text-2xl"></i> <br/>
-                  {{user.first_name}} {{ user.last_name }} ({{ user.username }})
-          {% else %}  
-                  <span class="text-2xs text-zinc-400"> USER IS NOT LOGGED IN CURRENTLY! </span> 
-              </a>
-          {% endif %}
-        
-
-      </div>
-
-
+    <div>
+      {%if user.is_authenticated%}
+        <a href="{% url 'sch:user-detail' user.username %}" class="center-self">
+          <span class="text-2xs text-zinc-400"> 
+            LOGGED IN AS 
+          </span> 
+          <br />
+          <i class="fa-duotone fa-user-astronaut text-orange-400 text-2xl"></i>
+          <br />
+          {{user.first_name}} {{ user.last_name }} ({{ user.username }}) ]
+        </a>
+        {%else%}
+          <span class="text-2xs text-zinc-400">
+            USER IS NOT LOGGED IN CURRENTLY!
+          </span>
+      {%endif%}
+    </div>
   </div>
 </header>

@@ -780,6 +780,8 @@ class Workday (models.Model) :
         return self.weekday[:3]
     def pto             (self):
         return PtoRequest.objects.filter(workday=self.date)
+    def pto_list (self):
+        return list(self.pto().values_list('employee__slug',flat=True))
     def tdo             (self):
         return TemplatedDayOff.objects.filter(sd_id=self.sd_id)
     def on_deck         (self):
@@ -1137,6 +1139,7 @@ class Schedule (models.Model):
         if self.pto_requests.count() == 0:
             return 0
         return 100 - int(self.pto_conflicts().count() / self.pto_requests.count() * 100)
+    
     def pto_conflicts (self):
         """PTO CONFLICTS 
         List of Slots ---> Employee has Pto on this day"""
@@ -1178,8 +1181,8 @@ class Schedule (models.Model):
             print (f'[ACTION : SCHEDULE__FILLTEMPLATES] {dt.datetime.now()}')
             n_empty_init = instance.slots.empty().count()
             for slot in instance.slots.random_order():
-                if slot.employee is None:
-                    if slot.template_employee is not None:
+                if slot.employee == None:
+                    if slot.template_employee != None:
                         slot.siblings_day.filter(employee=slot.template_employee).update(employee=None)
                         if PtoRequest.objects.filter(employee=slot.template_employee,workday=slot.workday.date).exists():
                             print('Slot Templating Skipped due to PTO Request')
@@ -1486,29 +1489,19 @@ class Slot (models.Model) :
     def is_preturnaround  (self) :
         if not self.employee:
             return False
-        if self.shift.start < dt.time(12,0):
-            return False
-        elif self.shift.start > dt.time(12,0) :
-            if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__lt=dt.time(12,0), employee=self.employee).count() > 0 :
-                return True
-            else:
-                return False
+        if self.workday.sd_id != 41:
+            if self.shift.group == 'PM':
+                if self.workday.nextWD().slots.filter(shift__group__in=['AM','XN'], employee=self.employee).count() > 0 :
+                    return True
+        return False
     def is_postturnaround (self) :
         if not self.employee:
             return False
-        if self.shift.start > dt.time(18,0):
-            return False
-        elif self.shift.start > dt.time(13,0) :
-            if self.shift.start < dt.time(18,0) :
-                if Slot.objects.filter(workday=self.workday.prevWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
+        if self.workday.sd_id != 0:
+            if self.shift.group == 'AM':
+                if self.workday.prevWD().slots.filter(shift__group__in=['PM','XN'], employee=self.employee).count() > 0 :
                     return True
-                else:
-                    return False
-        elif self.shift.start < dt.time(18,0) :
-            if Slot.objects.filter(workday=self.workday.nextWD(), shift__start__gt=dt.time(12,0), employee=self.employee).count() > 0 :
-                return True
-            else:
-                return False
+        return False
     def turnaround_pair   (self) :
         self.save()
         if self.is_turnaround == True:
@@ -1707,6 +1700,10 @@ class Slot (models.Model) :
     def save (self, *args, **kwargs):
         if self.is_preturnaround() | self.is_postturnaround():
             self.is_turnaround = True
+        else:
+            self.is_turnaround = False
+        if self.employee :
+            self.streak = self._streak()
         super().save(*args, **kwargs)
     def update_fills_with (self):
         self.fills_with.all().delete()

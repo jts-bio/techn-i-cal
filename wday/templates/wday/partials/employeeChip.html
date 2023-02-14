@@ -3,7 +3,7 @@
 
 
 <div id="{{ employee.pk }}" 
-    class="employee employee-chip cursor-move
+    class="employee employee-chip cursor-move snap-always
             relative w-24 h-14 
             backdrop-blur bg-white/20 border border-gray-200 rounded-lg
             {% if desig == 'PTO' %}   opacity-60   {% endif %}
@@ -27,11 +27,12 @@
        init if @turnaround != 0 add .bg-rose-700 .bg-opacity-30 end
        init if @previous-slot == `AM` remove .hidden from #{{employee.pk}}-ind-prev-am end
        init if @previous-slot == `PM` remove .hidden from #{{employee.pk}}-ind-prev-pm end
+       init if @previous-slot == `XN` remove .hidden from #{{employee.pk}}-ind-prev-pm end
        init if @next-slot == `AM` remove .hidden from #{{employee.pk}}-ind-next-am end
        init if @next-slot == `PM` remove .hidden from #{{employee.pk}}-ind-next-pm end
+       init if @next-slot == `XN` remove .hidden from #{{employee.pk}}-ind-next-pm end
        on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
-       on dragstart call event.dataTransfer.setData('text/html', event) then call event.dataTransfer.getData('text') then log result end
-       on dragstart set $emp to @id then set $empCard to me end
+       on dragstart set $emp to @id then set $empCard to me then log $empCard end
        on dragstart set $allow to @available.split(' ') end
        on dragstart send hlAllowed to .slot end
        on dragstart add .dragging end
@@ -42,13 +43,13 @@
        on dragend add .hidden to .trashbin end">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">
+               px-2 py-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">
         <i id="Prev-AM-Arrow" 
             class="fa-duotone fa-arrow-circle-left text-black"></i>
     </span>
     <span id="{{employee.pk}}-ind-next-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute -translate-y-1/2 translate-x-1/2 left-auto top-0 right-0">
+               px-2 py-2 absolute -translate-y-1/2 translate-x-1/2 left-auto top-0 right-0">
         <i class="fa-duotone fa-arrow-circle-right text-black"></i>
     </span>
     <span class="bg-slate-200 clock text-2xs font-light scale-[0.9] text-zinc-800 text-center p-0.5 leading-none rounded-full 
@@ -58,10 +59,10 @@
         {% weekHours employee workday %}-{% periodHours employee workday %}
     </span>
     <span 
-        class="text-3xl font-thin italic opacity-40 text-zinc-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute -translate-y-1/2 -translate-x-1/2 top-1/4 left-1/2 z-20
-               {% if desig == 'PTO' %} text-rose-900 bg-amber-400 p-1 rounded shadow {% endif %}
-               {% if desig == 'TDO' %} text-yellow-800 bg-rose-200 p-1 rounded shadow {% endif %}">
+        class="text-3xl font-thin italic opacity-90 text-zinc-800 text-center p-0.5 leading-none rounded-full 
+               px-2 absolute -translate-y-1/2 -translate-x-1/2 top-1/4 left-1/2 z-20 bg-transparent
+               {% if desig == 'PTO' %} text-rose-500 p-1 rounded shadow {% endif %}
+               {% if desig == 'TDO' %} text-yellow-600 p-1 rounded shadow {% endif %}">
         {{ desig }}
     </span>
     <span class="text-sm font-bold text-zinc-200 center text-center p-0.5
@@ -72,12 +73,12 @@
     </span>
     <span id="{{employee.pk}}-ind-prev-pm"
         class="hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute translate-y-1/2 -translate-x-1/2 right-auto bottom-0 left-0">
+               px-2 py-2 absolute translate-y-1/2 -translate-x-1/2 right-auto bottom-0 left-0">
         <i class="fa-duotone fa-arrow-circle-left text-black"></i>
     </span>
     <span id="{{employee.pk}}-ind-next-pm"
         class="hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
-               px-2 absolute translate-y-1/2 translate-x-1/2 left-auto bottom-0 right-0">
+               px-2 py-2 absolute translate-y-1/2 translate-x-1/2 left-auto bottom-0 right-0">
         <i class="fa-duotone fa-arrow-circle-right text-black"></i>
     </span>
 </div>

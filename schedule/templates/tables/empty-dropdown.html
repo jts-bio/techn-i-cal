@@ -1,0 +1,47 @@
+{% load wtags %}
+
+<div class="relative inline-block text-left">
+    <div id="swap-tgt-{{ slot.workday }}-{{ slot.shift }}">
+      <button type="button" class="inline-flex w-full justify-center rounded-md border border-gray-300 
+                                   bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
+                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
+                                   focus:ring-offset-gray-100" 
+              aria-expanded="true" aria-haspopup="true"
+              {% if slot.n_options == 0 %} disabled {% endif %}
+              _="on click send signal to next .dd-options 
+                    then toggle .bg-blue-200 on me end">
+        {{ slot.n_options }} Options
+        <!-- Heroicon name: mini/chevron-down -->
+        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+    <div class="dd-options absolute hidden right-0 z-10 mt-2 w-56 
+                origin-top-right rounded-md bg-sky-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
+          _="on signal toggle .hidden on me then send fsignal to .fetcher in me end">
+      <div class="py-1" role="none">
+        {% for empl in slot.fills_with %}
+            <div hx-post="{% url 'schd:update-slot' slot.schedule slot.workday slot.shift empl %}" 
+              hx-trigger="click" hx-target="#swap-tgt-{{ slot.workday }}-{{ slot.shift }}"
+              _="on click add .hidden to closest .dd-options"
+              class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
+              role="menuitem" tabindex="-1" id="menu-item-0">
+                {{ empl }}
+                <span class="text-xs opacity-70 italic">
+                  <span class="fetcher"
+                  _="on fsignal fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/ then
+                        put result into me end">
+                  </span>/ 
+                  <span class="fetcher"
+                  _="on fsignal fetch /api/employee/{{empl}}/period-hours/{{slot.schedule}}/{{slot.workday}}/ then
+                        put `$result hrs.` into me end">
+                  </span>
+                </span>
+            </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  

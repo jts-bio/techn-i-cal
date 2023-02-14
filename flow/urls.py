@@ -25,9 +25,21 @@ shift_urls = [
     path('<shiftName>/actions/set-img/', ApiActionViews.set__shift_img, name='shift__set_img'),
 ]
 
+pto_urls = [
+    path('<day>/<emp>/actions/delete/', ApiActionViews.ptoreq__delete, name='del-ptoreq'),
+    path('<day>/<emp>/actions/create/', ApiActionViews.ptoreq__create, name='create-ptoreq'),
+]
+
+emp_urls = [
+    path('<empId>/week-hours/<sch>/<wd>/', ApiViews.employee__week_hours, name='week-hours'),
+    path('<empId>/period-hours/<sch>/<wd>/', ApiViews.employee__period_hours, name='period-hours'),
+]
+
 urlpatterns = [
     path('schedule/', include(schedule_urls)),
-    path('shift/', include(shift_urls)),
+    path('shift/',    include(shift_urls)),
+    path('ptoreq/',   include(pto_urls)),
+    path('employee/', include(emp_urls)),
 ]
 
 

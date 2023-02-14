@@ -117,13 +117,25 @@ class ShiftsWorkdaySmallTable (tables.Table):
         fields          = [ 'name', 'employee' ]
         template_name   = 'django_tables2/bootstrap.html'
         
-        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
+        attrs           = { 
+                "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"
+            }
         
     def render_employee(self, value, record):
         if record.cls == "RPh":
-            return format_html("<span class='pharmer-gray {}'> {} <span class='xs'>{}</span></span>",record.employee.strip().replace(" ","-"), value, record.cls)
+            return format_html (
+                "<span class='pharmer-gray {}'> {} <span class='xs'>{}</span></span>",
+                record.employee.strip().replace(" ","-"), 
+                value, 
+                record.cls
+            )
         elif record.cls == "CPhT":
-            return format_html('<span class="tech-gray {}"> {} <span class="xs">{}</span></span>',record.employee.strip().replace(" ","-"), value, record.cls)
+            return format_html (
+                '<span class="tech-gray {}"> {} <span class="xs">{}</span></span>',
+                record.employee.strip().replace(" ","-"), 
+                value, 
+                record.cls
+            )
 
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS

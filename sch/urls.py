@@ -35,22 +35,21 @@ urlpatterns = [
 ]
 
 user_patterns = [
-    path("user/<str:uname>/", viewsets.UserViews.userDetailView, name="user-detail"),
+    path("user/<uname>/", viewsets.UserViews.userDetailView, name="user-detail"),
 ]
 
 workday_patterns = [
     # ? ==== Workday ==== ?#
     path("days/new/", views.WORKDAY.WorkdayBulkCreateView.as_view(), name="workday-new"),
     path("workday-list-view/all/",views.WORKDAY.WorkdayListView.as_view(),name="v2-workday-list",),
-    path("v1/workday-detail/<str:slug>/",views.WORKDAY.WorkDayDetailView.as_view(),name="v1-workday-detail"),
-    
-    path("day/<slug:date>/fill-template/",views.WORKDAY.workdayFillTemplate,name="workdayFillTemplate"),
-    path("day/<slug:date>/add-pto/",views.WORKDAY.WorkdayPtoRequest.as_view(),name="workdayAddPTO"),
-    path("day/<slug:date>/run-swaps/", views.WORKDAY.runSwaps, name="run-swaps"),
-    path("v2/workday-detail/<str:slug>/", views2.workdayDetail, name="v2-workday-detail"),
-    path("v2/workday-detail/<str:slug>/<str:sft>/", viewsets.SlotViews.slotStreakView, name="v2-slot-detail"),
-    path('v2/workday-detail/<str:wdSlg>/api/fill-slot/<str:shiftSlg>/<str:empId>/', WdApi.Post.fillSlotWithApi, name='api-fill-slot'),
-    path('v2-beta/workday-detail/<str:slug>/detail/', viewsets.WdViews.wdayDetailBeta, name='beta-day'),
+    path("v1/workday-detail/<slug>/",views.WORKDAY.WorkDayDetailView.as_view(),name="v1-workday-detail"),
+    path("day/<date>/fill-template/",views.WORKDAY.workdayFillTemplate,name="workdayFillTemplate"),
+    path("day/<date>/add-pto/",views.WORKDAY.WorkdayPtoRequest.as_view(),name="workdayAddPTO"),
+    path("day/<date>/run-swaps/", views.WORKDAY.runSwaps, name="run-swaps"),
+    path("v2/workday-detail/<slug>/", views2.workdayDetail, name="v2-workday-detail"),
+    path("v2/workday-detail/<slug>/<sft>/", viewsets.SlotViews.slotStreakView, name="v2-slot-detail"),
+    path('v2/workday-detail/<str:wdSlg>/api/fill-slot/<shiftSlg>/<empId>/', WdApi.Post.fillSlotWithApi, name='api-fill-slot'),
+    path('v2-beta/workday-detail/<slug>/detail/', viewsets.WdViews.wdayDetailBeta, name='beta-day'),
 ]
 
 week_patterns = [
