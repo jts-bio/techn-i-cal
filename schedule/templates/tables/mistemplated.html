@@ -1,9 +1,12 @@
 <div class="bg-zinc-400 text-zinc-900 text-xs px-2 rounded-full hover:bg-sky-600 cursor-pointer w-fc my-2"
-    hx-get="actions/retemplate-all/"
+    hx-post="actions/retemplate-all/"
     hx-trigger="click"
-    hx-target="#swap-panel">
+    hx-target="#swap-panel"
+    hx-indicator="#retemplateIndicator">
     Retemplate All 
 </div>
+
+<div id="retemplateIndicator" class="htmx-indicator fa-spin fa-beat"></div>
 
 <table>
     <tr>

@@ -1,4 +1,5 @@
 colorizeFigure = (figName, goals) ->
+
     figure = document.getElementById figName
     # figure as number 
     n = parseInt figure.innerHTML
@@ -26,8 +27,10 @@ colorizeFigure = (figName, goals) ->
 
             if n > great_boundary
                 figure.classList.add "bg-green-500"
+
             if n.innerHTML > good_boundary
                 figure.classList.add "bg-yellow-500"
+                
             if n.innerHTML > fair_boundary
                 figure.classList.add "bg-red-500"
                 

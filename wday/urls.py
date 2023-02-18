@@ -14,6 +14,7 @@ urlpatterns = [
     path('<slug>/slot/<shiftId>/update/', views.SlotActions.slotUpdateView, name='slot-update'),
     
     # API paths ~~~~~~~~~~~~~~~~~~~~~~
+    path('<wd>/<shift>/fill-template/', views.WdActions.fill_with_template, name='fill-template'),
     path('<wdSlug>/api/employee-can-fill/<empSlug>/', api.empl_can_fill, name='slots--empl-can-fill'),
     path('<wdSlug>/api/check-employee-surrounding/<empSlug>/', api.check_empl_surrounding, name='check-empl-surrounding'),
     path('<wdSlug>/api/empl-check-hours/<empSlug>/', api.empl_check_hours, name='empl-check-hours'),

@@ -86,8 +86,9 @@
                 .attr("transform",
                       "translate(" + margin.left + "," + margin.top + ")");
             
+            
             // get the data
-            d3.csv("https://raw.githubusercontent.com/holtzy/data_to_viz/master/Example_dataset/1_OneNum.csv", function(data) {
+            d3.json("data", function(data) {
             
               // add the x Axis
               var x = d3.scaleLinear()
@@ -106,7 +107,7 @@
             
               // Compute kernel density estimation
               var kde = kernelDensityEstimator(kernelEpanechnikov(7), x.ticks(40))
-              var density =  kde( data.map(function(d){  return d.price; }) )
+              var density =  kde( data.map(function(d){  return d.score; }) )
             
               // Plot the area
               svg.append("path")

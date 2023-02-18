@@ -297,7 +297,7 @@ class ScheduleBot:
     def del_turnarounds (year, sch): 
         slots = Slot.objects.filter(workday__year=year,workday__ischedule=sch, is_turnaround=True)
         for slot in slots:
-            if slot.employee.evening_pref == False: 
+            if slot.employee.time_pref == 'AM': 
                 wd = slot.workday.prevWD()
                 Slot.objects.get(workday=wd, employee=slot.employee).delete()
             else:
@@ -472,7 +472,7 @@ class ScheduleBot:
             
             turnarounds  = Slot.objects.filter(workday__date__year=yr,workday__ischedule=sch, is_turnaround=True)
             for ta in turnarounds:
-                if ta.employee.evening_pref == False: 
+                if ta.employee.time_pref == 'AM': 
                     if Slot.objects.filter(workday__date=ta.workday.prevWD().date, employee=slot.employee,shift__start__hour__gt=10).exists():
                         Slot.objects.get(workday__date=ta.workday.prevWD().date, employee=slot.employee, shift__start__hour__gt=10).delete()
                     else:
@@ -647,10 +647,10 @@ class ResolveBot:
     
     def resolveTurnaroundWithinDay (turnaroundSlot):
         emp = turnaroundSlot.employee
-        if emp.evening_pref:
+        if emp.time_pref != 'AM':
             wd = turnaroundSlot.workday
             sfta = turnaroundSlot.shift
-        elif emp.evening_pref == False:
+        elif emp.time_pref == 'AM':
             wd = turnaroundSlot.workday.prevWD()
             sfta = wd.shift
         

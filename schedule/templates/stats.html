@@ -1,37 +1,40 @@
 <div class="shrink max-w-md p-4 bg-zinc-900 border-2  border-gray-400 rounded-lg shadow sm:p-8">
     <div class="flex items-center justify-between mb-4">
         <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white">Stats Summary</h5>
-        <a href="#" class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">
-            View all
-        </a>
+        <span hx-get="{% url 'schd:log' schedule.slug %}" 
+            hx-target="#swap-panel"
+            hx-trigger="click" 
+            class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">
+            View Log
+        </span>
    </div>
    <div class="flow-root">
         <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
             <!-- EMPTY SLOTS -->
-            <li class="py-3 sm:py-4">
+            <li class="py-3 sm:py-4 hover:bg-zinc-800">
                 {% include 'figures/n-empty.html' %}
             </li>
             <!-- EMUSR -->
-            <li class="py-3 sm:py-4">
+            <li class="py-3 sm:py-4 hover:bg-zinc-800">
                 {% include 'figures/emusr.html' %}
             </li>
             <!-- EMUSR STD DEV -->
-            <li class="py-3 sm:py-4">
+            <li class="py-3 sm:py-4 hover:bg-zinc-800">
                 {% include 'figures/emusr-stdev.html' %}
             </li>
-            <li class="py-3 sm:py-4">
+            <li class="py-3 sm:py-4 hover:bg-zinc-800">
                 {% include 'figures/pto-rate.html' %}
             </li>
-            <li class="py-3 sm:pt-4">
+            <li class="py-3 sm:pt-4 hover:bg-zinc-800">
                 {% include 'figures/percent.html' %}
             </li>
-            <li class="py-3 sm:pt-4">
+            <li class="py-3 sm:pt-4 hover:bg-zinc-800">
                 {% include 'figures/unfavorables.html' %}
             </li>
-            <li class="py-3 sm:pt-4">
+            <li class="py-3 sm:pt-4 hover:bg-zinc-800">
                 {% include 'figures/untrained.html' %}
             </li>
-            <li class="pt-3 sm:pt-4">
+            <li class="pt-3 sm:pt-4 hover:bg-zinc-800">
                 {% include 'figures/mistemplated.html' %}
             </li>
         </ul>

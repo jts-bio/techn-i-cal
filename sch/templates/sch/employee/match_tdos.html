@@ -37,14 +37,18 @@
     <span class="fa-fade">Loading...</span>   
 </div>
 
-<div id="current-pane" class="opacity-60"
-     hx-get="/sch/api/match-tdo/{{employee.slug}}/preview/"
-     hx-trigger="load"
-     hx-target="#current-pane"
-     hx-swap="innerHTML">
+<div class="flex flex-row gap-2 w-full">
+    <div id="current-pane" class="opacity-60"
+        hx-get="/sch/api/match-tdo/{{employee.slug}}/preview/"
+        hx-trigger="load"
+        hx-target="#current-pane"
+        hx-swap="innerHTML">
+    </div>
+    <div id="transition-arrow" class="hidden">
+        <i class="fas fa-arrow-right text-3xl"></i>
+    </div>
+    <div id="preview-pane"> </div>
 </div>
-
-<div id="preview-pane"> </div>
 
 <script>
 
@@ -61,13 +65,14 @@
             .then(html => {
                 indicator.classList.add('hidden');
                 previewPane.innerHTML = html;
+                previewPane.querySelector('#preview-title').innerHTML = 'PREVIEW RESULT';
+                document.getElementById('transition-arrow').classList.remove('hidden');
             })
             .catch(error => {
                 indicator.classList.add('hidden');
                 previewPane.innerHTML = `<div class="error">Error: ${error}</div>`;
             });
     }
-
     function onLoadforCurrentPane (event) {
         console.log('onLoadforCurrentPane');
         const empl = "{{ employee.slug }}"

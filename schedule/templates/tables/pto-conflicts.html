@@ -1,47 +1,75 @@
+{% load tags %}
 <h1 class="text-2xl">PTO Management</h1>
 
 <div class="bg-slate-300 text-slate-800 font-bold rounded border border-white h-7 w-[32em] px-3">
-    Total PTO Requests: {{ data|length }}
+    Total PTO Requests: {{ pto.count }}
 </div>
 
 <div class="border rounded border-sky-200 p-3 m-4">
-<h3 class="text-lg">PTO Conflicts</h3>
+<h3 class="text-lg">PTO Conflicts (n={{ ptoconflicts.count }})</h3>
 <table>
     <tr>
         <th>Employee</th>
-        <th>Shift</th>
         <th>Workday</th>
         <th>Actions</th>
     </tr>
-    {% for slot in data %}
+    {% for slot in ptoconflicts %}
         <tr>
-            <td class="empl-cell">{{ slot.employee }}</td>
-            <td>{{ slot.shift }}</td>
-            <td>{{ slot.workday }}</td>
-            <td id="{{ slot.slug }}-actions">
-                <div hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
+            <td class="empl-cell">
+                <i class="fa-duotone fa-triangle-exclamation"></i>
+                {{ slot.employee }}
+            </td>
+            <td><a href="{{ slot.workday.slug }}">{{ slot.workday }}</a></td>
+            <td id="actions-{{ slot.slug }}">
+                <span hx-post="actions/clear-slot/{{ slot.workday_slug }}/{{ slot.shift.name }}/"
                     hx-trigger="click"
                     hx-swap="innerHTML"
-                  _="on click add .line-through to previous .empl-cell then tell next .fa-hospital remove you end">
-                  <i class="mx-1 fa-thin fa-island-tropical text-xl hover:text-emerald-400"
-                  title="Grant PTO and Resolve"></i>
-                </div>
-                <i class="mx-1 fa-thin fa-hospital text-xl hover:text-rose-600"
-                    title="Deny PTO and Schedule Slot" ></i>
+                    hx-target="#actions-{{ slot.slug }}"
+                  _="on click 
+                        add .line-through to previous .empl-cell">
+                  <i class="mx-1 fa-duotone fa-island-tropical text-xl hover:text-emerald-400"
+                     title="Grant PTO and Resolve"></i>
+                </span>
+                <i class="mx-1 fa-duotone fa-hospital text-xl hover:text-rose-600"
+                   title="Deny PTO and Schedule Slot" ></i>
             </td>
         </tr>
     {% endfor %}
 </table>
 </div>
 
-<div class="border rounded border-emerald-200 p-3 m-4">
+<div class="border rounded border-1 p-3 m-4">
+
     <h3 class="text-lg">Manage Requests by Employee</h3>
-    {% for employee in schedule.employees.all %}
-        <span class="bg-zinc-800 rounded p-1 hover:bg-orange-900 m-1"
-            hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
-            hx-trigger="click"
-            hx-target="#emp-pto">{{ employee }}
-        </span>
-    {% endfor %}
+    
+    <div class="flex flex-row flex-wrap">
+        {% for employee in schedule.employees.all %}
+            <span class="empl-selector static bg-zinc-800 rounded p-1 hover:bg-orange-900 m-1"
+                hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
+                hx-trigger="click"
+                hx-target="#emp-pto"
+                _="on click 
+                        remove .bg-orange-800 from .empl-selector then 
+                        add .bg-orange-800 to me">
+                {{ employee }}
+                <span class="pto-count rounded bg-gray-200 text-black"
+                    data-count="{% ptoCount employee schedule %}"></span>
+            </span>
+        {% endfor %}
+    </div>
     <div id="emp-pto"></div>
+
 </div>
+
+
+
+
+<script>
+    // if .pto-count innerHTML is > 0, add .bg-orange-800 .text-white to .empl-selector
+    document.querySelectorAll('.pto-count').forEach(function(el) {
+        if (el.dataset.count != "0") {
+            el.innerHTML = el.dataset.count;
+            el.classList.add('bg-yellow-800', 'text-white', 'text-2xs', 'p-1', 'h-5', 'w-5', 'text-center','right-0','top-0','m-1');
+        }
+    });
+</script>

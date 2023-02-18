@@ -19,11 +19,22 @@
         {% for employee in employees %}
 
            <tr>
-                <th><a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">{{ employee }}</a></th>
+                <th>
+                    <a 
+                        href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">
+                        {{ employee }}
+                    </a>
+                </th>
 
                 {% for week in schedule.weeks.all %}
-                <td class="hours" data-value="{% weekHours employee   week.workdays.first %}"
-                    >{% weekHours employee   week.workdays.first %} hrs.</td>
+                <td 
+                    class="hours" 
+                    data-value="{% weekHours employee week.workdays.first %}" 
+                    data-sch="{{ schedule.slug }}" 
+                    data-emp="{{ employee.slug }}" 
+                    data-wk="{{ week.number }}"> 
+                    {% weekHours employee week.workdays.first %} hrs.
+                </td>
                 {% endfor %}
            </tr>
 
@@ -31,13 +42,62 @@
     </div>
 
 
-    <script>
-        var hours = document.querySelectorAll('.hours');
-        hours.forEach(function(hour) {
-            if (hour.dataset.value > 40) {
-                hour.classList.add('text-red-500','font-bold');
-            }
-        });
-    </script>
+<script>
+var hours = document.querySelectorAll('.hours');
+if (hours) {
+    hours.forEach(function(hour) {
+        if (hour.dataset.value > 40) {
+            hour.classList.add('text-red-500', 'font-bold');
+            var schSlug = hour.dataset.sch;
+            var employeeSlug = hour.dataset.emp;
+            var weekNumber = hour.dataset.wk;
+            console.log(schSlug, employeeSlug, weekNumber);
+            // add onclick event listener to the td to display the excess hours slots
+            hour.addEventListener('click', function() {
+                fetch(`/api/schedule/${schSlug}/week-excess/${employeeSlug}/${weekNumber}/`)
+                    .then(function(response) {
+                        if (response.ok) {
+                            var resp = response.json();
+                            console.log(resp);
+                            return resp;
+                        } 
+                    })
+                    .then(function(data) { data.forEach(function(slot) {
+                        // build modal with the data
+                        var modal = document.createElement('div');
+                        modal.classList.add('modal');
+                        var content = document.createElement('div');
+                        content.classList.add('modal-content');
+                        modal.appendChild(content);
+
+                        var title = document.createElement('h2');
+                        title.textContent = `Excess hours for employee ${employeeSlug} in week ${weekNumber}`;
+                        content.appendChild(title);
+
+                        var list = document.createElement('ul');
+                        content.appendChild(list);
+
+                        
+                            var item = document.createElement('li');
+                            item.textContent = `Date: ${slot.date}, Hours: ${slot.hours}`;
+                            list.appendChild(item);
+                        });
+
+                        var closeButton = document.createElement('button');
+                        closeButton.textContent = 'Close';
+                        closeButton.addEventListener('click', function() {
+                            modal.remove();
+                        });
+                        content.appendChild(closeButton);
+
+                        document.body.appendChild(modal);
+                    }) 
+            });
+        }
+    });
+}
+
+
+</script>
     
 </section>

@@ -1002,6 +1002,7 @@ class EMPLOYEE:
                 e.cls           = form.cleaned_data['cls']
                 e.streak_pref   = form.cleaned_data['streak_pref']
                 e.fte_14_day    = form.cleaned_data['fte_14_day']
+                e.time_pref     = form.cleaned_data['time_pref']
                 e.shifts_trained.set(form.cleaned_data['shifts_trained'])
                 e.shifts_available.set(form.cleaned_data['shifts_available'])
                 e.save()
@@ -1402,6 +1403,13 @@ class EMPLOYEE:
         
         return render(request, 'sch/employee/coworker.html', {'coworkers':other_employees, 'employee':employee})
 
+    
+    def empl_shift_tallies_csv (request, empl):
+        emp = Employee.objects.get(slug=empl)
+        data = {}
+        for slot in emp.slots.all():
+            data[slot]["score"] = slot.sortScore()
+        return JsonResponse(data)
     ### SHIFT TALLY
     class EmployeeShiftTallyView (DetailView):
         model = Employee
@@ -1454,8 +1462,8 @@ class EMPLOYEE:
         -----------------------------------------------------------------------
             flowrate.herokuapp.com/sch/employees/`<employeeName>`/co-worker/`<otherEmployeeName>`/
         """
-        emp1 = Employee.objects.get(slug=nameA)
-        emp2 = Employee.objects.get(slug=nameB)
+        emp1 = Employee.objects.get(slug__icontains=nameA)
+        emp2 = Employee.objects.get(slug__icontains=nameB)
         
         emp1slots = Slot.objects.filter(employee=emp1).values('workday')
         emp1days  = Workday.objects.filter(pk__in=emp1slots)
@@ -1464,8 +1472,11 @@ class EMPLOYEE:
         days = emp1days.filter(pk__in=emp2days).annotate(
             sft1=Subquery(Slot.objects.filter(employee=emp1,workday=OuterRef('pk')).values('shift__name'))).annotate(
                 sft2=Subquery(Slot.objects.filter(employee=emp2,workday=OuterRef('pk')).values('shift__name')))
-            
-        percent_worked_with = int ( days.count() / emp1days.count() * 100 )
+        
+        if emp1days.count() > 0:
+            percent_worked_with = int ( days.count() / emp1days.count() * 100 )
+        else:
+            percent_worked_with = 0
             
         return render(request, 'sch/employee/coworker.html', {'days':days,'emp1':emp1,'emp2':emp2, 'percent': percent_worked_with})
     
@@ -1600,10 +1611,10 @@ class SLOT:
         turns_pm = Slot.objects.preturnarounds()
         turnarounds = []
         for ta in turns_am:
-            if ta.employee.evening_pref:
+            if ta.employee.time_pref != 'AM':
                 turnarounds.append(ta.pk)
         for ta in turns_pm:
-            if ta.employee.evening_pref == False:
+            if ta.employee.time_pref == 'AM':
                 turnarounds.append(ta.pk)
         slots = Slot.objects.filter(pk__in=turnarounds)
         for slot in slots: 
@@ -1648,10 +1659,10 @@ class SLOT:
             turns_pm = Slot.objects.preturnarounds()
             turnarounds = []
             for ta in turns_am:
-                if ta.employee.evening_pref:
+                if ta.employee.time_pref != 'AM':
                     turnarounds.append(ta.pk)
             for ta in turns_pm:
-                if ta.employee.evening_pref == False:
+                if ta.employee.time_pref == 'AM':
                     turnarounds.append(ta.pk)
             return Slot.objects.filter(pk__in=turnarounds)
       
@@ -1870,12 +1881,12 @@ class SCHEDULE:
             for conflict in allConflicts:
                 print('checking {}'.format(conflict))
                 if conflict.employee != None:
-                    if conflict.employee.evening_pref:
+                    if conflict.employee.time_pref != 'AM':
                         if conflict.shift.start.hour < 10:
                             strs.append('Deleted Slot: %s' % conflict)
                             Slot.objects.filter(pk=conflict.pk).update(employee=None)
                             
-                    elif conflict.employee.evening_pref == False:
+                    elif conflict.employee.time_pref == 'AM':
                         if conflict.shift.start.hour > 10:
                             strs.append('Deleted Slot: %s' % conflict)
                             Slot.objects.filter(pk=conflict.pk).update(employee=None)
@@ -1934,7 +1945,7 @@ class SCHEDULE:
             if request.method == "POST":
                 for slot in schedule.slots.empty():
                     if slot.shift.group == 'AM':
-                        employees = slot._fillableBy().filter(evening_pref=False)
+                        employees = slot._fillableBy().filter(time_pref='AM')
                         if employees.exists():
                             slot.employee = employees[0]
                             slot.save()
@@ -1942,7 +1953,7 @@ class SCHEDULE:
                         else:
                             messages.info(request,"No Available Employee -- Slot Skipped")
                     if slot.shift.group == "PM":
-                        employees = slot._fillableBy().filter(evening_pref=True)
+                        employees = slot._fillableBy().filter(time_pref__in=['PM','AM'])
                         if employees.exists():
                             slot.employee = employees[0]
                             slot.save()

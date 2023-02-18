@@ -137,6 +137,14 @@
             fill : ["white" , "gray"]
           })) ;
     </script>
+
+    <script>
+        // Add right border to every 7th column 
+        document.querySelectorAll("table tr td:nth-child(7n+8)"
+            ).forEach(e => 
+                e.classList.add("border-r-2","border-zinc-600"));
+        
+    </script>
     
 
     

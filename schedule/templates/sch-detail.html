@@ -17,7 +17,7 @@
             Schedule {{ schedule.number }} ({{ schedule.year }})
         </h1> 
         <h3 class="text-lg text-zinc-100 font-light">
-            VERSION <span id="scheduleVersionId">{{ schedule.version }} </span>
+            VERSION <span id="scheduleVersionId">{{ schedule.version }}</span>
         </h3>
     </div>
 
@@ -28,11 +28,11 @@
         </section>
 
         <section>
-            <div class="flex flex-col md:flex-row mb-3">
+            <div class="flex flex-col-reverse md:flex-row md:flex-row mb-1 md:mb-3">
                 {% include 'stats.html' %}
                 <div id="swap-panel"
                     class="container overflow-x-scroll overscroll-x-auto  
-                           ml-2 p-4  bg-zinc-900 rounded shadow 
+                           px-1 md:px-4 md:ml-2 bg-zinc-900 rounded shadow 
                            border-zinc-300 border-2">
                         <i class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
                 </div>

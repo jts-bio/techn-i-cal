@@ -13,6 +13,7 @@ from django.db.models import SlugField, SlugField, Sum, Case, When, FloatField, 
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
 import json
+
     
         
 class ApiViews :
@@ -35,20 +36,31 @@ class ApiViews :
                     'shift__hours', flat=True))) for week in sch.weeks.all()
             ]
         return JsonResponse ( employee_week_breakdowns , safe=False )
-        
+    
     def schedule__get_weekly_hours__employee ( request, schId, empName ):
         employee     = Employee.objects.filter ( name__contains= empName ).first()
         sch          = Schedule.objects.get ( slug = schId )
         employee.weekBreakdown = [ sum(list(week.slots.filter(
                     employee=employee).values_list(
                         'shift__hours',flat=True))) for week in sch.weeks.all() ]
-        
         return JsonResponse ( employee.weekBreakdown, safe=False )
     
-    def schedule__get_emusr ( request, schId ):
+    def schedule__get_emusr_list ( request, schId ):
         sch = Schedule.objects.get (slug = schId )
-        fig = SchViews.Calc.emusr_distr(request,sch)
-        return JsonResponse (fig, safe=False )
+        emusrEmployees = sch.employees.emusr_employees()
+        for e in emusrEmployees:
+            n = sch.slots.unfavorables().filter(employee=e).count()
+            e.n_unfavorables = n
+        return JsonResponse ({f'{e.name}': e.n_unfavorables for e in emusrEmployees}, safe=False)
+    
+    def schedule__get_emusr_range ( request, schId ):
+        sch = Schedule.objects.get (slug = schId )
+        emusrEmployees = sch.employees.emusr_employees()
+        for e in emusrEmployees:
+            n = sch.slots.unfavorables().filter(employee=e).count()
+            e.n_unfavorables = n
+        data = {f'{e.name}': e.n_unfavorables for e in emusrEmployees}
+        return JsonResponse ( max(data.values()) - min(data.values()), safe=False)
     
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -77,12 +89,15 @@ class ApiViews :
     def schedule__get_unfavorables_list (request, schId ):
         sch = Schedule.objects.get(slug=schId)
         return JsonResponse ( SlotSerializer(sch.slots.unfavorables(), many=True).data, safe=False )
-    def schedule__get_emusr_list (request, schId ):
-        sch = Schedule.objects.get(slug=schId)
-        return JsonResponse ( EmployeeSerializer(sch.employees.all(), many=True).data, safe=False )
     def schedule__get_empty_list (request,schId):
         sch = Schedule.objects.get(slug=schId)
         return JsonResponse ( SlotSerializer(sch.slots.empty(), many=True).data, safe=False )
+    def schedule__employee_excess_week_hours (request, schId, empId, wk):
+        sch = Schedule.objects.get(slug=schId)
+        emp = Employee.objects.get(slug=empId)
+        slots = sch.slots.filter(workday__week__number=wk, employee=emp)
+        data = {'slots': SlotSerializer(slots, many=True).data }
+        return JsonResponse ( data, safe=False )
    
     def employee__week_hours (request, empId, sch, wd):
         emp = Employee.objects.get (slug = empId )

@@ -1,15 +1,17 @@
 {% load wtags %}
 
+
+
 <div class="relative inline-block text-left">
     <div id="swap-tgt-{{ slot.workday }}-{{ slot.shift }}">
-      <button type="button" class="inline-flex w-full justify-center rounded-md border border-gray-300 
-                                   bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
+      <button type="button" class="dd-button inline-flex w-full justify-center rounded-md border border-gray-300 
+                                   bg-white {% if slot.n_options == 0 %} bg-gray-300 {% endif %}
+                                   px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
                                    focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
                                    focus:ring-offset-gray-100" 
               aria-expanded="true" aria-haspopup="true"
               {% if slot.n_options == 0 %} disabled {% endif %}
-              _="on click send signal to next .dd-options 
-                    then toggle .bg-blue-200 on me end">
+              onclick="showDropdownOptions(event)">
         {{ slot.n_options }} Options
         <!-- Heroicon name: mini/chevron-down -->
         <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -18,9 +20,11 @@
       </button>
     </div>
     <div class="dd-options absolute hidden right-0 z-10 mt-2 w-56 
-                origin-top-right rounded-md bg-sky-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" 
+                origin-top-right rounded-md bg-sky-900 shadow-lg 
+                border border-sky-200 drop-shadow
+                ring-1 ring-black ring-opacity-5 focus:outline-white" 
                 role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
-          _="on signal toggle .hidden on me then send fsignal to .fetcher in me end">
+          _="on signal send fsignal to .fetcher in me end">
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
             <div hx-post="{% url 'schd:update-slot' slot.schedule slot.workday slot.shift empl %}" 
@@ -45,3 +49,23 @@
     </div>
   </div>
   
+
+  <script>
+    function showDropdownOptions (event) {
+      const dropdown = event.target.closest('.dd-button');
+      const options = dropdown.closest('.relative').querySelector('.dd-options');
+      options.classList.remove('hidden');
+      // add event listener to add .hidden when click is outside of the dropdown  
+      document.addEventListener('click', function hideDropdownOptions (event) {
+        if (!dropdown.contains(event.target)) {
+          options.classList.add('hidden');
+          document.removeEventListener('click', hideDropdownOptions);
+        }
+      });
+      // send fsignal to fetcher elements
+      const fetchers = options.querySelectorAll('.fetcher');
+      fetchers.forEach(fetcher => {
+        fetcher.dispatchEvent(new CustomEvent('fsignal'));
+      });
+    }
+  </script>

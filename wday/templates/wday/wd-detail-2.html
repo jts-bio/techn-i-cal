@@ -71,7 +71,7 @@
                     on hideHl remove .bg-green-600 .ring .ring-green-500 end">
 
                 <a href="/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/" 
-                    class="shift px-1 {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
+                    class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
                     {{ slot.shift }} 
                 </a>
 
@@ -86,15 +86,21 @@
                             {% endwith %}
                         {% else %}
                                 <i data-slot="{{slot.shift.name}}"
-                                data-group="{{slot.shift.group}}"
-                                class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
+                                    data-group="{{slot.shift.group}}"
+                                    class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
                                 _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-{{ slot.shift.name }} end
                                     on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-{{ slot.shift.name }} end">
                                 </i>
                                 {% if slot.template_employee %}
-                                    <div class="bg-rose-900 text-white text-2xs uppercase rounded-full px-2">
-                                        FILL WILL TEMPLATE EMPLOYEE
-                                    </div>
+                                    {% if slot.template_employee not in workday.pto.all %}
+                                        <div
+                                            _="on click fetch {{slot.shift}}/fill-template/ 
+                                                    put result into me.parentNode then
+                                                    call window.location.reload() end"
+                                            class="bg-rose-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
+                                            FILL TEMPLATE EMPLOYEE
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
                         {% endif %}
                 </div>
@@ -157,14 +163,7 @@
             {% endfor %}
         
         </div>
-    
-    <div id="dragged-data-display" class="text text-center border border-zinc-300 opacity-50 rounded p-2">
-            <div id="dragged-employee-name" class="text-2xs italic"></div>
-            <div id="dragged-employee-shift" class="text-2xs text-blue-500"></div>
-            <div id="dragged-allowed" clas="text-green-900 bg-green-300 rounded px-2 text-2xs"></div>
-    </div>
         
-
     <div class="text text-center text-2xs opacity-75 italic"> 
         USING TEMPLATE: WD-DEFAULT 
     </div>

@@ -70,6 +70,10 @@ class WdActions:
         
         return HttpResponse(fillable_slots)
     
+    def fill_with_template (request, wd, shift):
+        slot = Slot.objects.get(workday__slug=wd,shift__name=shift)
+        slot.actions.set_template_employee (slot)
+        return HttpResponse(f"Slot {slot.shift} has been filled with template employee.")
             
 def slotDetailView (request, slug, shiftId):
     pass

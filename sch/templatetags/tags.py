@@ -263,15 +263,21 @@ def periodHours (empl, pd):
 
 @register.simple_tag
 def emplPrevSlot (empl, wd):
-    s = wd.prevWD().slots.filter(employee=empl)
-    if s.exists():
-        return s.first().shift.group 
+    if wd.sd_id != 0:
+        s = wd.prevWD().slots.filter(employee=empl)
+        if s.exists():
+            return s.first().shift.group 
     return None 
 
 @register.simple_tag
 def emplNextSlot (empl, wd):
-    s = wd.nextWD().slots.filter(employee=empl)
-    if s.exists():
-        return s.first().shift.group 
+    if wd.sd_id != 41:
+        s = wd.nextWD().slots.filter(employee=empl)
+        if s.exists():
+            return s.first().shift.group 
     return None
 
+@register.simple_tag
+def ptoCount (empl, sch):
+    pto = sch.pto_requests.filter(employee=empl)
+    return pto.count()

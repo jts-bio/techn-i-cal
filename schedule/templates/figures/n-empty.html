@@ -1,7 +1,7 @@
 {% load static %}
 
 
-<div class="flex items-center space-x-4"
+<div class="flex items-center space-x-4 cursor-pointer"
     hx-get="/schedule/partials/{{schedule.slug}}/empty-list/"
     hx-trigger='click'
     hx-target="#swap-panel">
@@ -20,9 +20,11 @@
         </p>
     </div>
     <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+        id="n-empty-check"
         hx-get="/api/schedule/{{schedule.slug}}/n-empty/"
         hx-trigger='load'
-        hx-target="#n-empty">
+        hx-target="#n-empty"
+        _="on recheck fetch /api/schedule/{{schedule.slug}}/n-empty/ then put result into #n-empty">
         <span id="n-empty"></span>
         <span class="opacity-70 text-2xs font-light italic pl-1"> empty</span>
     </div>

@@ -36,23 +36,18 @@
 <script>
 
     function getNUnfavorables() {
-        var empty = document.getElementById("n-unfav").innerHTML;
-        var nEmpty = parseInt(empty);
+        var unfav = document.getElementById("n-unfav").innerHTML;
+        var nUnfav = parseInt(empty);
         console.log(nEmpty);
-        if (nEmpty <= 28) {
-            document.getElementById("nUnfavBadge").classList.remove("bg-amber-300");
+        if (nUnfav <= 50) {
             document.getElementById("nUnfavBadge").classList.add("bg-green-300");
-        } else if (nEmpty <= 50) {
-            document.getElementById("nUnfavBadge").classList.remove("bg-amber-300");
-            document.getElementById("nUnfavBadge").classList.add("bg-amber-300");
         } else {
-            document.getElementById("nUnfavBadge").classList.remove("bg-amber-300");
             document.getElementById("nUnfavBadge").classList.add("bg-red-300");
         }
     }
 
     // listen for mutation of #percent
-    var targetNode = document.getElementById('n-empty');
+    var targetNode = document.getElementById('n-unfav');
     var config = { attributes: true, childList: true, subtree: true };
     var callback = function(mutationsList, observer) {
         for(var mutation of mutationsList) {

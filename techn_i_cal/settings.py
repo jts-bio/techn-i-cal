@@ -121,7 +121,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
             'loaders': [
-                # PyPugJS part:   ##############################
+                # PyPugJS part: ~~~~~~~~~~~
                 ('pypugjs.ext.django.Loader', (
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',

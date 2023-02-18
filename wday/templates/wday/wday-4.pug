@@ -4,7 +4,6 @@ block content
     h1 Slots 
 
     div#slots.grid.grid-cols-3.lg-grid-cols-6.gap-4.mx-12
-
         for slot in slots
             .slot
                 .bg-zinc-900.rounded.p-3 
@@ -22,9 +21,11 @@ block content
                     img.w-5.h-5(src=empl.image_url ).w-10.h-10.rounded-full
                     span.font-thin= empl.name.upper
 
-    for emp in slot.fills_with.all
-        div.text-xs(_="on click set my *background-color to red end")= emp.name
+    if slot.fills_with
+        for emp in slot.fills_with.all
+            div.text-xs(_="on click set my *background-color to red end")= emp.name
 
 
     script
-        include wday/src/main.js
+        include wday/static/main.js
+]

@@ -4,6 +4,7 @@ from . import views, actions, views2, viewsets
 from . import api
 from .api import WeekApi, WdApi, ScheduleApi, SlotApi
 from rest_framework import routers
+from .viewsets import EmpViews
 
 
 
@@ -168,6 +169,7 @@ employee_patterns = [
     path("employee/<str:empId>/", views.EMPLOYEE.EmployeeDetailView.as_view(), name="empl"),
     path("employee/<str:empId>/set-image/", views.EMPLOYEE.setEmployeeImage, name="set-employee-image"),
     path("employee/<str:empId>/shift-tallies/", views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name="employee-shift-tallies"),
+    path("employee/<empl>/shift-tallies/data/", views.EMPLOYEE.empl_shift_tallies_csv, name="employee-shift-tallies-csv"),
     path("employee/<str:empId>/shift-preferences/", views.EMPLOYEE.shift_preference_form_view, name="shift-preferences-form"),
     path("employee/<str:empId>/update/",views.EMPLOYEE.EmployeeUpdateView.as_view(), name="employee-update"),
     path("employee/<str:empId>/ssts/",views.EMPLOYEE.employeeSstsView, name="employee-edit-ssts"),
@@ -188,6 +190,8 @@ employee_patterns = [
     path('v2/employee/choose-schedule/<str:empId>/',views2.EmployeeChooseSchedule.as_view(), name="employee-choose-schedule"),
     path('v2/employee/choose-schedule/<empId>/<schId>/',views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
     path('empl/shift-sort/<str:empId>/', viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
+    path('empl/shift-tallies/<empId>/', viewsets.EmpViews.empShiftTallies, name="emp-shift-tallies"),
+    path('empl/shift-tallies/<empId>/kdeplot/', EmpViews.empTallyKdeplotSvg, name="emusr-empl-kdeplot"),
     
     #*__________EMPLOYEE API PATHS__________*
     path("api/match-tdo/<str:empPk>/preview/", viewsets.EmpPartials.tdoPreview, name="emp-tdo-match-preview"),
@@ -231,6 +235,7 @@ schedule_patterns = [
     path('v2/schedule/emusr/<str:schId>/employee/<str:empl>/', viewsets.SchViews.schEMUSRView, name='sch-emusr-empl'),
     path('v2/schedule/maintain/clearFteOverages/<str:schId>/', viewsets.SchViews.clearOverFteSchView, name='sch-clear-over-fte'),
     path('v2/schedule/maintain/syncDb/<str:schId>/', viewsets.SchViews.syncDbSchView, name='sch-sync-db'),
+    path('create-menu/', viewsets.SchViews.newSchView, name='create-menu-sch'),
     
     #*__________SCHEDULE PARTIALS__________*
     path('schedule-partials/<schId>/complex-table/', viewsets.SchPartials.schComplexTablePartial, name='sch-partial-cx-table'),

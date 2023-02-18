@@ -30,9 +30,9 @@
       <img src="{{ employee.image_url }}" alt="{{ employee.name.0 }}" 
           class="w-20 h-20 rounded-full ring-2 ring-zinc-900 ring-offset-2 pointer
                  hover:scale-[175%] hover:ring-sky-200 transition"
-          hx-prompt="Set User image via URL:"
-          hx-trigger="click"
-          hx-post="set-image/"
+          _="on click call prompt('Provide URL to update profile image:') then 
+              on fetch:beforeRequest(headers) set headers['HX-Prompt'] to prompt.value
+                then fetch set-image/ then call window.location.reload() end"
          />
 
       <div class="flex flex-col">
@@ -135,7 +135,7 @@
               Coworker Views
           </a>
           <br/>
-          <a href="{{ employee.url__tallies }}" class="hover:text-emerald-200">
+          <a href="{% url 'sch:emp-shift-tallies' employee.slug %}" class="hover:text-emerald-200">
             <i class="text-emerald-200 fa-solid fa-tally"></i>
             Shift Tallies
           </a>

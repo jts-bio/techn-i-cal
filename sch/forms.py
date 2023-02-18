@@ -59,27 +59,28 @@ class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
         fields = [
-            'name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','evening_pref'
+            'name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','time_pref'
             ] 
         labels = {
-            'fte_14_day': 'FTE (hrs/ 14 days)',
-            'cls':'Employee Class',
-            'evening_pref': 'Prefers Working Evenings?'
+            'fte_14_day' : 'FTE (hrs/ 14 days)',
+            'cls'        : 'Employee Class',
+            'time_pref'  : 'Shift Time Preference'
         }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'shifts_trained': forms.CheckboxSelectMultiple(),
-            'shifts_available': forms.CheckboxSelectMultiple(),
-            'cls': forms.RadioSelect(),
+            'name'   : forms.TextInput(attrs={'class': 'form-control'}),
+            'shifts_trained'   : forms.CheckboxSelectMultiple(),
+            'shifts_available' : forms.CheckboxSelectMultiple(),
+            'time_pref' : forms.Select(),
+            'cls'       : forms.RadioSelect(),
         }
    
 class TechnicianForm (EmployeeForm) : 
     class Meta (EmployeeForm.Meta) :
         model = Employee
-        fields = ['name', 'fte_14_day', 'cls', 'evening_pref']
+        fields = ['name', 'fte_14_day', 'cls', 'time_pref']
         widgets = {
             'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls': forms.HiddenInput()
+            'cls'       : forms.HiddenInput()
         }   
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -89,7 +90,7 @@ class TechnicianForm (EmployeeForm) :
 class PharmacistForm (EmployeeForm) :
     class Meta (EmployeeForm.Meta) :
         model = Employee
-        fields = ['name', 'fte_14_day', 'cls', 'evening_pref']
+        fields = ['name', 'fte_14_day', 'cls', 'time_pref']
         widgets = {
             'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
             'cls': forms.HiddenInput()
@@ -126,12 +127,12 @@ class EmployeeEditForm (forms.ModelForm) :
             'name',             'fte_14_day',   
             'streak_pref',      'shifts_trained',   
             'shifts_available', 'cls', 
-            'evening_pref',     'hire_date'
+            'time_pref',     'hire_date'
             ] 
         labels = {
             'fte_14_day'    : 'FTE (hours per 14 days)',
             'cls'           : 'Employee Class',
-            'evening_pref'  : "Prefers PM"
+            'time_pref'  : "Prefers PM"
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
@@ -149,7 +150,6 @@ class SstEmployeeForm (forms.Form) :
 
     def __init__(self, *args, **kwargs):
         super(SstEmployeeForm, self).__init__(*args, **kwargs)
-
         employee = self.initial.get('employee')
         sd_id = self.initial.get('sd_id')
         

@@ -4,7 +4,7 @@ import re
 from django.contrib import admin, messages
 from django.contrib.auth.forms import UserCreationForm
 from django.core.serializers import serialize
-from django.db.models import Count, F, OuterRef, Q, Subquery, Sum
+from django.db.models import Count, F, OuterRef, Q, Subquery, Sum, JSONField
 from django.db.models.functions import Coalesce
 from django.forms import formset_factory
 from django.http import JsonResponse

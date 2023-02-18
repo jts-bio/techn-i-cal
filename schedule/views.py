@@ -6,7 +6,7 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import Count, Q, F
+from django.db.models import Subquery, Count, Q, F, CharField, Avg
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 
@@ -38,7 +38,7 @@ def schListView(request):
             i += 1
             idate = idate - dt.timedelta(days=42)
         generate_schedule(year=start_date.year, number=i)
-        return HttpResponseRedirect(reverse("schd:list"))
+        return render (request, "sch-list.html", {"schedules": schedules.order_by('-start_date')})
 
     context = {
         "schedules": schedules.order_by('-start_date'),
@@ -84,17 +84,22 @@ class Sections:
         sch = Schedule.objects.get(slug=schId )
         data = ApiViews.schedule__get_unfavorables_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/unfavorables.html', {'data': data})
+        return render(request, 'tables/unfavorables.html', {'data': data})  
     
     def schPtoConflicts (request,schId):
         sch = Schedule.objects.get(slug=schId )
-        data = sch.slots.conflictsWithPto().all()
-        return render(request, 'tables/pto-conflicts.html', {'data': data, 'schedule': sch})
+        ptoconflicts = sch.slots.conflictsWithPto().all().annotate(
+            workday_slug=F('workday__slug')
+        )
+        pto = sch.pto_requests.all()
+        return render(request, 'tables/pto-conflicts.html', {'pto': pto, 'schedule': sch, 'ptoconflicts': ptoconflicts})
     
     def schPtoGrid (request, schId, emp):
         sch = Schedule.objects.get(slug=schId )
         emp = Employee.objects.get(slug=emp)
-        ptoreqs = PtoRequest.objects.filter(employee=emp, workday__gte=sch.start_date, workday__lte=sch.start_date + dt.timedelta(days=42))
+        ptoreqs = PtoRequest.objects.filter(
+            employee=emp, workday__gte=sch.start_date, workday__lte=sch.start_date + dt.timedelta(days=42))
+        
         return render(request, 'pto-chart.html', {'ptoreqs': ptoreqs, 'sch': sch, 'empl': emp })
     
     def schEmusr (request, schId):
@@ -102,6 +107,8 @@ class Sections:
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, 'tables/emusr.html', {'data': data }) 
+
+    
     def schEmptyList (request,schId ):
         if request.headers.get('page'):
             page = int(request.headers.get('page'))
@@ -114,12 +121,37 @@ class Sections:
             d['n_options'] = len(d['fills_with'])
             d['workday_slug'] = d['workday'] + version
         return render(request, 'tables/empty-actionable.html', {'data': data })
+    
+    def schEmusrPage (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        emusr_employees = sch.employees.emusr_employees().annotate(
+            unfavorables=sch.slots.unfavorables().filter(employee=F('pk')).values('pk')).annotate(
+                uf_count=Count('unfavorables'))
+        avg = emusr_employees.aggregate(Avg('uf_count'))['uf_count__avg']
+        return render(request, 'tables/emusr.pug', {'emusr_employees':emusr_employees , 'avg': int(avg)} )
+    def schEmployeeEmusrSlots (request, schId, emp):
+        sch = Schedule.objects.get(slug=schId)
+        emp = Employee.objects.get(slug=emp)
+        slots = sch.slots.filter(employee=emp).unfavorables()
+        return render(request, 'tables/emusr-empl.pug', {'slots': slots, 'emp': emp, 'sch': sch})
     def schUntrained (request, schId):
         sch = Schedule.objects.get(slug=schId )
         data = sch.slots.untrained().all()
         return render(request, 'tables/untrained.html', {'data': data})
+    def schLogView (request, schId):
+        sch = Schedule.objects.get(slug=schId )
+        return render(request, "tables/routine-log.html", {'schedule': sch})
+    def schTurnarounds (request, schId):
+        sch = Schedule.objects.get(slug=schId )
+        data = sch.slots.turnarounds().all()
+        return render(request, 'tables/turnarounds.html', {'data': data})
     
 class Actions:
+    
+    def clearUntrained (request, schId):
+        sch = Schedule.objects.get(slug=schId )
+        sch.slots.untrained().update(employee=None)
+        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>")
     
     def wdRedirect (request, schId, wd):
         sch = Schedule.objects.get (slug = schId )
@@ -168,6 +200,7 @@ class Actions:
     def overrideSlot (request, schId, wd, sft, empId):
         sch = Schedule.objects.get (slug = schId)
         empl = Employee.objects.get (slug = empId)
+        print(request.method)
         if request.method == "POST":
             sch.slots.filter(workday__slug__contains=wd, employee=empl).update(employee=None)
             slot = sch.slots.get (workday__slug__contains=wd, shift__name=sft)

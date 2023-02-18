@@ -1,20 +1,24 @@
+<h3 class="text-lg bg-orange-500 border border-amber-200 my-2 rounded-sm px-4">PTO for {{ empl }}</h3>
+
 <div class="grid grid-cols-7">
     {% for day in sch.workdays.all %}
         <div class="bg-zinc-700 rounded p-2 m-1">
             <div>{{ day }}</div>
                 {% if empl.slug in day.pto_list %}
                     <div class="day bg-sky-800 rounded p-2 m-1">
-                        <div class="text-white"
+                        <div class="text-white border p-2 m-1 text-2xs rounded hover:bg-orange-700"
                             _="on click fetch /api/ptoreq/{{day}}/{{empl.slug}}/actions/delete/ then 
-                            put result into closest .day then add .bg-amber-600 to closest .bg-sky-800">
+                            put result into closest .day then add .bg-amber-600 to closest .day">
                         PTO
                         </div>
                     </div>
                 {% else %}
-                    <div class="border border-gray-600 p-2 m-1 rounded hover:bg-emerald-700"
-                            _="on click fetch /api/ptoreq/{{day}}/{{empl.slug}}/actions/create/ then 
-                            put result into closest .bg-zinc-700 then add .bg-sky-700 to closest .bg-zinc-700">
-                        + ADD
+                    <div class="day bg-zinc-900 rounded p-2 m-1">
+                        <div class="border border-gray-600 p-2 m-1 text-2xs rounded hover:bg-amber-700"
+                                _="on click fetch /api/ptoreq/{{day}}/{{empl.slug}}/actions/create/ then 
+                                put result into closest .day then add .bg-amber-900 to closest .day">
+                            + ADD
+                        </div>
                     </div>
                 {% endif %}
         </div>

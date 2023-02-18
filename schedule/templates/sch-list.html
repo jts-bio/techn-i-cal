@@ -26,7 +26,9 @@
   }
 </style>
 
-{% endblock style %} {% block content %}
+{% endblock style %} 
+
+{% block content %}
 
 <div class="w-full">
   <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
@@ -83,9 +85,8 @@
                  active:fa-beat">
         <td>
           
-          <a href="{% url 'schd:detail' sch.slug %}"
-            class="link bg-{{sch.versionColor}}-600 
-                   rounded-sm shadow shadow-lg
+          <a href="detail/{{sch.slug}}/"
+            class="link bg-{{ sch.versionColor}}-600 rounded-sm shadow shadow-lg
                    transform  hover:scale-105 hover:shadow-2xl
                    active:fa-beat"
             onclick="appendWithSpinner(event);"
@@ -150,7 +151,7 @@
   <div class="flex flex-row flex-wrap gap-7 m-7">
     {% for sch in schedules %}
     <a
-      href="{{ sch.url }}"
+      href="detail/{{sch.slug}}/"
       class="panel grow hover:bg-slate-500 hover:ring-{% scoreColor sch.percent %}-400 hover:ring"
       id="myButton"
     >

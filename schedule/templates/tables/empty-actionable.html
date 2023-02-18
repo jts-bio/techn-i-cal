@@ -7,14 +7,14 @@
     <tr>
         <td>
             <div class="flex flex-row">
-            <div class="bg-zinc-50 text-black text-lg font-bold rounded pt-1 pl-2 w-9 h-9">
-                {{ slot.shift }}
-            </div>
+                <div class="bg-zinc-50 text-black text-lg font-bold rounded pt-1 pl-2 w-9 h-9">
+                    {{ slot.shift }}
+                </div>
             <div class="flex flex-col px-1 text-sm">
-            <a href="{% url 'wday:detail' slot.workday_slug %}">{{ slot.workday }}</a>
-            <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {%endif%}">
-                {{ slot.n_options }} Options
-            </div> 
+                <a href="{% url 'wday:detail' slot.workday_slug %}">{{ slot.workday }}</a>
+                <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {% endif %}">
+                    {{ slot.n_options }} Options
+                </div> 
 
             </div>
             </div>
