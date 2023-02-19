@@ -24,10 +24,11 @@ urlpatterns = [
     path('partials/<schId>/log/', Sections.schLogView, name="log"),
     path('partials/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
-    path('partials/<schId>/emusr-page/<emp>/kdeplot/', EmpViews.empTallyKdeplotSvg, name="emusr-empl-kdeplot"),
+    path('partials/<schId>/emusr-page/<emp>/kdeplot/', EmpViews.tallyPlotDataGenerator, name="emusr-empl-kdeplot"),
     
     #~~ ACTIONS ~~#
     path('detail/<schId>/actions/clear-all/', Actions.clearAll, name="clear-all"),
+    path('detail/<schId>/actions/clear-all-pto-conflicts/', Actions.clearAllPtoConflicts, name="clear-all-ptoc"),
     path('detail/<schId>/actions/solve-tca/', Actions.solveTca, name="solve-tca"),
     path('detail/<schId>/actions/clear-slot/<wd>/<sft>/', Actions.clearSlot, name="clear-slot"),
     path('detail/<schId>/actions/override-slot/<wd>/<sft>/<empId>/', Actions.overrideSlot, name="override-slot"),

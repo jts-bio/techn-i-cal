@@ -23,7 +23,3 @@ def calc_slot_hours(sender, instance, **kwargs):
     if instance.hours == None:
         instance.hours = instance._set_hours()
     
-
-
-        
-        

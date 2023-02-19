@@ -6,28 +6,30 @@ extends ../base.html
 
 
 block content 
+    script(src="https://code.jquery.com/jquery-3.1.1.min.js")
+    script(src="https://code.highcharts.com/highcharts.js")
+
+
     h1 Shift Tallies
     h3 #{emp.name}
 
-    .div(class=tablePanel)
-        table.w-fc
-            tr.h-10
-                th.font-bold Scored At
-                th.font-bold Shifts
-                th.font-bold Count
-            each tally in tallies
-                tr.h-12
-                    td.text-lg #{tally.priority}
-                    td.text-md #{tally.shifts}
-                    td.text-lg #{tally.count}
+    .flex.flex-row.gap-10
+        div(class="h-[500px]")
+            table.w-fc
+                tr.h-10
+                    th.font-bold Scored At
+                    th.font-bold Shifts
+                    th.font-bold Count
+                each tally in tallies
+                    tr.h-12
+                        td.text-lg #{tally.score}
+                        td.text-md #{tally.shifts}
+                        td.text-lg #{tally.count}
+        div               
+            #container(class="h-[500px]")
 
-    #kdeplot.kde(class=kde
-        hx-get='kdeplot/' 
-        hx-target='#kdeplot' 
-        hx-swap='innerHTML'
-        hx-trigger='load'
-    )
-
+    script 
+        include ../employee/static/kde.js
 
 
     

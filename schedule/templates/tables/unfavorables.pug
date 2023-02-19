@@ -1,38 +1,34 @@
-<table>
 
-    <tr>    
-        <th class="text-amber-200" _="on click take .text-amber-200 from <th/> end">
-            Workday
-        </th>
-        <th>Shift</th>
-        <th _="on click take .text-amber-200 from <th/> end">
-            Employee
-        </th>
-        <th>Actions</th>
-    </tr>
+h1.text-2xl.text-amber-200 Unfavorables
 
-    {% for slot in data %}
-    <tr>
-        <td>{{ slot.workday }}</td>
-        <td>{{ slot.shift }}</td>
-        <td class="empl-cell">{{ slot.employee }}</td>
-        <td>
-            <div  hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
-                  hx-trigger="click"
-                  hx-swap="innerHTML"
-                  _="on click add .line-through to previous .empl-cell then
-                        send recheck to #n-unfav-check end">
-                <i class="clear-icon fas text-zinc-300 rounded-full p-1 fa-trash hover:text-rose-400"></i>
-                <i id="{{slot.workday}}-{{slot.shift}}-indicaator" class="fa-spinner fas fa-fade fa-spin htmx-indicator"></i>
-            </div>
-        </td>
-    </tr>
-    {% endfor %}
+table
+  tr
+    th.text-amber-200(_="on click take .text-amber-200 from <th/> end")
+      | Workday
+    th Shift
+    th(_="on click take .text-amber-200 from <th/> end")
+      | Employee
+    th Actions
 
-</table>
+  each slot in data
+    tr
+      td= slot.workday
+      td= slot.shift
+      td.empl-cell= slot.employee
+      td
+        div(
+          hx-post="actions/clear-slot/${slot.workday}/${slot.shift}/", 
+          hx-trigger="click", 
+          hx-swap="innerHTML", 
+          onclick="add .line-through to previous .empl-cell then send recheck to #n-unfav-check end"
+          )
+          i.clear-icon.fas.text-zinc-300.rounded-full.p-1.fa-trash(class="hover:text-rose-400")
+          i#indicator.fa-spinner.fas.fa-fade.fa-spin.htmx-indicator
 
-<script>
-    /* 
+
+
+script.
+  /* 
     ADD WORKDAY LINK
     ------------------------------------------------------
     if a td in table is in the workday column (3nd column) 
@@ -158,4 +154,3 @@
             table.appendChild(sorted[i]);
         }
     });
-</script>

@@ -5,38 +5,48 @@
     Total PTO Requests: {{ pto.count }}
 </div>
 
-<div class="border rounded border-sky-200 p-3 m-4">
-<h3 class="text-lg">PTO Conflicts (n={{ ptoconflicts.count }})</h3>
-<table>
-    <tr>
-        <th>Employee</th>
-        <th>Workday</th>
-        <th>Actions</th>
-    </tr>
-    {% for slot in ptoconflicts %}
-        <tr>
-            <td class="empl-cell">
-                <i class="fa-duotone fa-triangle-exclamation"></i>
-                {{ slot.employee }}
-            </td>
-            <td><a href="{{ slot.workday.slug }}">{{ slot.workday }}</a></td>
-            <td id="actions-{{ slot.slug }}">
-                <span hx-post="actions/clear-slot/{{ slot.workday_slug }}/{{ slot.shift.name }}/"
-                    hx-trigger="click"
-                    hx-swap="innerHTML"
-                    hx-target="#actions-{{ slot.slug }}"
-                  _="on click 
-                        add .line-through to previous .empl-cell">
-                  <i class="mx-1 fa-duotone fa-island-tropical text-xl hover:text-emerald-400"
-                     title="Grant PTO and Resolve"></i>
-                </span>
-                <i class="mx-1 fa-duotone fa-hospital text-xl hover:text-rose-600"
-                   title="Deny PTO and Schedule Slot" ></i>
-            </td>
-        </tr>
-    {% endfor %}
-</table>
-</div>
+{% if ptoconflicts %}
+    <div class="border rounded border-sky-200 p-3 m-4">
+        <h3 class="text-lg">{{ ptoconflicts.count }} PTO Conflicts </h3>
+
+        <table id="conflict-table">
+            <tr>
+                <th>Employee</th>
+                <th>Workday</th>
+                <th>
+                    Actions
+                    <div class="bg-gray-600 rounded-full hover:bg-green-700 text-2xs px-2 cursor-pointer"
+                        hx-post="actions/clear-all-pto-conflicts/"
+                        hx-trigger="click"
+                        hx-swap="outerHTML"
+                        hx-target="#conflict-table">EMPTY ALL</div>
+                </th>
+            </tr>
+            {% for slot in ptoconflicts %}
+                <tr>
+                    <td class="empl-cell">
+                        <i class="fa-duotone fa-triangle-exclamation"></i>
+                        {{ slot.employee }}
+                    </td>
+                    <td><a href="{{ slot.workday.slug }}">{{ slot.workday }}</a></td>
+                    <td id="actions-{{ slot.slug }}">
+                        <span hx-post="actions/clear-slot/{{ slot.workday_slug }}/{{ slot.shift.name }}/"
+                            hx-trigger="click"
+                            hx-swap="innerHTML"
+                            hx-target="#actions-{{ slot.slug }}"
+                        _="on click 
+                                add .line-through to previous .empl-cell">
+                        <i class="mx-1 fa-duotone fa-island-tropical text-xl hover:text-emerald-400"
+                            title="Grant PTO and Resolve"></i>
+                        </span>
+                        <i class="mx-1 fa-duotone fa-hospital text-xl hover:text-rose-600"
+                        title="Deny PTO and Schedule Slot" ></i>
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+{% endif %}
 
 <div class="border rounded border-1 p-3 m-4">
 

@@ -39,7 +39,7 @@
    </div>
 
     {# _____ SECTION: SLOT GRID ______ #}
-    <div class="all-shifts  grid sm:grid-cols-2 md:grid-cols-4">
+    <div class="all-shifts  grid grid-cols-2 md:grid-cols-4">
 
         {% for slot in workday.slots.all %}
         <div>
@@ -110,7 +110,7 @@
         {% endfor %}
 
         {# _____ OBJECT: TRASHCAN ______ #}
-        <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 rounded-lg"
+        <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 fa-beat rounded-lg"
             _="on dragenter or dragover add .ring .ring-red-200 then halt the event then 
             call event.dataTransfer.getData('text') log result end
             on fetch:beforeRequest(headers) set headers['empId'] to $emp end
@@ -122,7 +122,7 @@
             on drop fetch delete/ end
             on drop call window.location.reload() end">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
-            <div id="trash-message" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+            <div id="trash-message animate-pulse" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>
 
     </div>

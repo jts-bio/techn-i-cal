@@ -3,21 +3,18 @@
 
 h2.text-xl.font-bold.mb-4 EMUSR 
 
-table.table-striped(class="w-3/4 md:w-1/4 m-2")
+table.table-striped(class="border w-7/8 md:w-1/4 m-2")
   tr 
     th.text-center.rounded-tl Employee
-    th.text-center.rounded-tr Avg: #{avg}
+    th.text-center.rounded-tr Evening Slots
 
   each emp in emusr_employees
     tr.cursor-pointer(_="on click fetch emusr-page/#{emp}/ then put result into #employee-emusr-tgt")
 
       td.text-center #{emp.name}
 
-      td.text-center
-        if emp.emusr_ct <= avg 
-          span.text-gray-200 #{emp.emusr_ct}
-        if emp.emusr_ct > avg 
-          span.text-red-400 #{emp.emusr_ct}
+      td.text-center(_="on load fetch emusr-page/#{emp}/ as html get textContent of .n in it put result into me")
+        emp.uf_count
     
 
 div#employee-emusr-tgt

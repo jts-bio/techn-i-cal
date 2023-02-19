@@ -17,6 +17,7 @@ from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
 import json
+from django.http import HttpResponse
 
 
 """
@@ -142,17 +143,17 @@ class SlotManager (models.QuerySet):
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
-            incompat_shifts = dayBefore.shifts.filter(start__gte=dt.time(10,0,0))
+            incompat_shifts = dayBefore.shifts().filter(start__gte=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayBefore,shift__in=incompat_shifts)
             return incompat_slots
         elif shift.start >= dt.time(20,0,0):
             dayAfter = workday.nextWD()
-            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(20,0,0))
+            incompat_shifts = dayAfter.shifts().filter(start__lt=dt.time(20,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
         elif shift.start >= dt.time(10,0,0):
             dayAfter = workday.nextWD()
-            incompat_shifts = dayAfter.shifts.filter(start__lt=dt.time(10,0,0))
+            incompat_shifts = dayAfter.shifts().filter(start__lt=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots        
     def belowAvg_sftPrefScore (self):
@@ -208,15 +209,15 @@ class SlotManager (models.QuerySet):
         return self.annotate(score=
                         Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
                     ).filter(score__lte=0)
-    def mistemplated(self):
+    def mistemplated (self):
         return self.exclude(
             employee=F('template_employee')).exclude(
             template_employee=None).exclude(
             employee=None).exclude(
             template_employee__pto_requests__workday=F('workday__date')) 
-    def conflictsWithPto(self):
+    def conflictsWithPto (self):
         return self.filter(Q(employee__pto_requests__workday=F('workday__date')))
-    def untrained(self):
+    def untrained (self):
         return self.exclude(
             employee__shifts_trained=F('shift__pk')).exclude(
                 employee=None
@@ -446,7 +447,6 @@ class Shift (models.Model) :
         if sp:
             return sum(sp)/len(sp)
         
-
     objects = ShiftManager.as_manager()
 # ============================================================================
 class Employee (models.Model) :
@@ -632,18 +632,16 @@ class Workday (models.Model) :
         return Employee.objects.filter(pk__in=self.pto().values('employee__pk'))
     def on_tdo(self):
         return Employee.objects.filter(pk__in=self.tdo().values('employee__pk'))
-    
     def show_prev_am (self):
         return self.prevWD().slots.filter(shift__group='AM').values('employee')
     def show_prev_pm (self):
         return self.prevWD().slots.filter(shift__group=['PM','XN']).values('employee')
-    
     @property
     def weekday (self): 
         # Sun -> Sat
         return self.date.strftime('%A')
     def shifts (self) :
-        return Shift.objects.filter(occur_days= self.iweekday) 
+        return Shift.objects.filter(occur_days__contains= self.iweekday) 
     @property
     def filledSlots (self) :
         return self.slots.exclude(employee=None)
@@ -765,6 +763,10 @@ class Workday (models.Model) :
             self.sd_id = (self.date - TEMPLATESCH_STARTDATE).days % 42
         if not self.percent:
             self.percent = self._percent()
+        if self.slots.count() != self.shifts().count():
+            for shift in self.shifts():
+                if not Slot.objects.filter(workday=self,shift=shift).exists():
+                    Slot.objects.create(workday=self,shift=shift,week=self.week,period=self.period,schedule=self.schedule)
         self.post_save()
     def post_save       (self):
         if not self.slots.all().exists():
@@ -1017,7 +1019,7 @@ class Period (models.Model):
                 return "SUCCESS: FILLED VIA PayPeriod.FillActions.fill_slot_with_lowest_hour_employee"
 # ============================================================================  
 class Schedule (models.Model):
-    START_DATES = [(dt.date(2022,2,5) + dt.timedelta(days=i*42)) for i in range(30)]
+    START_DATES = [(dt.date(2022,2,5) + dt.timedelta(days=i*42)) for i in range(15)]
     
     year       = models.IntegerField(null=True,default=None)
     number     = models.IntegerField(null=True,default=None)
@@ -1092,17 +1094,14 @@ class Schedule (models.Model):
             self.tags.remove('Save Required')
         if not RoutineLog.objects.filter(schedule=self).exists():
             RoutineLog.objects.create(schedule=self)
-        self._update_percent()
+        if self.slots.all().count() != 0:
+            self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
         self.n_empty = self.slots.empty().count()
         self.post_save()
+        super().save(*args,**kwargs)
     def post_save(self):
         if not self.periods.all().exists():
             self.actions.build_schedule(self)
-    def _update_percent (self):
-        if self.slots.all().count() != 0:
-            self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
-        else:
-            self.percent = 0
     @property
     def week_start_dates (self):
         return [self.start_date + dt.timedelta(days=i*7) for i in range(6)]
@@ -1140,7 +1139,6 @@ class Schedule (models.Model):
         if self.pto_requests.count() == 0:
             return 0
         return 100 - int(self.pto_conflicts().count() / self.pto_requests.count() * 100)
-    
     def pto_conflicts (self):
         """PTO CONFLICTS 
         List of Slots ---> Employee has Pto on this day"""
@@ -1282,8 +1280,9 @@ class Schedule (models.Model):
                     choices = []
                     for p in prev:
                         if p.employee != None:
-                            if p.streak < p.employee.streak_pref and p.employee not in choices and p.employee in slot.workday.on_deck():
-                                choices.append(p.employee)
+                            if p.streak:
+                                if p.streak < p.employee.streak_pref and p.employee not in choices and p.employee in slot.workday.on_deck():
+                                    choices.append(p.employee)
                     if len(choices) > 0:
                         chosen = random.choice(choices)
                         if PtoRequest.objects.filter(employee=chosen, workday=slot.workday.date).exists() == False:
@@ -1392,6 +1391,7 @@ class Slot (models.Model) :
     empl_sentiment    = models.SmallIntegerField   (null=True, default=None )   
     is_turnaround     = models.BooleanField        (default=False )
     is_terminal       = models.BooleanField        (default=False )
+    is_unfavorable    = models.BooleanField        (default=False )
     streak            = models.SmallIntegerField   (null=True, default=None )
     template_employee = models.ForeignKey   ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates" )
     fills_with     = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
@@ -1415,8 +1415,8 @@ class Slot (models.Model) :
         ]
     class Actions:
         def set_template_employee (self, instance, force=True):
-            if instance.template().exists():
-                if instance.template_employee in instance.siblings_day.values('employee'):
+            if instance.template_employee:
+                if instance.template_employee.pk in list(instance.siblings_day.values_list('employee__pk', flat=True)):
                     if force:
                         slot_to_clear = instance.siblings_day.get(employee=instance.template_employee)
                         slot_to_clear.employee = None
@@ -1426,13 +1426,14 @@ class Slot (models.Model) :
                             "NO ACTION TAKEN", 
                             "EMPLOYEE WORKING NONTEMPLATE SHIFT ON SAME DAY"
                         )  
-                else:
-                    instance.template_employee = instance.template().first().employee
-                    instance.save()
-                    print (
-                        "TEMPLATING SUCCESSFUL", 
-                        f"{instance.employee} TEMPLATED ON {instance.workday.date}"
-                        ) 
+                        return
+                
+                instance.employee = instance.template_employee  
+                instance.save()
+                print (
+                    "TEMPLATING SUCCESSFUL", 
+                    f"{instance.employee} TEMPLATED ON {instance.workday.date}"
+                    ) 
             else:
                 print(
                     "NO ACTION TAKEN",
@@ -1443,7 +1444,8 @@ class Slot (models.Model) :
                 old_assignment = instance.employee
                 instance.employee = None
                 instance.save()
-                print (f'{old_assignment} cleared from {instance}')
+                return f'Employee {old_assignment} cleared from slot {instance}'
+            return 'Error: No employee assigned to slot {instance}'
         def clear_over_fte_slots (self, instance):
             if instance.employee != None:
                 slots = instance.period.slots.filter(employee=instance.employee).order_by('?')    
@@ -1551,7 +1553,7 @@ class Slot (models.Model) :
             if self.prevSameEmployee() == None and self.nextSameEmployee() == None:
                 return True
         return False
-    def is_unfavorable  (self):
+    def _is_unfavorable  (self):
         if self.employee:
             if self.shift in self.employee.unfavorable_shifts():
                 return True
@@ -1573,7 +1575,7 @@ class Slot (models.Model) :
             siblings += [Slot.objects.get(workday=prevDay, employee=self.employee, schedule=self.schedule).pk]
             prevDay = prevDay.prevWD()
         nextDay = self.workday.nextWD()
-        while Slot.objects.filter(workday=nextDay, employee=self.employee).exists() == True:
+        while Slot.objects.filter(workday=nextDay, employee=self.employee, schedule=self.schedule).exists() == True:
             siblings += [Slot.objects.get(workday=nextDay, employee=self.employee, schedule=self.schedule).pk]
             nextDay = nextDay.nextWD()
         return Slot.objects.filter(pk__in=siblings).order_by('workday__date')
@@ -1584,6 +1586,8 @@ class Slot (models.Model) :
         otherEmployees = self.siblings_day.values('employee')
         return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)           
     def _streak (self):
+        if self.siblings_streak().count() == 0:
+            return 1
         return self.siblings_streak().filter(workday__date__lt=self.workday.date).count() + 1
     def isOverStreakPref (self):
         if not self.employee:
@@ -1747,6 +1751,11 @@ class Slot (models.Model) :
         return
     def save (self, *args, **kwargs):
         super().save(*args, **kwargs)
+        if self.employee:
+            if self.employee.time_pref == self.shift.group :
+                self.is_unfavorable = False 
+            else:
+                self.is_unfavorable = True
         if self.is_preturnaround() | self.is_postturnaround():
             self.is_turnaround = True
         else:
@@ -1754,9 +1763,10 @@ class Slot (models.Model) :
         if self.employee :
             self.streak = self._streak()
         self.update_fills_with()
+        super().save(*args, **kwargs)
     def update_fills_with (self):
         for empl in self.fillable_by():
-            if self.fills_with.contains(empl):
+            if not self.fills_with.contains(empl):
                 self.fills_with.add(empl)
     def url (self):
         return reverse('sch:v2-slot-detail',args=[self.workday.slug,self.shift.name])
@@ -2064,12 +2074,6 @@ class ShiftSortPreference (models.Model):
 # ============================================================================
 class ScheduleEmusr (models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
-
-
-
-
-
-
 
 def generate_schedule (year,number):
     """

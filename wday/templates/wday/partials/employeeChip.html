@@ -18,6 +18,7 @@
     week-hours="{% weekHours employee workday %}"
     period-hours="{% periodHours employee workday %}" 
     slotted-as="{{ slot.shift }}"
+    is_pto_conflict="{% if slot.pto_conflicts.exists %}true{% else %}false{% endif %}"
     previous-slot="{% emplPrevSlot employee workday %}"
     next-slot="{% emplNextSlot employee workday %}"
     _="init if @week-hours > 40 add .bg-red-500 to .clock in me end
@@ -25,6 +26,7 @@
        init if @week-hours == 40 add .bg-slate-900 .text-white to .clock in me end
        init if @period-hours == 80 add .bg-slate-900 .text-white to .clock in me end
        init if @turnaround != 0 add .bg-rose-700 .bg-opacity-30 end
+       init if @is_pto_conflict == 'true' add .bg-red-400 .bg-opacity-30 end
        init if @previous-slot == `AM` remove .hidden from #{{employee.pk}}-ind-prev-am end
        init if @previous-slot == `PM` remove .hidden from #{{employee.pk}}-ind-prev-pm end
        init if @previous-slot == `XN` remove .hidden from #{{employee.pk}}-ind-prev-pm end
@@ -40,7 +42,8 @@
        on dragend remove .ring-green-500 from .slot then remove .dragging from me end
        on dragend set $allow to `` end
        on dragend send hideHl to .slot end
-       on dragend add .hidden to .trashbin end">
+       on dragend add .hidden to .trashbin end
+       on dblclick go to url '/sch/employee/{{employee.pk}}/' end ">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">

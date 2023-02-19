@@ -783,22 +783,13 @@ class EmpViews:
                     score=OuterRef('score')
                 ).values('shift__name')
             )
-        ).annotate( 
-            score=Case(
-                When(score=-2, then=Value('Strongly Dislike')),
-                When(score=-1, then=Value('Dislike')),
-                When(score=0, then=Value('Neutral')),
-                When(score=1, then=Value('Like')),
-                When(score=2, then=Value('Strongly Like')),
-                default=Value('Unknown'),
-                output_field=CharField(),
-            )
         )
         if doRender == False:
             return j_shift_prefs_with_counts
         return render(request, 'sch2/employee/shift-tally.pug', {'emp':j, 'tallies': j_shift_prefs_with_counts})
 
-    def empTallyKdeplotSvg (request, empId):
+    def tallyPlotDataGenerator (request, empId):    
+        from django.db.models import Count, OuterRef, Subquery
         import pandas as pd
         import seaborn as sns
         import matplotlib.pyplot as plt
@@ -807,36 +798,50 @@ class EmpViews:
         from io import BytesIO
         import seaborn as sns
         import matplotlib.pyplot as plt
-        data = []
-        for i in data:
-            for n in range(i['count']):
-                data += [i['score']]
+        # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
+        subquery = Subquery(
+            Slot.objects.filter(
+                    employee=OuterRef('employee'),
+                    shift=OuterRef('shift')
+                ).values('employee', 'shift').annotate(
+                    count=Count('*')
+                ).values('count')[:1],
+                output_field=models.IntegerField()
+                )
+        # Count n of Slots, then if A ShiftPreference exists for that employee/shift combination
+        emp = Employee.objects.get(name=empId)
+        shift_prefs = emp.shift_prefs.annotate(count=subquery)
+
+        score_subquery = Subquery(
+                        Slot.objects.filter(
+                            employee=OuterRef('employee'),
+                            shift=OuterRef('shift'),
+                        ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
+                            count=Count('*')
+                        ).values('count')[:1],
+                        output_field=models.IntegerField()
+                    )
+        from django.db.models import Sum
+
+        sps = shift_prefs.annotate(
+            pref_score=Subquery(
+                ShiftPreference.objects.filter(
+                    employee=OuterRef('employee'),
+                    shift=OuterRef('shift')
+                ).values('score')[:1]
+            )
+        ).annotate(
+            score_count=Coalesce(score_subquery, 0)
+                ).values('score').annotate(
+            count=Sum('score_count')
+                ).order_by('score')
                 
-        raw = EmpViews.empShiftTallies(request, empId, doRender=False)
         data = []
-        for j in raw:
+        for j in sps:
             for n in range(j['count']):
                 data.append(j['score'])
 
-        sns.kdeplot(data=data, fill=True, bw_adjust=1.5, cut=4)
-        sns.set_theme('paper',"darkgrid")
-        # change x label to "Dislike" at -3 and "Prefer" at 3
-        plt.xticks([-3, 0, 3], ['Dislike', 'Neutral', 'Prefer'])
-        
-        
-        emp = Employee.objects.get(name=empId)
-        #change x labels to be from Dislike to Prefer
-        plt.xticks([-2.5,2.5], ['Dislike','Prefer'])
-        plt.title(f'{emp.name}\'s Shift Preference Distribution')
-        # save the figure to a buffer as SVG
-        buf = BytesIO()
-        plt.savefig(buf, format='svg')
-        # get the SVG contents as bytes and encode to base64
-        svg_bytes = buf.getvalue()
-        svg_base64 = base64.b64encode(svg_bytes).decode('utf-8')
-        # format the SVG string in an HTML <img> tag
-        svg_html = f'<img src="data:image/svg+xml;base64,{svg_base64}">'
-        return HttpResponse(svg_html)
+        return JsonResponse(data, safe=False)
         
 class IdealFill:
     def levelA(request, slot_id):

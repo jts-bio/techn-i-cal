@@ -102,7 +102,7 @@ class WeekActions:
         slots = Slot.objects.filter(workday__in=workdays)
         slots = slots.belowAvg_sftPrefScore()
         for slot in slots:
-            slot.delete()
+            slot.employee = None
         
 class PayPeriodActions:
     
@@ -273,14 +273,15 @@ class ScheduleBot:
         wdB  = slotB.workday
         sftB = slotB.shift
         
-        slotA.delete()
-        slotB.delete()
+        slotA.employee = None 
+        slotB.employee = None
         
-        newSlotA = Slot.objects.create(workday=wdB,employee=empB,shift=sftB)
-        newSlotA.save()
-        newSlotB = Slot.objects.create(workday=wdA,employee=empA,shift=sftA)
-        newSlotB.save()
+        slotA.save() ; slotB.save()
         
+        slotA.employee = empB
+        slotB.employee = empA
+        
+        slotA.save() ; slotB.save()
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
         
     def swaps_for_week (year, week):

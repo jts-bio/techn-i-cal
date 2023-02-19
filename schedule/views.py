@@ -6,7 +6,7 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import Subquery, Count, Q, F, CharField, Avg
+from django.db.models import OuterRef, Subquery, Count, Q, F, CharField, Avg
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 
@@ -27,6 +27,7 @@ def schListView(request):
 
     for sch in schedules:
         sch.versionColor = VERSION_COLORS[sch.version]
+        sch.save()
 
     if request.method == "POST":
         sd = request.POST.get("start_date")
@@ -84,15 +85,13 @@ class Sections:
         sch = Schedule.objects.get(slug=schId )
         data = ApiViews.schedule__get_unfavorables_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/unfavorables.html', {'data': data})  
+        return render(request, 'tables/unfavorables.pug', {'data': data})  
     
     def schPtoConflicts (request,schId):
         sch = Schedule.objects.get(slug=schId )
-        ptoconflicts = sch.slots.conflictsWithPto().all().annotate(
-            workday_slug=F('workday__slug')
-        )
+        ptoconflicts = sch.slots.conflictsWithPto().all()
         pto = sch.pto_requests.all()
-        return render(request, 'tables/pto-conflicts.html', {'pto': pto, 'schedule': sch, 'ptoconflicts': ptoconflicts})
+        return render(request, 'tables/pto-conflicts.html', {'pto': pto, 'schedule': sch, 'ptoconflicts': ptoconflicts} )
     
     def schPtoGrid (request, schId, emp):
         sch = Schedule.objects.get(slug=schId )
@@ -123,17 +122,29 @@ class Sections:
         return render(request, 'tables/empty-actionable.html', {'data': data })
     
     def schEmusrPage (request, schId):
+        from django.db.models.functions import Coalesce
+        
         sch = Schedule.objects.get(slug=schId)
+
         emusr_employees = sch.employees.emusr_employees().annotate(
-            unfavorables=sch.slots.unfavorables().filter(employee=F('pk')).values('pk')).annotate(
-                uf_count=Count('unfavorables'))
-        avg = emusr_employees.aggregate(Avg('uf_count'))['uf_count__avg']
-        return render(request, 'tables/emusr.pug', {'emusr_employees':emusr_employees , 'avg': int(avg)} )
+            uf_count=Coalesce(
+                Count(
+                    Subquery(
+                        Slot.objects.filter(
+                            employee=OuterRef('pk'),
+                            is_unfavorable=True
+                        ).values('employee')
+                    )
+                ), 0)
+            )
+        return render(request, 'tables/emusr.pug', {'emusr_employees':emusr_employees } )
+    
     def schEmployeeEmusrSlots (request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
         slots = sch.slots.filter(employee=emp).unfavorables()
-        return render(request, 'tables/emusr-empl.pug', {'slots': slots, 'emp': emp, 'sch': sch})
+        n = slots.count()
+        return render(request, 'tables/emusr-empl.pug', {'slots': slots, 'emp': emp, 'sch': sch, 'n': n})
     def schUntrained (request, schId):
         sch = Schedule.objects.get(slug=schId )
         data = sch.slots.untrained().all()
@@ -158,6 +169,7 @@ class Actions:
         wday = sch.workdays.get(slug__contains=wd)
         return HttpResponseRedirect(wday.url())
     
+    @csrf_exempt
     def retemplateAll (request, schId):
         sch = Schedule.objects.get (slug = schId )
         n = 0
@@ -179,6 +191,16 @@ class Actions:
         return render(request, 'data-responses/clearAll.html', {'result': 'error','message': 'Invalid request method'})
     
     @csrf_exempt
+    def clearAllPtoConflicts (request, schId):
+        sch = Schedule.objects.get (slug = schId )
+        n = 0
+        for s in sch.slots.conflictsWithPto().all():
+            s.employee = None
+            s.save()
+            n += 1
+        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots cleared</div>")
+    
+    @csrf_exempt
     def clearAll (request, schId):
         sch = Schedule.objects.get (slug = schId )
         if request.method == "POST":
@@ -191,9 +213,9 @@ class Actions:
         sch = Schedule.objects.get (slug = schId )
         slot = Slot.objects.get (schedule=sch,workday__slug__contains=wd, shift__name=sft)
         if request.method == "POST":
-            slot.actions.clear_employee(slot)
+            res = slot.actions.clear_employee(slot)
             CHECKMARK = "<i class='fas fa-check'></i>"
-            return HttpResponse(f"<div class='text-amber-300 text-2xs font-thin py-1'> {CHECKMARK} CLEARED </div>")
+            return HttpResponse(f"<div class='text-amber-300 text-2xs font-thin py-1'> {CHECKMARK} {res} </div>")
         return HttpResponse("<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>")
     
     @csrf_exempt
