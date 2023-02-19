@@ -35,4 +35,4 @@ urlpatterns = [
     path('detail/<schId>/actions/update/<wd>/<sft>/<empl>/', Actions.updateSlot, name="update-slot"),
     path('detail/<schId>/actions/retemplate-all/', Actions.retemplateAll, name="retemplate-all-mistemplated"),
     path('detail/<schId>/actions/clear-untrained/', Actions.clearUntrained, name="clear-untrained"),
-]
+] 

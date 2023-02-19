@@ -6,7 +6,7 @@
 </div>
 
 {% if ptoconflicts %}
-    <div class="border rounded border-sky-200 p-3 m-4">
+    <div id="conflict-section" class="border rounded border-sky-200 p-3 m-4">
         <h3 class="text-lg">{{ ptoconflicts.count }} PTO Conflicts </h3>
 
         <table id="conflict-table">
@@ -18,8 +18,7 @@
                     <div class="bg-gray-600 rounded-full hover:bg-green-700 text-2xs px-2 cursor-pointer"
                         hx-post="actions/clear-all-pto-conflicts/"
                         hx-trigger="click"
-                        hx-swap="outerHTML"
-                        hx-target="#conflict-table">EMPTY ALL</div>
+                        hx-target="#conflict-section">EMPTY ALL</div>
                 </th>
             </tr>
             {% for slot in ptoconflicts %}
@@ -30,7 +29,7 @@
                     </td>
                     <td><a href="{{ slot.workday.slug }}">{{ slot.workday }}</a></td>
                     <td id="actions-{{ slot.slug }}">
-                        <span hx-post="actions/clear-slot/{{ slot.workday_slug }}/{{ slot.shift.name }}/"
+                        <span hx-post="actions/clear-slot/{{ slot.workday.slug }}/{{ slot.shift.name }}/"
                             hx-trigger="click"
                             hx-swap="innerHTML"
                             hx-target="#actions-{{ slot.slug }}"

@@ -85,7 +85,7 @@ class Sections:
         sch = Schedule.objects.get(slug=schId )
         data = ApiViews.schedule__get_unfavorables_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/unfavorables.pug', {'data': data})  
+        return render(request, 'tables/unfavorables.html', {'data': data})  
     
     def schPtoConflicts (request,schId):
         sch = Schedule.objects.get(slug=schId )
@@ -211,7 +211,7 @@ class Actions:
     @csrf_exempt
     def clearSlot (request, schId, wd, sft):
         sch = Schedule.objects.get (slug = schId )
-        slot = Slot.objects.get (schedule=sch,workday__slug__contains=wd, shift__name=sft)
+        slot = Slot.objects.get (schedule=sch,workday__slug__contains=wd, shift__name=sft) #type: Slot
         if request.method == "POST":
             res = slot.actions.clear_employee(slot)
             CHECKMARK = "<i class='fas fa-check'></i>"

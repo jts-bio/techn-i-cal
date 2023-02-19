@@ -565,6 +565,11 @@ class EmpPartials:
             return HttpResponse (wd.nextWD().slots.filter(employee=empl).first().shift.group)
         else :
             return HttpResponse ("")
+    def comingUp (request, empPk):
+        empl = Employee.objects.get(pk=empPk)
+        comingUp = empl.slots.filter(workday__date__gte=date.today()).order_by('workday__date')[:7]
+        html_template = 'sch2/employee/partials/coming-up.html'
+        return render(request, html_template, {'empl':empl})
         
         
 class WdViews:

@@ -12,6 +12,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.http import JsonResponse
 from django_require_login.decorators import public
 from django.contrib.auth.models import User
+from django.template.loader import render_to_string
 
 
 from .models import *
@@ -858,8 +859,6 @@ class SHIFT :
         return render(request, 'sch/shift/trained_available_emps.html', context)
                         
 class EMPLOYEE:
-    
-    
     class ANNO:
         nShiftsTrained = Employee.objects.annotate(n_shifts_trained=Count('shifts_trained')).order_by('n_shifts_trained').values_list('name','n_shifts_trained')
         
@@ -966,12 +965,18 @@ class EMPLOYEE:
                 'date_to'  : dt.date.today() - dt.timedelta( days=int(dt.date.today().strftime("%w")) ) + dt.timedelta(days=42)
             }
             
-            
-
             return context
 
         def get_object(self):
             return Employee.objects.get(slug=self.kwargs['empId'])
+        
+        def get_coming_up (self):
+            from . import viewsets 
+            empPk = self.kwargs['empId']
+            empl = Employee.objects.get(pk=empPk)
+            comingUp = empl.slots.filter(workday__date__gte=dt.date.today()).order_by('workday__date')[:7]
+            html_template = 'sch2/employee/partials/coming-up.html'
+            return render_to_string(html_template, {'comingUp': comingUp})
 
         def form_valid(self, form):
             date_from = form.cleaned_data['date_from']

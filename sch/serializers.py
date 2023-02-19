@@ -36,7 +36,13 @@ class PeriodSerializer(serializers.ModelSerializer):
         
 class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
     
+    slots = serializers.StringRelatedField(many=True)
+
+    clear_url = serializers.SerializerMethodField()
     tags = TagListSerializerField()
+    
+    def get_clear_url(self, obj):
+        return f'/schedule/detail/{obj.slug}/actions/clear-all/'
     
     class Meta:
         model = Schedule
@@ -47,6 +53,12 @@ class SlotSerializer(serializers.ModelSerializer):
     employee= serializers.StringRelatedField()
     workday = serializers.StringRelatedField()
     shift   = serializers.StringRelatedField()
+    clear_url= serializers.SerializerMethodField()
+    #TODO add edit_url
+    
+    def get_clear_url(self, obj):
+        return f'/schedule/detail/{obj.schedule.slug}/actions/clear-slot/{obj.workday.slug}/{obj.shift.name}/'
+    
     
     class Meta:
         model = Slot

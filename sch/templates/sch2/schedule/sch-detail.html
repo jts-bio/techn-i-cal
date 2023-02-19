@@ -54,13 +54,7 @@ SCHEDULE DETAIL VIEW
                 VERSION {{schedule.version}}   
             </h3>
 
-            {% for tag in schedule.tags.all %}
-
-                <div class="bg-orange-600 rounded px-2 text-slate-900">
-                    {{ tag }}
-                </div>
-
-            {% endfor %}       
+            {% include 'sch2/schedule/partials/action-button.html' %}
       
 
             <div class="text-xs text-zinc-300 italic">

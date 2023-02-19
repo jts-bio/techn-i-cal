@@ -1,12 +1,13 @@
-<div class="grid sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 center overflow-x-scroll overscroll-x-auto m-1 p-1 center-content center-self gap-5 space-between"
+<div class="grid sm:grid-cols-2 md:grid-cols- lg:grid-cols-5 center overflow-x-scroll overscroll-x-auto m-1 p-1 center-content center-self gap-5 space-between"
          id="alt-view-linkbox">
+
 
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/empl-grid/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
-            <i class="text-lg fa-duotone fa-poll-people"></i><br/>
+            <i class="text-lg fa-duotone fa-poll-people"></i>
             VIEW AS EMPLOYEE GRID 
         </div>
 
@@ -15,8 +16,8 @@
             hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
-            <i class="text-lg fa-duotone fa-grid-dividers"></i><br/>
-            VIEW AS SHIFT GRID 
+            <i class="text-lg fa-duotone fa-grid-dividers"></i>
+             VIEW AS SHIFT GRID 
         </div>
 
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/fte-ratios/"
@@ -24,17 +25,17 @@
             hx-indicator="#grid-indicator"
             class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
-            <i class="text-lg fa-duotone fa-chart-bullet"></i><br/>
+            <i class="text-lg fa-duotone fa-chart-bullet"></i>
             VIEW FTE-SCHEDULED RATIOS 
         </div>
 
         <div hx-get="/sch/schedule-partials/{{schedule.slug}}/week-breakdown/"
             hx-target="#sch-view-container"
             hx-indicator="#grid-indicator"
-            class="bg-slate-900 p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
+            class="bg-slate-900 flex flex-row p-2 rounded ring hover:bg-amber-800 hover:ring-amber-100 text-2xs pointer"
             >
-            <i class="text-lg fa-duotone fa-ball-pile"></i><br/>
-            VIEW WEEKLY HOURS BREAKDOWN 
+            <i class="text-lg fa-duotone fa-ball-pile"></i>
+            <span>VIEW WEEKLY HOURS BREAKDOWN </span>
         </div>
 
 </div>

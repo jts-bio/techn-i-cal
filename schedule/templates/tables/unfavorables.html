@@ -1,33 +1,31 @@
 
-h1.text-2xl.text-amber-200 Unfavorables
-
-table
-  tr
-    th.text-amber-200(_="on click take .text-amber-200 from <th/> end")
-      | Workday
-    th Shift
-    th(_="on click take .text-amber-200 from <th/> end")
-      | Employee
-    th Actions
-
-  each slot in data
-    tr
-      td= slot.workday
-      td= slot.shift
-      td.empl-cell= slot.employee
-      td
-        div(
-          hx-post="actions/clear-slot/${slot.workday}/${slot.shift}/", 
-          hx-trigger="click", 
-          hx-swap="innerHTML", 
-          onclick="add .line-through to previous .empl-cell then send recheck to #n-unfav-check end"
-          )
-          i.clear-icon.fas.text-zinc-300.rounded-full.p-1.fa-trash(class="hover:text-rose-400")
-          i#indicator.fa-spinner.fas.fa-fade.fa-spin.htmx-indicator
 
 
 
-script.
+<h1 class="text-amber-200">Unfavorables</h1>
+
+<table>
+    <tr>
+        <th class="text-amber-200">Workday</th>
+        <th>Shift</th>
+        <th>Employee</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for slot in data %}
+        <tr>
+            <td>{{ slot.workday }}</td>
+            <td>{{ slot.shift }}</td>
+            <td>{{ slot.employee }}</td>
+            <td>
+                <i id="del-{{slot.slug}}" hx-post="{{ slot.clear_url }}" hx-swap="outerHTML" class="fas fa-trash hover:text-red-300"></i>
+            </td>
+        </tr>
+    {% endfor %}
+
+</table>
+
+<script>
   /* 
     ADD WORKDAY LINK
     ------------------------------------------------------
@@ -48,7 +46,28 @@ script.
                 cells[j].appendChild(a);
             }
         }
-    }
+        for (var j = 0; j < cells.length; j++) {
+            if (j == 3) {
+                var trash = cells[j].getElementsByTagName('i')[0];
+                trash.addEventListener('click', function() {
+                    var row = this.parentNode.parentNode;
+                    console.log(row);
+                    var cells = row.getElementsByTagName('td');
+                    for (var i = 0; i < cells.length; i++) {
+                        if (i == 2) {
+                            cells[i].style.textDecoration = 'line-through';
+                        }
+                    }
+                    var unfav = document.getElementById('n-unfav');
+                    var empty = document.getElementById('n-empty');
+                    unfav.dispatchEvent(new Event('recheck'));
+                    empty.dispatchEvent(new Event('recheck'));
+                        });
+                    }
+                }
+            }
+
+   
 
     /* 
     ORDER TABLE ON EMPLOYEE HEADER CLICK
@@ -154,3 +173,5 @@ script.
             table.appendChild(sorted[i]);
         }
     });
+
+</script>

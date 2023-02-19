@@ -1444,7 +1444,7 @@ class Slot (models.Model) :
                 old_assignment = instance.employee
                 instance.employee = None
                 instance.save()
-                return f'Employee {old_assignment} cleared from slot {instance}'
+                return f'{old_assignment} cleared from {instance}'
             return 'Error: No employee assigned to slot {instance}'
         def clear_over_fte_slots (self, instance):
             if instance.employee != None:

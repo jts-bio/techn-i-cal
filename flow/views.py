@@ -125,9 +125,9 @@ class ApiActionViews:
     def ptoreq__delete (request, day, emp):
         pto = PtoRequest.objects.get(workday=day,employee__slug=emp)
         pto.delete()
-        return HttpResponse("<div class='text-sm text-sky-200'>DELETED</div>")
+        return HttpResponse("<div class='text-2xs text-sky-200'>DELETED</div>")
     @csrf_exempt
     def ptoreq__create (request, day, emp):
         emp = Employee.objects.get(slug=emp)
         pto = PtoRequest.objects.create(workday=day,employee=emp)
-        return HttpResponse("<div class='text-sm'>CREATED</div>")
+        return HttpResponse("<div class='text-2xs'>CREATED</div>")
