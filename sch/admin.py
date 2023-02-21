@@ -28,9 +28,9 @@ class WorkdayAdmin(admin.ModelAdmin):
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
-    fields          = ['workday', 'shift','employee','start','slug',]
-    readonly_fields = ['start',  'slug',]
-    list_display    = ['workday','shift','employee','start','slug',]
+    fields          = ['workday', 'shift','employee','start','slug','fills_with']
+    readonly_fields = ['start',  'slug', 'fills_with',]
+    list_display    = ['workday','shift','employee','start','slug' ]
 
 @admin.register(ShiftTemplate)
 class ShiftTemplateAdmin(admin.ModelAdmin):
@@ -61,7 +61,7 @@ class PeriodAdmin(admin.ModelAdmin):
 @admin.register(Schedule)    
 class ScheduleAdmin (admin.ModelAdmin):
     fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts' )
-    readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts')
+    readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts', )
     list_display        = ('slug','start_date', 'percent',)
 
 @admin.register(RoutineLog)

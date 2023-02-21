@@ -45,7 +45,9 @@
         <div>
             
             {# _____ OBJECT: SLOT ______ #}
-            <div class="slot w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20
+            <div class="slot {% if slot.shift.group == 'PM' %} pm-slot {% elif slot.shift.group == 'XN' %} pm-slot
+                        {% elif slot.shift.group == 'AM' %} am-slot {% endif %}
+                        w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20
                         {% if slot.employee == None %} bg-amber-800 {% endif %}"
                  id="{{ slot.shift }}" 
                  available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
@@ -55,25 +57,27 @@
                  a='0' b='0'
                  _="on dragover or dragenter if $allow.includes(@id) 
                         halt the event 
-                        else add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end
+                        else if @current != $emp add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end end
                     on dragover or dragenter if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 end
                     on dragleave set $empCardSecondary to `` end
                     on dragleave or dragend remove .ring .ring-2 .ring-green-400 
                                     .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
                                     .bg-red-300 .ring-red-600 end
-                    on drop remove .ring .ring-2 .ring-green-400 end
                     on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-                    on drop send addcard to #inner-slot-{{slot.shift}} then
-                        fetch slot/{{slot.shift}}/update/ then 
-                        call window.location.reload() end
-                    on drop tell .dragging remove you then add .fa-fade .fa-beat to me end
+                    on drop remove .ring .ring-2 .ring-green-400 
+                        then send addcard to #inner-slot-{{slot.shift}} then
+                        fetch slot/{{slot.shift}}/update/ then
+                        tell .dragging remove you then add .fa-fade .fa-beat to me then 
+                        fetch /wday/{{slot.workday.slug}}/ as html
+                            then put it into <body/> end
                     on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
                     on hideHl remove .bg-green-600 .ring .ring-green-500 end">
 
-                <a href="/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/" 
-                    class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"> 
+                <div class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"
+                    _="on click wait 200ms then go to url `/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/` 
+                        on dblclick go to url `/sch/shift/{{slot.shift.name}}/`"> 
                     {{ slot.shift }} 
-                </a>
+                </div>
 
                 <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
@@ -118,9 +122,10 @@
             on drop js event.dataTransfer.dropEffect = 'move' end
             on drop remove .hidden from me then put `Removing $emp` into #trash-message end
             on drop tell .dragging remove you then add .fa-fade .fa-beat to me end 
-            on drop call event.dataTransfer.getData('text/plain') then put result into me end
-            on drop fetch delete/ end
-            on drop call window.location.reload() end">
+            on drop call event.dataTransfer.getData('text/plain') then put result into me then
+                fetch delete/ then wait 1000ms then 
+                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html /> 
+                end">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
             <div id="trash-message animate-pulse" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>

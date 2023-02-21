@@ -706,11 +706,7 @@ class SHIFT :
         def get_context_data(self, **kwargs):
             context               = super().get_context_data(**kwargs)
             context['shifts']     = Shift.objects.all()
-                
-            shiftTable            = ShiftListTable(Shift.objects.all().order_by('start'))
-            context['shiftTable'] = shiftTable
-            
-
+            context['shiftTable'] = ShiftListTable(Shift.objects.all())
             return context
 
     class ShiftCreateView (FormView):

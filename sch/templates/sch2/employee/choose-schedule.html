@@ -17,28 +17,24 @@
         
     
     <div class="panel">
-        
-        {% for schedule in schedules %}
-            <a href="{% url 'sch:empl-schedule-detail' employee.slug schedule.slug  %}"
-                class="bg-slate-300 m-20 w-40 h-12   
-                       text-slate-800 font-light 
-                       rounded shadow shadow-lg">
-
-                {% if schedule.status == 'D' %}
-                    <div class="bg-amber-700 rounded 
-                                px-2 py-1 m-1">
-                        DRAFT
-                    </div>
-                {% endif %}
-                
-                Schedule # {{schedule.number }} - {{ schedule.year }} 
-                
-                <span class="text-2xs text-gray-600">
-                    (starts {{ schedule.start_date }})
-                </span>
-            </a>
-        {% endfor %}
-            
+        <div class="grid grid-cols-2 lg:grid-cols-3">
+            {% for schedule in employee.schedules.all %}
+                <a href="{% url 'sch:empl-schedule-detail' employee.slug schedule.slug  %}"
+                    class="relative bg-slate-300 m-10 w-40 h-12   
+                        text-slate-800 font-light 
+                        rounded shadow shadow-lg">
+                        <span class="text-black">Schedule # {{schedule.number }} - {{ schedule.year }}</span> 
+                        <span class="text-2xs text-gray-600">
+                            (starts {{ schedule.start_date }})
+                        </span>
+                        {% if schedule.status == 0 %}
+                            <span class="absolute bg-amber-500 rounded text-amber-200 font-bold text-2xs px-2 py-1 m-1 top-1/2 -right-4">
+                                DRAFT
+                            </span>
+                        {% endif %}
+                </a>
+            {% endfor %}
+        </div> 
 
     </div>
 

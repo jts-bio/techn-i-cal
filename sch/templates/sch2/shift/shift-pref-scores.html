@@ -9,17 +9,17 @@
     
 
     <div class="text text-center w-full">
-        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Preference Ratings</h1>
+        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Explicit Ratings</h1>
     </div>
     <div class="panel grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-12">
-        {% for rating in shift.shift_prefs.all %}
+        {% for rating in shift.rel_prefs.all %}
 
             <div class="object shadow shadow-lg {{ rating.css__all }}"
                 data-object-link="{{ rating.employee.url }}"
                 data-object-type="employee"
                 onmouseenter="emplMouseEnter(event, '{{ rating.employee.url }}', '{{ rating.employee.slug }}')"
                 onmouseleave='emplMouseLeave(event)'>
-                <div>
+                <div class="text-black">
                     <div class="font-extrabold text-2xl text-black"> 
                         {{ rating.priority }} 
                     </div>
@@ -29,6 +29,24 @@
 
         {% endfor %}
     </div>
+
+    <hr/>
+
+    <div class="text text-center w-full">
+        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">Sorted-Shift Ratings</h1>
+    </div>
+    <div class="flex flex-row flex-wrap gap-5 py-5">
+        {% for rating in shift.sort_prefs.all %}
+    
+            <div class="bg-zinc-900 border border-zinc-200 bg-opacity-75 rounded h-12 px-3 drop-shadow">
+                {{ rating.employee }}
+                <span class="bg-white text-xl font-bold text-black h-7 w-7 px-1 rounded">{{ rating.scaled }}%</span>
+            </div>
+
+        {% endfor %}
+
+    </div> 
+
 
     <div id="contextMenu" class="my-context-menu bg-zinc-900 bg-opacity-75 rounded h-80" style="display: none"> 
         <ul class="mx-1"> 

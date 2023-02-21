@@ -17,6 +17,9 @@ import json
     
         
 class ApiViews :
+    
+    
+    
     def schedule__list (request):
         schs = Schedule.objects.all()
         page = request.GET.get('page', 1)
@@ -110,6 +113,49 @@ class ApiViews :
 
 
 class ApiActionViews:
+    
+    
+    def build_dict (request, year, num, version):
+        start_date = Schedule.START_DATES[year][num]
+        pd_nums = [num*2 + i for i in range(3)]
+        wk_nums = [num*6 + i for i in range(6)]
+        dates = [start_date + dt.timedelta(days=i) for i in range(42)]
+        
+        d = dict(
+            sd_ids=[i for i in range(42)],
+            dates= dates,
+            pd_start_dates=[dates[i] for i in [0, 14, 28]],
+            wk_start_dates=[dates[i] for i in [0, 7, 14, 21, 28, 35]],
+            wds=[(start_date + dt.timedelta(days=i)).strftime('%Y-%m-%d') + version for i in range(42)],
+            iweekday=[i % 7 for i in range(42)],
+            pd_dates=[pd_nums[i//14] for i in range(42)],
+            wk_dates=[wk_nums[i//7] for i in range(42)],
+        )
+        
+        for i in range(42):
+            wd = Workday.objects.create(
+                slug=d['wds'][i],
+                date=d['dates'][i],
+                schedule=Schedule.objects.get_or_create(year=year, number=num, version=version, start_date=start_date,
+                    slug=f"{2022}-S{num}{version}",
+                    iweekday=d['iweekday'][i],
+                    period=Period.objects.get_or_create(
+                        year=year,
+                        start_date=d['pd_start_dates'][i//14],
+                        schedule=Schedule.objects.get_or_create(year=year, number=num, version=version)[0], 
+                        number=d['pd_dates'][i], 
+                        )[0],
+                    week=Week.objects.get_or_create(
+                        year=year,
+                        start_date=d['wk_start_dates'][i//7],
+                        number=d['wk_dates'][i],
+                        schedule=Schedule.objects.get_or_create(year=year, 
+                        number=num, version=version)[0], 
+                        )[0]
+                    ) 
+                )
+            wd.save()
+        return HttpResponse("Sucessfully built schedule {sch}")
     
     @csrf_exempt          
     def set__shift_img(request, shiftName):

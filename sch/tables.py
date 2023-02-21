@@ -87,16 +87,33 @@ class ShiftListTable (tables.Table) :
     """
     name  = tables.columns.LinkColumn    ("sch:shift-detail", args=[A("cls"),A("name")])
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
-    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900 iv-bool"}})
-    on_days_display = tables.columns.Column(verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
+    occur_days = tables.columns.Column   (verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
     group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
+    rel_prefs = tables.columns.Column    (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
+    sort_prefs = tables.columns.Column   (verbose_name="Avg Sorted Preference", attrs={"td": {"class": "text-center"}})
     
     class Meta:
         model           = Shift
-        fields          = ['name','start','hours', 'is_iv','on_days_display',]
-        template_name   = 'django_tables2/bootstrap.html'
-        attrs           = { "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4"}
-      
+        orderable       = True
+        fields          = ['name','start','hours' ]
+        attrs           = { 
+                "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[60px]"
+                }
+    
+    def render_occur_days(self, value):
+        output = []
+        as_list = value.split(", ")
+        for day in as_list:
+            output += [day[:3]]
+        return " ".join(output)
+    
+    def render_rel_prefs (self, value):
+        return round(((50 * value.avg_score()['avg'])+100)/2, 2)
+    
+    def render_sort_prefs (self, value):
+        return round( 50 * value.avg_score()['avg'] , 2)
+    
+            
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY
     display ALL SHIFTS for a given day
@@ -106,6 +123,7 @@ class ShiftsWorkdayTable (tables.Table):
         model           = Shift
         fields          = ['name','start','employee','del_slot']
         template_name   = 'django_tables2/bootstrap.html'
+        orderable       = True
 
     def render_del_slot(self, record):
         return record.pk

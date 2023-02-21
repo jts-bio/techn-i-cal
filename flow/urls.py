@@ -37,6 +37,7 @@ emp_urls = [
 ]
 
 urlpatterns = [
+    path('build-schedule/<int:year>/<int:num>/<version>/', ApiActionViews.build_dict, name='build-schedule'),
     path('schedule/', include(schedule_urls)),
     path('shift/',    include(shift_urls)),
     path('ptoreq/',   include(pto_urls)),

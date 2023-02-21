@@ -33,6 +33,8 @@ urlpatterns = [
     path('detail/<schId>/actions/clear-slot/<wd>/<sft>/', Actions.clearSlot, name="clear-slot"),
     path('detail/<schId>/actions/override-slot/<wd>/<sft>/<empId>/', Actions.overrideSlot, name="override-slot"),
     path('detail/<schId>/actions/update/<wd>/<sft>/<empl>/', Actions.updateSlot, name="update-slot"),
+    path('detail/<schId>/actions/update-fills-with/', Actions.Updaters.update_fills_with, name="update-fills-with-data"),
     path('detail/<schId>/actions/retemplate-all/', Actions.retemplateAll, name="retemplate-all-mistemplated"),
     path('detail/<schId>/actions/clear-untrained/', Actions.clearUntrained, name="clear-untrained"),
+    path('detail/<schId>/actions/step=balance-emusr/', Actions.EmusrBalancer.get_tradable_slots, name="step-balancing-emusr"),
 ] 

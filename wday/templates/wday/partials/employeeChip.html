@@ -6,11 +6,11 @@
     class="employee employee-chip cursor-move snap-always
             relative w-24 h-14 
             backdrop-blur bg-white/20 border border-gray-200 rounded-lg
-            {% if desig == 'PTO' %}   opacity-60   {% endif %}
-            {% if desig == 'TDO' %}   opacity-80   {% endif %}
+            {% if desig == 'PTO' %}   opacity-60 scale-75   {% endif %}
+            {% if desig == 'TDO' %}   opacity-80 scale-75   {% endif %}
             {% getAllowedFills employee workday %}"
     draggable="true" 
-    available="{% for s in employee.shifts_available.all %}{% if s != slot.shift %} {{ s }} {% endif %}{% endfor %}"
+    data-available="{% for s in employee.shifts_available.all %}{{ s }} {% endfor %}"
     data-trained="{% for s in employee.shifts_trained.all %} {{ s }} {% endfor %}"
     turnaround="{% if slot.is_preturnaround %} -1
                 {% elif slot.is_postturnaround %} 1
@@ -34,15 +34,23 @@
        init if @next-slot == `PM` remove .hidden from #{{employee.pk}}-ind-next-pm end
        init if @next-slot == `XN` remove .hidden from #{{employee.pk}}-ind-next-pm end
        on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
-       on dragstart set $emp to @id then set $empCard to me then log $empCard end
-       on dragstart set $allow to @available.split(' ') end
-       on dragstart send hlAllowed to .slot end
+       on dragstart set $emp to @id end
+       on dragstart set $allow to my.dataset.available.split(' ') then log $allow end
+       on dragstart 
+            if @previous-slot == 'PM' send h1Allowed to .pm-slot 
+            else if @next-slot == 'AM' send h1Allowed to .am-slot end end
        on dragstart add .dragging end
-       on dragstart set $empCard to me end
+       on dragstart set $empCard to me@outerHTML end
        on dragend remove .ring-green-500 from .slot then remove .dragging from me end
        on dragend set $allow to `` end
        on dragend send hideHl to .slot end
        on dragend add .hidden to .trashbin end
+       on click send unfocus to .employee-chip then send focused to me 
+            then set $emp to @id then 
+            if @previous-slot == 'PM' send h1Allowed to .pm-slot 
+            else if @next-slot == 'AM' send h1Allowed to .am-slot end end
+       on focused  add .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 to me end
+       on unfocus remove .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me end
        on dblclick go to url '/sch/employee/{{employee.pk}}/' end ">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 

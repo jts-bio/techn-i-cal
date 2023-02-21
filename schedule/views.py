@@ -2,26 +2,35 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRedirect
 from django.views.generic.base import TemplateView, RedirectView, View
-from sch.models import generate_schedule 
+from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
 from django.db.models import OuterRef, Subquery, Count, Q, F, CharField, Avg
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
+from flow import views as flow_views
 
 from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest
 import json
 
 
 def schListView(request):
+    """ 
+    SCHEDULE LIST VIEW
+    ==================
+    This view is the main view for the schedule app. It displays a list of all
+    schedules, and allows the user to generate new schedules.
+    """
     VERSION_COLORS = {
-        'A': 'amber',
-        'B': 'emerald',
-        'C': 'blue',
-        'D': 'pink',
+        "A": "amber",
+        "B": "emerald",
+        "C": "blue",
+        "D": "pink",
     }
-    schedules = Schedule.objects.annotate(nEmpty=Count('slots', filter=Q(slots__employee=None)))
+    schedules = Schedule.objects.annotate(
+        nEmpty= Count("slots", filter=Q(slots__employee=None))
+    )
     for schedule in schedules:
         schedule.n_empty = schedule.nEmpty
 
@@ -39,91 +48,116 @@ def schListView(request):
             i += 1
             idate = idate - dt.timedelta(days=42)
         generate_schedule(year=start_date.year, number=i)
-        return render (request, "sch-list.html", {"schedules": schedules.order_by('-start_date')})
+        return render(
+            request, "sch-list.html", {"schedules": schedules.order_by("-start_date")}
+        )
 
     context = {
-        "schedules": schedules.order_by('-start_date'),
+        "schedules": schedules.order_by("-start_date"),
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)
 
-def schDetailView (request, schId):
-    sch = Schedule.objects.get (slug = schId )
-    sch.save()
-    return render(request, 'sch-detail.html', {'schedule': sch})
 
-class Sections: 
-    
-    def modal (request):
-        return render(request, 'modal.html')
-    
-    def schStats (request, schId ):
-        sch = Schedule.objects.get (slug = schId )
-        statPartials = [ 
-            dict(title="EMUSR (SDfµ)", name="emusr-sd",
-                 goal=[1,1.01,1.01], url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
-                 icon='fa-chart-bar'),
-            dict(title="EMUSR",name="emusr",
-                 goal=[4,8,10], url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
-                 icon='fa-moon'),
-            dict(title="Mistemplated", name="mistemplated", 
-                 goal=[0,0,0], url="{% url 'sch:sch-mistemplated' schedule.slug %}",
-                 icon="fa-exclamation-triangle")
+def schDetailView(request, schId):
+    sch = Schedule.objects.get(slug=schId)
+    sch.save()
+    return render(request, "sch-detail.html", {"schedule": sch})
+
+
+class Sections:
+    def modal(request):
+        return render(request, "modal.html")
+
+    def schStats(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        statPartials = [
+            dict(
+                title="EMUSR (SDfµ)",
+                name="emusr-sd",
+                goal=[1, 1.01, 1.01],
+                url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
+                icon="fa-chart-bar",
+            ),
+            dict(
+                title="EMUSR",
+                name="emusr",
+                goal=[4, 8, 10],
+                url="{% url 'sch:sch-calc-uf-distr' schedule.slug %}",
+                icon="fa-moon",
+            ),
+            dict(
+                title="Mistemplated",
+                name="mistemplated",
+                goal=[0, 0, 0],
+                url="{% url 'sch:sch-mistemplated' schedule.slug %}",
+                icon="fa-exclamation-triangle",
+            ),
         ]
         statsHtml = ""
         for stat in statPartials:
-            statsHtml += render_to_string('stats__figure.html', stat)
-        return render(request, 'stats.html', {'schedule': sch, 'statPartials': statsHtml})
-    
-    def schMistemplated (request, schId ):
-        sch = Schedule.objects.get (slug = schId )
+            statsHtml += render_to_string("stats__figure.html", stat)
+        return render(
+            request, "stats.html", {"schedule": sch, "statPartials": statsHtml}
+        )
+
+    def schMistemplated(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_mistemplated_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/mistemplated.html', {'data': data})
-    
-    def schUnfavorables (request,schId):
-        sch = Schedule.objects.get(slug=schId )
+        return render(request, "tables/mistemplated.html", {"data": data})
+
+    def schUnfavorables(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_unfavorables_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/unfavorables.html', {'data': data})  
-    
-    def schPtoConflicts (request,schId):
-        sch = Schedule.objects.get(slug=schId )
+        return render(request, "tables/unfavorables.html", {"data": data})
+
+    def schPtoConflicts(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         ptoconflicts = sch.slots.conflictsWithPto().all()
         pto = sch.pto_requests.all()
-        return render(request, 'tables/pto-conflicts.html', {'pto': pto, 'schedule': sch, 'ptoconflicts': ptoconflicts} )
-    
-    def schPtoGrid (request, schId, emp):
-        sch = Schedule.objects.get(slug=schId )
+        return render(
+            request,
+            "tables/pto-conflicts.html",
+            {"pto": pto, "schedule": sch, "ptoconflicts": ptoconflicts},
+        )
+
+    def schPtoGrid(request, schId, emp):
+        sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
         ptoreqs = PtoRequest.objects.filter(
-            employee=emp, workday__gte=sch.start_date, workday__lte=sch.start_date + dt.timedelta(days=42))
-        
-        return render(request, 'pto-chart.html', {'ptoreqs': ptoreqs, 'sch': sch, 'empl': emp })
-    
-    def schEmusr (request, schId):
-        sch = Schedule.objects.get(slug=schId )
+            employee=emp,
+            workday__gte=sch.start_date,
+            workday__lte=sch.start_date + dt.timedelta(days=42),
+        )
+
+        return render(
+            request, "pto-chart.html", {"ptoreqs": ptoreqs, "sch": sch, "empl": emp}
+        )
+
+    def schEmusr(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
-        return render(request, 'tables/emusr.html', {'data': data }) 
+        return render(request, "tables/emusr.html", {"data": data})
 
-    
-    def schEmptyList (request,schId ):
-        if request.headers.get('page'):
-            page = int(request.headers.get('page'))
+    def schEmptyList(request, schId):
+        if request.headers.get("page"):
+            page = int(request.headers.get("page"))
         else:
             page = 1
         version = schId[-1]
-        data = ApiViews.schedule__get_empty_list(request,schId)
+        data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
         for d in data:
-            d['n_options'] = len(d['fills_with'])
-            d['workday_slug'] = d['workday'] + version
-        return render(request, 'tables/empty-actionable.html', {'data': data })
-    
-    def schEmusrPage (request, schId):
+            d["n_options"] = len(d["fills_with"])
+            d["workday_slug"] = d["workday"] + version
+        return render(request, "tables/empty-actionable.html", {"data": data})
+
+    def schEmusrPage(request, schId):
         from django.db.models.functions import Coalesce
-        
+
         sch = Schedule.objects.get(slug=schId)
 
         emusr_employees = sch.employees.emusr_employees().annotate(
@@ -131,47 +165,65 @@ class Sections:
                 Count(
                     Subquery(
                         Slot.objects.filter(
-                            employee=OuterRef('pk'),
-                            is_unfavorable=True
-                        ).values('employee')
+                            employee=OuterRef("pk"), is_unfavorable=True
+                        ).values("employee")
                     )
-                ), 0)
+                ),
+                0,
             )
-        return render(request, 'tables/emusr.pug', {'emusr_employees':emusr_employees } )
-    
-    def schEmployeeEmusrSlots (request, schId, emp):
+        )
+        return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
+
+    def schEmployeeEmusrSlots(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
         slots = sch.slots.filter(employee=emp).unfavorables()
         n = slots.count()
-        return render(request, 'tables/emusr-empl.pug', {'slots': slots, 'emp': emp, 'sch': sch, 'n': n})
-    def schUntrained (request, schId):
-        sch = Schedule.objects.get(slug=schId )
+        return render(
+            request,
+            "tables/emusr-empl.pug",
+            {"slots": slots, "emp": emp, "sch": sch, "n": n},
+        )
+
+    def schUntrained(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         data = sch.slots.untrained().all()
-        return render(request, 'tables/untrained.html', {'data': data})
-    def schLogView (request, schId):
-        sch = Schedule.objects.get(slug=schId )
-        return render(request, "tables/routine-log.html", {'schedule': sch})
-    def schTurnarounds (request, schId):
-        sch = Schedule.objects.get(slug=schId )
+        return render(request, "tables/untrained.html", {"data": data})
+
+    def schLogView(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        return render(request, "tables/routine-log.html", {"schedule": sch})
+
+    def schTurnarounds(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         data = sch.slots.turnarounds().all()
-        return render(request, 'tables/turnarounds.html', {'data': data})
-    
+        return render(request, "tables/turnarounds.html", {"data": data})
+
+
 class Actions:
     
-    def clearUntrained (request, schId):
-        sch = Schedule.objects.get(slug=schId )
-        sch.slots.untrained().update(employee=None)
-        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>")
+    class Updaters:
+        
+        def update_fills_with (request, schId):
+            for slot in Schedule.objects.get(slug=schId).slots.empty():
+                slot.update_fills_with()
+            return HttpResponse("<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>")
     
-    def wdRedirect (request, schId, wd):
-        sch = Schedule.objects.get (slug = schId )
+    def clearUntrained(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        sch.slots.untrained().update(employee=None)
+        return HttpResponse(
+            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>"
+        )
+
+    def wdRedirect(request, schId, wd):
+        sch = Schedule.objects.get(slug=schId)
         wday = sch.workdays.get(slug__contains=wd)
         return HttpResponseRedirect(wday.url())
-    
+
     @csrf_exempt
-    def retemplateAll (request, schId):
-        sch = Schedule.objects.get (slug = schId )
+    def retemplateAll(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         n = 0
         for slot in sch.slots.filter(template_employee__isnull=False):
             emp = slot.template_employee
@@ -180,82 +232,145 @@ class Actions:
                 slot.workday.slots.filter(employee=emp).update(employee=None)
                 slot.employee = emp
                 slot.save()
-        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots retemplated</div>")
-    
+        return HttpResponse(
+            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots retemplated</div>"
+        )
+
     @csrf_exempt
-    def solveTca (request, schId):
-        sch = Schedule.objects.get (slug = schId )
+    def solveTca(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
             sch.actions.sch_solve_with_lookbehind(sch)
-            return render(request, 'data-responses/clearAll.html', {'result': 'success','message': 'TCA solved'})
-        return render(request, 'data-responses/clearAll.html', {'result': 'error','message': 'Invalid request method'})
-    
+            return render(
+                request,
+                "data-responses/clearAll.html",
+                {"result": "success", "message": "TCA solved"},
+            )
+        return render(
+            request,
+            "data-responses/clearAll.html",
+            {"result": "error", "message": "Invalid request method"},
+        )
+
     @csrf_exempt
-    def clearAllPtoConflicts (request, schId):
-        sch = Schedule.objects.get (slug = schId )
+    def clearAllPtoConflicts(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         n = 0
         for s in sch.slots.conflictsWithPto().all():
             s.employee = None
             s.save()
             n += 1
-        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots cleared</div>")
-    
+        return HttpResponse(
+            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots cleared</div>"
+        )
+
     @csrf_exempt
-    def clearAll (request, schId):
-        sch = Schedule.objects.get (slug = schId )
+    def clearAll(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
             sch.actions.deleteSlots(sch)
-            return render(request, 'data-responses/clearAll.html', {'result': 'success','message': 'All slots cleared'})
-        return render(request, 'data-responses/clearAll.html', {'result': 'error','message': 'Invalid request method'})
-    
+            return render(
+                request,
+                "data-responses/clearAll.html",
+                {"result": "success", "message": "All slots cleared"},
+            )
+        return render(
+            request,
+            "data-responses/clearAll.html",
+            {"result": "error", "message": "Invalid request method"},
+        )
+
     @csrf_exempt
-    def clearSlot (request, schId, wd, sft):
-        sch = Schedule.objects.get (slug = schId )
-        slot = Slot.objects.get (schedule=sch,workday__slug__contains=wd, shift__name=sft) #type: Slot
+    def clearSlot(request, schId, wd, sft):
+        sch = Schedule.objects.get(slug=schId)
+        slot = Slot.objects.get(
+            schedule=sch, workday__slug__contains=wd, shift__name=sft
+        )  # type: Slot
         if request.method == "POST":
             res = slot.actions.clear_employee(slot)
             CHECKMARK = "<i class='fas fa-check'></i>"
-            return HttpResponse(f"<div class='text-amber-300 text-2xs font-thin py-1'> {CHECKMARK} {res} </div>")
-        return HttpResponse("<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>")
-    
+            return HttpResponse(
+                f"<div class='text-amber-300 text-2xs font-thin py-1'> {CHECKMARK} {res} </div>"
+            )
+        return HttpResponse(
+            "<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>"
+        )
+
     @csrf_exempt
-    def overrideSlot (request, schId, wd, sft, empId):
-        sch = Schedule.objects.get (slug = schId)
-        empl = Employee.objects.get (slug = empId)
+    def overrideSlot(request, schId, wd, sft, empId):
+        sch = Schedule.objects.get(slug=schId)
+        empl = Employee.objects.get(slug=empId)
         print(request.method)
         if request.method == "POST":
-            sch.slots.filter(workday__slug__contains=wd, employee=empl).update(employee=None)
-            slot = sch.slots.get (workday__slug__contains=wd, shift__name=sft)
+            sch.slots.filter(workday__slug__contains=wd, employee=empl).update(
+                employee=None
+            )
+            slot = sch.slots.get(workday__slug__contains=wd, shift__name=sft)
             slot.employee = empl
             slot.save()
             CHECKMARK = "<i class='fas fa-check'></i>"
-            return HttpResponse(f"<div class='text-green-300 font-light'> {CHECKMARK} Updated </div>")
-        return HttpResponse("<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>")
-    
-    
+            return HttpResponse(
+                f"<div class='text-green-300 font-light'> {CHECKMARK} Updated </div>"
+            )
+        return HttpResponse(
+            "<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>"
+        )
+
     @csrf_exempt
-    def updateSlot(request,schId,wd,sft,empl):
+    def updateSlot(request, schId, wd, sft, empl):
         employee = Employee.objects.get(slug=empl)
-        slot = Slot.objects.get (schedule=schId,workday__slug__contains=wd, shift__name=sft)
-        if slot.workday.slots.all().filter(employee=employee).exclude(shift=slot.shift).exists():
-            otherSlot = slot.workday.slots.all().filter(employee=employee).exclude(shift=slot.shift).first()
-            otherSlot.employee= None
+        slot = Slot.objects.get(
+            schedule=schId, workday__slug__contains=wd, shift__name=sft
+        )
+        if (
+            slot.workday.slots.all()
+            .filter(employee=employee)
+            .exclude(shift=slot.shift)
+            .exists()
+        ):
+            otherSlot = (
+                slot.workday.slots.all()
+                .filter(employee=employee)
+                .exclude(shift=slot.shift)
+                .first()
+            )
+            otherSlot.employee = None
             otherSlot.save()
         slot.employee = employee
         slot.save()
         CHECKMARK = "<i class='fas fa-check'></i>"
-        return HttpResponse(f"<div class='text-green-300 font-light'>{CHECKMARK} Updated </div>")
-        
-    
-    
-    def clearOvertimeSlotsByRefillability (request,schId):
-        sch = Schedule.objects.get (slug =schId )
+        return HttpResponse(
+            f"<div class='text-green-300 font-light'>{CHECKMARK} Updated </div>"
+        )
+
+    class EmusrBalancer:
+        def select_max_min_employees(request, schId):
+            emusr_data = flow_views.ApiViews.schedule__get_emusr_list(request, schId)
+            data = json.loads(emusr_data.content)
+            max_val = max(data.values())
+            max_empl = [k for k, v in data.items() if v == max_val][0]
+            min_val = min(data.values())
+            min_empl = [k for k, v in data.items() if v == min_val][0]
+            return JsonResponse({"max": max_empl, "min": min_empl})
+
+        def get_tradable_slots(request, schId):
+            tradables = []
+            empls = json.loads(
+                Actions.EmusrBalancer.select_max_min_employees(request, schId).content
+            )
+            for slot in Slot.objects.filter(
+                schedule__slug=schId, employee=empls["max"], is_unfavorable=True
+            ):
+                if empls["min"] in slot.fills_with.all():
+                    tradables += [slot]
+            return Slot.objects.filter(pk__in=[s.pk for s in tradables]).order_by(
+                "empl_sentiment"
+            )
+
+    def clearOvertimeSlotsByRefillability(request, schId):
+        sch = Schedule.objects.get(slug=schId)
         for empl in sch.employees.all():
             emplSlots = sch.slots.filter(employee=empl)
-            emplSlots = emplSlots.annotate(n_fillableBy=Count(F('fills_with')))
-            if sum(list(emplSlots.values_list('shift__hours',flat=True))) > 40:
-                print(emplSlots.order_by('empl_sentiment','n_fillableBy'))
-                
-
-        
-        
+            emplSlots = emplSlots.annotate(n_fillableBy=Count(F("fills_with")))
+            if sum(list(emplSlots.values_list("shift__hours", flat=True))) > 40:
+                print(emplSlots.order_by("empl_sentiment", "n_fillableBy"))
