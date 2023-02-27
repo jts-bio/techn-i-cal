@@ -95,6 +95,7 @@ class ShiftListTable (tables.Table) :
     class Meta:
         model           = Shift
         orderable       = True
+        fields          = ['name','hours','occur_days','group','prefs','sort_prefs']
         attrs           = { 
                 "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[60px]"
                 }
@@ -106,11 +107,11 @@ class ShiftListTable (tables.Table) :
             output += [day[:3]]
         return " ".join(output)
     
-    def render_rel_prefs (self, value):
+    def render_prefs (self, value):
         return round(((50 * value.avg_score()['avg'])+100)/2, 2)
     
     def render_sort_prefs (self, value):
-        return round(((50 * value.avg_score()['avg'])+100)/2, 2)
+        return round((value.avg_score()['avg']), 2)
     
     
     

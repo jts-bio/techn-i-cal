@@ -41,7 +41,6 @@
             else if @next-slot == 'AM' send hlAllowed to .am-slot end end
        on dragstart add .dragging to me end 
        on dragend remove .ring-green-500 from .slot then remove .dragging from me end
-       on dragend set $allow to `` end
        on dragend send hideHl to .slot end
        on dragend add .hidden to .trashbin end
        on click 
@@ -68,7 +67,7 @@
         end
        on focused  add .active-emp-card .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 to me end
        on unfocus remove .active-emp-card .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me end
-       on dblclick go to url '/sch/employee/{{employee.pk}}/' end ">
+       on dblclick go to url '/sch/employee/{{employee.pk}}/' end">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">

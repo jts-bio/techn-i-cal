@@ -1077,8 +1077,8 @@ class Schedule (models.Model):
         self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
         self.data['percent'] = self.percent
         self.data['n_empty'] = self.slots.empty().count()
-        self.data['n_turnarounds'] = self.slots.turnarounds().count()
-        self.data['pto_conflicts'] = self.slots.
+        self.data['turnarounds'] = [ta.slug for ta in self.slots.turnarounds()]
+        self.data['pto_conflicts'] = [pc.slug for pc in self.pto_conflicts()]
         super().save(*args,**kwargs)
         self.post_save()
     def post_save(self):

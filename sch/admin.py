@@ -60,7 +60,7 @@ class PeriodAdmin(admin.ModelAdmin):
     
 @admin.register(Schedule)    
 class ScheduleAdmin (admin.ModelAdmin):
-    fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts',)
+    fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts','data')
     readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts', )
     list_display        = ('slug','start_date', 'percent',)
 

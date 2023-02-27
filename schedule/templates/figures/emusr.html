@@ -14,6 +14,13 @@
         </p>
     </div>
     <div class="inline-flex items-center text-base font-semibold text-gray-100"
+        hx-get="/api/schedule/{{schedule.slug}}/emusr-stdev/"
+        hx-trigger='load'
+        hx-target="#emusr-stdev">
+        <span id="emusr-stdev"></span>
+        <span class="opacity-70 text-2xs font-light italic pl-2"> SDfµ</span>
+    </div>
+    <div class="inline-flex items-center text-base font-semibold text-gray-100"
     hx-get="/api/schedule/{{schedule.slug}}/emusr/"
     hx-trigger='load'
     hx-target="#emusr-fig">

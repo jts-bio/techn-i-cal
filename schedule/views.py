@@ -12,6 +12,8 @@ from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 from flow import views as flow_views
 
+from django.db import models
+
 from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest
 import json
 
@@ -265,17 +267,24 @@ class Actions:
         tmpl_response = Actions.setTemplates(request, schId)
         ptoclear_response = Actions.clearAllPtoConflicts(request, schId)
      
-        sch = Schedule.objects.get(slug=schId)
+        schedule = Schedule.objects.get(slug=schId)
         n = 0
         results = []
-        slots =  sch.slots.empty().order_by("?")
-        weeks = sch.weeks.all()
-        for week in weeks:
-            week.annotate(
-                
-            )
-        
-        
+        slots =  schedule.slots.empty().order_by("?")
+
+        from django.db.models import Case, When, Sum, IntegerField
+        from django.contrib.postgres.aggregates import ArrayAgg
+        from django.contrib.postgres.fields import ArrayField
+        weeks = schedule.weeks.all()
+        slots_subquery = slots.filter(employee=OuterRef('employee'), week=OuterRef('week'))
+        employees = Employee.objects.annotate(
+            weekHours_0=Subquery(slots.filter(week=weeks[0], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_1=Subquery(slots.filter(week=weeks[1], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_2=Subquery(slots.filter(week=weeks[2], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_3=Subquery(slots.filter(week=weeks[3], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_4=Subquery(slots.filter(week=weeks[4], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours'))
+        )
         for slot in slots:
             empls = slot.fills_with.filter(
                     time_pref= slot.shift.group,
@@ -285,25 +294,31 @@ class Actions:
                             employee=F("pk"),
                         ).aggregate(
                             week_hours=Sum('shift__hours')
-                        )
-                    ), output_field=FloatField()
+                        ) ['week_hours']
+                    )
                 ).annotate(
-                hoursUnder=F('fte')*40  - F('hours')).annotate(
-                        matchingTimePref=Case(
+                hoursUnder= F('fte') *40  - F('hours'), 
+                    ).annotate(
+                matchingTimePref=Case(
                             When(time_pref=slot.shift.group, then=1),
                             default=0,
-                            output_field=IntegerField()
                         )
                     ).annotate(
                 hasPtoReq=Case(
                             When(pto_requests__workday=slot.workday.date, then=1),
                             default=0,
-                            output_field=IntegerField()
                         )
                     ).filter(
                         hasPtoReq=0, hoursUnder__gt=0, matchingTimePref=1
                     ).order_by('?')
-            print(list(empls.values_list('pk','hours','hoursUnder')))
+            if empls.exists():
+                slot.employee = empls[0]
+                empls[0].save()
+                slot.save()
+                print(empls[0].name, slot.shift.name, slot.workday.date)
+            else:
+                print("no empls")
+            
             emplsWd = list(slot.workday.slots.values_list('employee__pk',flat=True).distinct())
  
             es = empls.exclude(pk__in=emplsWd)
@@ -321,8 +336,8 @@ class Actions:
                 results.append(slot)
             else:
                 print(f"No Favorables for {slot}")
-        sch.slots.bulk_update(results, fields=('employee',))
-        sch.routine_log.events.create(
+        schedule.slots.bulk_update(results, fields=('employee',))
+        schedule.routine_log.events.create(
             event_type='fill_with_favorables',
             data={
                 'n': n,

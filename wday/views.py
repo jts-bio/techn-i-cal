@@ -9,7 +9,6 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from sch.models import Schedule, Workday, Employee, Slot, WorkdayViewPreference, WD_VIEW_PREF_CHOICES
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
-from birdseye import eye
 
 def testing (request, wdSlug):
     context= {
