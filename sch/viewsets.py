@@ -285,7 +285,6 @@ class SchViews:
         return render(request, html_template, context)
 
     def compareSchedules(request, schId1, schId2):
-
         html_template = "sch2/schedule/sch-compare.html"
 
         sch1 = Schedule.objects.get(slug=schId1)
@@ -320,6 +319,7 @@ class SchViews:
         inputs: (1) request (2) schId 
         """
         import json
+        import numpy
         import pandas as pd
         sch = Schedule.objects.get(slug=schId)
         n_pm = sch.slots.evenings().count()
@@ -704,8 +704,7 @@ class ShiftViews:
                             print(f"Updated {sst}")
                     else:
                         pass
-            return HttpRequestRedirect(shift.url())
-                                
+            return HttpResponseRedirect (shift.url())                    
 
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)

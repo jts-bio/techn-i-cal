@@ -50,7 +50,7 @@ class TmplDayOffAdmin(admin.ModelAdmin):
     
 @admin.register(Week)
 class WeekAdmin(admin.ModelAdmin):
-    fields          = ('year', 'number', 'period', 'schedule', 'start_date', )
+    fields          = ('year', 'number', 'period', 'schedule', 'start_date', 'hours' )
     list_display    = ('year', 'number', 'period', 'schedule', 'start_date', )
 
 @admin.register(Period)
@@ -60,7 +60,7 @@ class PeriodAdmin(admin.ModelAdmin):
     
 @admin.register(Schedule)    
 class ScheduleAdmin (admin.ModelAdmin):
-    fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts' )
+    fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts',)
     readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts', )
     list_display        = ('slug','start_date', 'percent',)
 

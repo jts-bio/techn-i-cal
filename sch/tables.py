@@ -89,13 +89,12 @@ class ShiftListTable (tables.Table) :
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
     occur_days = tables.columns.Column   (verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
     group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
-    rel_prefs = tables.columns.Column    (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
+    prefs = tables.columns.Column    (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
     sort_prefs = tables.columns.Column   (verbose_name="Avg Sorted Preference", attrs={"td": {"class": "text-center"}})
     
     class Meta:
         model           = Shift
         orderable       = True
-        fields          = ['name','start','hours' ]
         attrs           = { 
                 "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[60px]"
                 }
@@ -111,7 +110,9 @@ class ShiftListTable (tables.Table) :
         return round(((50 * value.avg_score()['avg'])+100)/2, 2)
     
     def render_sort_prefs (self, value):
-        return round( 50 * value.avg_score()['avg'] , 2)
+        return round(((50 * value.avg_score()['avg'])+100)/2, 2)
+    
+    
     
             
 class ShiftsWorkdayTable (tables.Table):

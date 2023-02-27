@@ -639,22 +639,18 @@ class SHIFT :
     class ShiftDetailView (DetailView):
         model                = Shift
         template_name        = 'sch/shift/shift_detail.html'
-        context_object_name  = 'shifts'
+        context_object_name  = 'shift'
 
         def get_context_data(self, **kwargs):
             context                  = super().get_context_data(**kwargs)
             context ['shift']        = self.object 
-            
-            context ['empls_trained'] = Employee.objects.filter(shifts_trained=self.object).order_by('name')
-
+            context ['employees'] = Employee.objects.filter(shifts_trained=self.object).order_by('name')
             sstsA = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7)] 
             context ['sstsA'] = sstsA
             sstsB = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(7,14)] 
             context ['sstsB'] = sstsB
-            
             ssts  = [(day, ShiftTemplate.objects.filter(shift=self.object, ppd_id=day)) for day in range(42)]
             context ['ssts'] = ssts
-            
             context ['prefs'] = ShiftPreference.objects.filter(shift=self.object).order_by('score') 
             context ['count'] = Employee.objects.filter(shifts_trained=self.object).count()
             return context
@@ -694,7 +690,6 @@ class SHIFT :
         """
         print(resp)
         return HttpResponse(resp)
-
     class ShiftListView (ListView):
         """SHIFT LIST VIEW 
         =====================================================
@@ -708,7 +703,6 @@ class SHIFT :
             context['shifts']     = Shift.objects.all()
             context['shiftTable'] = ShiftListTable(Shift.objects.all())
             return context
-
     class ShiftCreateView (FormView):
         template_name   = 'sch/shift/shift_form.html'
         form_class      = ShiftForm
@@ -717,8 +711,7 @@ class SHIFT :
 
         def form_valid(self, form):
             form.save() # type: ignore
-            return super().form_valid(form)
-        
+            return super().form_valid(form)   
     class ShiftUpdateView (UpdateView):
         model           = Shift
         template_name   = 'sch/shift/shift_form_edit.html'
@@ -735,11 +728,9 @@ class SHIFT :
         
         def get_object(self):
             return Shift.objects.get(name=self.kwargs['name'])
-    
     class ShiftDeleteView (DeleteView):
         model           = Shift
         success_url     = reverse_lazy('shift-list')
-    
     
     def shiftTemplateView (request, sftId):
         """
@@ -776,13 +767,35 @@ class SHIFT :
         }
         return render(request, html_template, context)
             
-    def shiftPrefScores (request, pk):
-        html_template = 'sch2/shift/shift-pref-scores.html'
-        shift = Shift.objects.get(pk=pk)
+    def shiftPrefScores (request, sft):
+        """Shift Preference Scores"""
+        
+        shift = Shift.objects.get(name=sft)
+        # make dict of score: [empl,empl...]
+        scores = {i:[] for i in range(-2,3)}
+        for pref in shift.prefs.all():
+            scores[pref.score].append(pref.employee)
         context = {
             'shift':shift,
+            'scores':scores,
         }
+        html_template = 'sch2/shift/prefs.pug'
         return render(request, html_template, context)
+    
+    def shiftPrefUpdate (request, sft):
+        """Shift Preference Update"""
+        shift = Shift.objects.get(name=sft)
+        
+        empl = request.headers.get('employee')
+        empl = Employee.objects.get(pk=empl)
+        score = int(request.headers.get('score'))
+        score_name = ['Strongly Dislike','Dislike','Neutral','Prefer}','Strongly Prefer'][score + 2]
+        ShiftPreference.objects.update_or_create(
+            shift=shift,
+            employee=empl,
+            defaults={'score':score}
+        )
+        return f"Updated {empl} to {score}"
                 
     
     def shiftTalliesView (request, shiftpk):

@@ -3,35 +3,45 @@
 
 
 <div class="relative inline-block text-left">
-    <div id="swap-tgt-{{ slot.workday }}-{{ slot.shift }}">
-      <button type="button" class="dd-button inline-flex w-full justify-center rounded-md border border-gray-300 
-                                   bg-white {% if slot.n_options == 0 %} bg-gray-300 {% endif %}
-                                   px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
-                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
-                                   focus:ring-offset-gray-100" 
-              aria-expanded="true" aria-haspopup="true"
-              {% if slot.n_options == 0 %} disabled {% endif %}
-              onclick="showDropdownOptions(event)">
-        {{ slot.n_options }} Options
-        <!-- Heroicon name: mini/chevron-down -->
-        <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
-        </svg>
-      </button>
-    </div>
+    <div class="swap-tgt"></div>
+    <span class="hidden undo-btn hover:text-sky-300 cursor-pointer text-2xs px-1"
+                _="on click fetch actions/clear-slot/{{slot.workday}}/{{slot.shift}}/ with method:'POST' then 
+                    put result into previous .swap-tgt then
+                    add .hidden to me then 
+                    remove .hidden from next .dd-button 
+                    then wait 4s then put `` into previous .swap-tgt end">
+                UNDO
+            </span>
+    <button type="button" class="dd-button inline-flex w-full justify-center rounded-md border border-gray-300 
+                                  bg-white {% if slot.n_options == 0 %} bg-gray-300 {% endif %}
+                                  px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
+                                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
+                                  focus:ring-offset-gray-100
+                                  {% if slot.n_options == 0 %} bg-zinc-300 {% endif %}" 
+            aria-expanded="true" aria-haspopup="true"
+            {% if slot.n_options == 0 %} disabled {% endif %}
+            onclick="showDropdownOptions(event)">
+      {{ slot.n_options }} Options
+      <!-- Heroicon name: mini/chevron-down -->
+      <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+      </svg>
+    </button>
     <div class="dd-options absolute hidden right-0 z-10 mt-2 w-56 
                 origin-top-right rounded-md bg-sky-900 shadow-lg 
-                border border-sky-200 drop-shadow
+                border border-sky-200 drop-shadow drop-shadow-white
                 ring-1 ring-black ring-opacity-5 focus:outline-white" 
                 role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
-          _="on signal send fsignal to .fetcher in me end">
+          _="on signal send fsignal to .fetcher in me">
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
-            <div hx-post="{% url 'schd:update-slot' slot.schedule slot.workday slot.shift empl %}" 
-              hx-trigger="click" hx-target="#swap-tgt-{{ slot.workday }}-{{ slot.shift }}"
-              _="on click add .hidden to closest .dd-options"
+            <div _="on click fetch actions/update/{{slot.workday_slug}}/{{slot.shift}}/{{empl}}/ with method:'POST' then
+                    put it into previous .swap-tgt then
+                    add .hidden to previous .dd-button 
+                    then remove .hidden from previous .undo-btn"
               class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
               role="menuitem" tabindex="-1" id="menu-item-0">
+                {% if slot.template_employee == empl %} <i class="fas fa-star"></i> {% endif %}
                 {{ empl }}
                 <span class="text-xs opacity-70 italic">
                   <span class="fetcher"
@@ -50,22 +60,3 @@
   </div>
   
 
-  <script>
-    function showDropdownOptions (event) {
-      const dropdown = event.target.closest('.dd-button');
-      const options = dropdown.closest('.relative').querySelector('.dd-options');
-      options.classList.remove('hidden');
-      // add event listener to add .hidden when click is outside of the dropdown  
-      document.addEventListener('click', function hideDropdownOptions (event) {
-        if (!dropdown.contains(event.target)) {
-          options.classList.add('hidden');
-          document.removeEventListener('click', hideDropdownOptions);
-        }
-      });
-      // send fsignal to fetcher elements
-      const fetchers = options.querySelectorAll('.fetcher');
-      fetchers.forEach(fetcher => {
-        fetcher.dispatchEvent(new CustomEvent('fsignal'));
-      });
-    }
-  </script>

@@ -1,29 +1,48 @@
+<script type="text/hyperscript">
+    behavior activateSort 
+        on click
+            take .text-amber-200 from <th/>
+            end 
+        end
+</script>
+
+{% with '<i class="fa-regular fa-circle-sort"></i>' as sortIcon %}
+
+<div id="unfav-body">
+
+    <h1 class="text-amber-200">Unfavorables</h1>
+
+    <div class="bg-zinc-300 text-black rounded px=2 hover:bg-sky-500 w-fc px-2 mb-2" _="on click fetch actions/clear-all-unfavorables/ then put it into #unfav-body
+                        then send recheck to #n-unfav then send recheck to #n-empty end"> 
+        <i class="fa-duotone fa-broom text-black"></i>    
+        Clear All
+    </div>
 
 
-
-
-<h1 class="text-amber-200">Unfavorables</h1>
-
-<table>
-    <tr>
-        <th class="text-amber-200">Workday</th>
-        <th>Shift</th>
-        <th>Employee</th>
-        <th>Actions</th>
-    </tr>
-
-    {% for slot in data %}
+    <table>
         <tr>
-            <td>{{ slot.workday }}</td>
-            <td>{{ slot.shift }}</td>
-            <td>{{ slot.employee }}</td>
-            <td>
-                <i id="del-{{slot.slug}}" hx-post="{{ slot.clear_url }}" hx-swap="outerHTML" class="fas fa-trash hover:text-red-300"></i>
-            </td>
+            <th class="text-amber-200" _="install activateSort">Workday {{ sortIcon }}</th>
+            <th>Shift</th>
+            <th _="install activateSort">Employee {{ sortIcon }}</th>
+            <th>Actions</th>
         </tr>
-    {% endfor %}
 
-</table>
+        {% for slot in data %}
+            <tr>
+                <td>{{ slot.workday }}</td>
+                <td>{{ slot.shift }}</td>
+                <td>{{ slot.employee }}</td>
+                <td>
+                    <i id="del-{{slot.slug}}" hx-post="{{ slot.clear_url }}" hx-swap="outerHTML" class="fas m-1 fa-trash hover:text-red-300"></i>
+                </td>
+            </tr>
+        {% endfor %}
+
+    </table>
+
+{% endwith %}
+
+</div>
 
 <script>
   /* 

@@ -52,13 +52,17 @@ class SlotSerializer(serializers.ModelSerializer):
     
     employee= serializers.StringRelatedField()
     workday = serializers.StringRelatedField()
+    weekday = serializers.SerializerMethodField()
     shift   = serializers.StringRelatedField()
-    clear_url= serializers.SerializerMethodField()
-    #TODO add edit_url
+    clear_url    = serializers.SerializerMethodField()
+    
+    
     
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.schedule.slug}/actions/clear-slot/{obj.workday.slug}/{obj.shift.name}/'
     
+    def get_weekday (self, obj):
+        return obj.workday.weekday
     
     class Meta:
         model = Slot

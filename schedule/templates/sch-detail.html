@@ -1,49 +1,145 @@
-{% extends 'base.html' %}
-
-
+{% extends 'base.html' %} 
 
 
 {% block content %}
-    <div class="panel text text-center mt-2">
-        <div>
-            <a class="transition hover:scale-105" href="{% url 'schd:detail' schedule.previous.slug %}">
-                <i class="fa-arrow-circle-left fa-duotone transition hover:scale-105"></i>
-            </a>
-            <a class="transition hover:scale-105"  href="{% url 'schd:detail' schedule.next.slug %}">
-                <i class="fa-arrow-circle-right fa-duotone"></i>
-            </a>
-        </div>
-        <h1 class="text-3xl text-zinc-400 font-bold">
-            Schedule {{ schedule.number }} ({{ schedule.year }})
-        </h1> 
-        <h3 class="text-lg text-zinc-100 font-light">
-            VERSION <span id="scheduleVersionId">{{ schedule.version }}</span>
-        </h3>
-        {% include 'sch2/schedule/partials/action-button.html' %}
+<div class="panel text text-center mt-2">
+  <div>
+    <a
+      class="transition hover:scale-105"
+      href="{% url 'schd:detail' schedule.previous.slug %}"
+    >
+      <i class="fa-arrow-circle-left fa-duotone transition hover:scale-105"></i>
+    </a>
+    <a
+      class="transition hover:scale-105"
+      href="{% url 'schd:detail' schedule.next.slug %}"
+    >
+      <i class="fa-arrow-circle-right fa-duotone"></i>
+    </a>
+  </div>
+  <h1 class="text-3xl text-zinc-400 font-bold">
+    Schedule {{ schedule.number }} ({{ schedule.year }})
+  </h1>
+  <h3 class="text-lg text-zinc-100 font-light">
+    VERSION
+    <span id="scheduleVersionId">{{ schedule.version }}</span>
+    <span id="versionEllipsis" class="opacity-50 hover:opacity-90 text-sm"
+      ><i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i
+    ></span>
+  </h3>
+  {% include 'sch2/schedule/partials/action-button.html' %}
+</div>
+
+<div class="flex flex-col">
+  <section>{% include 'sch2/schedule/partials/sch-tabBar.html' %}</section>
+
+  <section>
+    <div class="flex flex-col-reverse md:flex-row md:flex-row mb-1 md:mb-3">
+      {% include 'stats.html' %}
+      <div
+        id="swap-panel"
+        class="container overflow-x-scroll overscroll-x-auto px-1 md:px-4 md:ml-2 bg-zinc-900 rounded shadow border-zinc-300 border-2"
+      >
+        <i id="swap-panel-indic" class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
+      </div>
     </div>
+  </section>
 
-    <div class="flex flex-col">
+  
+</div>
 
-        <section>
-            {% include 'sch2/schedule/partials/sch-tabBar.html' %}
-        </section>
+{% endblock %} 
 
-        <section>
-            <div class="flex flex-col-reverse md:flex-row md:flex-row mb-1 md:mb-3">
-                {% include 'stats.html' %}
-                <div id="swap-panel"
-                    class="container overflow-x-scroll overscroll-x-auto  
-                           px-1 md:px-4 md:ml-2 bg-zinc-900 rounded shadow 
-                           border-zinc-300 border-2">
-                        <i class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
-                </div>
-            </div>
-        </section>
-        
-    </div>
-    
+{% block outside %}
+
+<div id="contextMenu"
+  style="display: none; position: absolute; z-index: 10"
+  class="rounded bg-black bg-opacity-[30%] text-white p-3">
+  <a href="build-alt-draft/" class="hover:underline">Build Alternate Draft Version</a>
+</div>
+
+
+
+<script type="text/javascript">
+
+  function showContextMenu(e) {
+    e.preventDefault();
+    var contextMenu = document.getElementById("contextMenu");
+    contextMenu.style.display = "block";
+    contextMenu.style.left = e.pageX + "px";
+    contextMenu.style.top = e.pageY + "px";
+  }
+
+  function hideContextMenu() {
+    var contextMenu = document.getElementById("contextMenu");
+    contextMenu.style.display = "none";
+  }
+
+  document.addEventListener("click", hideContextMenu);
+  document.getElementById('versionEllipsis').addEventListener("contextmenu", showContextMenu);
+
+  function showVersionEllipsis() {
+    var versionEllipsis = document.getElementById("versionEllipsis");
+    versionEllipsis.style.display = "inline";
+  }
+
+  function hideVersionEllipsis() {
+    var versionEllipsis = document.getElementById("versionEllipsis");
+    versionEllipsis.style.display = "none";
+  }
+
+  function showScheduleVersionId() {
+    var scheduleVersionId = document.getElementById("scheduleVersionId");
+    scheduleVersionId.style.display = "inline";
+  }
+
+  function hideScheduleVersionId() {
+    var scheduleVersionId = document.getElementById("scheduleVersionId");
+    scheduleVersionId.style.display = "none";
+  }
+
+  function showSwapPanel() {
+    var swapPanel = document.getElementById("swap-panel");
+    swapPanel.style.display = "block";
+  }
+
+  function hideSwapPanel() {
+    var swapPanel = document.getElementById("swap-panel");
+    swapPanel.style.display = "none";
+  }
+
+  function showSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap-panel-indic");
+    swapPanelIndic.style.display = "inline";
+  }
+
+  function hideSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap-panel-indic");
+    swapPanelIndic.style.display = "none";
+  }
+
+  function showSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap-panel-indic");
+    swapPanelIndic.style.display = "inline";
+  }
+
+  function hideSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap-panel-indic");
+    swapPanelIndic.style.display = "none";
+  }
+
+  function showSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap-panel-indic");
+    swapPanelIndic.style.display = "inline";
+  }
+
+  function hideSwapPanelIndic() {
+    var swapPanelIndic = document.getElementById("swap");
+  }
+
+
+
+</script>
+
 
 {% endblock %}
-
-
-

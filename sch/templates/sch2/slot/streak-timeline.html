@@ -32,6 +32,12 @@
                 {{ slot.workday.wkd }} {{ slot.workday.date }} 
             </a>
             <p class="text-base transition will-change font-normal text-gray-500 dark:text-gray-400">Day {{ slot.streak__display }}</p>
+            <select>
+                <option value="" disabled selected>{{ slot.fills_with.count }} employees</option>
+                {% for emp in slot.fills_with.all %}
+                    <option value="{{ emp.url }}">{{ emp }}</option>
+                {% endfor %}    
+            </select>
             {% if slot.pto_conflicts.count > 0 %}
                 <form action="{% url 'sch:slot-clear-action' slot.pk %}" method="POST"
                     class="text-base text-2xs text-red-800 bg-red-200 rounded-full px-2 py-1"

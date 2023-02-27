@@ -17,7 +17,7 @@
     </div>
     <div class="inline-flex items-center text-base font-semibold text-gray-100">
         <span id="mistmpl"
-               _="init fetch /api/schedule/{{schedule.slug}}/n-mistemplated/ 
+               _="on load or recheck fetch /api/schedule/{{schedule.slug}}/n-mistemplated/ 
                         set $nMistmpl to result 
                         put $nMistmpl into me
                         if $nMistmpl == 0 add .bg-emerald-300 to #mistemplated-badge 

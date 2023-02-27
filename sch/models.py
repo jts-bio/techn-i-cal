@@ -20,6 +20,7 @@ import json
 from django.http import HttpResponse
 
 
+
 """
 DJANGO PROJECT:     TECHNICAL
 APPLICATION:        FLOW-RATE SCHEDULING (SCH)
@@ -403,6 +404,10 @@ class Shift (models.Model) :
     class Meta:     
         ordering = ['start']
         
+    def percent_templated (self):
+        n = ShiftTemplate.objects.filter(shift=self).count()
+        return int ( (n / (len(self.occur_days) * 6) ) * 100 )  
+    
     def __str__(self) :
         return self.name
     def url(self):
@@ -796,6 +801,7 @@ class Week (models.Model) :
     period      = models.ForeignKey   ("Period", on_delete=models.CASCADE,   null=True,related_name='weeks')
     schedule    = models.ForeignKey   ("Schedule", on_delete=models.CASCADE, null=True,related_name='weeks')
     start_date  = models.DateField    (blank=True, null=True)
+    hours       = models.JSONField (default=dict())
     
     
     class Meta:
@@ -918,9 +924,12 @@ class Week (models.Model) :
         return f'/sch/weeksolve/{self.id}/solve/fill-templates/'
     
     class Actions:
-        def build_workdays (self,instance):
-            for i in instance.dates:
-                Workday.objects.create(date=i,week=instance,period=instance.period,schedule=instance.schedule)       
+        def update_hours (self):
+            self.hours = {
+                empl: self.slots.filter(
+                    employee=empl).aggregate(
+                        Sum('shift__hours'))['shift__hours__sum'] for empl in self.schedule.employees.all()
+            }    
     actions = Actions()
 # ============================================================================  
 class Period (models.Model):
@@ -995,6 +1004,14 @@ class Schedule (models.Model):
             (dt.date(2022,2,5) + dt.timedelta(days=i*42)) for i in range(15)
             ]
         }
+    DEFAULT_DATA = dict(
+        n_empty= 0,
+        percent= 0,
+        pto_conflicts= 0,
+        unfavorables= 0,
+        mistemplated= 0,
+        emusr= 0
+    )
     
     year       = models.IntegerField(null=True,default=None)
     number     = models.IntegerField(null=True,default=None)
@@ -1009,6 +1026,7 @@ class Schedule (models.Model):
     action_log          = models.TextField(default="")
     last_update         = models.DateTimeField(auto_now=True)
     n_empty             = models.IntegerField(default=0)
+    data                = models.JSONField(default=DEFAULT_DATA)
     
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
@@ -1056,6 +1074,11 @@ class Schedule (models.Model):
         if self.slug == "":
             self.slug = f"{self.year}-S{self.number}{self.version}"
         self.last_update = dt.datetime.now()
+        self.percent = int((self.slots.filled().count() / self.slots.all().count()) * 100)
+        self.data['percent'] = self.percent
+        self.data['n_empty'] = self.slots.empty().count()
+        self.data['n_turnarounds'] = self.slots.turnarounds().count()
+        self.data['pto_conflicts'] = self.slots.
         super().save(*args,**kwargs)
         self.post_save()
     def post_save(self):
@@ -1348,6 +1371,7 @@ class LogEvent (models.Model):
 
 class Slot (models.Model) :
     # fields: workday, shift, employee
+    slug           = models.CharField  (max_length=100, null=True)
     workday        = models.ForeignKey ("Workday",  on_delete=models.CASCADE, null=True, related_name='slots')
     shift          = models.ForeignKey ("Shift",    on_delete=models.CASCADE, null=True, related_name='slots')
     employee       = models.ForeignKey ("Employee", on_delete=models.CASCADE, null=True, related_name='slots')
@@ -1446,8 +1470,6 @@ class Slot (models.Model) :
         return (p,n)
     def template (self):
         return ShiftTemplate.objects.filter(sd_id=self.workday.sd_id,shift=self.shift)
-    def slug    (self):
-        return self.workday.slug + '-' + self.shift.name
     def start   (self):
         return dt.datetime.combine(self.workday.date, self.shift.start)
     def end     (self):
@@ -1455,7 +1477,7 @@ class Slot (models.Model) :
     def hours   (self) :
         return (self.shift.duration.total_seconds() - 1800) / 3600 
     def __str__  (self) :
-        return str(self.workday.date.strftime('%y%m%d')) + '-' + str(self.shift) + " " + str(self.employee)
+        return str(self.workday.date.strftime('%Y-%m-%d')) + '-' + str(self.shift)
     def streak__display  (self):
         return f"#{self.streak} of {self.siblings_streak().count() + 1}"
     def get_absolute_url (self):
@@ -1714,17 +1736,19 @@ class Slot (models.Model) :
                 return "ASSIGNED VIA TEMPLATE"
         return
     def save (self, *args, **kwargs):
+        if not self.template_employee:
+            if ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).exists():
+                empl = ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).first().employee
+                self.template_employee = empl
         if self.employee:
             if self.employee.time_pref == self.shift.group :
                 self.is_unfavorable = False 
             else:
                 self.is_unfavorable = True
-        if self.is_preturnaround() | self.is_postturnaround():
-            self.is_turnaround = True
-        else:
-            self.is_turnaround = False
+        self._set_is_turnaround()
         if self.employee :
             self.streak = self._streak()
+            self.slug = self.workday.date.strftime('%Y-%M-%d') + self.schedule.version + "-" + self.shift.name
         super().save(*args, **kwargs)
         self.update_fills_with()
     def update_fills_with (self):
@@ -1980,9 +2004,9 @@ class ShiftPreference (ComputedFieldsModel):
     >>> priority <str> SP/P/N/D/SD
     >>> score    <int> -2/-1/0/1/2
     """
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='shift_prefs')
-    shift    = models.ForeignKey(Shift, on_delete=models.CASCADE, related_name='rel_prefs')
-    priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')
+    employee = models.ForeignKey (Employee, on_delete=models.CASCADE, related_name='shift_prefs')
+    shift    = models.ForeignKey (Shift, on_delete=models.CASCADE, related_name='prefs')
+    priority = models.CharField  (max_length=2, choices=PREF_SCORES, default='N')
 
     @computed (models.IntegerField(), depends=[('self',['priority'])])
     def score (self):

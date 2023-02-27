@@ -116,46 +116,80 @@ class ApiActionViews:
     
     
     def build_dict (request, year, num, version):
+        
+        #basic time data
         start_date = Schedule.START_DATES[year][num]
         pd_nums = [num*2 + i for i in range(3)]
         wk_nums = [num*6 + i for i in range(6)]
         dates = [start_date + dt.timedelta(days=i) for i in range(42)]
-        
-        d = dict(
-            sd_ids=[i for i in range(42)],
-            dates= dates,
-            pd_start_dates=[dates[i] for i in [0, 14, 28]],
-            wk_start_dates=[dates[i] for i in [0, 7, 14, 21, 28, 35]],
-            wds=[(start_date + dt.timedelta(days=i)).strftime('%Y-%m-%d') + version for i in range(42)],
-            iweekday=[i % 7 for i in range(42)],
-            pd_dates=[pd_nums[i//14] for i in range(42)],
-            wk_dates=[wk_nums[i//7] for i in range(42)],
-        )
-        
+        # object creation
+        schedule = Schedule.objects.create(
+                        year=year, 
+                        number=num, 
+                        version=version, 
+                        start_date=start_date,
+                        slug=f"{year}-S{num}{version}"
+                    )
+        schedule.save()
+        pd_start_dates = [dates[i] for i in [0, 14, 28]]
+        pd_nums = [num*2 + i for i in range(3)]
+        pds = []
+        for i in range (3): 
+            pd = Period.objects.create(
+                year=year, start_date=pd_start_dates[i], schedule=schedule, number=pd_nums[i]
+            )
+            pd.save()
+            pds.append(pd)
+        wk_start_dates = [dates[i] for i in [0, 7, 14, 21, 28, 35]]
+        wk_nums = [num*6 + i for i in range(6)]
+        wks = []
+        for i in range(6):
+            wk = Week.objects.create(
+                year=year, start_date=wk_start_dates[i], schedule=schedule, number=wk_nums[i],
+                period= pds[0] if i < 2 else pds[1] if i < 4 else pds[2],
+            )
+            wk.save()
+            wks.append(wk)
+        wdlist = []
         for i in range(42):
-            wd = Workday.objects.create(
-                slug=d['wds'][i],
-                date=d['dates'][i],
-                schedule=Schedule.objects.get_or_create(year=year, number=num, version=version, start_date=start_date,
-                    slug=f"{2022}-S{num}{version}",
-                    iweekday=d['iweekday'][i],
-                    period=Period.objects.get_or_create(
-                        year=year,
-                        start_date=d['pd_start_dates'][i//14],
-                        schedule=Schedule.objects.get_or_create(year=year, number=num, version=version)[0], 
-                        number=d['pd_dates'][i], 
-                        )[0],
-                    week=Week.objects.get_or_create(
-                        year=year,
-                        start_date=d['wk_start_dates'][i//7],
-                        number=d['wk_dates'][i],
-                        schedule=Schedule.objects.get_or_create(year=year, 
-                        number=num, version=version)[0], 
-                        )[0]
-                    ) 
-                )
+                slug=f"{dates[i].strftime('%Y-%m-%d')}{version}"
+                date=dates[i]
+                period= Period.objects.get(
+                    schedule=schedule, 
+                    number=pd_nums[0] if i < 14 else pd_nums[1] if i < 28 else pd_nums[2])
+                week= Week.objects.get(
+                    schedule=schedule,
+                    number=wk_nums[0] if i < 7 else wk_nums[1] if i < 14 else wk_nums[2] if i < 21 else wk_nums[3] if i < 28 else wk_nums[4] if i < 35 else wk_nums[5])
+                iweekday=i % 7
+                sd_id=i
+                wdlist += [Workday(schedule=schedule, slug=slug, date=date, period=period, week=week, iweekday=iweekday, sd_id=sd_id)]
+        for wd in wdlist:
             wd.save()
-        return HttpResponse("Sucessfully built schedule {sch}")
+            slotlist = []
+            for sft in Shift.objects.filter(occur_days__contains=wd.iweekday):
+                period=wd.period
+                week=wd.week
+                shift=sft
+                workday=wd
+                employee=None
+                slotlist += [Slot(schedule=schedule, period=period, week=week, shift=shift, workday=workday, employee=employee )]
+            Slot.objects.bulk_create(slotlist)
+            print(f'slots made for wd {wd}')
+        slots = Slot.objects.filter(schedule=schedule)
+        slots.update()
+        return HttpResponseRedirect(schedule.url())
+    
+    def build_alt_draft (request, schId):
+        # ``
+        sch = Schedule.objects.get(slug=schId) 
+        c = Schedule.objects.filter(year=sch.year, number=sch.number).count()
+        version = 'ABCDEFGHIJ'[c]
+        return ApiActionViews.build_dict(request, sch.year, sch.number, version)
+    
+    def deleteSch (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        sch.delete()
+        return HttpResponseRedirect(reverse('schd:list'))
     
     @csrf_exempt          
     def set__shift_img(request, shiftName):
@@ -172,6 +206,7 @@ class ApiActionViews:
         pto = PtoRequest.objects.get(workday=day,employee__slug=emp)
         pto.delete()
         return HttpResponse("<div class='text-2xs text-sky-200'>DELETED</div>")
+    
     @csrf_exempt
     def ptoreq__create (request, day, emp):
         emp = Employee.objects.get(slug=emp)

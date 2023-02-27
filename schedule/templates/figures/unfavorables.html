@@ -24,17 +24,24 @@
         hx-get="/api/schedule/{{schedule.slug}}/n-unfavorables/"
         hx-trigger='load'
         hx-target="#n-unfav"
-        _="on recheck fetch /api/schedule/{{schedule.slug}}/n-unfavorables/ 
-                put result into #n-unfav end">
+        _="on load or recheck call getnUnfavorables() end">
         <span id="n-unfav"></span>
         <span class="opacity-70 text-2xs font-light italic pl-1"> instances</span>
     </div>
 </div>
 
 
+<script type="text/hyperscript">
+    def getnUnfavorables ()
+        fetch /api/schedule/{{schedule.slug}}/n-unfavorables/ 
+        put result into #n-unfav then log result < 50 then
+        if result < 50 
+            add .bg-emerald-200 to #nUnfavBadge 
+        end
+    end 
+</script>
 
 <script>
-
     function getNUnfavorables() {
         var unfav = document.getElementById("n-unfav").innerHTML;
         var nUnfav = parseInt(empty);

@@ -15,7 +15,9 @@
     <div class="inline-flex items-center text-base font-semibold text-gray-100"
     hx-get="/api/schedule/{{schedule.slug}}/percent/"
     hx-trigger='load'
-    hx-target="#percent">
+    hx-target="#percent"
+    id="percent-check"
+     _="on recheck fetch /api/schedule/{{schedule.slug}}/percent/" then put result into #percent end">
         <span id="percent"></span>
         <span class="opacity-70 text-2xs font-light italic pr-1">%</span>
     </div>

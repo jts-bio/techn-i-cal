@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save, post_delete, pre_save, pre_delete, post_init
 from django.dispatch import receiver
-from .models import Slot, Schedule, ShiftTemplate, TemplatedDayOff, PtoRequest, Employee, Shift, Workday, Week, Period
+from ..sch.models import Slot, Schedule, ShiftTemplate, TemplatedDayOff, PtoRequest, Employee, Shift, Workday, Week, Period
 
 
 # SCHEDULE SIGNALS

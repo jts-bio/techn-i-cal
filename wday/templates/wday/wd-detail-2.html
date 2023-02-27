@@ -38,8 +38,13 @@
 
    </div>
 
+
+
     {# _____ SECTION: SLOT GRID ______ #}
-    <div class="all-shifts  grid grid-cols-2 md:grid-cols-4">
+    <div class="all-shifts  grid grid-cols-2 md:grid-cols-4"
+        _="on click send unfocus to .emp-card 
+            then send unhighlight to .slot 
+            then add .hidden to .trashbin end">
 
         {% for slot in workday.slots.all %}
         <div>
@@ -55,23 +60,34 @@
                  data-time-of-day="{{ slot.shift.group }}"
                  template-employee="{{ slot.template_employee }}"
                  a='0' b='0'
-                 _="on dragover or dragenter if $allow.includes(@id) 
-                        halt the event 
-                        else if @current != $emp add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end end
-                    on dragover or dragenter if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 end
+                 _="on dragover or dragenter 
+                        if $allow.includes(@id) and @current != $emp halt the event 
+                        else if @current != $emp add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end 
+                        end
+                    on dragover or dragenter 
+                        if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 then 
+                        set $empCardScondary to me end
                     on dragleave set $empCardSecondary to `` end
                     on dragleave or dragend remove .ring .ring-2 .ring-green-400 
                                     .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
                                     .bg-red-300 .ring-red-600 end
                     on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-                    on drop remove .ring .ring-2 .ring-green-400 
-                        then send addcard to #inner-slot-{{slot.shift}} then
-                        fetch slot/{{slot.shift}}/update/ then
-                        tell .dragging remove you then add .fa-fade .fa-beat to me then 
-                        fetch /wday/{{slot.workday.slug}}/ as html
-                            then put it into <body/> end
+                    on drop halt the event then call dragDrop(me) then
+                        remove .ring .ring-2 .ring-green-400
+                        add .fa-fade .fa-beat to me then
+                        fetch slot/{{slot.shift}}/update/ then 
+                        remove .fa-fade .fa-beat from me end
                     on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
-                    on hideHl remove .bg-green-600 .ring .ring-green-500 end">
+                    on unhighlight remove .bg-green-600 .ring .ring-green-500 end
+                    on hideHl remove .bg-green-600 .ring .ring-green-500 end
+                    on click 
+                        if $clickmode 
+                            tell .active-emp-card remove you 
+                            then put $empcard into #inner-slot-{{ slot.shift }}
+                            then send unfocus to .emp-card then add .hidden to .trashbin 
+                            then send hideHl to .slot 
+                        end
+                    end">
 
                 <div class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"
                     _="on click wait 200ms then go to url `/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/` 
@@ -123,9 +139,11 @@
             on drop remove .hidden from me then put `Removing $emp` into #trash-message end
             on drop tell .dragging remove you then add .fa-fade .fa-beat to me end 
             on drop call event.dataTransfer.getData('text/plain') then put result into me then
-                fetch delete/ then wait 1000ms then 
-                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html /> 
-                end">
+                fetch delete/ then wait 1ms then 
+                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html/> 
+                end
+            on click fetch delete/ then wait 1ms then tell .active-emp-card remove you then
+                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html/> ">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
             <div id="trash-message animate-pulse" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>
@@ -173,6 +191,16 @@
         USING TEMPLATE: WD-DEFAULT 
     </div>
     
+
+    <script type="text/javascript">
+        function dragDrop(me) {
+            const employee = document.querySelector('.dragging');
+            me.appendChild(employee);
+            employee.classList.remove('dragging');
+          }
+    </script>
+
+
 {% endblock %}
 
 

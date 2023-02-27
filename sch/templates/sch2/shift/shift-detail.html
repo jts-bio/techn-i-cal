@@ -59,7 +59,7 @@
                         <img src="{{ shift.image_url }}" 
                             alt="{{ shift.name }}" 
                             class="w-20 h-20 rounded-full ring-2 ring-zinc-900 
-                                    ring-offset-2 pointer
+                                    ring-offset-2 cursor-pointer
                                     hover:scale-[175%] hover:ring-sky-200 
                                     transition"
                             hx-prompt="Set Shift image via URL:"
@@ -83,6 +83,7 @@
                     <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
                     <tr><th>Duration </th> <td>{{shift.duration}}</td></tr>
                     <tr><th>Occurs on</th> <td>{{ days }}</td></tr>
+                    <tr><th>Percent Templated</th><td>{{ shift.percent_templated }}%</td></tr>
                     <tr></tr>
                     <tfoot>
                     <tr>
@@ -129,7 +130,7 @@
                 href="{{ shift.url__tallies }}"> VIEW TALLIES </a>
             <a class="bg-blue-800 border-blue-700 ring-2 ring-blue-600 rounded px-3 py-1 m-2
                     hover:rounded hover:bg-blue-300 hover:text-blue-800 hover:ring-3 hover:ring-blue-500"
-                href="{% url 'sch:shift-pref-scores' shift.pk %}"> SHIFT PREFERENCE SCORES </a>
+                href="{% url 'sch:shift-pref-scores' shift.name %}"> SHIFT PREFERENCE SCORES </a>
         </div>
 
 

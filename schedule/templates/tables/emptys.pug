@@ -1,0 +1,42 @@
+i#reloader.fas.fa-arrows-spin.text-lg(
+    class="hover:text-sky-300"
+    _="on click add .fa-pulse then fetch actions/update-fills-with/ then put result into #reload-response then wait 1s then call window.loaction.reload() end"
+    )
+
+div#reload-response
+
+table
+    tr
+        th Slot
+        th Tenable Options
+    each slot in data
+        tr
+            td
+                div.flex.flex-row
+                    div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9= slot.shift
+                    div.flex.flex-col.px-1.text-sm
+                        a= slot.workday
+                        div.text-2xs= slot.weekday
+            td
+                include ./empty-dropdown.html
+                if slot.template_employee
+                    | #{slot.template_employee}
+
+script.
+    function showDropdownOptions (event) {
+    const dropdown = event.target.closest('.dd-button');
+    const options = dropdown.closest('.relative').querySelector('.dd-options');
+    options.classList.remove('hidden');
+    // add event listener to add .hidden when click is outside of the dropdown
+    document.addEventListener('click', function hideDropdownOptions (event) {
+    if (!dropdown.contains(event.target)) {
+    options.classList.add('hidden');
+    document.removeEventListener('click', hideDropdownOptions);
+    }
+    });
+    // send fsignal to fetcher elements
+    const fetchers = options.querySelectorAll('.fetcher');
+    fetchers.forEach(fetcher => {
+    fetcher.dispatchEvent(new CustomEvent('fsignal'));
+    });
+    }

@@ -35,22 +35,39 @@
        init if @next-slot == `XN` remove .hidden from #{{employee.pk}}-ind-next-pm end
        on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
        on dragstart set $emp to @id end
-       on dragstart set $allow to my.dataset.available.split(' ') then log $allow end
+       on dragstart set $allow to my.dataset.available.split(' ') end
        on dragstart 
-            if @previous-slot == 'PM' send h1Allowed to .pm-slot 
-            else if @next-slot == 'AM' send h1Allowed to .am-slot end end
-       on dragstart add .dragging end
-       on dragstart set $empCard to me@outerHTML end
+            if @previous-slot == 'PM' send hlAllowed to .pm-slot 
+            else if @next-slot == 'AM' send hlAllowed to .am-slot end end
+       on dragstart add .dragging to me end 
        on dragend remove .ring-green-500 from .slot then remove .dragging from me end
        on dragend set $allow to `` end
        on dragend send hideHl to .slot end
        on dragend add .hidden to .trashbin end
-       on click send unfocus to .employee-chip then send focused to me 
-            then set $emp to @id then 
-            if @previous-slot == 'PM' send h1Allowed to .pm-slot 
-            else if @next-slot == 'AM' send h1Allowed to .am-slot end end
-       on focused  add .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 to me end
-       on unfocus remove .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me end
+       on click 
+                if I match .active-emp-card add .hidden to .trashbin then 
+                    send unfocus to .employee-chip
+                    then send unhighlight to .slot
+                    then set $clickmode to false
+                    then set $emp to `` then set $empcard to `` 
+                else 
+                    send unfocus to .employee-chip then send focused to me 
+                    then send unhighlight to .slot
+                    then set $emp to @id then set $empcard to me then log $empcard
+                    then set $allow to my.dataset.available.split(' ')
+                    then if @slotted-as != `` remove .hidden from .trashbin 
+                    then wait 100ms then set $clickmode to true end
+                end 
+            if @previous-slot == 'PM' 
+                send hlAllowed to .pm-slot 
+            else if @next-slot == 'AM' 
+                send hlAllowed to .am-slot 
+            else 
+                send hlAllowed to .slot
+            end 
+        end
+       on focused  add .active-emp-card .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 to me end
+       on unfocus remove .active-emp-card .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me end
        on dblclick go to url '/sch/employee/{{employee.pk}}/' end ">
     <span id="{{employee.pk}}-ind-prev-am"
         class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
@@ -70,7 +87,7 @@
         {% weekHours employee workday %}-{% periodHours employee workday %}
     </span>
     <span 
-        class="text-3xl font-thin italic opacity-90 text-zinc-800 text-center p-0.5 leading-none rounded-full 
+        class="text-3xl font-extrabold italic text-rose-300 text-center p-0.5 leading-none rounded-full 
                px-2 absolute -translate-y-1/2 -translate-x-1/2 top-1/4 left-1/2 z-20 bg-transparent
                {% if desig == 'PTO' %} text-rose-500 p-1 rounded shadow {% endif %}
                {% if desig == 'TDO' %} text-yellow-600 p-1 rounded shadow {% endif %}">

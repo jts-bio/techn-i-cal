@@ -6,7 +6,8 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import OuterRef, Subquery, Count, Q, F, CharField, Avg
+from django.db.models import OuterRef, Subquery, Count, Q, F, CharField, Avg, Sum
+from django.db.models.functions import Coalesce
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 from flow import views as flow_views
@@ -57,7 +58,6 @@ def schListView(request):
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)
-
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
@@ -148,12 +148,15 @@ class Sections:
         else:
             page = 1
         version = schId[-1]
+        
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
         for d in data:
             d["n_options"] = len(d["fills_with"])
             d["workday_slug"] = d["workday"] + version
-        return render(request, "tables/empty-actionable.html", {"data": data})
+            d["shift"] = d["shift"].replace(" ", "-")
+            
+        return render(request, "tables/emptys.pug", {"data": data})
 
     def schEmusrPage(request, schId):
         from django.db.models.functions import Coalesce
@@ -171,6 +174,7 @@ class Sections:
                 ),
                 0,
             )
+        
         )
         return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
 
@@ -202,6 +206,7 @@ class Sections:
 
 class Actions:
     
+    
     class Updaters:
         
         def update_fills_with (request, schId):
@@ -215,6 +220,118 @@ class Actions:
         return HttpResponse(
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>"
         )
+        
+    def clearUnfavorables (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        n_init = sch.slots.unfavorables().count()
+        sch.slots.unfavorables().update(employee=None)
+        n_final = sch.slots.unfavorables().count()
+        n = n_init - n_final
+        return HttpResponse(
+            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} Unfavorable slots cleared</div>'
+        )
+        
+    def setTemplates (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        n_init = sch.slots.unfavorables().count()
+        to_clear = []
+        to_update = []
+        for employee in sch.employees.all():
+            for tmpl in employee.shift_templates.all():
+                slot = sch.slots.get(workday__sd_id=tmpl.sd_id, shift=tmpl.shift)
+                to_update.append(slot)
+                slot.employee = employee
+                print(slot, slot.employee)
+                if slot.siblings_day.filter(employee=employee).exists():
+                    cslot = slot.siblings_day.filter(employee=employee).first()
+                    to_clear.append(cslot)
+                    cslot.employee = None
+        sch.slots.bulk_update(to_clear, fields=('employee',))
+        sch.slots.bulk_update(to_update, fields=('employee',))
+        sch.routine_log.events.create( 
+            event_type = 'set_templates',
+            data = {
+                'n_cleared': len(to_clear),
+                'n': len(to_update)
+            }
+        )
+        return HttpResponse(
+            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{len(to_update)} Templates set</div>'
+        )
+        
+    def fillWithFavorables (request, schId):
+        from django.db.models import FloatField, Case, When, IntegerField
+        
+        tmpl_response = Actions.setTemplates(request, schId)
+        ptoclear_response = Actions.clearAllPtoConflicts(request, schId)
+     
+        sch = Schedule.objects.get(slug=schId)
+        n = 0
+        results = []
+        slots =  sch.slots.empty().order_by("?")
+        weeks = sch.weeks.all()
+        for week in weeks:
+            week.annotate(
+                
+            )
+        
+        
+        for slot in slots:
+            empls = slot.fills_with.filter(
+                    time_pref= slot.shift.group,
+                ).annotate(
+                hours=Sum(
+                        slot.week.slots.filter(
+                            employee=F("pk"),
+                        ).aggregate(
+                            week_hours=Sum('shift__hours')
+                        )
+                    ), output_field=FloatField()
+                ).annotate(
+                hoursUnder=F('fte')*40  - F('hours')).annotate(
+                        matchingTimePref=Case(
+                            When(time_pref=slot.shift.group, then=1),
+                            default=0,
+                            output_field=IntegerField()
+                        )
+                    ).annotate(
+                hasPtoReq=Case(
+                            When(pto_requests__workday=slot.workday.date, then=1),
+                            default=0,
+                            output_field=IntegerField()
+                        )
+                    ).filter(
+                        hasPtoReq=0, hoursUnder__gt=0, matchingTimePref=1
+                    ).order_by('?')
+            print(list(empls.values_list('pk','hours','hoursUnder')))
+            emplsWd = list(slot.workday.slots.values_list('employee__pk',flat=True).distinct())
+ 
+            es = empls.exclude(pk__in=emplsWd)
+         
+            if es.exists():
+                emp = es.order_by("?").first()
+                for emp in es:
+                    print("\t", f"{emp}", f"hrsUnder:{emp.hoursUnder}", f"CompatibleTime={emp.matchingTimePref}", f"ptoReq:{emp.hasPtoReq}")
+                slot.employee = es.first()
+                week = slot.week
+                week.hours[emp] = slot.week.slots.filter(employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
+                slot.save()
+                week.save()
+                es.first().save()
+                results.append(slot)
+            else:
+                print(f"No Favorables for {slot}")
+        sch.slots.bulk_update(results, fields=('employee',))
+        sch.routine_log.events.create(
+            event_type='fill_with_favorables',
+            data={
+                'n': n,
+            }
+        )
+        return HttpResponse(
+            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled with favorables</div>'
+        )
+
 
     def wdRedirect(request, schId, wd):
         sch = Schedule.objects.get(slug=schId)
@@ -222,7 +339,7 @@ class Actions:
         return HttpResponseRedirect(wday.url())
 
     @csrf_exempt
-    def retemplateAll(request, schId):
+    def retemplateAll (request, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
         for slot in sch.slots.filter(template_employee__isnull=False):
@@ -319,15 +436,21 @@ class Actions:
     @csrf_exempt
     def updateSlot(request, schId, wd, sft, empl):
         employee = Employee.objects.get(slug=empl)
-        slot = Slot.objects.get(
-            schedule=schId, workday__slug__contains=wd, shift__name=sft
-        )
+        sch = Schedule.objects.get(slug=schId)
+        if isinstance(schId, int):
+            slot = Slot.objects.get(
+                schedule__pk=sch, workday__slug__contains=wd, shift__name=sft
+            )
+        else:
+            slot = Slot.objects.get(
+                schedule__slug=sch, workday__slug__contains=wd, shift__name=sft
+            )
         if (
             slot.workday.slots.all()
             .filter(employee=employee)
             .exclude(shift=slot.shift)
             .exists()
-        ):
+            ):
             otherSlot = (
                 slot.workday.slots.all()
                 .filter(employee=employee)
@@ -340,7 +463,7 @@ class Actions:
         slot.save()
         CHECKMARK = "<i class='fas fa-check'></i>"
         return HttpResponse(
-            f"<div class='text-green-300 font-light'>{CHECKMARK} Updated </div>"
+            f"<div class='text-green-300 font-light'>{CHECKMARK} Updated to {employee}</div>"
         )
 
     class EmusrBalancer:

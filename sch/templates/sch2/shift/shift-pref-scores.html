@@ -9,7 +9,7 @@
     
 
     <div class="text text-center w-full">
-        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Explicit Ratings</h1>
+        <h1 class="text-2xl font-extrabold text-amber-400 shadow shadow-lg">{{ shift }} Preference Ratings</h1>
     </div>
     <div class="panel grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-12">
         {% for rating in shift.rel_prefs.all %}
@@ -48,14 +48,13 @@
     </div> 
 
 
-    <div id="contextMenu" class="my-context-menu bg-zinc-900 bg-opacity-75 rounded h-80" style="display: none"> 
+    <div id="contextMenu" class="my-context-menu bg-zinc-900 bg-opacity-75 rounded" style="display: none"> 
         <ul class="mx-1"> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a id="goToContextAnchor" class="text-xs" href="#"><i class="fa fa-share text-xs" aria-hidden="true"></i> View </a></li> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-penci text-xs" aria-hidden="true"></i> Rename</a></li> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-link text-xs" aria-hidden="true"></i> Copy Link Address</a></li> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-paste text-xs" aria-hidden="true"></i> Move to</a></li> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a class="text-xs" href="#"><i class="fa fa-download text-xs" aria-hidden="true"></i> Download</a></li> 
-            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transitioh"><a class="text-xs" href="#"><i class="fa fa-trash text-xs" aria-hidden="true"></i> Delete</a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 text-xs my-1 w-100 transition">
+                <a><i class="fas fa-smile text-xs px-2"></i> Strongly Prefer</a>
+            </li>
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transition"><a id="goToContextAnchor" class="text-xs" href="#"><i class="fa fa-share text-xs px-2"></i> View </a></li> 
+            <li class="h-5 rounded-sm hover:bg-zinc-200 hover:bg-opacity-30 my-1 w-100 transitioh"><a class="text-xs" href="#"><i class="fa fa-trash text-xs px-2"></i> Delete</a></li> 
         </ul> 
     </div> 
 
@@ -76,7 +75,6 @@
             console.log($customContextMenu);
         }
         function emplMouseLeave (event) {
-            console.log("Mouse leave");
             $customContextMenu = false;
             console.log($customContextMenu);
         }
@@ -97,7 +95,7 @@
                 let anchor = document.getElementById("goToContextAnchor");
                 anchor.href = $urlEmployee;
                 anchor.innerHTML = `<i class="fa fa-user text-xs mr-1" aria-hidden="true"></i>` + "View " + $nameEmployee;
-            } else {}
+            } 
         }
 
     
