@@ -3,22 +3,23 @@
   top: 20px;
   right: 20px;
   z-index: 999;
+  padding-top: 12px;
 }
 
 
 .my-toast {
-  background-color:#150a;
-  // very light green 
-  color: #ddd;
+  background-color:#aaea;
+  color: #227;
   border-radius: 4px;
-  padding: 15px;
+  padding: 25px;
   font-size: 14px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: bottom 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  transition: bottom 1.2s ease-in, top 1.2s ease-out ,opacity 0.8s ease-in-out;
   position: relative;
   display: flex;
   align-items: center;
-  margin-top: 7px;
+  margin-top: 2px;
+  font-size: 11px;
 }
 
 .toast-span-success {

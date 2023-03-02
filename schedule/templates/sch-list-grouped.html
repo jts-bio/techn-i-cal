@@ -1,0 +1,25 @@
+
+{% extends 'base.html' %}
+
+{{ schedules }}
+
+{% block content %}
+<div class="place-items-center">
+    {% for schgroup, schlist in schedules.items %}
+        <div class="border px-5 py-2 rounded drop-shadow m-2 w-3/5 center">
+            <div class="flex flex-row">
+                <div>
+                    <div class="font-extrabold text-lg">{{ schgroup }}</div>
+                    <div class="text-zinc-500 text-xs">{{ schlist|length }} version drafts</div>
+                </div>
+                <div>
+                    {% for sch in schlist %}
+                    <span class="mx-3 text-2xs bg-zinc-300 h-3 w-3 px-1 rounded-full text-zinc-800 bg-opacity-40">{{ sch.version }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>    
+{% endblock content %}
+    

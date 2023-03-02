@@ -54,7 +54,7 @@ class ApiViews :
         for e in emusrEmployees:
             n = sch.slots.unfavorables().filter(employee=e).count()
             e.n_unfavorables = n
-        return JsonResponse ({f'{e.name}': e.n_unfavorables for e in emusrEmployees}, safe=False)
+        return JsonResponse ({f'{e.name}': e.n_unfavorables for e in emusrEmployees}, safe=False )
     
     def schedule__get_emusr_range ( request, schId ):
         sch = Schedule.objects.get (slug = schId )
@@ -63,14 +63,14 @@ class ApiViews :
             n = sch.slots.unfavorables().filter(employee=e).count()
             e.n_unfavorables = n
         data = {f'{e.name}': e.n_unfavorables for e in emusrEmployees}
-        return JsonResponse ( max(data.values()) - min(data.values()), safe=False)
+        return JsonResponse ( max(data.values()) - min(data.values()), safe=False )
     
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
         calculatedPercent = int(sch.slots.filled().count()/ sch.slots.count() * 100)
         if sch.percent != calculatedPercent:
             sch.percent = calculatedPercent
-        return JsonResponse ( int(sch.slots.filled().count()/ sch.slots.count() * 100), safe=False)
+        return JsonResponse ( int(sch.slots.filled().count()/ sch.slots.count() * 100), safe=False )
     def schedule__get_n_pto_conflicts (request, schId ):
         sch = Schedule.objects.get( slug=schId)
         return JsonResponse ( sch.slots.conflictsWithPto().count(), safe=False )
@@ -101,7 +101,11 @@ class ApiViews :
         slots = sch.slots.filter(workday__week__number=wk, employee=emp)
         data = {'slots': SlotSerializer(slots, many=True).data }
         return JsonResponse ( data, safe=False )
-   
+    def schedule__get_n_turnarounds (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        for s in sch.slots.turnarounds():
+            s.save()
+        return JsonResponse ( sch.slots.turnarounds().count(), safe=False )
     def employee__week_hours (request, empId, sch, wd):
         emp = Employee.objects.get (slug = empId )
         day = Workday.objects.get (schedule= sch, slug__contains= wd)
@@ -203,12 +207,15 @@ class ApiActionViews:
     
     @csrf_exempt
     def ptoreq__delete (request, day, emp):
+        day = dt.date(*[int(i) for i in day.split('-')])
         pto = PtoRequest.objects.get(workday=day,employee__slug=emp)
         pto.delete()
-        return HttpResponse("<div class='text-2xs text-sky-200'>DELETED</div>")
+        return HttpResponse(f"Request for {emp} deleted")
     
     @csrf_exempt
     def ptoreq__create (request, day, emp):
         emp = Employee.objects.get(slug=emp)
+        day = dt.date(*[int(i) for i in day.split('-')])
         pto = PtoRequest.objects.create(workday=day,employee=emp)
-        return HttpResponse("<div class='text-2xs'>CREATED</div>")
+        pto.save()
+        return HttpResponse(f"Request for {pto.employee.name} created")

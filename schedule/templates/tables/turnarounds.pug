@@ -1,0 +1,16 @@
+
+h3.text-xl Turnarounds 
+
+table.table.table-hover
+  thead
+    tr
+      th Employee 
+      th PM Slot
+      th AM Slot
+  tbody
+    each turnaround in turnarounds
+      tr.bg-zinc-800 
+        td= turnaround.employee 
+        td= turnaround.turnaround_pair
+        td= turnaround 
+        

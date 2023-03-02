@@ -84,10 +84,15 @@
                         if $clickmode 
                             tell .active-emp-card remove you 
                             then put $empcard into #inner-slot-{{ slot.shift }}
-                            then send unfocus to .emp-card then add .hidden to .trashbin 
-                            then send hideHl to .slot 
-                        end
-                    end">
+                            then send unfocus to .emp-card then
+                            wait 20ms then send hidetrash to .trashbin 
+                            then send hideHl to .slot end
+                            call dragDrop(me) then
+                            remove .ring .ring-2 .ring-green-400
+                            add .fa-fade .fa-beat to me then
+                            fetch slot/{{slot.shift}}/update/ then 
+                            remove .fa-fade .fa-beat from me end
+                        end">
 
                 <div class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"
                     _="on click wait 200ms then go to url `/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/` 
@@ -136,6 +141,7 @@
             on fetch:beforeRequest(headers) set headers['empId'] to $emp end
             on dragleave remove .ring .ring-red-200 end
             on drop js event.dataTransfer.dropEffect = 'move' end
+            on drop set :recieved to true end
             on drop remove .hidden from me then put `Removing $emp` into #trash-message end
             on drop tell .dragging remove you then add .fa-fade .fa-beat to me end 
             on drop call event.dataTransfer.getData('text/plain') then put result into me then
@@ -143,15 +149,21 @@
                 fetch /wday/{{slot.workday.slug}}/ then put result into closest <html/> 
                 end
             on click fetch delete/ then wait 1ms then tell .active-emp-card remove you then
-                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html/> ">
+                fetch /wday/{{slot.workday.slug}}/ then put result into closest <html/> end
+            on hidetrash if :recieved != true add .hidden to me end">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
-            <div id="trash-message animate-pulse" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+            <div id="trash-message" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
         </div>
 
     </div>
 
     <hr class="text-white my-3"/>
     
+    <div class="px-8">
+        <span class="jbm text-xs text-zinc-200">ON DECK: {{ workday.on_deck.count }}</span>
+        <span class="jbm text-xs text-zinc-400 px-4">ON PTO: {{ workday.pto.count }}</span>
+        <span class="jbm text-xs text-zinc-200">TEMPLATED OFF: {{ workday.tdo.count }}</span>
+    </div>
     {# _____ SECTION: ON DECK ______ #}
     <div class="container flex flex-rows-1 gap-[50px] bg-zinc-900 snap-mandatory scroll-px-1 
                 shadow-inner border border-white shadow-xl overflow-x-scroll overscroll-x-auto h-50 snap-x">

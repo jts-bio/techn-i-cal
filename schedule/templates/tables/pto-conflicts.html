@@ -18,7 +18,8 @@
                     <div class="bg-gray-600 rounded-full hover:bg-green-700 text-2xs px-2 cursor-pointer"
                         hx-post="actions/clear-all-pto-conflicts/"
                         hx-trigger="click"
-                        hx-target="#conflict-section">EMPTY ALL</div>
+                        hx-target="#conflict-section"
+                        _="on click trigger recheck on ">EMPTY ALL</div>
                 </th>
             </tr>
             {% for slot in ptoconflicts %}
@@ -57,7 +58,7 @@
                 hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
                 hx-trigger="click"
                 hx-target="#emp-pto"
-                _="on click 
+                _="on click
                         remove .bg-orange-800 from .empl-selector then 
                         add .bg-orange-800 to me">
                 {{ employee }}

@@ -80,14 +80,8 @@ week_patterns = [
 pay_period_patterns = [
     # ? ==== Pay Period ==== ?#
     path("v2/period/<str:prdId>/", views2.PeriodViews.detailView, name="period-detail"),
-    path("pay-period/<int:year>/<int:period>/fill-template/",views.PERIOD.periodFillTemplates,
-        name="periodFillTemplate",
-    ),
-    path(
-        "pay-period/<int:year>/<int:period>/preferences/",
-        views.PERIOD.periodPrefBreakdown,
-        name="prefs-pay-period",
-    ),
+    path("pay-period/<int:year>/<int:period>/fill-template/",views.PERIOD.periodFillTemplates,name="periodFillTemplate"),
+    path("pay-period/<int:year>/<int:period>/preferences/",views.PERIOD.periodPrefBreakdown,name="prefs-pay-period"),
 ]
 
 shift_patterns = [
@@ -103,7 +97,6 @@ shift_patterns = [
     path("shift-templates/<int:sftId>/",views.SHIFT.shiftTemplateView,name="shift-template-view",),
     path("v2/shift-pref-scores/<sft>/",views.SHIFT.shiftPrefScores,name="shift-pref-scores"),
     path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
-    
     path('shift/<sft>/prefs/update/', views.SHIFT.shiftPrefUpdate, name='shift-prefs-update'),
 ]
 

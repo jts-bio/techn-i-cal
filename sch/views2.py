@@ -442,6 +442,7 @@ class PeriodViews:
     def detailView(request, prdId):
         html_template = "sch2/period/detail.html"
         period = Period.objects.get(pk=prdId)
+        period.save()
         stats = {}
         stats['main'] = {
             'figure': f"{period.percent()}%",
@@ -543,6 +544,7 @@ class EmployeeChooseSchedule(View):
         employee = Employee.objects.get(pk=empId)
         context = {
             "employee": employee,
-            "schedules": Schedule.objects.all()
+            "schedules": Schedule.objects.all().annotate(
+                num_slots=Count('slots'))
         }
         return render(request, self.template_name, context)

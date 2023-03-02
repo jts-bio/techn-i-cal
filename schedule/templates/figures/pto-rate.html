@@ -16,7 +16,8 @@
             </p>
         </div>
         <div class="inline-flex items-center text-base font-semibold text-gray-100"
-        _="on load fetch /api/schedule/{{schedule.slug}}/n-pto-conflicts/
+        id="pto-check"
+        _="on load or recheck fetch /api/schedule/{{schedule.slug}}/n-pto-conflicts/
             then set @n to result then put it into #pto-rt end 
             on mutation of @n if @n == 0 add .bg-green-300 to #ptoBadge end"
         >

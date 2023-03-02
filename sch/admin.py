@@ -55,8 +55,8 @@ class WeekAdmin(admin.ModelAdmin):
 
 @admin.register(Period)
 class PeriodAdmin(admin.ModelAdmin):
-    fields          = ('number','year', 'schedule', 'start_date', )
-    list_display    = ('number','year','schedule', 'start_date', )
+    fields          = ('number','year', 'schedule', 'start_date', 'hours' )
+    list_display    = ('number','year','schedule', 'start_date', 'hours' )
     
 @admin.register(Schedule)    
 class ScheduleAdmin (admin.ModelAdmin):

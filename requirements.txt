@@ -19,6 +19,7 @@ django-extensions==3.2.1
 django-fast-update==0.2.1
 django-filter
 django-grappelli==3.0.4
+django-group-by==0.3.1
 django-multiselectfield==0.1.12
 django-require-login==1.1.2
 django-rest-framework==0.1.0

@@ -20,6 +20,12 @@ class ShiftSerializer(serializers.ModelSerializer):
         fields = ('__all__')
         
 class WorkdaySerializer(serializers.ModelSerializer):
+    
+    url = serializers.SerializerMethodField()
+    
+    def get_url (self, obj):
+        return f'/wday/{obj.slug}/'
+    
     class Meta:
         model = Workday
         fields = ('__all__')
@@ -36,10 +42,9 @@ class PeriodSerializer(serializers.ModelSerializer):
         
 class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
     
-    slots = serializers.StringRelatedField(many=True)
-
+    slots     = serializers.StringRelatedField(many=True)
     clear_url = serializers.SerializerMethodField()
-    tags = TagListSerializerField()
+    tags      = TagListSerializerField()
     
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.slug}/actions/clear-all/'
@@ -55,11 +60,13 @@ class SlotSerializer(serializers.ModelSerializer):
     weekday = serializers.SerializerMethodField()
     shift   = serializers.StringRelatedField()
     clear_url    = serializers.SerializerMethodField()
-    
-    
+    workday_url  = serializers.SerializerMethodField()
     
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.schedule.slug}/actions/clear-slot/{obj.workday.slug}/{obj.shift.name}/'
+    
+    def get_workday_url (self, obj):
+        return f'/wday/{obj.workday.slug}/'
     
     def get_weekday (self, obj):
         return obj.workday.weekday

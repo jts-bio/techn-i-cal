@@ -25,7 +25,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
     serializer_class = EmployeeSerializer
     
     filter_mappings = {
-        'id'                : 'id',
+        'id'                : 'id__icontains',
         'name'              : 'name__icontains',
         'time_pref'         : 'time_pref__icontains',
         'streak_pref__gte'  : 'streak_pref__gte',

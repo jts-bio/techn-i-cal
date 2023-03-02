@@ -18,6 +18,7 @@ schedule_urls = [
     path('<schId>/n-unfavorables/', ApiViews.schedule__get_n_unfavorables, name='sch__get_n_unfavorables'),
     path('<schId>/n-untrained/', ApiViews.schedule__get_n_untrained, name='sch__get_n_untrained'),
     path('<schId>/untrained-list/', ApiViews.schedule__get_untrained_list, name='sch__get_untrained_list'),
+    path('<schId>/n-turnarounds/', ApiViews.schedule__get_n_turnarounds, name='sch__get_n_turnarounds'),
     path('<schId>/week-excess/<empId>/<wk>/', ApiViews.schedule__employee_excess_week_hours, name='sch__get_week_excess'),
     
 ]

@@ -6,8 +6,10 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import OuterRef, Subquery, Count, Q, F, CharField, Avg, Sum
-from django.db.models.functions import Coalesce
+from django.db.models import (OuterRef, Subquery, Count, 
+                              Q, F, CharField, Avg, Sum, Case, 
+                              When, BooleanField,Value)
+from django.db.models.functions import Coalesce, Concat
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 from flow import views as flow_views
@@ -39,7 +41,7 @@ def schListView(request):
 
     for sch in schedules:
         sch.versionColor = VERSION_COLORS[sch.version]
-        sch.save()
+    
 
     if request.method == "POST":
         sd = request.POST.get("start_date")
@@ -60,6 +62,20 @@ def schListView(request):
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)
+
+
+def groupedScheduleListView (request):
+    yn_pairs = []
+    for sch in Schedule.objects.all():
+        yn_pairs.append((sch.year, sch.number))
+    yn_dict = {}
+    for pair in yn_pairs:
+        yn_dict[f"{pair[0]}-{pair[1]}"] = []
+    for sch in Schedule.objects.all():
+        yn_dict[f"{sch.year}-{sch.number}"].append(sch)
+    
+    
+    return render(request, "sch-list-grouped.html", {"schedules": yn_dict})
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
@@ -128,35 +144,32 @@ class Sections:
     def schPtoGrid(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
-        ptoreqs = PtoRequest.objects.filter(
-            employee=emp,
-            workday__gte=sch.start_date,
-            workday__lte=sch.start_date + dt.timedelta(days=42),
-        )
-
+        days = sch.workdays.all().annotate(employeeHasPto=Count("pto_requests", filter=Q(pto_requests__employee=emp)))
         return render(
-            request, "pto-chart.html", {"ptoreqs": ptoreqs, "sch": sch, "empl": emp}
+            request, "tables/empl-pto-grid.html", {
+                "days": days,
+                "sch": sch, 
+                "employee": emp,
+                }
         )
 
     def schEmusr(request, schId):
-        sch = Schedule.objects.get(slug=schId)
+        sch  = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
 
     def schEmptyList(request, schId):
-        if request.headers.get("page"):
-            page = int(request.headers.get("page"))
-        else:
-            page = 1
         version = schId[-1]
         
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
+        print(data)
         for d in data:
             d["n_options"] = len(d["fills_with"])
             d["workday_slug"] = d["workday"] + version
             d["shift"] = d["shift"].replace(" ", "-")
+            d["workday_url"] = "/wday/" + d["workday_slug"]
             
         return render(request, "tables/emptys.pug", {"data": data})
 
@@ -188,7 +201,7 @@ class Sections:
         return render(
             request,
             "tables/emusr-empl.pug",
-            {"slots": slots, "emp": emp, "sch": sch, "n": n},
+            {"slots": slots, "emp": emp, "sch": sch, "n": n },
         )
 
     def schUntrained(request, schId):
@@ -202,13 +215,15 @@ class Sections:
 
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        data = sch.slots.turnarounds().all()
-        return render(request, "tables/turnarounds.html", {"data": data})
+        turnarounds = sch.slots.turnarounds().preturnarounds().all()
+        return render(request, "tables/turnarounds.pug", {"turnarounds": turnarounds, "sch": sch})
 
 
 class Actions:
-    
-    
+    """
+    SCHEDULE --- ACTION PERFORMING VIEWS
+    """
+
     class Updaters:
         
         def update_fills_with (request, schId):
@@ -286,16 +301,14 @@ class Actions:
             weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours'))
         )
         for slot in slots:
-            empls = slot.fills_with.filter(
-                    time_pref= slot.shift.group,
-                ).annotate(
-                hours=Sum(
-                        slot.week.slots.filter(
+            slot.save()
+            print(slot.fills_with.all())
+            empls = slot.fills_with.all().annotate(
+                hours=Sum(slot.week.slots.filter(
                             employee=F("pk"),
                         ).aggregate(
                             week_hours=Sum('shift__hours')
-                        ) ['week_hours']
-                    )
+                        ) ['week_hours'], output_field=FloatField() )
                 ).annotate(
                 hoursUnder= F('fte') *40  - F('hours'), 
                     ).annotate(
@@ -308,34 +321,33 @@ class Actions:
                             When(pto_requests__workday=slot.workday.date, then=1),
                             default=0,
                         )
-                    ).filter(
-                        hasPtoReq=0, hoursUnder__gt=0, matchingTimePref=1
+                    )
+            print(empls.values('pk','hours','hoursUnder','matchingTimePref','hasPtoReq'))
+            empls = empls.filter(
+                        matchingTimePref=1
                     ).order_by('?')
+                    
             if empls.exists():
                 slot.employee = empls[0]
-                empls[0].save()
                 slot.save()
-                print(empls[0].name, slot.shift.name, slot.workday.date)
-            else:
-                print("no empls")
+          
             
-            emplsWd = list(slot.workday.slots.values_list('employee__pk',flat=True).distinct())
+            emplsWd = slot.siblings_day.values_list('employee__pk',flat=True).distinct()
  
             es = empls.exclude(pk__in=emplsWd)
+            print('es',es)
          
             if es.exists():
                 emp = es.order_by("?").first()
-                for emp in es:
-                    print("\t", f"{emp}", f"hrsUnder:{emp.hoursUnder}", f"CompatibleTime={emp.matchingTimePref}", f"ptoReq:{emp.hasPtoReq}")
-                slot.employee = es.first()
+                
+                slot.employee = emp
                 week = slot.week
-                week.hours[emp] = slot.week.slots.filter(employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
+                week.hours[emp.slug] = slot.week.slots.filter(employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
                 slot.save()
                 week.save()
-                es.first().save()
+                slot.schedule.save()
                 results.append(slot)
-            else:
-                print(f"No Favorables for {slot}")
+                
         schedule.slots.bulk_update(results, fields=('employee',))
         schedule.routine_log.events.create(
             event_type='fill_with_favorables',
@@ -346,7 +358,6 @@ class Actions:
         return HttpResponse(
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled with favorables</div>'
         )
-
 
     def wdRedirect(request, schId, wd):
         sch = Schedule.objects.get(slug=schId)

@@ -1,0 +1,22 @@
+behavior PtoSwitch
+    init
+        if @data-has-pto > 0
+            add .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 to me
+            then remove .hidden from (.fa-circle-check in me)
+            then add .text-blue-400 .font-bold to (.text-md in me)
+        end
+    on click
+        toggle .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 on me
+        then toggle .hidden on (.fa-circle-check in me)
+        then toggle .text-blue-400 .font-bold on (.text-md in me)
+        end
+    on click
+        if @data-has-pto > 0
+            fetch /api/ptoreq/${dayslug}/{{employee.slug}}/actions/create/ then call showToast(response,"success")
+        else if @data-has-pto <= 1
+            fetch /api/ptoreq/${dayslug}/{{employee.slug}}/actions/delete/ then call showToast(response,"info")
+        end
+    end
+    on mouseenter toggle .bg-sky-900 .ring .ring-sky-700 until mouseleave 
+    end
+end
