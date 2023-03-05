@@ -26,7 +26,6 @@ urlpatterns = [
     path('partials/<schId>/log/', Sections.schLogView, name="log"),
     path('partials/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
-    path('partials/<schId>/emusr-page/<emp>/kdeplot/', EmpViews.tallyPlotDataGenerator, name="emusr-empl-kdeplot"),
     
     #~~ ACTIONS ~~#
     path('detail/<schId>/actions/set-templates/', Actions.setTemplates, name="set-templates"),
@@ -44,4 +43,7 @@ urlpatterns = [
     path('detail/<schId>/actions/step=balance-emusr/', Actions.EmusrBalancer.get_tradable_slots, name="step-balancing-emusr"),
     path('detail/<schId>/build-alt-draft/', ApiActionViews.build_alt_draft, name='sch__build_alt_draft'),
     path('detail/<schId>/delete/', ApiActionViews.deleteSch, name='sch__delete'),
+    path('detail/<schId>/actions/clear-prn-slots/', Actions.clearPrnEmployeeSlots, name="clear-prn-slots"),
+    path('detail/<schId>/actions/clear-ot-slots/', Actions.clearOvertimeSlotsByRefillability, name="clear-ot-slots"),
+    
 ] 

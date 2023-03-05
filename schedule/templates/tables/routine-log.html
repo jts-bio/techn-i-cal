@@ -14,10 +14,8 @@
                 <div>{{ v }}</div>
             </div>
         {% endfor %}
-        {% if log.time_since %}
-            <div class="flex flex-col border rounded-sm border-sky-200 m-1 px-2">
-                <div>{{ log.time_since }} days ago</div>
-            </div>
+        {% if log.created_at  %}
+                <p class="italic text-2xs text-sky-300 pt-3">{{ log.created_at|timesince }} ago</p>
         {% endif %}
     </div>
 

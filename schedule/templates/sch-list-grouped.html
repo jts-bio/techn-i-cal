@@ -1,12 +1,16 @@
 
 {% extends 'base.html' %}
 
-{{ schedules }}
+{# LIST OF SCHEDULES // GROUPED #}
 
 {% block content %}
 <div class="place-items-center">
     {% for schgroup, schlist in schedules.items %}
-        <div class="border px-5 py-2 rounded drop-shadow m-2 w-3/5 center">
+        <div class="border px-5 py-2 rounded drop-shadow m-2 w-3/5 center"
+            data-year="{{ schgroup|slice:':4' }}"
+            data-number="{{ schgroup|slice:'5:' }}"
+            data-length="{{ schlist|length }}"
+            _="on click log my.dataset end">
             <div class="flex flex-row">
                 <div>
                     <div class="font-extrabold text-lg">{{ schgroup }}</div>
@@ -14,7 +18,10 @@
                 </div>
                 <div>
                     {% for sch in schlist %}
-                    <span class="mx-3 text-2xs bg-zinc-300 h-3 w-3 px-1 rounded-full text-zinc-800 bg-opacity-40">{{ sch.version }}</span>
+                    <a href="{{sch.url}}" class="mx-3 font-bold text-2xs bg-zinc-300 h-3 w-3 px-1 rounded-full text-zinc-800 bg-opacity-40">
+                        {{ sch.version }}
+                        <span class="text-[7pt] jbm px-1">{{ sch.percent }}%</span>
+                    </a>
                     {% endfor %}
                 </div>
             </div>

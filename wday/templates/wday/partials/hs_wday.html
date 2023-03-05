@@ -1,7 +1,9 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ title }}{% endblock %}
+{% block title %}
+{{ title }}
+{% endblock %}
 
 {% block content %}
     <h1>{{ workday.date }}</h1>
@@ -13,8 +15,10 @@
 
         <div class="bg-zinc-900 px-5 py-2 rounded-lg shadow">
             <span data-available='[{{slot.employee.shifts_available.all}}]'
-                _="on click put my@dataset.available into #output end">
-                {{ slot.employee }}
+                 _="on click 
+                        put my@dataset.available 
+                        into #output 
+                    end">
                 {{ slot.employee }}
             </span>
         </div>

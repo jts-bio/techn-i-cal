@@ -59,10 +59,10 @@ class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
         fields = [
-            'name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','time_pref'
+            'name', 'fte', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','time_pref'
             ] 
         labels = {
-            'fte_14_day' : 'FTE (hrs/ 14 days)',
+            'fte' : 'FTE',
             'cls'        : 'Employee Class',
             'time_pref'  : 'Shift Time Preference'
         }
@@ -499,15 +499,13 @@ class TrainedEmployeeShiftForm (forms.Form):
         super(TrainedEmployeeShiftForm, self).__init__(*args, **kwargs)
         self.fields['is_trained'].label = 'Trained'
         self.fields['is_available'].label = 'Available'
-        
-        
-        
 
 class EmployeeCoworkerSelectForm (forms.Form):
     
     employee = forms.ModelChoiceField(queryset=Employee.objects.all(), widget=forms.Select())
     
-START_DATE_SET = tuple((i,i.strftime("%Y-%m-%d")) for i in SCH_STARTDATE_SET)
+START_DATE_SET = [(Schedule.START_DATES[2023][i], Schedule.START_DATES[2023][i]) for i in range(0, len(Schedule.START_DATES[2023]))]
+
 class GenerateNewScheduleForm (forms.Form):
     
     start_date = forms.ChoiceField(

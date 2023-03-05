@@ -29,6 +29,8 @@ function showToast(message, type) {
                                 "bg-zinc-200", 
                                 "rounded-lg",
                                 "text-sm",
+                                "border-2",
+                                "border-white"
                             );
         
             var icon = document.createElement("i");
@@ -55,7 +57,9 @@ function showToast(message, type) {
 
             var toastspan = document.createElement("span");
             toastspan.classList.add("toast-span",
-                                    "font-bold",
+                                    "text-xs",
+                                    "text-white",
+                                    "font-thin",
                                     "jbm");
             // set the toast type
             if (type == "success") {
@@ -72,7 +76,8 @@ function showToast(message, type) {
             toast.appendChild(icon);
             toast.appendChild(titlespan);
             toast.appendChild(toastspan);
-            toast.appendChild(document.createTextNode(message));
+            // set the toast message
+            toastspan.innerHTML = message;
             // add the toast to the wrapper
             var wrapper = document.getElementById("toast-wrapper");
             wrapper.appendChild(toast);
@@ -82,11 +87,12 @@ function showToast(message, type) {
             setTimeout(function() {
                 toast.style.bottom = "20px";
                 toast.style.opacity =0.85;
-            }, 50);
+            }, 1500);
             // remove the toast after 5 seconds
             setTimeout(function() {
+                toast.style.opacity = 0;
                 wrapper.removeChild(toast);
-            }, 8000);
+            }, 6000);
 }
 
 function mouseOverToast (toast) {

@@ -10,17 +10,42 @@
 
         <ul class="dropdown-menu z-20 absolute overflow-y-visible">
         <li>
-            <div id="favorable-finished" class="dropdown-item hover:bg-indigo-200 font-bold pointer" 
+            <div id="favorable-finished" class="dropdown-item hover:bg-amber-300 font-bold pointer" 
                  hx-get="actions/fill-with-favorables/"
-                 hx-target="#favorable-finished"
+                 hx-swao="none"
                  hx-indicator="#favorable-indicator"
-                 _="on click add .active to me then send recheck to me end 
-                 on recheck repeat while #favorable-finished matches .active
-                     trigger recheck on #n-empty-check 
-                     wait 1s
+                 _="on click 
+                        remove .hidden from #action-button-indicator
+                        add .active to me 
+                        then send recheck to me end 
+                    on recheck 
+                        repeat while #favorable-finished matches .active
+                            trigger recheck on #n-empty-check 
+                            wait 1s
+                        end">
+                 <i class="fa-regular fa-smile text-lg text-amber-500"></i> Fill Favorables <span id="favorable-indicator" class="fa-spinner fa-pulse htmx-indicator"></span>
+                    <div class="text-2xs font-thin text-amber-700"> 
+                        ASSIGNMENTS WILL BE MADE ONLY ON 
+                        <br/>PREFFERED TIME OF DAY
+                    </div>
+                </div>
+        </li>
+        <li>
+            <div id="template-finished" class="dropdown-item hover:bg-indigo-200 font-bold cursor-pointer" 
+                 hx-get="actions/set-templates/"
+                 hx-swap="none"
+                 hx-indicator="#template-indicator"
+                 _="on click 
+                        remove .hidden from #action-button-indicator
+                        add .active to me 
+                        then send recheck to me end 
+                 on recheck 
+                        repeat while #template-finished matches .active
+                            trigger recheck on #n-empty-check 
+                            wait 1s
                  end">
-                 <i class="fa-duotone fa-smile text-lg text-indigo-500"></i> Fill Favorables <span id="favorable-indicator" class="fa-spinner fa-pulse htmx-indicator"></span>
-                    <div class="text-2xs font-thin text-indigo-700"> 
+                 <i class="fa-duotone fa-folder-open text-amber-500"></i> Fill Templates <span id="template-indicator" class="fa-spinner fa-pulse htmx-indicator"></span>
+                    <div class="text-2xs font-thin text-amber-700"> 
                         ASSIGNMENTS WILL BE MADE ONLY ON 
                         <br/>PREFFERED TIME OF DAY
                     </div>
@@ -31,7 +56,8 @@
                 hx-target="#actionMarker"
                 hx-trigger="click"
                 id="solveA"
-                 _="on click add .active to me then send recheck to me end 
+                 _="on click remove .hidden from #action-button-indicator
+                        add .active to me then send recheck to me end 
                     on recheck repeat while #solveA matches .active
                         trigger recheck on #n-empty-check 
                         wait 1s
@@ -46,7 +72,8 @@
                                 </li>
         <li> <a class="dropdown-item hover:bg-indigo-200 font-bold pointer" 
                 href="{{ schedule.url__solve }}"
-                _="on click fetch modal/ then append result to end of body end"> 
+                _="on click remove .hidden from #action-button-indicator 
+                        fetch modal/ then append result to end of body end"> 
                                         <i class="fa-duotone fa-function text-lg text-indigo-500"></i>
                                             Solve:  Method B 
                                         <div class="text-2xs font-thin text-indigo-700">
@@ -60,7 +87,8 @@
                 hx-trigger="click"
                 hx-target="#actionMarker"
                 id="solveC"
-                _ ="on click add .active to me then send recheck to me end 
+                _ ="on click remove .hidden from #action-button-indicator
+                        add .active to me then send recheck to me end 
                     on recheck repeat while #solveC matches .active
                         trigger recheck on #n-empty-check 
                         wait 1s
@@ -77,8 +105,9 @@
 
         <li><div class="dropdown-item hover:bg-sky-200 font-bold pointer"
                 data-link="{% url 'sch:sch-clear-over-fte' schedule.slug %}"
-                _="on click call prompt('This action will delete some assigned slots within the schedule. To continue, please type `verify`') then
-                    set x to result then log x
+                _="on click remove .hidden from #action-button-indicator
+                        call prompt('This action will delete some assigned slots within the schedule. To continue, please type `verify`') then
+                        set x to result then log x
                         if x is not 'verify' then go to the top of body smoothly then call showToast('Action canceled','warn') 
                         if x is 'verify' call showToast('Maintainance script is running.','info') then log my.dataset.link then fetch my.dataset.link end">
                                         <i class="fa-duotone 
@@ -94,11 +123,9 @@
         <li><hr class="dropdown-divider"></li>
         <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300 pointer"
                 hx-target="#actionMarker"
-                _="on click call prompt('This action will delete all assigned slots within the schedule. To continue, please type `clear`') then
-                    if result is not 'clear' 
-                        go to the top of body smoothly then call showToast('No action taken-- Slot Clearing was not properly verified.','warn') 
-                    else if result is 'clear' 
-                        fetch actions/clear-all/ with method:'POST' then 
+                _="on click remove .hidden from #action-button-indicator
+                        call confirm ('Cleqr ALL slot assignments? This action cannot be undone.')
+                        if result is true fetch actions/clear-all/ with method:'POST' then 
                         wait 200ms then call window.location.reload() end">
                     <i class="fa-duotone fa-eraser text-red-800"></i>
                         Clear Slots

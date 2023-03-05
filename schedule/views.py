@@ -6,17 +6,18 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
-from django.db.models import (OuterRef, Subquery, Count, 
-                              Q, F, CharField, Avg, Sum, Case, 
-                              When, BooleanField,Value)
+from django.db.models import ( OuterRef, Subquery, Count,
+                              Q, F, CharField, Avg, Sum, Case,
+                              When, BooleanField, Value )
 from django.db.models.functions import Coalesce, Concat
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 from flow import views as flow_views
 
 from django.db import models
+from django.contrib import messages
 
-from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest
+from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog
 import json
 
 
@@ -32,16 +33,20 @@ def schListView(request):
         "B": "emerald",
         "C": "blue",
         "D": "pink",
+        "E": "rose",
+        "F": "purple",
+        "G": "orange",
+        "H": "sky",
     }
     schedules = Schedule.objects.annotate(
-        nEmpty= Count("slots", filter=Q(slots__employee=None))
+        nEmpty=Count("slots", filter=Q(slots__employee=None))
     )
+    
     for schedule in schedules:
         schedule.n_empty = schedule.nEmpty
 
     for sch in schedules:
         sch.versionColor = VERSION_COLORS[sch.version]
-    
 
     if request.method == "POST":
         sd = request.POST.get("start_date")
@@ -54,7 +59,8 @@ def schListView(request):
             idate = idate - dt.timedelta(days=42)
         generate_schedule(year=start_date.year, number=i)
         return render(
-            request, "sch-list.html", {"schedules": schedules.order_by("-start_date")}
+            request, "sch-list.html", {
+                "schedules": schedules.order_by("-start_date")}
         )
 
     context = {
@@ -64,7 +70,7 @@ def schListView(request):
     return render(request, "sch-list.html", context)
 
 
-def groupedScheduleListView (request):
+def groupedScheduleListView(request):
     yn_pairs = []
     for sch in Schedule.objects.all():
         yn_pairs.append((sch.year, sch.number))
@@ -73,9 +79,8 @@ def groupedScheduleListView (request):
         yn_dict[f"{pair[0]}-{pair[1]}"] = []
     for sch in Schedule.objects.all():
         yn_dict[f"{sch.year}-{sch.number}"].append(sch)
-    
-    
     return render(request, "sch-list-grouped.html", {"schedules": yn_dict})
+
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
@@ -84,6 +89,7 @@ def schDetailView(request, schId):
 
 
 class Sections:
+    
     def modal(request):
         return render(request, "modal.html")
 
@@ -144,24 +150,30 @@ class Sections:
     def schPtoGrid(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
-        days = sch.workdays.all().annotate(employeeHasPto=Count("pto_requests", filter=Q(pto_requests__employee=emp)))
+        ptos = sch.workdays.filter(pto_requests__employee=emp)
+        days = sch.workdays.annotate(
+            emplPto=Count("pto_requests", filter=Q(pto_requests__employee=emp))
+        ).annotate(
+            emplShift=Count("slots", filter=Q(slots__employee=emp))
+        )
         return render(
             request, "tables/empl-pto-grid.html", {
-                "days": days,
-                "sch": sch, 
+                "ptos": ptos,
+                "sch": sch,
                 "employee": emp,
-                }
+                "days": days,
+            }
         )
 
     def schEmusr(request, schId):
-        sch  = Schedule.objects.get(slug=schId)
+        sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
 
     def schEmptyList(request, schId):
         version = schId[-1]
-        
+
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
         print(data)
@@ -170,7 +182,7 @@ class Sections:
             d["workday_slug"] = d["workday"] + version
             d["shift"] = d["shift"].replace(" ", "-")
             d["workday_url"] = "/wday/" + d["workday_slug"]
-            
+
         return render(request, "tables/emptys.pug", {"data": data})
 
     def schEmusrPage(request, schId):
@@ -189,7 +201,7 @@ class Sections:
                 ),
                 0,
             )
-        
+
         )
         return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
 
@@ -201,7 +213,7 @@ class Sections:
         return render(
             request,
             "tables/emusr-empl.pug",
-            {"slots": slots, "emp": emp, "sch": sch, "n": n },
+            {"slots": slots, "emp": emp, "sch": sch, "n": n},
         )
 
     def schUntrained(request, schId):
@@ -225,20 +237,20 @@ class Actions:
     """
 
     class Updaters:
-        
-        def update_fills_with (request, schId):
+
+        def update_fills_with(request, schId):
             for slot in Schedule.objects.get(slug=schId).slots.empty():
                 slot.update_fills_with()
             return HttpResponse("<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>")
-    
+
     def clearUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.slots.untrained().update(employee=None)
         return HttpResponse(
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>"
         )
-        
-    def clearUnfavorables (request, schId):
+
+    def clearUnfavorables(request, schId):
         sch = Schedule.objects.get(slug=schId)
         n_init = sch.slots.unfavorables().count()
         sch.slots.unfavorables().update(employee=None)
@@ -247,112 +259,114 @@ class Actions:
         return HttpResponse(
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} Unfavorable slots cleared</div>'
         )
-        
-    def setTemplates (request, schId):
+
+    def setTemplates(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        n_init = sch.slots.unfavorables().count()
-        to_clear = []
+        to_clear  = []
         to_update = []
         for employee in sch.employees.all():
-            for tmpl in employee.shift_templates.all():
-                slot = sch.slots.get(workday__sd_id=tmpl.sd_id, shift=tmpl.shift)
+            ptoreqs = employee.pto_requests.filter(workday__gte=sch.start_date, workday__lte=sch.end_date).values('sd_id')
+            for tmpl in employee.shift_templates.exclude(sd_id__in=ptoreqs):
+                slot = sch.slots.get(
+                    workday__sd_id=tmpl.sd_id, shift=tmpl.shift)
                 to_update.append(slot)
                 slot.employee = employee
-                print(slot, slot.employee)
                 if slot.siblings_day.filter(employee=employee).exists():
-                    cslot = slot.siblings_day.filter(employee=employee).first()
-                    to_clear.append(cslot)
-                    cslot.employee = None
+                        cslot = slot.siblings_day.filter(employee=employee).first()
+                        to_clear.append(cslot)
+                        cslot.employee = None
         sch.slots.bulk_update(to_clear, fields=('employee',))
         sch.slots.bulk_update(to_update, fields=('employee',))
-        sch.routine_log.events.create( 
-            event_type = 'set_templates',
-            data = {
+        sch.routine_log.events.create(
+            event_type='set_templates',
+            data={
                 'n_cleared': len(to_clear),
-                'n': len(to_update)
+                'n'        : len(to_update)
             }
         )
         return HttpResponse(
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{len(to_update)} Templates set</div>'
         )
-        
-    def fillWithFavorables (request, schId):
+
+    def fillWithFavorables(request, schId):
         from django.db.models import FloatField, Case, When, IntegerField
-        
+
         tmpl_response = Actions.setTemplates(request, schId)
         ptoclear_response = Actions.clearAllPtoConflicts(request, schId)
-     
+
         schedule = Schedule.objects.get(slug=schId)
         n = 0
+        timei = dt.datetime.now()
         results = []
-        slots =  schedule.slots.empty().order_by("?")
+        slots = schedule.slots.empty()
 
         from django.db.models import Case, When, Sum, IntegerField
         from django.contrib.postgres.aggregates import ArrayAgg
         from django.contrib.postgres.fields import ArrayField
         weeks = schedule.weeks.all()
-        slots_subquery = slots.filter(employee=OuterRef('employee'), week=OuterRef('week'))
+        slots_subquery = slots.filter(
+            employee=OuterRef('employee'), week=OuterRef('week'))
         employees = Employee.objects.annotate(
-            weekHours_0=Subquery(slots.filter(week=weeks[0], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_1=Subquery(slots.filter(week=weeks[1], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_2=Subquery(slots.filter(week=weeks[2], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_3=Subquery(slots.filter(week=weeks[3], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_4=Subquery(slots.filter(week=weeks[4], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef('pk')).annotate(hours=Sum('shift__hours')).values('hours'))
+            weekHours_0=Subquery(slots.filter(week=weeks[0], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_1=Subquery(slots.filter(week=weeks[1], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_2=Subquery(slots.filter(week=weeks[2], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_3=Subquery(slots.filter(week=weeks[3], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_4=Subquery(slots.filter(week=weeks[4], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
+            weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef(
+                'pk')).annotate(hours=Sum('shift__hours')).values('hours'))
         )
+        
         for slot in slots:
-            slot.save()
-            print(slot.fills_with.all())
+            print('Before FILTER:', [e.slug for e in slot.fills_with.all()])
             empls = slot.fills_with.all().annotate(
                 hours=Sum(slot.week.slots.filter(
-                            employee=F("pk"),
-                        ).aggregate(
-                            week_hours=Sum('shift__hours')
-                        ) ['week_hours'], output_field=FloatField() )
-                ).annotate(
-                hoursUnder= F('fte') *40  - F('hours'), 
-                    ).annotate(
+                    employee=F("pk"),
+                ).aggregate(
+                    week_hours=Sum('shift__hours')
+                )['week_hours'], output_field=FloatField())
+            ).annotate(
+                hoursUnder=F('fte') * 40 - F('hours'),
+            ).annotate(
                 matchingTimePref=Case(
-                            When(time_pref=slot.shift.group, then=1),
-                            default=0,
-                        )
-                    ).annotate(
+                    When(time_pref=slot.shift.group, then=1),
+                    default=0,
+                )
+            ).annotate(
                 hasPtoReq=Case(
-                            When(pto_requests__workday=slot.workday.date, then=1),
-                            default=0,
-                        )
-                    )
-            print(empls.values('pk','hours','hoursUnder','matchingTimePref','hasPtoReq'))
-            empls = empls.filter(
-                        matchingTimePref=1
-                    ).order_by('?')
-                    
-            if empls.exists():
-                slot.employee = empls[0]
-                slot.save()
-          
+                    When(pto_requests__workday=slot.workday.date, then=1),
+                    default=0,
+                )
+            )
             
-            emplsWd = slot.siblings_day.values_list('employee__pk',flat=True).distinct()
- 
-            es = empls.exclude(pk__in=emplsWd)
-            print('es',es)
-         
+            es = empls.filter(matchingTimePref=1).exclude(pk__in=slot.day_coworkers().all())
+            print('After FILTER: ', [e.slug for e in es.all()])
+
             if es.exists():
                 emp = es.order_by("?").first()
-                
+
                 slot.employee = emp
                 week = slot.week
-                week.hours[emp.slug] = slot.week.slots.filter(employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
-                slot.save()
-                week.save()
-                slot.schedule.save()
+                week.hours[emp.slug] = slot.week.slots.filter(
+                    employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
+                for sibslot in slot.siblings_day: 
+                    sibslot.fills_with.remove(emp)
+                    print('removing sibslots')
                 results.append(slot)
-                
+                n+=1
+
         schedule.slots.bulk_update(results, fields=('employee',))
+        timef = dt.datetime.now()
         schedule.routine_log.events.create(
             event_type='fill_with_favorables',
             data={
                 'n': n,
+                'time': f'{(timef - timei).seconds} seconds',
+                
             }
         )
         return HttpResponse(
@@ -365,7 +379,7 @@ class Actions:
         return HttpResponseRedirect(wday.url())
 
     @csrf_exempt
-    def retemplateAll (request, schId):
+    def retemplateAll(request, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
         for slot in sch.slots.filter(template_employee__isnull=False):
@@ -411,7 +425,8 @@ class Actions:
     def clearAll(request, schId):
         sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
-            sch.actions.deleteSlots(sch)
+            sch.actions.clearSlots(sch)
+            messages.success(request, "All slots cleared")
             return render(
                 request,
                 "data-responses/clearAll.html",
@@ -476,7 +491,7 @@ class Actions:
             .filter(employee=employee)
             .exclude(shift=slot.shift)
             .exists()
-            ):
+        ):
             otherSlot = (
                 slot.workday.slots.all()
                 .filter(employee=employee)
@@ -494,7 +509,8 @@ class Actions:
 
     class EmusrBalancer:
         def select_max_min_employees(request, schId):
-            emusr_data = flow_views.ApiViews.schedule__get_emusr_list(request, schId)
+            emusr_data = flow_views.ApiViews.schedule__get_emusr_list(
+                request, schId)
             data = json.loads(emusr_data.content)
             max_val = max(data.values())
             max_empl = [k for k, v in data.items() if v == max_val][0]
@@ -505,7 +521,8 @@ class Actions:
         def get_tradable_slots(request, schId):
             tradables = []
             empls = json.loads(
-                Actions.EmusrBalancer.select_max_min_employees(request, schId).content
+                Actions.EmusrBalancer.select_max_min_employees(
+                    request, schId).content
             )
             for slot in Slot.objects.filter(
                 schedule__slug=schId, employee=empls["max"], is_unfavorable=True
@@ -516,10 +533,47 @@ class Actions:
                 "empl_sentiment"
             )
 
+    @csrf_exempt
     def clearOvertimeSlotsByRefillability(request, schId):
+        n = 0
         sch = Schedule.objects.get(slug=schId)
-        for empl in sch.employees.all():
-            emplSlots = sch.slots.filter(employee=empl)
-            emplSlots = emplSlots.annotate(n_fillableBy=Count(F("fills_with")))
-            if sum(list(emplSlots.values_list("shift__hours", flat=True))) > 40:
-                print(emplSlots.order_by("empl_sentiment", "n_fillableBy"))
+        for week in sch.weeks.all():
+            week.actions.update_hours(week)
+            for empl in sch.employees.all():
+                if week.hours[empl.slug] > 40:
+                    print(f"{empl} has overtime")
+                    emplSlots = week.slots.filter(employee=empl).annotate(
+                        n_fillableBy=Count(F("fills_with")))  
+                    print([(s.n_fillableBy, s.shift.name) for s in emplSlots])
+                    while week.hours[empl.slug] > 40:
+                        slots = emplSlots.order_by('-n_fillableBy')
+                        if slots.count() > 0:
+                            slot = slots.first()
+                            slot.employee = None
+                            slot.save()
+                            n += 1
+                            week.hours[empl.slug] -= slot.shift.hours
+                            print(f"{empl} -{slot.shift.hours}hrs")
+                        else:
+                            print(f"Could not clear {empl} slots")
+                            break
+            else:
+                print(f"{empl} has no overtime")
+        return HttpResponse(f"{n} Overtime slots cleared")
+
+    @csrf_exempt
+    def clearPrnEmployeeSlots(request, schId):
+        sch = Schedule.objects.get(slug=schId)  # type:Schedule
+        prn_employees = sch.employees.prn_employees()
+        prn_slots = sch.slots.filter(employee__in=prn_employees)
+        n = prn_slots.count()
+        prn_slots.update(employee=None)
+        sch.save()
+        if sch.routine_log:
+            rl = sch.routine_log  # type:RoutineLog
+            rl.add("Clear PRN Employee Slots", f"{n} slots cleared", {
+                'prn_employees': f'{prn_employees.count()}',
+                'slots_cleared': f'{n}',
+                'schedule %': sch.percent,
+                })
+        return HttpResponse(f"PRN employees cleared from {n} slots")

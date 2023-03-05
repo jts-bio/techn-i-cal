@@ -17,8 +17,7 @@ class EmployeeAdmin(admin.ModelAdmin):
     fields          = ['name','fte_14_day','fte', 'streak_pref',
                        'shifts_trained', 'shifts_available',
                        'trade_one_offs', 'cls', 'time_pref']
-    readonly_fields = ['fte']
-    list_display    = ['name', 'fte_14_day', 'streak_pref', 'cls', 'time_pref']
+    list_display    = ['name', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
 
 @admin.register(Workday)
 class WorkdayAdmin(admin.ModelAdmin):

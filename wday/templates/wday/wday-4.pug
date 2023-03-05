@@ -1,30 +1,34 @@
 extends 'base.html'
+
+mixin slot(slot)
+    div.slot
+        div.bg-zinc-900.rounded.p-3 
+            div.shift-name= slot.shift.name
+            div.employee(draggable='true', data-employee-id=slot.employee.pk)
+                div.bg-slate-700.rounded.p-3.border-white.border.h-24.w-24.m-1
+                    img(src=slot.employee.image_url draggable='false').w-10.h-10.rounded-full
+                    span= slot.employee.name
+mixin small-slot(empl)
+    .employee(draggable='true', data-employee-id=empl.pk)
+                    .bg-slate-700.rounded.p-3.border-white.border.h-24.w-24.m-1
+                        img(src=empl.image_url draggable="false").w-10.h-10.rounded-full
+                        span.font-thin= empl.name.upper
+
+
+block style 
+    style
+        |SlotGrid      {display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 1rem;@extends .p-3; grid grid-cols-3; @extends .gap-4; @extends .mx-12;}
+        |ScrollingDeck {display: flex; flex-direction: row; overflow-x: scroll; @extends .mx-12;}
+
 block content 
 
     h1 Slots 
 
-    div#slots.grid.grid-cols-3.lg-grid-cols-6.gap-4.mx-12
+    SlotGrid
         for slot in slots
-            .slot
-                .bg-zinc-900.rounded.p-3 
-                    .shift-name= slot.shift.name
-                    .employee(draggable='true', data-employee-id=slot.employee.pk)
-                        .bg-slate-700.rounded.p-3.border-white.border
-                            img(src=slot.employee.image_url ).w-10.h-10.rounded-full
-                            span= slot.employee.name
-        
-    div.flex.flex-row.overflow-x-scroll 
+            +slot(slot)
 
+    ScrollingDeck
         for empl in workday.on_deck.all
-            .employee(draggable='true', data-employee-id=slot.employee.pk)
-                .bg-slate-700.rounded.p-3.border-white.border
-                    img.w-5.h-5(src=empl.image_url ).w-10.h-10.rounded-full
-                    span.font-thin= empl.name.upper
-
-    if slot.fills_with
-        for emp in slot.fills_with.all
-            div.text-xs(_="on click set my *background-color to red end")= emp.name
-
-
-    script
-        include wday/static/main.js
+            +small-slot(empl)
+            

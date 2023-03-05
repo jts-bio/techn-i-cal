@@ -4,7 +4,8 @@
 <div class="flex items-center space-x-4 cursor-pointer"
     hx-get="{% url 'schd:unfavorables' schedule.slug %}"
     hx-trigger="click"
-    hx-target="#swap-panel">
+    hx-target="#swap-panel"
+    _="on click send recheck to #n-unfav-check end">
     <div class="flex-shrink-0">
         <div id="nUnfavBadge"
             class="h-7 w-7 pl-[3.5px] pt-[1.5px] rounded-full border border-white  bg-amber-300">

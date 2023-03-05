@@ -1,21 +1,26 @@
 <script type="text/hyperscript"> 
     {% include 'tables/hs/pto-switch._hs' %}
 </script>
-
+    <div class="bg-blue-400 bg-opacity-20 rounded text-blue-100 font-bold text-lg px-4 h-20 border border-dashed">
+        {{ employee.name }} PTO Requests 
+    </div>
     <div class="grid grid-cols-7">
         {% for day in days %}
+        
             <div class="day-button border rounded p-4 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300"
                 id="{{day.date|date:'Y-m-d'}}"
-                data-has-pto= "{{day.employeeHasPto}}" 
-                data-has-shift= "{{day.employeeHasShift}}"
-                _="install PtoSwitch"
-                >
+                data-has-pto= "{{day.emplPto}}" 
+                data-has-shift= "{{day.emplShift}}"
+                data-delete-url="/api/ptoreq/{{day.date|date:'Y-m-d'}}/{{employee.slug}}/actions/delete/"
+                data-create-url="/api/ptoreq/{{day.date|date:'Y-m-d'}}/{{employee.slug}}/actions/create/"
+                _="install PtoSwitch">
                 <div class="flex flex-row">
                     <h3 class="text-md">{{day.date.month}}/{{day.date.day}}</h3>
-                    <i class="fa-duotone fa-circle-check hidden px-1 text-xs text-blue-500"></i>
+                    <i class="fa-duotone fa-circle-check hidden px-2 text-xs text-blue-500"></i>
                 </div>
                 <p class="text-[9px]">{{day.weekday}}</p>
             </div>
+
         {% endfor %}
     </div>
     

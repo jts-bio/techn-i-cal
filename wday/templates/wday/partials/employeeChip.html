@@ -12,70 +12,20 @@
     draggable="true" 
     data-available="{% for s in employee.shifts_available.all %}{{ s }} {% endfor %}"
     data-trained="{% for s in employee.shifts_trained.all %} {{ s }} {% endfor %}"
-    turnaround="{% if slot.is_preturnaround %} -1
-                {% elif slot.is_postturnaround %} 1
-                {% else %} 0 {% endif %}"
+    turnaround="{% if slot.is_preturnaround %} -1 {% elif slot.is_postturnaround %} 1 {% else %} 0 {% endif %}"
     week-hours="{% weekHours employee workday %}"
     period-hours="{% periodHours employee workday %}" 
     slotted-as="{{ slot.shift }}"
     is_pto_conflict="{% if slot.pto_conflicts.exists %}true{% else %}false{% endif %}"
     previous-slot="{% emplPrevSlot employee workday %}"
     next-slot="{% emplNextSlot employee workday %}"
-    _="init if @week-hours > 40 add .bg-red-500 to .clock in me end
-       init if @period-hours > 80 add .bg-red-500 to .clock in me end
-       init if @week-hours == 40 add .bg-slate-900 .text-white to .clock in me end
-       init if @period-hours == 80 add .bg-slate-900 .text-white to .clock in me end
-       init if @turnaround != 0 add .bg-rose-700 .bg-opacity-30 end
-       init if @is_pto_conflict == 'true' add .bg-red-400 .bg-opacity-30 end
-       init if @previous-slot == `AM` remove .hidden from #{{employee.pk}}-ind-prev-am end
-       init if @previous-slot == `PM` remove .hidden from #{{employee.pk}}-ind-prev-pm end
-       init if @previous-slot == `XN` remove .hidden from #{{employee.pk}}-ind-prev-pm end
-       init if @next-slot == `AM` remove .hidden from #{{employee.pk}}-ind-next-am end
-       init if @next-slot == `PM` remove .hidden from #{{employee.pk}}-ind-next-pm end
-       init if @next-slot == `XN` remove .hidden from #{{employee.pk}}-ind-next-pm end
-       on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
-       on dragstart set $emp to @id end
-       on dragstart set $allow to my.dataset.available.split(' ') end
-       on dragstart 
-            if @previous-slot == 'PM' send hlAllowed to .pm-slot 
-            else if @next-slot == 'AM' send hlAllowed to .am-slot end end
-       on dragstart add .dragging to me end 
-       on dragend remove .ring-green-500 from .slot then remove .dragging from me end
-       on dragend send hideHl to .slot end
-       on dragend add .hidden to .trashbin end
-       on click 
-                if I match .active-emp-card add .hidden to .trashbin then 
-                    send unfocus to .employee-chip
-                    then send unhighlight to .slot
-                    then set $clickmode to false
-                    then set $emp to `` then set $empcard to `` 
-                else 
-                    send unfocus to .employee-chip then send focused to me 
-                    then send unhighlight to .slot
-                    then set $emp to @id then set $empcard to me then log $empcard
-                    then set $allow to my.dataset.available.split(' ')
-                    then if @slotted-as != `` remove .hidden from .trashbin 
-                    then wait 100ms then set $clickmode to true end
-                end 
-            if @previous-slot == 'PM' 
-                send hlAllowed to .pm-slot 
-            else if @next-slot == 'AM' 
-                send hlAllowed to .am-slot 
-            else 
-                send hlAllowed to .slot
-            end 
-        end
-       on focused  add .active-emp-card .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 to me end
-       on unfocus remove .active-emp-card .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me end
-       on dblclick go to url '/sch/employee/{{employee.pk}}/' end">
-    <span id="{{employee.pk}}-ind-prev-am"
-        class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
+    script="install Employee">
+    <span class="ind-prev-am hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute -translate-y-1/2 -translate-x-1/2 right-auto top-0 left-0">
         <i id="Prev-AM-Arrow" 
             class="fa-duotone fa-arrow-circle-left text-black"></i>
     </span>
-    <span id="{{employee.pk}}-ind-next-am"
-        class="hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
+    <span class="ind-next-am hidden bg-yellow-400 text-xs font-medium text-amber-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute -translate-y-1/2 translate-x-1/2 left-auto top-0 right-0">
         <i class="fa-duotone fa-arrow-circle-right text-black"></i>
     </span>
@@ -98,13 +48,11 @@
         {{ employee.slug }}
         
     </span>
-    <span id="{{employee.pk}}-ind-prev-pm"
-        class="hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
+    <span class="ind-prev-pm hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute translate-y-1/2 -translate-x-1/2 right-auto bottom-0 left-0">
         <i class="fa-duotone fa-arrow-circle-left text-black"></i>
     </span>
-    <span id="{{employee.pk}}-ind-next-pm"
-        class="hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
+    <span class="ind-next-pm hidden bg-blue-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full 
                px-2 py-2 absolute translate-y-1/2 translate-x-1/2 left-auto bottom-0 right-0">
         <i class="fa-duotone fa-arrow-circle-right text-black"></i>
     </span>

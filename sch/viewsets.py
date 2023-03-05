@@ -9,7 +9,7 @@ from django.template.loader import render_to_string
 from django.views.decorators.csrf import csrf_exempt
 
 from django_require_login.decorators import public
-from flow.views import ApiViews
+from flow.views import ApiViews, VizViews
 
 from rest_framework import viewsets
 from .models import Employee, Week, Period, Schedule, Slot, ShiftTemplate, TemplatedDayOff, PtoRequest, Workday, Shift
@@ -790,9 +790,7 @@ class EmpViews:
         )
         if doRender == False:
             return j_shift_prefs_with_counts
-        return render(request, 'sch2/employee/shift-tally.pug', {'emp':j, 'tallies': j_shift_prefs_with_counts})
-
-    def tallyPlotDataGenerator (request, empId):    
+        
         from django.db.models import Count, OuterRef, Subquery
         import pandas as pd
         import seaborn as sns
@@ -802,31 +800,30 @@ class EmpViews:
         from io import BytesIO
         import seaborn as sns
         import matplotlib.pyplot as plt
+        from django.db.models import Sum
         # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
         subquery = Subquery(
             Slot.objects.filter(
-                    employee=OuterRef('employee'),
-                    shift=OuterRef('shift')
-                ).values('employee', 'shift').annotate(
-                    count=Count('*')
-                ).values('count')[:1],
-                output_field=models.IntegerField()
-                )
+                employee=OuterRef('employee'),
+                shift=OuterRef('shift')
+            ).values('employee', 'shift').annotate(
+                count=Count('*')
+            ).values('count')[:1],
+            output_field=models.IntegerField()
+        )
         # Count n of Slots, then if A ShiftPreference exists for that employee/shift combination
         emp = Employee.objects.get(name=empId)
         shift_prefs = emp.shift_prefs.annotate(count=subquery)
 
         score_subquery = Subquery(
-                        Slot.objects.filter(
-                            employee=OuterRef('employee'),
-                            shift=OuterRef('shift'),
-                        ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
-                            count=Count('*')
-                        ).values('count')[:1],
-                        output_field=models.IntegerField()
-                    )
-        from django.db.models import Sum
-
+            Slot.objects.filter(
+                employee=OuterRef('employee'),
+                shift=OuterRef('shift'),
+            ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
+                count=Count('*')
+            ).values('count')[:1],
+            output_field=models.IntegerField()
+        )
         sps = shift_prefs.annotate(
             pref_score=Subquery(
                 ShiftPreference.objects.filter(
@@ -836,16 +833,45 @@ class EmpViews:
             )
         ).annotate(
             score_count=Coalesce(score_subquery, 0)
-                ).values('score').annotate(
+        ).values('score').annotate(
             count=Sum('score_count')
-                ).order_by('score')
-                
+        ).order_by('score')
+
         data = []
         for j in sps:
             for n in range(j['count']):
                 data.append(j['score'])
 
-        return JsonResponse(data, safe=False)
+        sns.kdeplot(data=data, fill=True, bw_adjust=1.5,
+                    cut=4, label=f'{emp.name}')
+        sns.set_theme('paper', "dark")
+        plt.style.use('dark_background')
+        # change x label to "Dislike" at -3 and "Prefer" at 3
+        plt.xticks([-3, 0, 3], ['Dislike', 'Neutral', 'Prefer'])
+
+        emp = Employee.objects.get(name=empId)
+        # change x labels to be from Dislike to Prefer
+        plt.xticks([-2.5, 2.5], ['Dislike', 'Prefer'])
+        plt.title(f'{emp.name}\'s Shift Preference Distribution')
+        # save the figure to a buffer as SVG
+        plt.legend(loc='upper left')
+        buf = BytesIO()
+
+        plt.savefig(buf, format='svg')
+        # get the SVG contents as bytes and encode to base64
+        svg_bytes = buf.getvalue()
+        svg_base64 = base64.b64encode(svg_bytes).decode('utf-8')
+        # format the SVG string in an HTML <img> tag
+        svg_html = f'<img src="data:image/svg,{svg_base64}" />' 
+        buf.close()
+        plt.close()
+        return render(request, 'sch2/employee/shift-tally.pug', {
+            'emp':j, 
+            'tallies': j_shift_prefs_with_counts,
+            'plot': svg_base64
+            })
+
+
         
 class IdealFill:
     def levelA(request, slot_id):

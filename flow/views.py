@@ -208,14 +208,135 @@ class ApiActionViews:
     @csrf_exempt
     def ptoreq__delete (request, day, emp):
         day = dt.date(*[int(i) for i in day.split('-')])
-        pto = PtoRequest.objects.get(workday=day,employee__slug=emp)
-        pto.delete()
-        return HttpResponse(f"Request for {emp} deleted")
-    
+        ptos = PtoRequest.objects.filter(workday=day,employee__slug=emp)
+        if ptos:
+            ptos.delete()
+            return HttpResponse(f"Request for {emp} deleted")
+        return HttpResponse(f"No request for {emp} found")
     @csrf_exempt
     def ptoreq__create (request, day, emp):
         emp = Employee.objects.get(slug=emp)
         day = dt.date(*[int(i) for i in day.split('-')])
+        workdays = Workday.objects.filter(date=day,schedule__employees=emp)
+        
         pto = PtoRequest.objects.create(workday=day,employee=emp)
+        pto.workdays.set(workdays)
         pto.save()
         return HttpResponse(f"Request for {pto.employee.name} created")
+
+    def clear_fte_overages (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        sch.clear_fte_overages()
+        return HttpResponseRedirect(sch.url())
+    
+    def payPeriodFiller(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        for pd in sch.periods.all():
+            empties = pd.slots.empty().all()
+            empty_n_i = empties.count()
+            empty_n_f = empty_n_i
+            print(f'Checking {empties.count()} slots')
+            empties.update()
+            for e in empties:
+                count = e.fills_with.count()
+                if count > 0:
+                    print (e, '  checking...')
+                    empls = list(pd.needed_hours())
+                    for empl in empls:
+                        print (empl)
+                        if e.fills_with.filter(name=empl).exists():
+                            if e.workday.slots.filter(employee=empl).exists() == False:
+                                e.employee = empl
+                                print ('    FILLING SLOT:', e, 'with', empl)
+                                empty_n_f -= 1
+                                empties.bulk_update(empties, ['employee'])
+                            else:
+                                print ('    skipping employee because they already have a shift')
+                        else:
+                            print ('  skipping employee because they are not trained for this shift')
+                else:
+                    print ('  skipping slot because it is already filled')
+        
+        return HttpResponse(f'Filled {empty_n_i - empty_n_f} slots')
+            
+    
+class VizViews:
+    
+    def tallyPlotDataGenerator (request, empId):    
+        from django.db.models import Count, OuterRef, Subquery
+        import pandas as pd
+        import seaborn as sns
+        import matplotlib.pyplot as plt
+        import urllib
+        import base64
+        from io import BytesIO
+        import seaborn as sns
+        import matplotlib.pyplot as plt
+        from django.db.models import Sum
+        # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
+        subquery = Subquery(
+            Slot.objects.filter(
+                    employee=OuterRef('employee'),
+                    shift=OuterRef('shift')
+                ).values('employee', 'shift').annotate(
+                    count=Count('*')
+                ).values('count')[:1],
+                output_field=models.IntegerField()
+                )
+        # Count n of Slots, then if A ShiftPreference exists for that employee/shift combination
+        emp = Employee.objects.get(name=empId)
+        shift_prefs = emp.shift_prefs.annotate(count=subquery)
+
+        score_subquery = Subquery(
+                        Slot.objects.filter(
+                            employee=OuterRef('employee'),
+                            shift=OuterRef('shift'),
+                        ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
+                            count=Count('*')
+                        ).values('count')[:1],
+                        output_field=models.IntegerField()
+                    )
+        sps = shift_prefs.annotate(
+            pref_score=Subquery(
+                ShiftPreference.objects.filter(
+                    employee=OuterRef('employee'),
+                    shift=OuterRef('shift')
+                ).values('score')[:1]
+            )
+        ).annotate(
+            score_count=Coalesce(score_subquery, 0)
+                ).values('score').annotate(
+            count=Sum('score_count')
+                ).order_by('score')
+                
+        data = []
+        for j in sps:
+            for n in range(j['count']):
+                data.append(j['score'])
+        
+
+        sns.kdeplot(data=data, fill=True, bw_adjust=1.5, cut=4, label=f'{emp.name}')
+        sns.set_theme('paper',"dark")
+        plt.style.use('dark_background')
+        # change x label to "Dislike" at -3 and "Prefer" at 3
+        plt.xticks([-3, 0, 3], ['Dislike', 'Neutral', 'Prefer'])
+        
+        
+        emp = Employee.objects.get(name=empId)
+        #change x labels to be from Dislike to Prefer
+        plt.xticks([-2.5,2.5], ['Dislike','Prefer'])
+        plt.title(f'{emp.name}\'s Shift Preference Distribution')
+        # save the figure to a buffer as SVG
+        plt.legend(loc='upper left')
+        buf = BytesIO()
+        
+        plt.savefig(buf, format='svg')
+        # get the SVG contents as bytes and encode to base64
+        svg_bytes = buf.getvalue()
+        svg_base64 = base64.b64encode(svg_bytes).decode('utf-8')
+        return svg_base64 
+        # format the SVG string in an HTML <img> tag
+        
+        buf.close()
+
+        return svg_html

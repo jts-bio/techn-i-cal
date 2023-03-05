@@ -27,7 +27,13 @@
       ><i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i
     ></span>
   </h3>
-  {% include 'sch2/schedule/partials/action-button.html' %}
+  <div class="flex flex-row align-items">
+
+    {# ======== ACTION BUTTON ========= #}
+    {% include 'components/action-button.html' %}
+    <div id="action-button-indicator" class="hidden bg-yellow-300 rounded h-6 text-black animate-pulse jbm">Please Wait...</div>
+
+  </div>
 </div>
 
 <div class="flex flex-col">
@@ -52,12 +58,12 @@
 
 {% block outside %}
 
+
 <div id="contextMenu"
   style="display: none; position: absolute; z-index: 10"
   class="rounded bg-black bg-opacity-[30%] text-white p-3">
   <a href="build-alt-draft/" class="hover:underline">Build Alternate Draft Version</a>
 </div>
-
 
 
 <script type="text/javascript">

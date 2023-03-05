@@ -1,0 +1,18 @@
+
+
+
+
+{% block content %}
+
+    <div class="bg-zinc-800 p-3 rounded">
+        {% for sch in schedules %}
+            <tr>
+                <td>{{ sch }}</td>
+                <td>{{ sch.year }}</td>
+                <td>{{ sch.number }}</td>
+                <td>{{ sch.periods.count }}</td>
+            </tr>
+    </div>
+    
+{% endblock content %}
+    

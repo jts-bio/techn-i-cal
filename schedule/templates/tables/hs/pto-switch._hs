@@ -12,11 +12,19 @@ behavior PtoSwitch
         end
     on click
         if @data-has-pto > 0
-            fetch /api/ptoreq/${dayslug}/{{employee.slug}}/actions/create/ then call showToast(response,"success")
-        else if @data-has-pto <= 1
-            fetch /api/ptoreq/${dayslug}/{{employee.slug}}/actions/delete/ then call showToast(response,"info")
+            set url to my [@data-delete-url]
+            then fetch `${url}`
+            then call showToast(result,"warn")  
+            then set @data-has-pto to 0
+        else if @data-has-pto < 1
+            set url to my [@data-create-url]
+            then fetch `${url}`
+            then call showToast(result,"success")
+            then set @data-has-pto to 1
         end
     end
-    on mouseenter toggle .bg-sky-900 .ring .ring-sky-700 until mouseleave 
+    on mouseenter if @data-has-shift == 0
+            toggle .bg-sky-900 .ring .ring-sky-700 until mouseleave 
+        else toggle .bg-amber-900 .ring .ring-amber-700 until mouseleave
     end
 end

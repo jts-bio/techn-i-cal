@@ -17,7 +17,7 @@
         "https://gitpod.io/schemas/gitpod-schema.json": "file:///workspace/techn-i-cal/.devcontainer/.gitpod.yml"
     },
     "python.testing.pytestArgs": [
-        "."
+        "sch"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,

@@ -1,9 +1,7 @@
 // SHIFT TALLY 
 // pypath: 
+
 extends ../base.html
-
-- var kde = ['my-2','w-4/5','md:w-4/7','border','border-indigo-300','rounded']
-
 
 block content 
     script(src="https://code.jquery.com/jquery-3.1.1.min.js")
@@ -25,8 +23,9 @@ block content
                         td.text-lg #{tally.score}
                         td.text-md #{tally.shifts}
                         td.text-lg #{tally.count}
-        div               
-            #container(class="h-[500px]")
+        div
+            div
+                img(src="data:image/svg+xml;base64,#{plot}" class="w-4/5")
 
     script 
         include ../employee/static/kde.js

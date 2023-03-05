@@ -8,10 +8,12 @@ __title__  = 'YOUTUBE DOWNLOADER WITH API (RAPIDAPI)'
 
 url = "https://t-one-youtube-converter.p.rapidapi.com/api/v1/createProcess"
 
-querystring = {"url"                :  "https://www.youtube.com/watch?v=SsM25EBXN58&list=RDSsM25EBXN58&start_radio=1",
-               "format"             :  "mp3",
-               "responseFormat"     :  "json",
-               "lang "              :  "en"}
+querystring = {
+        "url"                :  "https://www.youtube.com/watch?v=SsM25EBXN58&list=RDSsM25EBXN58&start_radio=1",
+        "format"             :  "mp3",
+        "responseFormat"     :  "json",
+        "lang "              :  "en"
+        }
 
 headers = {
 	"X-RapidAPI-Key": "ff7bbc6458msh2dec06298c7c57bp196a0djsn283e125eb894",

@@ -1,0 +1,67 @@
+behavior Slot   
+    on dragover or dragenter 
+        if $allow.includes(@id) and @current != $emp halt the event 
+        else if @current != $emp add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end 
+        end
+    on dragover or dragenter 
+        if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 then 
+        set $empCardScondary to me end
+        
+    on dragleave set $empCardSecondary to `` end
+    on dragleave or dragend remove .ring .ring-2 .ring-green-400 
+                    .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
+                    .bg-red-300 .ring-red-600 end
+
+    on fetch:beforeRequest(headers) set headers['empId'] to $emp end
+    on drop halt the event then call dragDrop(me) then
+        remove .ring .ring-2 .ring-green-400
+        add .fa-fade .fa-beat to me then
+        fetch slot/{{slot.shift}}/update/ then 
+        remove .fa-fade .fa-beat from me end
+    on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
+    on unhighlight remove .bg-green-600 .ring .ring-green-500 end
+    on click 
+        if $clickmode == true
+            tell .active-emp-card remove you 
+            then put $empcard into .inner-slot in me 
+            then send unfocus to .emp-card then
+            wait 20ms then send hidetrash to .trashbin 
+            then send unhighlight to .slot end
+            call dragDrop(me) then
+            remove .ring .ring-2 .ring-green-400
+            add .fa-fade .fa-beat to me then
+            fetch slot/{{slot.shift}}/update/ then 
+            remove .fa-fade .fa-beat from me 
+        else if $clickmode == false
+            if $empcard != `` then tell .active-emp-card remove you end
+            then put $empcard into .inner-slot in me 
+            then send unfocus to .emp-card then
+            wait 20ms then send hidetrash to .trashbin 
+            then send unhighlight to .slot end
+        end
+        end
+    end
+
+behavior TrashBin 
+    on dragenter or dragover add .ring .ring-red-200 then halt the event then 
+            call event.dataTransfer.getData('text') log result end
+    on fetch:beforeRequest(headers) 
+        set headers['empId'] to $emp end
+    on dragleave 
+        remove .ring .ring-red-200 end
+    on drop 
+        js event.dataTransfer.dropEffect = 'move' end
+    on drop 
+        set :recieved to true 
+        then remove .hidden from me then put `Removing $emp` into #trash-message 
+        then tell .dragging remove you then add .fa-fade .fa-beat to me 
+        then call event.dataTransfer.getData('text/plain') then put result into me 
+        then fetch delete/ 
+        then wait 1ms 
+        then tell .active-emp-card remove you then
+        fetch /wday/{{slot.workday.slug}}/ 
+        then put result into closest <html/> end
+        end
+    on click 
+        
+    on hidetrash if :recieved != true add .hidden to me end
