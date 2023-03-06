@@ -19,8 +19,8 @@
     "python.testing.pytestArgs": [
         "sch"
     ],
-    "python.testing.unittestEnabled": false,
-    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": true,
+    "python.testing.pytestEnabled": false,
     "cSpell.words": [
         "cpht",
         "Empl",
@@ -37,5 +37,12 @@
     "remote.SSH.remoteServerListenOnSocket": false,
     "githubPullRequests.ignoredPullRequestBranches": [
         "beforeSlow"
+    ],
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "./sch",
+        "-p",
+        "*test.py"
     ],
 }

@@ -13,38 +13,44 @@ behavior Slot
                     .bg-red-300 .ring-red-600 end
 
     on fetch:beforeRequest(headers) set headers['empId'] to $emp end
-    on drop halt the event then call dragDrop(me) then
-        remove .ring .ring-2 .ring-green-400
-        add .fa-fade .fa-beat to me then
-        fetch slot/{{slot.shift}}/update/ then 
-        remove .fa-fade .fa-beat from me end
+    on drop 
+        trigger transferemployee on me end
     on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
     on unhighlight remove .bg-green-600 .ring .ring-green-500 end
     on click 
-        if $clickmode == true
-            tell .active-emp-card remove you 
-            then put $empcard into .inner-slot in me 
-            then send unfocus to .emp-card then
+        if $clickmode == 1
+            trigger transferemployee on me then
             wait 20ms then send hidetrash to .trashbin 
-            then send unhighlight to .slot end
-            call dragDrop(me) then
-            remove .ring .ring-2 .ring-green-400
-            add .fa-fade .fa-beat to me then
-            fetch slot/{{slot.shift}}/update/ then 
+            then send unhighlight to .slot then
             remove .fa-fade .fa-beat from me 
-        else if $clickmode == false
+            then set $clickmode to 0 then log 
+        else if $clickmode == 0
             if $empcard != `` then tell .active-emp-card remove you end
             then put $empcard into .inner-slot in me 
             then send unfocus to .emp-card then
             wait 20ms then send hidetrash to .trashbin 
-            then send unhighlight to .slot end
+            then set $clickmode to 1 
+            send unhighlight to .slot end
         end
         end
+    on transferemployee 
+        halt the event then call document.querySelector('.dragging') then 
+        set movingEmployee to result then 
+        call me.appendChild(movingEmployee) then 
+        remove .dragging from movingEmployee then
+        remove .ring .ring-2 .ring-green-400
+        add .fa-fade .fa-beat to me then
+        trigger hidehelper on .helper-btn in me then 
+        set shift to [@id] then 
+        fetch `slot/${shift}/update/` then 
+        remove .fa-fade .fa-beat from me end
     end
 
 behavior TrashBin 
-    on dragenter or dragover add .ring .ring-red-200 then halt the event then 
-            call event.dataTransfer.getData('text') log result end
+    on dragenter or dragover 
+        add .ring .ring-red-200 
+        then halt the event then 
+        end
     on fetch:beforeRequest(headers) 
         set headers['empId'] to $emp end
     on dragleave 
@@ -59,9 +65,21 @@ behavior TrashBin
         then fetch delete/ 
         then wait 1ms 
         then tell .active-emp-card remove you then
-        fetch /wday/{{slot.workday.slug}}/ 
+        fetch `/wday/${[@wdi]}/`
         then put result into closest <html/> end
         end
     on click 
-        
-    on hidetrash if :recieved != true add .hidden to me end
+        if $clickmode == true
+            then remove .hidden from me then put `Removing $emp` into #trash-message 
+            then tell .dragging remove you then add .fa-fade .fa-beat to me 
+            then fetch delete/ 
+            then wait 1ms 
+            then tell .active-emp-card remove you then
+            fetch `/wday/${[@wdid]}/`
+            then put result into closest <html/> end
+        end
+    end
+    on hidetrash 
+        if :recieved != true 
+            add .hidden to me 
+    end

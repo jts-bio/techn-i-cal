@@ -96,6 +96,7 @@ shift_patterns = [
     path("shift-tallies/<str:shiftpk>/tallies/",views.SHIFT.shiftTalliesView,name="shift-tallies-view",),
     path("shift-templates/<int:sftId>/",views.SHIFT.shiftTemplateView,name="shift-template-view",),
     path("v2/shift-pref-scores/<sft>/",views.SHIFT.shiftPrefScores,name="shift-pref-scores"),
+    path("v2/shift-sort-scores/<sft>/", viewsets.ShiftViews.sortPrefView, name='shift-sort-scores'),
     path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
     path('shift/<sft>/prefs/update/', views.SHIFT.shiftPrefUpdate, name='shift-prefs-update'),
 ]

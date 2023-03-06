@@ -5,7 +5,8 @@
     id= "n-empty-handler" data-schid="{{schedule.slug}}"
     hx-get="/schedule/partials/{{schedule.slug}}/empty-list/"
     hx-trigger='click' hx-indicator="#swap-panel-indic"
-    hx-target="#swap-panel">
+    hx-target="#swap-panel"
+    _="on click trigger recheck on #n-empty-check end">
     <div class="flex-shrink-0">
         <div id="nEmptyBadge"
             class="h-7 w-7 pl-[3.5px] pt-[1.5px] rounded-full border border-white  bg-amber-300">

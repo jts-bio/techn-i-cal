@@ -1,5 +1,6 @@
-{% extends 'base.html' %} {% block style %} {% load tags %}
+{% extends 'base.html' %} {% load tags %}
 
+{% block style %}
 <style>
   body {
     background-image: url("/static/img/ScienceExperiments_seamless_1.png");
@@ -60,11 +61,12 @@
 
   </div>
 </div>
-<a href="grouped/" class="text-yellow-300 hover:underline">Switch to Grouped View</a>
+
 <div class="hidden md:block">
   <div class="panel w-fc p-8 m-8">
     <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm">Schedule List</h2>
-    
+    <a href="grouped/"
+       class="text-yellow-300 hover:underline float-right text-xs">Switch to Grouped View</a>
     <table class="table my-7">
       <tr>
         <th>Schedule</th>
@@ -126,13 +128,14 @@
             >
           </span>
           <div class="my-1">
-            <div class="flex flex-r">
-              {{ sch.percent }}% {% progressBar sch.percent 'yellow' %}
+            <div class="flex flex-row">
+             <span class="font-light opacity-60 text-lg">{{ sch.percent }}%</span> 
+             {% progressBar sch.percent 'yellow' %}
             </div>
           </div>
         </td>
         <td>
-          {% if sch.status == 0 %}   DRAFT 
+          {% if sch.status == 0 %} DRAFT 
           {% elif sch.status == 1 %} FINAL 
           {%endif%}
         </td>

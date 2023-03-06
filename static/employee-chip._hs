@@ -1,9 +1,11 @@
 behavior Employee
-    init if @week-hours > 40 add .bg-red-500 to .clock in me end
-    init if @period-hours > 80 add .bg-red-500 to .clock in me end
-    init if @week-hours == 40 add .bg-slate-900 .text-white to .clock in me end
-    init if @period-hours == 80 add .bg-slate-900 .text-white to .clock in me end
-    init if @turnaround != 0 add .bg-rose-700 .bg-opacity-30 end
+    init if @week-hours > 40 trigger warn on .clock in me end
+    init if @period-hours > 80 trigger warn on .clock in me end
+    init if @week-hours == 40 trigger darken on .clock in me end
+    init if @period-hours == 80 trigger darken on .clock in me end
+    init if @turnaround != 0 
+        add .bg-rose-700 .bg-opacity-30 
+        then send warnTurnaround to .clock in me end
     init if @is_pto_conflict == 'true' add .bg-red-400 .bg-opacity-30 end
     init if @previous-slot == `AM` log then remove .hidden from (.ind-prev-am in me) end
     init if @previous-slot == `PM` remove .hidden from (.ind-prev-pm in me) end
@@ -12,29 +14,25 @@ behavior Employee
     init if @next-slot == `PM` remove .hidden from .ind-next-pm in me end
     init if @next-slot == `XN` remove .hidden from .ind-next-pm in me end
     on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
-    on dragstart set $emp to @id end
+    on dragstart set $emp to @id 
+        then set $clickmode to 0 then log `clickmode is ${clickmode}`
     on dragstart set $allow to my.dataset.available.split(' ') end
     on dragstart 
         if @previous-slot == 'PM' send hlAllowed to .pm-slot 
         else if @next-slot == 'AM' send hlAllowed to .am-slot end end
     on dragstart add .dragging to me end 
     on dragend remove .ring-green-500 from .slot then remove .dragging from me end
-    on dragend send hideHl to .slot end
+    on dragend send unhighlight to .slot end
     on dragend add .hidden to .trashbin end
     on click 
         if I match .active-emp-card 
                 add .hidden to .trashbin then 
                 send unfocus to .employee-chip
                 then send unhighlight to .slot
-                then set $clickmode to false
-                then set $emp to `` then set $empcard to `` 
+                then set $clickmode to 0
             else 
-                send unfocus to .employee-chip then wait 2ms then send focused to me 
+                send unfocus to .employee-chip then wait 20ms then send focused to me 
                 then send unhighlight to .slot
-                then set $emp to @id then set $empcard to me then log $empcard
-                then set $allow to my.dataset.available.split(' ')
-                then if @slotted-as != `` remove .hidden from .trashbin 
-                then wait 100ms then set $clickmode to true end
             end 
         if @previous-slot == 'PM' 
                 send hlAllowed to .pm-slot 
@@ -43,11 +41,39 @@ behavior Employee
             else 
                 send hlAllowed to .slot
             end 
-    end
-    on focused  add .active-emp-card .shadow .shadow-lg .scale-125 .border-3 .ring .ring-sky-100 
-        to me end
-    on unfocus remove .active-emp-card .shadow .shadow-lg .scale-125 .ring .ring-sky-100 .borcer-3 
-        from me end
+        end
+    on focused  
+        add .active-emp-card .dragging .shadow .shadow-lg .scale-125 .ring .ring-sky-100 to me 
+        then set $clickmode to 1 
+        then log `[${@id}] is focused`
+        then set $emp to @id 
+        then set $empcard to me
+        then log $empcard
+        then set $allow to my.dataset.available.split(' ')
+        then if @slotted-as != `` remove .hidden from .trashbin 
+        then wait 100ms then set $clickmode to true
+        end
+        end
+    on unfocus 
+        remove .active-emp-card .dragging .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me 
+        then set $emp to `` then set $empcard to ``
+        then set $clickmode to 0 
+        end
     on dblclick set empid to my [@id] then go to url `/sch/employee/${empid}/`
         end
 end
+
+
+behavior Clock 
+    on warn 
+        add .text-white to .fa-stopwatch in me 
+        then add .bg-red-600 .text-white to me 
+        end
+    on darken 
+        add .text-white to .fa-stopwatch in me 
+        then add .bg-zinc-900 .text-white to me
+        end
+    on warnTurnaround
+        put 'TURNAROUND' into me then 
+        add .text-white .bg-orange-600 to me end
+    end

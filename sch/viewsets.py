@@ -589,7 +589,7 @@ class SlotViews:
             - Shows the streak of slots for a given Slot
             - Streak generated from the selected slot
         """
-        html_template = "sch2/slot/streak-timeline.html"
+        html_template = "components/slot-timeline.pug"
         
         slot = Slot.objects.get(workday__slug=slug, shift__name=sft)
         siblings = slot.siblings_streak()
@@ -708,6 +708,13 @@ class ShiftViews:
 
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)
+    
+    def sortPrefView (request, sft):
+        shift = Shift.objects.get(name=sft)
+        sort_prefs = ShiftSortPreference.objects.filter(shift__name=sft).order_by('rank')
+        avg = sort_prefs.aggregate(Avg('rank'))
+        html_template = "sch3/sort-prefs.html"
+        return render(request, html_template, {'sort_prefs':sort_prefs, 'avg':avg, 'shift':shift})
 
 class EmpViews:
     def empShiftSort(request, empId):
@@ -719,7 +726,13 @@ class EmpViews:
                 shift = request.POST.get(f"bin-{i}")
                 if shift:
                     shift = Shift.objects.get(name=shift.replace("shift-", ""))
-                    pref = emp.shift_sort_prefs.get_or_create(shift=shift)[0]
+                    pref = emp.shift_sort_prefs.filter(shift=shift)
+                    if pref.exists():
+                        pref = pref.first()
+                    else:
+                        pref = ShiftSortPreference.objects.create(
+                            employee=emp, shift=shift, score=i, rank=i - 1
+                        )
                     pref.score = i
                     pref.rank = i - 1
                     pref.save()

@@ -1,3 +1,4 @@
+// TURNAROUNDS TABLE TEMPLATE 
 
 h3.text-xl Turnarounds 
 
@@ -5,12 +6,12 @@ table.table.table-hover
   thead
     tr
       th Employee 
-      th PM Slot
-      th AM Slot
+      th Slot
   tbody
     each turnaround in turnarounds
-      tr.bg-zinc-800 
-        td= turnaround.employee 
-        td= turnaround.turnaround_pair
-        td= turnaround 
+      tr.bg-zinc-800.tr-hover
+        td= turnaround.employee
+        td
+          a(href=turnaround.workday.url())= turnaround
+        
         

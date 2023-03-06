@@ -20,7 +20,7 @@
                     {{ slot.shift }}
                 </div>
             <div class="flex flex-col px-1 text-sm">
-                <div class="cursor-pointer" _="on click go to url {{ slot.workday_url }} end">{{ slot.workday }}</div>
+                <a href="wd/{{slot.workday_slug}}/">{{ slot.workday }}</a>
                 <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {% endif %}">
                     {{ slot.weekday }}
                 </div> 

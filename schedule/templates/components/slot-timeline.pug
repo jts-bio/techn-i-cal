@@ -1,0 +1,26 @@
+extends base.html
+
+block style 
+    style.
+        .Slot {position: relative;width:100px;height:80px;border-top:1px solid #e2e8f0;}
+        .FlexRow {display: flex;lex-direction: row;justify-content: space-between;align-items: center;}
+        h3 {@extends font-bold; @extends text-sky-200;}
+        .Badge {left: 0;top:0;height:18px;width:18px;border-radius:100%;background-color:#e2e8f0;color:#1a202c;}
+
+
+mixin icon(iconName)
+    i(class="fa-#{iconName} fa-duotone")
+
+mixin timeline(slots)
+    each slot in slots
+            .Slot
+                .Badge
+                    +icon('calendar')
+                h3= slot.shift 
+                a(href='#{slot.workday.url()}') #{slot.workday.weekday} #{slot.workday}
+
+
+block content 
+
+    .FlexRow
+        +timeline(streak)

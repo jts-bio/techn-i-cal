@@ -106,6 +106,16 @@ class ApiViews :
         for s in sch.slots.turnarounds():
             s.save()
         return JsonResponse ( sch.slots.turnarounds().count(), safe=False )
+    def schedule__get_overtime_hours (request, schId):
+        ot_sum = 0
+        for wk in Schedule.objects.last().weeks.values('hours'):
+            print(wk)
+            for emp,val in wk['hours'].items():
+                print('   ', emp, val)
+                if val > 40:
+                    print('contains overtime')
+                    ot_sum += val - 40 
+        return JsonResponse(ot_sum, safe=False)
     def employee__week_hours (request, empId, sch, wd):
         emp = Employee.objects.get (slug = empId )
         day = Workday.objects.get (schedule= sch, slug__contains= wd)

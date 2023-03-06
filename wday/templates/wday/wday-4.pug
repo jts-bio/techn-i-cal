@@ -1,6 +1,12 @@
 extends 'base.html'
 
+block style 
+    style.
+        SlotGrid      {display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 1rem;@extends .p-3; grid grid-cols-3; @extends .gap-4; @extends .mx-12;}
+        ScrollingDeck {display: flex; flex-direction: row; overflow-x: scroll; @extends .mx-12;}
+
 mixin slot(slot)
+    // SLOT: Used as a static panel which can be either empty or filled with an employee
     div.slot
         div.bg-zinc-900.rounded.p-3 
             div.shift-name= slot.shift.name
@@ -8,27 +14,22 @@ mixin slot(slot)
                 div.bg-slate-700.rounded.p-3.border-white.border.h-24.w-24.m-1
                     img(src=slot.employee.image_url draggable='false').w-10.h-10.rounded-full
                     span= slot.employee.name
-mixin small-slot(empl)
+
+mixin employee(empl)
     .employee(draggable='true', data-employee-id=empl.pk)
-                    .bg-slate-700.rounded.p-3.border-white.border.h-24.w-24.m-1
-                        img(src=empl.image_url draggable="false").w-10.h-10.rounded-full
-                        span.font-thin= empl.name.upper
+        .bg-slate-700.rounded.p-3.border-white.border.h-24.w-24.m-1
+            img(src=empl.image_url draggable="false").w-10.h-10.rounded-full
+            span.font-thin= empl.name.upper
 
-
-block style 
-    style
-        |SlotGrid      {display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 1rem;@extends .p-3; grid grid-cols-3; @extends .gap-4; @extends .mx-12;}
-        |ScrollingDeck {display: flex; flex-direction: row; overflow-x: scroll; @extends .mx-12;}
 
 block content 
 
     h1 Slots 
-
     SlotGrid
         for slot in slots
             +slot(slot)
 
     ScrollingDeck
         for empl in workday.on_deck.all
-            +small-slot(empl)
+            +employee(empl)
             

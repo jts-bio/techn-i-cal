@@ -9,6 +9,7 @@ behavior PtoSwitch
         toggle .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 on me
         then toggle .hidden on (.fa-circle-check in me)
         then toggle .text-blue-400 .font-bold on (.text-md in me)
+        then send recheck to #pto-check 
         end
     on click
         if @data-has-pto > 0

@@ -89,7 +89,7 @@ class ShiftListTable (tables.Table) :
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
     occur_days = tables.columns.Column   (verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
     group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
-    prefs = tables.columns.Column    (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
+    prefs = tables.columns.Column        (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
     sort_prefs = tables.columns.Column   (verbose_name="Avg Sorted Preference", attrs={"td": {"class": "text-center"}})
     
     class Meta:

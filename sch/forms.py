@@ -62,7 +62,7 @@ class EmployeeForm (forms.ModelForm) :
             'name', 'fte', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','time_pref'
             ] 
         labels = {
-            'fte' : 'FTE',
+            'fte'        : 'FTE',
             'cls'        : 'Employee Class',
             'time_pref'  : 'Shift Time Preference'
         }
@@ -111,7 +111,7 @@ class EmployeeEditForm (forms.ModelForm) :
         required = False,
     )
     shifts_available = forms.ModelMultipleChoiceField(
-        widget   =forms.CheckboxSelectMultiple,
+        widget   = forms.CheckboxSelectMultiple,
         queryset = Shift.objects.all(),
         required = False,
     )
@@ -121,25 +121,27 @@ class EmployeeEditForm (forms.ModelForm) :
         empClass = self.instance.cls
         self.fields['shifts_trained'].queryset = Shift.objects.filter(cls=empClass)
         self.fields['shifts_available'].queryset = Shift.objects.filter(cls=empClass)   
+        
     class Meta:
         model = Employee
         fields = [
             'name',             'fte_14_day',   
             'streak_pref',      'shifts_trained',   
             'shifts_available', 'cls', 
-            'time_pref',     'hire_date'
+            'time_pref',        'hire_date'
             ] 
         labels = {
             'fte_14_day'    : 'FTE (hours per 14 days)',
             'cls'           : 'Employee Class',
-            'time_pref'  : "Prefers PM"
+            'time_pref'     : "Preference for Shift time of day"
         }
         widgets = {
-            'shifts_trained'  : forms.CheckboxSelectMultiple(attrs={'class':'form-control'}), 
-            'fte_14_day'      : forms.NumberInput(attrs={'class': 'w-28 form-control'}),
-            'shifts_available': forms.CheckboxSelectMultiple(attrs={'class':'grid-cols-3'}),
-            'streak_pref'     : forms.NumberInput(attrs={'class': 'w-28 form-control'}),
-            'cls'             : forms.Select(attrs={'class': 'form-control h-10'}),
+            'shifts_trained'  : forms.CheckboxSelectMultiple (attrs={'class':'form-control'}), 
+            'fte_14_day'      : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
+            'shifts_available': forms.CheckboxSelectMultiple (attrs={'class':'grid-cols-3'}),
+            'streak_pref'     : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
+            'cls'             : forms.Select (attrs={'class': 'form-control h-10'}),
+            'time_pref'       : forms.RadioSelect (attrs={'class': 'form-control h-10'}),
         }
 
 class SstEmployeeForm (forms.Form) :

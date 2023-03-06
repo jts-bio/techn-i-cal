@@ -50,10 +50,14 @@
 
     {# _____ SECTION: SLOT GRID ______ #}
     <div class="all-shifts  grid grid-cols-2 md:grid-cols-4"
-        _="on click send unfocus to .emp-card 
-            then remove .active-emp-card from .emp-card 
-            then send unhighlight to .slot 
-            then add .hidden to .trashbin end">
+         _="init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
+            end
+            on click 
+                send unfocus to .emp-card 
+                then remove .active-emp-card from .emp-card 
+                then send unhighlight to .slot 
+                then add .hidden to .trashbin 
+            end">
 
         {% for slot in workday.slots.all %}
         <div>
@@ -95,11 +99,14 @@
                                 </i>
                                 {% if slot.template_employee %}
                                     {% if slot.template_employee not in workday.pto.all %}
+                                        {# ===== FILL TEMPLATE HELPER BUTTON ====== #}
                                         <div
                                             _="on click fetch {{slot.shift}}/fill-template/ 
                                                     put result into me.parentNode then
-                                                    call window.location.reload() end"
-                                            class="bg-rose-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
+                                                    call window.location.reload() 
+                                                end 
+                                                on hidehelper add .hidden to me"
+                                            class="helper-btn bg-rose-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
                                             FILL TEMPLATE EMPLOYEE
                                         </div>
                                     {% endif %}
@@ -113,6 +120,7 @@
 
         {# _____ OBJECT: TRASHCAN ______ #}
         <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 fa-beat rounded-lg"
+            wdid="{{ workday.slug }}"
             _="install TrashBin">
             <i class="fa-duotone fa-trash-can text-2xl"></i>
             <div id="trash-message" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>

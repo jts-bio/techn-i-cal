@@ -1009,6 +1009,30 @@ class Period (models.Model):
                         period=instance,
                         schedule=instance.schedule
                         )
+        def n_fte_overages (self, instance):
+            n = 0
+            for employee in instance.schedule.employees.all():
+                if employee.fte > 0:
+                    diff = instance.slots.filter(employee=employee).values('shift__hours').aggregate(Sum('shift__hours'))['shift__hours__sum'] - employee.fte_14_day
+                    if diff > 0:
+                        print(employee, diff, employee.fte_14_day)
+                        n += diff
+            return n // 10
+        def remove_fte_overages (self, instance, prn_dict=None):
+            if prn_dict != None:
+                pass
+            n = 0
+            for employee in instance.schedule.employees.all():
+                if employee.fte > 0:
+                    diff = instance.slots.filter(employee=employee).values('shift__hours').aggregate(Sum('shift__hours'))['shift__hours__sum'] - employee.fte_14_day
+                    if diff > 0:
+                        while diff > 0:
+                            for slot in instance.slots.filter(employee=employee).order_by('?'):
+                                slot.employee = None
+                                slot.save()
+                                diff -= slot.shift.hours
+                                n += 1
+            return n
         def update_hours (self,instance):
             if instance.pk:
                 for employee in instance.schedule.employees.all():
@@ -1551,6 +1575,9 @@ class Slot (models.Model) :
                 print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')               
     actions = Actions()
     
+    def url__clear (self):
+        return reverse('schd:clear-slot', args=[self.schedule.pk, self.workday.pk, self.shift.pk])
+    
     def day_coworkers (self):
         return Employee.objects.filter(slots__workday=self.workday)
     def show_surrounds (self):
@@ -1594,11 +1621,6 @@ class Slot (models.Model) :
             return None
     def _typeATrades (self):
         return self.workday.slots.filter(shift__cls=self.shift.cls,shift__group=self.shift.group).exclude(employee=self.employee).filter(employee__shifts_available=self.shift)
-    def isTurnaround (self):
-        if self.employee == None:
-            return False
-        if self.shift.start > dt.time(12,0):
-            return False
     def _set_is_turnaround (self) :
         if self.employee == None:
             self.is_turnaround = False
@@ -2015,7 +2037,7 @@ class ShiftTemplate (models.Model) :
         *  ppd_id 
     """
     # fields: name, start, duration 
-    shift       = models.ForeignKey('Shift', on_delete=models.CASCADE, related_name='shift_templates')
+    shift       = models.ForeignKey('Shift',    on_delete=models.CASCADE, related_name='shift_templates')
     employee    = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='shift_templates', null=True, blank=True)
     sd_id       = models.IntegerField()
 
@@ -2028,6 +2050,8 @@ class ShiftTemplate (models.Model) :
 
     class Meta:
         unique_together = ['shift', 'sd_id']
+        
+
 # ============================================================================
 class TemplatedDayOff (models.Model) :
     """

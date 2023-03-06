@@ -7,6 +7,8 @@ components:
     basic_popover       : 'sch/comp/popovers/basic.html'        # --title --subtitle --desc  *children
     basic_popover_child : 'sch/comp/popovers/basic-child.html'  # --title --icon --value
 
+    popover             : 'wday/cmp/tooltip.html'               # --title --subtitle *children 
+
     accordion           : 'sch/doc/accordion.html'
     toggle-section      : 'sch/comp/toggle-section.html'        # --content
 
@@ -35,6 +37,8 @@ components:
 
     avatar              : 'sch/comp/user/avatar.html' # --initials
 
+    spinner             : 'sch/comps/spinner.html' 
+
     # ======================== CARDS ========================
 
     dense-card          : 'sch/comp/dense-card.html'    # --link  --img  --title  --messages
@@ -42,6 +46,8 @@ components:
     warn_badge          : 'sch/comp/warn-badge.html'
     alert_badge         : 'sch/comp/alert-badge.html'
     circle_badge        : 'sch/comp/circle-badge.html'
+
+    card-mask           : 'comps/card-mask.html'   # *children
 
     # ======================== FORMS ========================
 
