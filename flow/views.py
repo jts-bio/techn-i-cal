@@ -107,8 +107,11 @@ class ApiViews :
             s.save()
         return JsonResponse ( sch.slots.turnarounds().count(), safe=False )
     def schedule__get_overtime_hours (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        for wk in sch.weeks.all():
+            wk.save()
         ot_sum = 0
-        for wk in Schedule.objects.last().weeks.values('hours'):
+        for wk in sch.weeks.values('hours'):
             print(wk)
             for emp,val in wk['hours'].items():
                 print('   ', emp, val)

@@ -9,18 +9,21 @@ table
     tr
         th Slot
         th Tenable Options
-    each slot in data
+        th Details
+
+    each slot in empty_slots
         tr
             td
                 div.flex.flex-row
                     div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9= slot.shift
                     div.flex.flex-col.px-1.text-sm
-                        a= slot.workday
+                        a(href=slot['workday_url'])= slot.workday
                         div.text-2xs= slot.weekday
             td
                 include ./empty-dropdown.html
+            td
                 if slot.template_employee
-                    | #{slot.template_employee}
+                    span TEMPLATE: #{slot.template_employee}
 
 script.
     function showDropdownOptions (event) {

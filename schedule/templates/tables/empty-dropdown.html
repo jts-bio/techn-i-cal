@@ -35,7 +35,7 @@
           _="on signal send fsignal to .fetcher in me">
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
-            <div _="on click fetch actions/update/{{slot.workday_slug}}/{{slot.shift}}/{{empl}}/ with method:'POST' then
+            <div _="on click fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ with method:'POST' then
                     put it into previous .swap-tgt then
                     add .hidden to previous .dd-button 
                     then remove .hidden from previous .undo-btn"

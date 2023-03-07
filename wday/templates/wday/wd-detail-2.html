@@ -10,7 +10,6 @@
 
 {% block content %}
 
-<script type="text/hyperscript" src="{% static 'employee-chip._hs' %}"></script>
 <script type="text/hyperscript" src="{% static 'workday-slot._hs' %}"></script>
 
 <div id="bkgd-area"
@@ -53,8 +52,8 @@
          _="init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
             end
             on click 
-                send unfocus to .emp-card 
-                then remove .active-emp-card from .emp-card 
+                send unfocus to .employee
+                then remove .active-emp-card .dragging from .emp-card 
                 then send unhighlight to .slot 
                 then add .hidden to .trashbin 
             end">
@@ -85,7 +84,9 @@
                     <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
                 </span>
                 <div id="inner-slot-{{ slot.shift}}" class="inner-slot"
-                    _="on addcard put $emp into me end">
+                    _="on transferemployee add .hidden to .helper in me
+                            then trigger moveaway on .employee in me 
+                            end">
                         {% if slot.employee %} 
                             {% with slot.employee as employee %}
                                 {% include 'wday/partials/employeeChip.html' %}
@@ -93,12 +94,12 @@
                         {% else %}
                                 <i data-slot="{{slot.shift.name}}"
                                     data-group="{{slot.shift.group}}"
-                                    class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
+                                    class="helper fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
                                 _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-{{ slot.shift.name }} end
                                     on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-{{ slot.shift.name }} end">
                                 </i>
                                 {% if slot.template_employee %}
-                                    {% if slot.template_employee not in workday.pto.all %}
+                                    {% if not slot.template_employee in workday.on_pto.all %}
                                         {# ===== FILL TEMPLATE HELPER BUTTON ====== #}
                                         <div
                                             _="on click fetch {{slot.shift}}/fill-template/ 
@@ -106,9 +107,11 @@
                                                     call window.location.reload() 
                                                 end 
                                                 on hidehelper add .hidden to me"
-                                            class="helper-btn bg-rose-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
+                                            class="helper-btn helper bg-sky-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
                                             FILL TEMPLATE EMPLOYEE
                                         </div>
+                                    {% else %}
+                                        <div class="text-xs italic opacity-60 helper">{{ slot.template_employee }} has active PTO Request</div>
                                     {% endif %}
                                 {% endif %}
                         {% endif %}
@@ -136,8 +139,10 @@
         <span class="jbm text-xs text-zinc-200">TEMPLATED OFF: {{ workday.tdo.count }}</span>
     </div>
     {# _____ SECTION: ON DECK ______ #}
-    <div class="container flex flex-rows-1 gap-[50px] bg-zinc-900 snap-mandatory scroll-px-1 
-                shadow-inner border border-white shadow-xl overflow-x-scroll overscroll-x-auto h-50 snap-x">
+    <div class="container deck flex flex-rows-1 gap-[50px] bg-zinc-900 snap-mandatory scroll-px-1 
+                shadow-inner border border-white shadow-xl overflow-x-scroll overscroll-x-auto h-50 snap-x"
+        
+        _="on getmovingaway tell movingaway remove you then call me.prependChild(movingaway) end">
 
             <!---- Employees: ON DECK ----->
             {% for employee in workday.on_deck.all %}

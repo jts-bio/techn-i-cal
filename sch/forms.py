@@ -32,7 +32,6 @@ class ShiftForm (forms.ModelForm) :
             'occur_days': forms.CheckboxSelectMultiple(),
             'cls': forms.Select(),
             'group': forms.Select(attrs={"class":"form-control"})
-            
         }
 
 class SSTForm (forms.ModelForm) :
@@ -115,6 +114,9 @@ class EmployeeEditForm (forms.ModelForm) :
         queryset = Shift.objects.all(),
         required = False,
     )
+    time_pref = forms.RadioSelect(
+        choices=(('AM', 'Morning'), ('PM', 'Evening'), ('XN', 'Overnight'))
+    )
     
     def __init__(self, *args, **kwargs):
         super(EmployeeEditForm, self).__init__(*args, **kwargs)
@@ -131,9 +133,9 @@ class EmployeeEditForm (forms.ModelForm) :
             'time_pref',        'hire_date'
             ] 
         labels = {
-            'fte_14_day'    : 'FTE (hours per 14 days)',
+            'fte_14_day'    : 'FTE (hours/ 14 Days)',
             'cls'           : 'Employee Class',
-            'time_pref'     : "Preference for Shift time of day"
+            'time_pref'     : "Time Preference"
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple (attrs={'class':'form-control'}), 
@@ -141,7 +143,7 @@ class EmployeeEditForm (forms.ModelForm) :
             'shifts_available': forms.CheckboxSelectMultiple (attrs={'class':'grid-cols-3'}),
             'streak_pref'     : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
             'cls'             : forms.Select (attrs={'class': 'form-control h-10'}),
-            'time_pref'       : forms.RadioSelect (attrs={'class': 'form-control h-10'}),
+            'time_pref'       : forms.RadioSelect (attrs={'class': 'text-2xs'}),
         }
 
 class SstEmployeeForm (forms.Form) :

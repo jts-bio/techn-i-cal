@@ -1633,7 +1633,7 @@ class Slot (models.Model) :
             return False
         if self.workday.sd_id != 41:
             if self.shift.group == 'PM':
-                if self.workday.nextWD().slots.filter(shift__group__in=['AM','XN'], employee=self.employee).count() > 0 :
+                if self.workday.nextWD().slots.filter(shift__group__in=['AM'], employee=self.employee).count() > 0 :
                     return True
         return False
     def is_postturnaround (self) :
@@ -1642,6 +1642,8 @@ class Slot (models.Model) :
         if self.workday.sd_id != 0:
             if self.shift.group == 'AM':
                 if self.workday.prevWD().slots.filter(shift__group__in=['PM','XN'], employee=self.employee).count() > 0 :
+                    return True
+                if self.workday.prevWD().prevWD().slots.filter(shift__group='XN', employee=self.employee).count() > 0:
                     return True
         return False
     def turnaround_pair   (self) :

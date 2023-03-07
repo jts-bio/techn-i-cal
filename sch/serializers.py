@@ -49,9 +49,6 @@ class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.slug}/actions/clear-all/'
     
-    def get_workday_url (self, obj):
-        return f'/schedule/detail/{obj.slug}/'
-    
     class Meta:
         model = Schedule
         fields = ('__all__')

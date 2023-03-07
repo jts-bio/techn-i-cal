@@ -176,15 +176,12 @@ class Sections:
 
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
-        print(data)
         for d in data:
             d["n_options"] = len(d["fills_with"])
-            d["workday_slug"] = d["workday"] + version
-            d["shift"] = d["shift"].replace(" ", "-")
-            d["workday_url"] = "/wday/" + d["workday_slug"]
+            d["workday"] = d["workday"][0:10]
+            d["workday_url"] = reverse("wday:detail", args=[f"{d['workday']}{version}"])
 
-        return render(request, "tables/emptys.pug", {"data": data})
-
+        return render(request, "tables/emptys.pug", {"empty_slots": data})
     def schEmusrPage(request, schId):
         from django.db.models.functions import Coalesce
 
