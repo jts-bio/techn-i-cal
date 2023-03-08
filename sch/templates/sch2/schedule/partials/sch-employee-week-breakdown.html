@@ -6,15 +6,26 @@
 
     <div id="scheduleid" id="{{ schedule.slug }}"></div>
 
-    <div id="extra-actions-bar" class="flex flex-row my-2">
-        <div class="bg-yellow-400 bg-opacity-30 rounded hover:bg-opacity-100 hover:text-zinc-900 text-2xs p-2" hx-post="actions/clear-prn-slots/">
-            CLEAR PRN SLOTS
-            <div class="htmx-indicator"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><circle cx="4" cy="12" r="1.5" fill="#000000"><animate attributeName="r" dur="0.75s" repeatCount="indefinite" values="1.5;3;1.5"></animate></circle><circle cx="12" cy="12" r="3" fill="currentColor"><animate attributeName="r" dur="0.75s" repeatCount="indefinite" values="3;1.5;3"></animate></circle><circle cx="20" cy="12" r="1.5" fill="currentColor"><animate attributeName="r" dur="0.75s" repeatCount="indefinite" values="1.5;3;1.5"></animate></circle></svg></div>
-        </div>
-        <div class="bg-sky-400 bg-opacity-30 rounded hover:bg-opacity-100 hover:text-zinc-900 text-2xs p-2" hx-post="actions/clear-ot-slots/" hx-indicator="ot-indicator">
-            CLEAR OVERTIME SLOTS
-            <i id="ot-indicator" class="fa-duotone fa-spinner htmx-indicator"></i>
-        </div>
+    <div id="extra-actions-bar" class="flex flex-row my-2 gap-8">
+            <i class="relative fa-solid fa-comment-minus hover:text-yellow-700" 
+                title="REMOVE PRN ASSIGNMENTS"
+                _=" on click 
+                        add .fa-beat then fetch actions/clear-prn-slots/  
+                        then call showToast('PRN Employees Removed from all scheduled assignments','success')
+                        then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
+                        then put result into #swap-panel
+                    end">
+            </i>
+            <i class="relative fa-solid fa-overline hover:text-yellow-500" 
+                title="CLEAR OVERTIME SLOTS ASSIGNMENTS"
+                _=" on click 
+                        add .fa-beat then fetch actions/clear-ot-slots/  
+                        then call showToast('All Overtime assignments removed','success')
+                        then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
+                        then put result into #swap-panel
+                    end">
+            </i>
+            <div class="bg-zinc-700 text-orange-200 jbm text-2xs rounded h-5 w-[150px]"></div>
     </div>
 
     <h2 class="text-2xl">Weekly Breakdown</h2>

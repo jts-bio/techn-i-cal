@@ -717,11 +717,13 @@ class ShiftViews:
         return render(request, html_template, {'sort_prefs':sort_prefs, 'avg':avg, 'shift':shift})
 
 class EmpViews:
+
     def empShiftSort(request, empId):
         html_template = "sch2/employee/shift-sort.html"
         emp = Employee.objects.get(pk=empId)
         if request.method == "POST":
             print(request.POST)
+            emp.shift_sort_prefs.all().delete()
             for i in range(1, emp.shifts_available.count() + 1):
                 shift = request.POST.get(f"bin-{i}")
                 if shift:
@@ -742,7 +744,6 @@ class EmpViews:
                 f"{emp} shift sort preferences updated: {sort_repr}",
             )
             print(messages.get_messages(request))
-            print("here is a log statement")
             return HttpResponseRedirect(emp.url())
 
         context = {

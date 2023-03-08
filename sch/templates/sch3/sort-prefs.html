@@ -31,11 +31,15 @@
 
     <h2 class="text-xl jbm text-indigo-600">Sorted Preferences</h2>
     <h3 class="text-indigo-400 font-extrabold">Avg: {{ avg.rank__avg }} </h3>
-
-    {% for pref in sort_prefs %}
-        <div class="border rounded p-2 m-1">{{ pref.rank }}: {{ pref.employee.name }}</div>
-    {% endfor %}
-
+    <div class="bg-sky-900 rounded w-[200px]">
+        {% for pref in sort_prefs %}
+            <div class="border rounded p-2 m-1">
+                {{ pref.scaled }}%: 
+                <a href="{{pref.employee.url}}">{{ pref.employee.name }}</a>
+                <span class="text-2xs">RANKED {{ pref.rank }}</span>
+            </div>
+        {% endfor %}
+    </div>
     
 {% endblock content %}
     

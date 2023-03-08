@@ -18,14 +18,23 @@
     {% for slot in data %}
     <tr>
         <td>
-            <a class="bg-transparent" href="wd/{{ slot.workday }}">{{ slot.workday }} {{ slot.shift }}</a>
+            <a class="bg-transparent" 
+               href="wd/{{ slot.workday }}">{{ slot.workday }} {{ slot.shift }}</a>
         </td>
-        <td><div class="py-1 pl-2 rounded-sm bg-zinc-300 text-zinc-900">{{ slot.employee }}</div></td>
+        <td>
+            <div class="py-1 pl-2 rounded-sm bg-zinc-300 text-zinc-900">{{ slot.employee }}</div>
+        </td>
         <td> 
-            <div hx-post="actions/override-slot/{{ slot.workday }}/{{ slot.shift }}/{{ slot.template_employee }}/"
-                 hx-trigger="click" hx-swap="innerHTML">
-                <i class="fa-light fa-arrow-turn-down-left hover:fa-solid hover:text-emerald-300" title="Swap In Templated Employee ({{ slot.template_employee }})"></i>
-            </div>
+            <span hx-post="actions/override-slot/{{ slot.workday }}/{{ slot.shift }}/{{ slot.template_employee }}/"
+                 hx-trigger="click" 
+                 hx-swap="innerHTML">
+                <i class="fa-light fa-arrow-turn-down-left hover:fa-solid hover:text-emerald-300" 
+                    itle="Swap In Templated Employee ({{ slot.template_employee }})"></i>
+            </span>
+            <span hx-get="/api/slot/{{ slot.slug }}/actions/ignore-mistemplate/">
+                <i class="fa-solid fa-bell-slash hover:text-orange-300" 
+                   title="Ignore Mistemplated Flag"></i>
+            </span>
         </td>
         <td>{{ slot.template_employee }}</td>
     </tr>

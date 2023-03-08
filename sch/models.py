@@ -229,7 +229,9 @@ class SlotManager (models.QuerySet):
             employee=F('template_employee')).exclude(
             template_employee=None).exclude(
             employee=None).exclude(
-            template_employee__pto_requests__workday=F('workday__date')) 
+            template_employee__pto_requests__workday=F('workday__date')).exclude(
+            tags__name=Slot.IGNORE_MISTEMPLATE_FLAG
+            )
     def conflictsWithPto (self):
         return self.filter(Q(employee__pto_requests__workday=F('workday__date')))
     def untrained (self):
@@ -1507,7 +1509,8 @@ class Slot (models.Model) :
     fills_with     = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
     last_update    = models.DateTimeField   (auto_now=True )
     
-    html_template = 'sch2/schedule/sch-detail.html'
+    html_template           = 'sch2/schedule/sch-detail.html'
+    IGNORE_MISTEMPLATE_FLAG = "IGNORE_MISTEMPLATE_FLAG"
             
     class Meta:
         ordering = [
@@ -1643,8 +1646,10 @@ class Slot (models.Model) :
             if self.shift.group == 'AM':
                 if self.workday.prevWD().slots.filter(shift__group__in=['PM','XN'], employee=self.employee).count() > 0 :
                     return True
-                if self.workday.prevWD().prevWD().slots.filter(shift__group='XN', employee=self.employee).count() > 0:
-                    return True
+                if self.workday.sd_id != 1:
+                    if self.workday.prevWD().prevWD().slots.filter(shift__group='XN', employee=self.employee).count() > 0:
+                        
+                        return True
         return False
     def turnaround_pair   (self) :
         if self.is_postturnaround == True:
@@ -1867,13 +1872,16 @@ class Slot (models.Model) :
                 self.is_unfavorable = False 
             else:
                 self.is_unfavorable = True
+        else: 
+            if Slot.IGNORE_MISTEMPLATE_FLAG in self.tags.all():
+                self.tags.remove(Slot.IGNORE_MISTEMPLATE_FLAG)
         self._set_is_turnaround()
         if self.is_preturnaround() == False:
             if self.is_postturnaround() == False:
                 self.is_turnaround = False
         if self.employee :
             self.streak = self._streak()
-            self.slug = self.workday.date.strftime('%Y-%M-%d') + self.schedule.version + "-" + self.shift.name
+            self.slug = self.workday.date.strftime('%Y-%m-%d') + self.schedule.version + "-" + self.shift.name
         super().save(*args, **kwargs)
         self.update_fills_with()
     def update_fills_with (self):
@@ -2061,7 +2069,7 @@ class TemplatedDayOff (models.Model) :
         -  employee
         -  sd_id (0-41) 
     """
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='tdos')
+    employee = models.ForeignKey("Employee", on_delete=models.CASCADE, related_name='tdos')
     sd_id    = models.IntegerField ()
     
     @property

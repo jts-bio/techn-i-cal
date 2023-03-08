@@ -16,8 +16,9 @@
 
 
 
-<div class="flex items-center space-x-4 cursor-pointer" hx-get=""
-     hx-trigger="click" hx-target="#swap-panel">
+<div class="flex items-center space-x-4 cursor-pointer" 
+    hx-get="{% url 'sch:sch-week-brkd' schedule.slug %}"
+    hx-target="#swap-panel">
     <div class="flex-shrink-0">
         <div id="otBadge" class="h-7 w-7 pl-[2.7px] pt-[.6px] rounded-full border border-white bg-amber-300"><i class="fa-duotone fa-diagram-venn text-black"></i></div>
     </div>
@@ -25,7 +26,9 @@
         <p class="text-sm font-medium text-gray-900 truncate dark:text-white">Overtime Hours</p>
         <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">Goal: n = 0</p>
     </div>
-    <div class="inline-flex items-center text-base font-semibold text-gray-100" id="pto-check" _="install OtChecker">
+    <div class="inline-flex items-center text-base font-semibold text-gray-100" 
+         id="pto-check"
+         _="install OtChecker">
         <span id="ot-hours"></span>
         <span class="opacity-70 text-2xs font-light italic pl-2"> hrs.</span>
     </div>

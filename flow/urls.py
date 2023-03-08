@@ -22,11 +22,14 @@ schedule_urls = [
     path('<schId>/ot-hours/', ApiViews.schedule__get_overtime_hours, name='sch__get_ot_hours'), 
     path('<schId>/fill-by-period/', ApiActionViews.payPeriodFiller, name='sch__fill_by_period'),
     path('<schId>/week-excess/<empId>/<wk>/', ApiViews.schedule__employee_excess_week_hours, name='sch__get_week_excess'),
-    
 ]
 
 shift_urls = [
     path('<shiftName>/actions/set-img/', ApiActionViews.set__shift_img, name='shift__set_img'),
+]
+
+slot_urls = [
+    path('<slotId>/actions/ignore-mistemplate/', ApiActionViews.ignoreMistemplateFlag, name='slot__ignore_mistemplate'),
 ]
 
 pto_urls = [
@@ -45,6 +48,7 @@ urlpatterns = [
     path('shift/',    include(shift_urls)),
     path('ptoreq/',   include(pto_urls)),
     path('employee/', include(emp_urls)),
+    path('slot/',     include(slot_urls)),
 ]
 
 

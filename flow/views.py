@@ -271,7 +271,12 @@ class ApiActionViews:
                     print ('  skipping slot because it is already filled')
         
         return HttpResponse(f'Filled {empty_n_i - empty_n_f} slots')
-            
+
+    def ignoreMistemplateFlag(request, slotId):
+        slot = Slot.objects.get(slug=slotId)
+        slot.tags.add(Slot.IGNORE_MISTEMPLATE_FLAG)
+        slot.save()
+        return HttpResponse(f'Ignoring Mistemplate Flag for {slot}')     
     
 class VizViews:
     
