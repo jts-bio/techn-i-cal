@@ -1,5 +1,22 @@
 {% load tags %}
-
+<script type="text/hyperscript">
+    behavior ClearOT 
+        on click 
+            add .fa-beat then fetch actions/clear-ot-slots/  
+            then call showToast('All Overtime assignments removed','success')
+            then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
+            then put result into #swap-panel
+            end 
+        end
+    behavior ClearPRN 
+        on click 
+            add .fa-beat then fetch actions/clear-prn-slots/  
+            then call showToast('PRN Employees Removed from all scheduled assignments','success')
+            then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
+            then put result into #swap-panel
+            end
+        end
+</script>
 
 
 <section id="EMPLOYEE-WEEK-BREAKDOWNS"  class="bg-zinc-900 p-3 rounded border border-zinc-500">
@@ -9,21 +26,11 @@
     <div id="extra-actions-bar" class="flex flex-row my-2 gap-8">
             <i class="relative fa-solid fa-comment-minus hover:text-yellow-700" 
                 title="REMOVE PRN ASSIGNMENTS"
-                _=" on click 
-                        add .fa-beat then fetch actions/clear-prn-slots/  
-                        then call showToast('PRN Employees Removed from all scheduled assignments','success')
-                        then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
-                        then put result into #swap-panel
-                    end">
+                _="install ClearPRN">
             </i>
             <i class="relative fa-solid fa-overline hover:text-yellow-500" 
                 title="CLEAR OVERTIME SLOTS ASSIGNMENTS"
-                _=" on click 
-                        add .fa-beat then fetch actions/clear-ot-slots/  
-                        then call showToast('All Overtime assignments removed','success')
-                        then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
-                        then put result into #swap-panel
-                    end">
+                _="install ClearOT">
             </i>
             <div class="bg-zinc-700 text-orange-200 jbm text-2xs rounded h-5 w-[150px]"></div>
     </div>
@@ -36,19 +43,24 @@
             <tr>
                 <th>Employee</th>
                 {% for week in schedule.weeks.all %}
-                <th class="hover:bg-indigo-900"><a href="{{week.url}}">WEEK {{ week.number }}</a> </th>
+                <th class="hover:bg-indigo-900">
+                    <a href="{{week.url}}">WEEK {{ week.number }}</a>
+                </th>
                 {% endfor %}
             </tr>
         </thead>
 
         {% for employee in employees %}
 
-           <tr>
+           <tr id="empl-row-{{ employee.slug }}">
                 <th>
-                    <a 
-                        href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">
+                    <a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">
                         {{ employee }}
                     </a>
+                    <i class="fa-duotone fa-trash hover:text-rose-400 hover:scale-[115%]"
+                        hx-get="{% url 'flow:sch__clear_empl' schedule.slug employee.slug %}"
+                        hx-target="#empl-row-{{ employee.slug }}">
+                    </i>
                 </th>
 
                 {% for week in schedule.weeks.all %}

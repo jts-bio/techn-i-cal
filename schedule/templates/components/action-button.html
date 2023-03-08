@@ -11,13 +11,14 @@
         <ul class="dropdown-menu z-20 absolute overflow-y-visible">
         <li>
             <div id="favorable-finished" class="dropdown-item hover:bg-amber-300 font-bold pointer" 
-                 hx-get="actions/fill-with-favorables/"
-                 hx-swao="none"
-                 hx-indicator="#favorable-indicator"
                  _="on click 
                         remove .hidden from #action-button-indicator
                         add .active to me 
-                        then send recheck to me end 
+                        then send recheck to me then 
+                        fetch actions/fill-with-favorables/ then 
+                        then put result into #swap-panel then wait 1s then 
+                        call window.location.reload() 
+                        end 
                     on recheck 
                         repeat while #favorable-finished matches .active
                             trigger recheck on #n-empty-check 

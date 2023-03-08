@@ -138,6 +138,20 @@ class Actions:
                     f"Success: {selectedSlot} filled via PeriodActions.fill_slot_with_lowest_hour_employee",
                 )
             return HttpResponseRedirect(period.url())
+
+    class ScheduleActions:
+        
+        def clearEmployeeSlots(request, schId, empId):
+            sch  = Schedule.objects.get(slug=schId)
+            empl = Employee.objects.get(slug=empId)
+            n    = sch.slots.filter(employee=empl).count()
+            for slot in sch.slots.filter(employee=empl):
+                slot.employee = None 
+                slot.save()
+            return HttpResponse(f"{n} slots cleared for {empl}")
+
+            
+
 #######--- END OF ACTIONS SECTION ---########
 
 class WeekViews:
@@ -464,7 +478,6 @@ class SchPartials:
             "schedule": sch,
         }
         return render (request, html_template, context)
-    
     def schComplexTablePartial (request, schId):
         html_template = "sch2/schedule/partials/complex-table-wrapper.html"
         sch = Schedule.objects.get(slug=schId)
@@ -474,7 +487,6 @@ class SchPartials:
             "schedule": sch,
         }
         return render (request, html_template, context)
-    
     def schCompareSelectPartial (request, schId):
         html_template = "sch2/schedule/partials/compare-select.html"
         sch = Schedule.objects.get(slug=schId)
@@ -483,7 +495,6 @@ class SchPartials:
             "other_schedules": Schedule.objects.exclude(slug=schId),
         }
         return render (request, html_template, context)
-    
     def schViewSelectPartial (request, schId):
         html_template = "sch2/schedule/partials/view-select.html"
         sch = Schedule.objects.get(slug=schId)
@@ -491,7 +502,6 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
-    
     def schEmployeeGridPartial (request, schId):
         html_template = "sch2/schedule/partials/sch-as-empl-grid.html"
         sch = Schedule.objects.get(slug=schId)
@@ -499,7 +509,6 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
-    
     def schShiftGridPartial (request, schId):
         html_template = "sch2/schedule/partials/sch-as-shift-grid.html"
         sch = Schedule.objects.get(slug=schId)
@@ -507,7 +516,6 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
-    
     def schFteRatioPartial (request, schId):
         html_template = "sch2/schedule/partials/fte-percents.html"
         sch = Schedule.objects.get(slug=schId)
@@ -529,7 +537,6 @@ class SchPartials:
             "employees": empls,
         }
         return render(request, html_template, context)
-    
     def schWeeklyBreakdownPartial (request,schId):
         html_template = "sch2/schedule/partials/sch-employee-week-breakdown.html"
         sch = Schedule.objects.get(slug=schId)
@@ -538,7 +545,6 @@ class SchPartials:
             'employees' : Employee.objects.all(),
         }
         return render(request, html_template, context)
-
     def schMistemplatedPartial (request, schId):
         sch = Schedule.objects.get(slug=schId)
         mistemplated = sch.slots.mistemplated().all()
@@ -613,7 +619,6 @@ class SlotViews:
         slot.employee = None
         slot.save()
         return HttpResponseRedirect(wd.url())
-        
     def slotClearActionView (request, slotId):
         """
         Slot Clear Action View
@@ -708,7 +713,6 @@ class ShiftViews:
 
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)
-    
     def sortPrefView (request, sft):
         shift = Shift.objects.get(name=sft)
         sort_prefs = ShiftSortPreference.objects.filter(shift__name=sft).order_by('rank')
@@ -895,7 +899,6 @@ class IdealFill:
         inConflictingSlots = slot._get_conflicting_slots().values("employee")
         available__noConflict = base_avaliable.exclude(pk__in=inConflictingSlots)
         return available__noConflict
-
     def levelB(request, slot_id):
         """Checks for No Weekly Overtime"""
         slot = Slot.objects.get(pk=slot_id)
@@ -906,7 +909,6 @@ class IdealFill:
                 underFte += [n.pk]
         possible = IdealFill.levelA(None, slot_id)
         return possible.filter(pk__in=nh)
-
     def levelC(request, slot_id):
         """Checks for No PayPeriod FTE overages"""
         slot = Slot.objects.get(pk=slot_id)
@@ -917,14 +919,12 @@ class IdealFill:
                 underFte += [n.pk]
         possible = IdealFill.levelA(None, slot_id)
         return possible.filter(pk__in=nh)
-
     def levelD(request, slot_id):
         """Checks for Matching Time-of-day Preference"""
         slot = Slot.objects.get(pk=slot_id)
         timeGroup = slot.shift.group
         possible = IdealFill.levelC(None, slot_id)
         return possible.filter(time_pref=timeGroup)
-
     def levelE(request, slot_id):
         """Checks for Preferred Streak-length not to be exceeded"""
         slot = Slot.objects.get(pk=slot_id)
@@ -937,7 +937,6 @@ class IdealFill:
             if slot.employee.streak_pref >= maxStreak:
                 ok_streak += [possibility]
         return Employee.objects.filter (pk__in=ok_streak)
-
     def levelF(request, slot_id):
         for empl in IdealFill.levelE(None, slot_id):
             empl.shift

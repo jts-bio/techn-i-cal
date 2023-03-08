@@ -2228,6 +2228,7 @@ def generate_schedule (year,number):
         n_same = Schedule.objects.filter(year=year, number=number).count()
     version = "ABCDEFGHIJKLMNOP"[n_same]
     sch = Schedule.objects.create(start_date=start_date, number=number, year=year, version=version)
+    sch.actions.build_schedule(sch)
     return 'Complete'
     
 def randomSlot ():

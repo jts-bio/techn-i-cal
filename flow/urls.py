@@ -1,6 +1,6 @@
 from django.urls import path, include
 from .views import ApiViews, ApiActionViews
-from sch.viewsets import SchViews
+from sch.viewsets import SchViews, Actions
 
 
 app_name = 'flow'
@@ -22,6 +22,7 @@ schedule_urls = [
     path('<schId>/ot-hours/', ApiViews.schedule__get_overtime_hours, name='sch__get_ot_hours'), 
     path('<schId>/fill-by-period/', ApiActionViews.payPeriodFiller, name='sch__fill_by_period'),
     path('<schId>/week-excess/<empId>/<wk>/', ApiViews.schedule__employee_excess_week_hours, name='sch__get_week_excess'),
+    path('<schId>/clear-empl-slots/<empId>/', Actions.ScheduleActions.clearEmployeeSlots, name="sch__clear_empl"),
 ]
 
 shift_urls = [

@@ -54,14 +54,13 @@ def schListView(request):
         print(start_date)
         i = 0
         idate = start_date
+        year  = start_date.year
         while idate.year == start_date.year:
             i += 1
             idate = idate - dt.timedelta(days=42)
-        generate_schedule(year=start_date.year, number=i)
-        return render(
-            request, "sch-list.html", {
-                "schedules": schedules.order_by("-start_date")}
-        )
+        s = Schedule.objects.filter(year=year, number=i).count()
+        version = "ABCDEFGH"[s]
+        return HttpResponseRedirect(f'/api/build-schedule/{year}/{i}/{version}/')
 
     context = {
         "schedules": schedules.order_by("-start_date"),

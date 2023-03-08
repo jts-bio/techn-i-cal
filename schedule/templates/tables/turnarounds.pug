@@ -1,11 +1,9 @@
 // TURNAROUNDS TABLE TEMPLATE 
 
-mixin trashIcon(turnaround)
-  i.fa-duotone.fa-trash.text-zinc-200(
-    class="hover:text-red-400"
-    hx-post=`schedule/detail/#{turnaround.schedule.url()}/actions/clear-slot/#{turnaround.workday}/#{turnaround.shift.name}`
-    )
-
+//- mixin trashIcon(turnaround)
+//-   i.fa-duotone.fa-trash.text-zinc-200(class="hover:text-red-400"
+//-     hx-post=`schedule/detail/$turnaround/actions/clear-slot/$turnaround}/$turnaround/`
+//-   )
 
 
 // template
@@ -25,6 +23,5 @@ table.table.table-hover
         td
           a(href=turnaround.workday.url())= turnaround
         td
-          +trashIcon(turnaround)
-        
+          //- +trashIcon(turnaround)
         
