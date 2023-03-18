@@ -427,4 +427,3 @@
     return peity;
   
   }));
-  //# sourceMappingURL=peity-vanilla.js.map

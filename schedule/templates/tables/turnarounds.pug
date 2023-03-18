@@ -1,16 +1,14 @@
 // TURNAROUNDS TABLE TEMPLATE 
 
-//- mixin trashIcon(turnaround)
-//-   i.fa-duotone.fa-trash.text-zinc-200(class="hover:text-red-400"
-//-     hx-post=`schedule/detail/$turnaround/actions/clear-slot/$turnaround}/$turnaround/`
-//-   )
+mixin trashIcon(turnaround)
+  i.fa-duotone.fa-trash.text-zinc-200(class="hover:text-red-800 hover:scale-[125%]"
+    hx-post="/schedule/detail/#{turnaround.schedule.slug}/actions/clear-slot/#{turnaround.workday}/#{turnaround.shift}/")
 
 
-// template
 
 h3.text-xl Turnarounds 
 
-table.table.table-hover
+table.table.table-hover(class="w-[330px]")
   thead
     tr
       th Employee 
@@ -18,10 +16,10 @@ table.table.table-hover
       th Actions
   tbody
     each turnaround in turnarounds
-      tr.bg-zinc-800.tr-hover
+      tr.bg-zinc-800.tr-hover(_="on mouseover toggle .text-zinc-700 on .fa-trash in me until mouseleave end")
         td= turnaround.employee
         td
           a(href=turnaround.workday.url())= turnaround
         td
-          //- +trashIcon(turnaround)
+          +trashIcon(turnaround)
         

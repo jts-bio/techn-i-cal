@@ -67,6 +67,7 @@ class ScheduleAdmin (admin.ModelAdmin):
 class RoutineLogAdmin (admin.ModelAdmin):
     fields          = ['schedule']
     list_display    = ['schedule']
+    
 @admin.register(LogEvent)
 class LogEventAdmin (admin.ModelAdmin):
     fields          = ('log', 'event_type', 'description')

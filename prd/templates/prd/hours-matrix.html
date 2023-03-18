@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+
+    <a 
+        href="{% url 'schd:detail' period.schedule.slug %}">
+        Schedule  {{period.schedule.slug}}
+    </a>
+
+    <div class="bg-gradient-to-tl w-fc center-self from-blue-600/[.50] via-transparent to-purple-400/[.25] rounded-xl p-6 md:p-8">
+        <div class="md:pt-6 lg:pt-0 md:grid md:grid-cols-12 md:gap-x-10 md:items-center">
+            <table class="table table-hover jbm">
+                <tr>
+                    <th>Employee</th>
+                    <th>Week A</th>
+                    <th>Week B</th>
+                    <th>FTE</th>
+                    <th>% COMPLETE</th>
+                </tr> 
+                {% for empl,hrs in employees.items %}
+                <tr class="{% cycle 'bg-zinc-700' 'bg-zinc-900' %} bg-opacity-40 hover:bg-white">
+                    <td>{{empl.name}}</td>
+                    <td>{{hrs.0}}</td>
+                    <td>{{hrs.1}}</td>
+                    <td>{{empl.fte_14_day}} hrs</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+{% endblock %}
+     
+    

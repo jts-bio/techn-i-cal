@@ -3,15 +3,22 @@
 
 {% block style %}
 
-
+  <style>
+      .selected {
+        border: 4px white solid;
+        width: 38px!important;
+        height: 38px!important;
+      }
+  </style>
     
 {% endblock style %}
-    
+
+
 
 
 {% block content %}
 
-    <a href="{{employee.url}}">
+    <a href="{{ employee.url }}">
         <i class="fas">{% backArrow %}</i>
         Back
     </a>
@@ -28,7 +35,14 @@
     {% csrf_token %}
 
     <div id="sorted-bin"
-        class="panel center-items">
+        class="panel center-items"
+         _="init 
+              set $selectedType to null 
+              end
+            on click
+              remove .selected from .shift 
+              end
+            on click set $selectedType to null ">
 
         <div class="hstack">
                 {% for n in nTotal %}
@@ -37,10 +51,20 @@
                         class="bin-empty bin bg-sky-900 ring-sky-200 ring-2 h-12 w-12 rounded text-center" 
                         ondrop="drop(event)"
                         ondragover="dragOver(event)"
-                        ondragleave="dragLeave(event)">
+                        ondragleave="dragLeave(event)"
+                        data-shift=""
+                        _="on click 
+                              if $selectedType == `shift` 
+                                remove .bin-empty from me then 
+                                set selected to .selected then 
+                                set @data-shift to selected@value then
+                                set (next .shift-input)@value to selected@value then
+                                put selected at the end of me
+                                end
+                              end">
                         {{ n }}
                     </div>
-                    <input type="hidden" name="bin-{{n}}" value="">
+                    <input class="shift-input" type="hidden" name="bin-{{n}}" value="">
                     
                 {% endfor %}
         </div>
@@ -50,27 +74,44 @@
 
     <div id="unsorted-bin"
         class="hstack bg-slate-600 rounded-lg ring-4 ring-zinc-200 p-8 w-fc m-4">
+
         {% for shift in employee.shifts_available.all %}
-
-            <div id= "shift-{{ shift }}" 
-                class= "bg-indigo-500 h-6 w-6 rounded text-center p-1 text-xs ml-3
+            <div id="shift-{{ shift }}" 
+                class="shift bg-indigo-500 h-6 w-6 rounded text-center p-1 text-xs ml-3
                         hover:bg-indigo-400 hover:ring-indigo-300 hover:ring-2"
-                draggable= "true"
-                ondragstart= "dragStart(event)"
-                value= "{{shift}}">
-                {{shift}}
+                draggable="true"
+                ondragstart="dragStart(event)"
+                value= "{{ shift }}"
+                _="on click 
+                      if I match .selected 
+                        set $selectedType to null then 
+                        remove .selected from me 
+                      else
+                        set $selectedType to `shift` then 
+                        remove .selected from .shift then
+                        add .selected to me 
+                        end
+                      end">
+                {{ shift }}
             </div>
-
         {% endfor %}
 
         <input id="sort-submit" 
             type="submit" 
             value="Submit" 
-            class="bg-transparent border border-3 border-yellow-400 
+            class="submit-btn 
+                  hidden
+                  bg-transparent border border-3 border-yellow-400 
                   rounded-lg px-4 py-1 m-2 
                   transition text-yellow-400 
                   hover:bg-yellow-400 hover:text-black hover:scale-105 hover:fa-pulse"
-            hidden />
+            _="on click from .bin 
+                set emptyShifts to .bin-empty.length 
+                then log emptyShifts then
+                if emptyShifts == 0 
+                  remove .hidden from me
+                  end
+                end"/>
 
     </div>
 

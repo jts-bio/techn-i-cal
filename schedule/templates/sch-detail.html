@@ -20,13 +20,15 @@
   <h1 class="text-3xl text-zinc-400 font-bold">
     Schedule {{ schedule.number }} ({{ schedule.year }})
   </h1>
+
   <h3 class="text-lg text-zinc-100 font-light">
     VERSION
     <span id="scheduleVersionId">{{ schedule.version }}</span>
-    <span id="versionEllipsis" class="opacity-50 hover:opacity-90 text-sm"
-      ><i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i
-    ></span>
+    <span id="versionEllipsis" class="opacity-50 hover:opacity-90 text-sm">
+      <i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i>
+    </span>
   </h3>
+
   <div class="flex flex-row align-items">
 
     {# ======== ACTION BUTTON ========= #}
@@ -37,18 +39,26 @@
 </div>
 
 <div class="flex flex-col">
-  <section>{% include 'sch2/schedule/partials/sch-tabBar.html' %}</section>
 
-  <section>
+  <section id="TAB-BAR-MAIN">
+    {% include 'sch2/schedule/partials/sch-tabBar.html' %}
+  </section>
+
+  <section id="LOWER-BODY">
+
     <div class="flex flex-col-reverse md:flex-row md:flex-row mb-1 md:mb-3">
+
       {% include 'stats.html' %}
-      <div
-        id="swap-panel"
-        class="container overflow-x-scroll overscroll-x-auto px-1 md:px-4 md:ml-2 bg-zinc-900 rounded shadow border-zinc-300 border-2"
-      >
-        <i id="swap-panel-indic" class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
+
+      <div id="swap-panel"
+           class="container overflow-x-scroll overscroll-x-auto
+                  px-1 md:px-4 md:ml-2 bg-zinc-900 rounded 
+                  shadow border-zinc-300 border-2">
+          <i id="swap-panel-indic" 
+             class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
       </div>
     </div>
+
   </section>
 
   
@@ -60,9 +70,13 @@
 
 
 <div id="contextMenu"
-  style="display: none; position: absolute; z-index: 10"
-  class="rounded bg-black bg-opacity-[30%] text-white p-3">
-  <a href="build-alt-draft/" class="hover:underline">Build Alternate Draft Version</a>
+     style="display: none; position: absolute; z-index: 10"
+     class="rounded bg-black bg-opacity-[30%] text-white p-3">
+  
+    <a href="build-alt-draft/" 
+       class="hover:underline">
+       Build Alternate Draft Version
+    </a>
 </div>
 
 
@@ -78,6 +92,7 @@
 
   function hideContextMenu() {
     var contextMenu = document.getElementById("contextMenu");
+    console.log('Function Executed: hideContextMenu()');
     contextMenu.style.display = "none";
   }
 

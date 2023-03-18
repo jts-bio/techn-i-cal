@@ -1,0 +1,8 @@
+{
+    "recommendations": [
+        "ms-python.python",
+        "github.copilot",
+        "christian-kohler.path-intellisense",
+        "jack89ita.open-file-from-path"
+    ]
+}

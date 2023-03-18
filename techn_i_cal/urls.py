@@ -52,8 +52,11 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
+
+@public
 def mail (request):
     return render(request, 'mail.html', {'slots': Slot.objects.all()})
+
 
 @public
 def loginView (request):
@@ -61,6 +64,7 @@ def loginView (request):
 
     if request.method == "POST":
         print("post")
+        print(request.__dict__)
         if request.POST.get("username"): 
             username = request.POST.get("username")
             print(username)
@@ -70,6 +74,7 @@ def loginView (request):
             print('USER:',user)
             if user is not None:
                 login(request, user)
+                print('login')
                 return HttpResponseRedirect(reverse('index'))
             else:
                 return HttpResponseRedirect(reverse('login'))
@@ -99,8 +104,9 @@ urlpatterns = [
     path('sch/',        include('sch.urls'),      name='sch'),
     path('schedule/',   include('schedule.urls'), name='schedule'),
     path('wday/',       include('wday.urls'),     name='wday'),
+    path('prd/',        include('prd.urls'),      name="prd"),
     path('pds/',        include('pds.urls'),      name="pds"),
-    path('api/',       include('flow.urls'),      name='flow'),
+    path('api/',        include('flow.urls'),     name='flow'),
     path('mail/',       mail,                     name='mail'),
 
 ] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )

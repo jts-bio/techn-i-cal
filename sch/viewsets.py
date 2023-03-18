@@ -713,6 +713,7 @@ class ShiftViews:
 
         context = {"shift": shift, "days": days}
         return render(request, html_template, context)
+    
     def sortPrefView (request, sft):
         shift = Shift.objects.get(name=sft)
         sort_prefs = ShiftSortPreference.objects.filter(shift__name=sft).order_by('rank')
@@ -727,17 +728,17 @@ class EmpViews:
         emp = Employee.objects.get(pk=empId)
         if request.method == "POST":
             print(request.POST)
-            emp.shift_sort_prefs.all().delete()
+            ShiftSortPreference.objects.filter(employee=emp).delete()
+            print(emp.shift_sort_prefs.all())
             for i in range(1, emp.shifts_available.count() + 1):
                 shift = request.POST.get(f"bin-{i}")
                 if shift:
                     shift = Shift.objects.get(name=shift.replace("shift-", ""))
-                    pref = emp.shift_sort_prefs.filter(shift=shift)
-                    if pref.exists():
-                        pref = pref.first()
-                    else:
-                        pref = ShiftSortPreference.objects.create(
-                            employee=emp, shift=shift, score=i, rank=i - 1
+                    pref = ShiftSortPreference.objects.create(
+                            employee=emp, 
+                            shift=shift, 
+                            score=i, 
+                            rank=i-1
                         )
                     pref.score = i
                     pref.rank = i - 1

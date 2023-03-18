@@ -52,7 +52,7 @@ def schListView(request):
         sd = request.POST.get("start_date")
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
         print(start_date)
-        i = 0
+        i = -1
         idate = start_date
         year  = start_date.year
         while idate.year == start_date.year:
@@ -78,7 +78,7 @@ def groupedScheduleListView(request):
         yn_dict[f"{pair[0]}-{pair[1]}"] = []
     for sch in Schedule.objects.all():
         yn_dict[f"{sch.year}-{sch.number}"].append(sch)
-    return render(request, "sch-list-grouped.html", {"schedules": yn_dict})
+    return render (request, "sch-list-grouped.html", {"schedules": yn_dict} )
 
 
 def schDetailView(request, schId):
@@ -149,12 +149,18 @@ class Sections:
     def schPtoGrid(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
-        ptos = sch.workdays.filter(pto_requests__employee=emp)
-        days = sch.workdays.annotate(
-            emplPto=Count("pto_requests", filter=Q(pto_requests__employee=emp))
-        ).annotate(
-            emplShift=Count("slots", filter=Q(slots__employee=emp))
-        )
+        ptos = list(sch.pto_requests.filter(employee=emp).values_list('workday',flat=True))
+        shifts = list(sch.slots.filter(employee=emp).values_list('workday',flat=True))
+        
+        days = sch.workdays.all()
+        for day in days:
+            day.is_pto = day.date in ptos
+            day.is_shift = day in shifts
+
+        for day in days:
+            if day.is_pto or day.is_shift:
+                print(day.date, day.is_pto, day.is_shift)
+        
         return render(
             request, "tables/empl-pto-grid.html", {
                 "ptos": ptos,
@@ -163,13 +169,11 @@ class Sections:
                 "days": days,
             }
         )
-
     def schEmusr(request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
-
     def schEmptyList(request, schId):
         version = schId[-1]
 
@@ -200,7 +204,6 @@ class Sections:
 
         )
         return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
-
     def schEmployeeEmusrSlots(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
@@ -211,16 +214,13 @@ class Sections:
             "tables/emusr-empl.pug",
             {"slots": slots, "emp": emp, "sch": sch, "n": n},
         )
-
     def schUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = sch.slots.untrained().all()
         return render(request, "tables/untrained.html", {"data": data})
-
     def schLogView(request, schId):
         sch = Schedule.objects.get(slug=schId)
         return render(request, "tables/routine-log.html", {"schedule": sch})
-
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
         turnarounds = sch.slots.turnarounds().preturnarounds().all()

@@ -303,8 +303,7 @@ def shiftTrainingFormView(request, cls, sft):
 
 
 def currentWeek (request):
-    workday = Workday.objects.filter(date=dt.date.today()).first()
-    week = Week.objects.filter(workdays=workday).first()
+    week = Week.objects.filter(workdays__date=dt.date.today()).first()
     return HttpResponseRedirect(week.url())
 
 

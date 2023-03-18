@@ -1,0 +1,9 @@
+behavior Background 
+    on click 
+        send unfocus to .employee
+        then remove .source from .slot
+        then send unhighlight to .slot 
+        then add .hidden to .trashbin 
+    end
+end 
+

@@ -1,41 +1,64 @@
 
 behavior Employee
-    init if @week-hours > 40 trigger warn on .clock in me end
-    init if @period-hours > 80 trigger warn on .clock in me end
-    init if @week-hours == 40 trigger darken on .clock in me end
-    init if @period-hours == 80 trigger darken on .clock in me end
+    init if @week-hours > 40 
+        trigger warn on .clock in me end
+    init if @period-hours > 80 
+        trigger warn on .clock in me end
+    init if @week-hours == 40 
+        trigger darken on .clock in me end
+    init if @period-hours == 80 
+        trigger darken on .clock in me end
     init if @turnaround != 0 
         add .bg-rose-700 .bg-opacity-30 
         then send warnTurnaround to .clock in me end
     init if @is_pto_conflict == 'true' add .bg-red-400 .bg-opacity-30 
         then send warnPtoConflict to .clock in me end
-    init if @previous-slot == `AM` remove .hidden from (.ind-prev-am in me) end
-    init if @previous-slot == `PM` remove .hidden from (.ind-prev-pm in me) end
-    init if @previous-slot == `XN` remove .hidden from (.ind-prev-pm in me) end
-    init if @next-slot == `AM` remove .hidden from .ind-next-am in me end
-    init if @next-slot == `PM` remove .hidden from .ind-next-pm in me end
-    init if @next-slot == `XN` remove .hidden from .ind-next-pm in me end
-    on dragstart if @slotted-as != `` remove .hidden from .trashbin end 
-    on dragstart set $emp to @id 
-        then set $clickmode to 0 then log `clickmode is ${clickmode}`
-    on dragstart set $allow to my.dataset.available.split(' ') end
+    init if @previous-slot == `AM` 
+        remove .hidden from (.ind-prev-am in me) end
+    init if @previous-slot == `PM` 
+        remove .hidden from (.ind-prev-pm in me) end
+    init if @previous-slot == `XN` 
+        remove .hidden from (.ind-prev-pm in me) end
+    init if @next-slot == `AM` 
+        remove .hidden from .ind-next-am in me end
+    init if @next-slot == `PM` 
+        remove .hidden from .ind-next-pm in me end
+    init if @next-slot == `XN` 
+        remove .hidden from .ind-next-pm in me end
     on dragstart 
+        if @slotted-as != `` 
+            remove .hidden from .trashbin 
+        end 
+    on dragstart 
+        set $emp to @id 
+        then set $clickmode to 0 
+        then log `clickmode is ${clickmode}`
+    on dragstart 
+        add .active to me then 
+        set $allow to my.dataset.available.split(' ') then 
         if @previous-slot == 'PM' send hlAllowed to .pm-slot 
         else if @next-slot == 'AM' send hlAllowed to .am-slot end end
-    on dragstart add .dragging to me end 
-    on dragend remove .ring-green-500 from .slot then remove .dragging from me end
-    on dragend send unhighlight to .slot end
-    on dragend add .hidden to .trashbin end
+    on dragend 
+        remove .ring-green-500 from .slot then 
+        send unhighlight to .slot then 
+        add .hidden to .trashbin then 
+        remove .active from me end
     on click 
-        if I match .active-emp-card 
-                add .hidden to .trashbin then 
-                send unfocus to .employee-chip
+        if .active exists 
+            if I do not match .active 
+                take .active from .employee 
+                log 'took active'
+                then send unhighlight to .slot
+                then add .source to closest .slot 
+                end
+            else 
+                remove .active from me
                 then send unhighlight to .slot
                 then set $clickmode to 0
-            else 
-                send unfocus to .employee-chip then wait 20ms then send focused to me 
-                then send unhighlight to .slot
-            end 
+            end
+        if .active does not exist
+            add .active to me then send focused to me 
+            end
         if @previous-slot == 'PM' 
                 send hlAllowed to .pm-slot 
             else if @next-slot == 'AM' 
@@ -45,9 +68,9 @@ behavior Employee
             end 
         end
     on focused  
-        add .active-emp-card .dragging .shadow .shadow-lg .scale-125 .ring .ring-sky-100 to me 
+        add .shadow .shadow-lg .scale-125 .ring .ring-sky-100 to me 
         then set $clickmode to 1 
-        then log `[${@id}] is focused`
+        then log `[${@id}] is FOCUSED`
         then set $emp to @id 
         then set $empcard to me
         then log $empcard
@@ -57,7 +80,7 @@ behavior Employee
             end
         end
     on unfocus 
-        remove .active-emp-card .dragging .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me 
+        remove .active-emp-card .active .shadow .shadow-lg .scale-125 .ring .ring-sky-100 from me 
         then set $emp to `` then set $empcard to ``
         then set $clickmode to 0 
         end
@@ -66,6 +89,15 @@ behavior Employee
     on moveaway 
         set movingaway to me then trigger getmovingaway on .deck end
     end
+    on hintStart(shift)
+        set sftlist to [@dataset.available].split(' ') as Array then
+        if shift in sftlist
+            add .fa-beat .bg-emerald-800 to me
+        end
+    end 
+    on hintEnd 
+        remove .fa-beat .bg-emerald-800 from me 
+    end 
 
 
 behavior Clock 
@@ -86,61 +118,83 @@ behavior Clock
         add .text-white .bg-rose-700 .border .border-white to me 
         end
     end
-behavior Slot   
+behavior Slot  
+    on fetch:beforeRequest(headers) 
+        set headers['empid'] to $emp end 
     on dragover or dragenter 
-        if $allow.includes(@id) and @current != $emp halt the event 
-        else if @current != $emp add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 end 
+        if $allow.includes(@id) and @current != $emp 
+            halt the event 
+        else if @current != $emp 
+            add .bg-red-300 .bg-opacity-30 .ring .ring-red-600 
+            end 
         end
     on dragover or dragenter 
         if $allow.includes(@id) add .bg-emerald-400 .ring .ring-emerald-300 then 
         set $empCardScondary to me end
-        
     on dragleave set $empCardSecondary to `` end
     on dragleave or dragend remove .ring .ring-2 .ring-green-400 
                     .bg-emerald-400 .bg-opacity-80 .ring-emerald-300 
                     .bg-red-300 .ring-red-600 end
-
-    on fetch:beforeRequest(headers) set headers['empId'] to $emp end
     on drop 
-        trigger transferemployee on .inner-slot in me end
-    on hlAllowed if $allow.includes(@id) add .bg-green-600 .ring .ring-green-500 end
-    on unhighlight remove .bg-green-600 .ring .ring-green-500 end
-    on click 
-        if $clickmode == 1
-            trigger transferemployee on me then
+        trigger transferemployee on .inner-slot in me 
             wait 20ms then send hidetrash to .trashbin 
             then send unhighlight to .slot then
             remove .fa-fade .fa-beat from me 
-            then set $clickmode to 0 then log 
-        else if $clickmode == 0
-            if $empcard != `` then tell .active-emp-card remove you end
-            then put $empcard into .inner-slot in me 
-            then send unfocus to .emp-card then
+            then set $clickmode to 0 
+        end
+    on hlAllowed 
+        if $allow.includes(@id) 
+            add .bg-green-600 .ring .ring-green-500 end
+    on unhighlight 
+        remove .bg-green-600 .ring .ring-green-500 end
+    on click 
+        if $clickmode == 1
+            add .secondary to .employee in me then 
+            trigger transferemployee on .inner-slot in me then
+            add .hidden to .helper in me then
             wait 20ms then send hidetrash to .trashbin 
-            then set $clickmode to 1 
-            send unhighlight to .slot end
+            then send unhighlight to .slot then
+            remove .fa-fade .fa-beat from me 
+            then set $clickmode to 0 then log $emp
+            end
         end
-        end
+    on takeswap(emp) 
+        set movingAwayEmployee to emp then
+        set innerslot to first .inner-slot in me then
+        call innerslot.appendChild(movingAwayEmployee) 
+    end
+
+behavior InnerSlot
+    on fetch:beforeRequest(headers) 
+        set headers['empid'] to $emp end
     on transferemployee 
-        halt the event then call document.querySelector('.dragging') then 
+        halt the event then call document.querySelector('.active') then 
         set movingEmployee to result then 
+        call document.querySelector('.secondary') then
+        set movingAwayEmployee to result then 
         call me.appendChild(movingEmployee) then 
-        remove .dragging from movingEmployee then
+        trigger takeswap(emp:movingAwayEmployee) on .source
+        remove .active from movingEmployee then
         remove .ring .ring-2 .ring-green-400
         add .fa-fade .fa-beat to me then
-        trigger hidehelper on .helper-btn in me then 
+        add .hidden to .helper-btn in me then 
         set shift to [@id] then 
         fetch `slot/${shift}/update/` then 
-        remove .fa-fade .fa-beat from me end
+        remove .fa-fade .fa-beat from me then
+        set slug to [@wdid] then 
+        fetch `/wday/${slug}/` 
+        then add .hidden to .helper in me
+        then trigger moveaway on .employee in me 
+        end
     end
 
 behavior TrashBin 
     on dragenter or dragover 
         add .ring .ring-red-200 
-        then halt the event then 
+        then halt the event
         end
     on fetch:beforeRequest(headers) 
-        set headers['empId'] to $emp end
+        set headers['empid'] to $emp end
     on dragleave 
         remove .ring .ring-red-200 end
     on drop 
@@ -148,28 +202,56 @@ behavior TrashBin
     on drop 
         set :recieved to true 
         then remove .hidden from me then put `Removing $emp` into #trash-message 
-        then tell .dragging remove you then add .fa-fade .fa-beat to me 
+        then tell .active remove you then add .fa-fade .fa-beat to me 
         then call event.dataTransfer.getData('text/plain') then put result into me 
         then fetch delete/ 
         then wait 1ms 
-        then tell .active-emp-card remove you then
-        fetch `/wday/${[@wdi]}/`
+        then tell .active remove you then
+        set slug to [@wdid] then 
+        fetch `/wday/${slug}/`
         then put result into closest <html/> end
         end
     on click 
         if $clickmode == true
             then remove .hidden from me then put `Removing $emp` into #trash-message 
-            then tell .dragging remove you then add .fa-fade .fa-beat to me 
+            then tell .active remove you then add .fa-fade .fa-beat to me 
             then fetch delete/ 
             then wait 1ms 
-            then tell .active-emp-card remove you then
-            fetch `/wday/${[@wdid]}/`
-            then put result into closest <html/> end
+            then tell .active remove you then
+            set slug to [@wdid] then 
+            fetch `/wday/${slug}/`
+            then put result into closest <html/> 
+            end
         end
     end
     on hidetrash 
         if :recieved != true 
             add .hidden to me 
+            end
         end
     end
+end
 
+
+behavior Background
+    init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
+    end
+    on click 
+        send unfocus to .employee
+        then remove .active-emp-card .dragging from .emp-card 
+        then send unhighlight to .slot 
+        then add .hidden to .trashbin 
+    end
+end 
+
+behavior HintEllipsis
+    on mouseover or mouseenter 
+        set sft to [@dataset.slot] 
+        then send hintStart(shift:sft) to .employee 
+        end
+    on mouseleave 
+        send hintEnd to .employee 
+        end
+    on hidehelper add .hidden to me
+    end 
+end 
