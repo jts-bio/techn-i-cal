@@ -22,10 +22,5 @@ def prd_detail (request, schId:str, n:int) -> 'HttpResponse':
     } # type: dict
     return render(request, './prd/hours-matrix.html', {"employees":employees, "period":prd })
 
-
-
-
-
-
 def preline_table (request) -> 'HttpResponse':
     return render (request, 'prd/preline-table.html')

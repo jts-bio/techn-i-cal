@@ -643,6 +643,22 @@ class Employee (models.Model) :
         wd = Workday.objects.get(pk=wd)
         if wd.tdo().filter(employee=self).exists():
             return wd.templated_days_off.filter(employee=self).first()
+    def check_prev_day(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        if wd.prevWD().slots.filter(employee=self):
+            return wd.prevWD().slots.get(employee=self).shift.group
+        return "None"
+    def check_next_day(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        if wd.nextWD().slots.filter(employee=self):
+            return wd.nextWD().slots.get(employee=self).shift.group
+        return "None"
+    def check_daytime(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        slots = wd.slots.filter(employee=self)
+        if not slots.exists():
+            return "None"
+        return slots.first().shift.group
     def save (self, *args, **kwargs):
         super().save(*args, **kwargs)
         slugString = self.name.strip().replace(" ","-")
@@ -1879,7 +1895,7 @@ class Slot (models.Model) :
                 return "ASSIGNED VIA TEMPLATE"
         return
     def save (self, *args, **kwargs):
-        if not self.template_employee:
+        if self.template_employee == None:
             if ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).exists():
                 empl = ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).first().employee
                 self.template_employee = empl
@@ -1898,8 +1914,9 @@ class Slot (models.Model) :
         if self.employee :
             self.streak = self._streak()
             self.slug = self.workday.date.strftime('%Y-%m-%d') + self.schedule.version + "-" + self.shift.name
+        if hasattr(self, 'pk'):
+            self.update_fills_with()
         super().save(*args, **kwargs)
-        self.update_fills_with()
     def update_fills_with (self):
         self.fills_with.clear()
         for empl in self._fillableBy():
@@ -2225,6 +2242,25 @@ class ShiftSortPreference (models.Model):
 # ============================================================================
 class ScheduleEmusr (models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+    n_unfav  = models.SmallIntegerField()
+    n_var    = models.SmallIntegerField()
+    std_dev  = models.FloatField()
+    
+    
+    class Actions:
+        def update_n_unfav(self):
+            self.n_unfav = self.schedule.slots.unfavorables().count()
+        def update_n_var(self):
+            qs = ScheduleEmusr.objects.values('n_unfav')
+            avg = qs.aggregate(Avg('n_unfav'))['n_unfav__avg']
+            self.n_var = int(self.n_unfav - avg)
+    actions = Actions()
+        
+    def __str__ (self):
+        return f"{self.schedule} ({self.n_unfav})"
+    def save(self):
+        self.actions.update_n_unfav()
+        super().save()
 
 def generate_schedule (year,number):
     """
@@ -2268,7 +2304,7 @@ def tally (lst):
             tally[item] = 1
     return tally
 
-def sortDict (d, reverse=False):
+def sortDict (d:dict, reverse=False) -> dict:
     """ SORT DICT BY VALUE """
     if reverse == True:
         return dict(sorted(d.items(), key=lambda item: item[1], reverse=True))

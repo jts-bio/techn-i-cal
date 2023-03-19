@@ -23,11 +23,11 @@ mixin day-breadcrumbs(workday)
 
 mixin time-icon(daytime)
     if daytime == 'AM'
-        i.fas.fa-sun.opacity-30.px-2
+        i.fas.fa-sun.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
     if daytime == 'PM'
-        i.fas.fa-moon.opacity-30.px-2
+        i.fas.fa-moon.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
     if daytime == 'XN'
-        i.fas.fa-tombstone.opacity-30.px-2
+        i.fas.fa-tombstone.opacity-10.px-2.text-3xl.-left-6.-top-2.relative
 
 mixin hiddenPtoList(wd)
     div#pto-list.hidden(
@@ -36,23 +36,12 @@ mixin hiddenPtoList(wd)
 
 mixin template-empl-btn(slot)
     if slot.template_employee != slot.employee
-        i.fa-solid.fa-street-view.opacity-30(
-            _="on click 
-                 if slot.template_employee != slot.employee 
-                   fetch #{slot.shift}/fill-template/ 
-                   put result into me.parentNode 
-                   then call window.location.reload() 
-                   end
-                 if slot.template_employee == slot.employee 
-                   call alert('Template Employee is already properly assigned.')
-                   end"
-            class="hover:text-amber-400 hover:opacity-50"
-            )
+        i.fa-solid.fa-street-view.opacity-30(_="install TemplateEmployeeBtn", class="hover:text-amber-400 hover:opacity-50")
 
 mixin empl-context-arrows(empl, workday)
-    span.absolute.bottom-0.right-0.mr-2.mb-1.fa-2x
-        i.fa-solid.fa-play.text-white.opacity-30.rotate-180
-        i.fa-solid.fa-play.text-white.opacity-30.px-1
+    span.absolute.bottom-0.right-0.mr-2.mb-3.fa-2x
+        i.prev-arrow.fa-solid.fa-play.text-white.opacity-10.rotate-180
+        i.next-arrow.fa-solid.fa-play.text-white.opacity-10.px-1
 
 mixin Employee(empl, workday)
     div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
@@ -61,31 +50,35 @@ mixin Employee(empl, workday)
         data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True))),
         data-week-hours= empl.weekHours(workday.slug),
         data-period-hours= empl.periodHours(workday.slug),
+        data-prev-day= empl.check_prev_day(workday.slug),
+        data-next-day= empl.check_next_day(workday.slug),
+        data-in-daytime= empl.check_daytime(workday.slug),
         _='install Employee')
             img(src=empl.image_url draggable="false").w-10.h-10.rounded-full
-            span.font-thin.text-sm= empl.name.upper
-            div.hours-display
+            span.font-thin.text-sm.truncate= empl.name.upper
+            div.hours-display.truncate
             +empl-context-arrows(empl, workday)
             
 mixin Slot(slot)
     if slot.employee == null
-        div.slot.h-42.w-72.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
+        div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
             data-shift=slot.shift.name,
             data-template=slot.template_employee,
             _='install Slot')
                 div
-                    span.shift-name.font-extrabold.text-lg.opacity-70= slot.shift.name
+                    span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
                     +time-icon(slot.shift.group)
                     if slot.template_employee != null 
                         +template-empl-btn(slot)
+
     if slot.employee != null
-        div.slot.h-42.w-72.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
+        div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
             data-shift=slot.shift.name,
             data-employee=slot.employee.slug,
             data-template=slot.template_employee,
             _='install Slot')
                 div
-                    span.shift-name.font-extrabold.text-lg.opacity-70= slot.shift.name
+                    span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
                     +time-icon(slot.shift.group)
                     if slot.template_employee != null 
                         +template-empl-btn(slot)
@@ -94,11 +87,11 @@ mixin Slot(slot)
 block style 
     style.
         .h1              {font-size: 32px; font-family: 'JetBrains Mono';}
-        #SlotGrid        {display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: 1rem;@extends .p-3; grid grid-cols-4; @extends .gap-4; @extends .mx-12;}
-        #ScrollingDeck   {display: flex; flex-direction: row; overflow-y: scroll; padding: 12px; @extends .mx-12;}
+        #SlotGrid        {display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 1rem; overflow-x:scroll;}
+        #ScrollingDeck   {display: flex; flex-direction: row; overflow-x: scroll; padding: 12px; box-shadow: 0 0 10px #11441155;}
         .active          {background-color: #ccffdd55!important; drop-shadow: 0 0 10px #ccffdd55;}
         .dragged-over    {background-color: #ccffcc33!important;}
-        .hours-display   {font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5;}
+        .hours-display   {font-size: 9px; font-family: 'JetBrains Mono'; opacity: 0.5; text-overflow: ellipsis;}
         .pto-flag::after {content: 'PTO'; font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ff0000; position: absolute; top: 0; right: 0;}
         .badge-top-right {position: absolute; top: 0; right: 0;}
 
@@ -106,26 +99,7 @@ block pre
     script(type='text/coffeescript', src='/static/wday-pug.coffee') 
     script(type='text/hyperscript',  src='/static/wday-pug._hs')
 
-    script.
-        // Get references to the body, .slot, and .employee elements
-        const body = document.querySelector('body');
-        const slots = document.querySelectorAll('.slot');
-        const employees = document.querySelectorAll('.employee');
-
-        // Add a click event listener to the body
-        body.addEventListener('click', function(event) {
-            
-            var activeEmpl = document.querySelectorAll('.active');
-            if (event.target.closest(".employee") && activeEmpl.length == 0){
-                event.stopPropagation();
-                console.log('allowing to drag');
-               }
-            if (activeEmpl != null) {
-                activeEmpl.classList.remove('active');
-                // transition scale from 1.25 to 1
-                activeEmpl.style.transform = "scale(.8, .8)";
-            }
-        });
+ 
 
         
 
@@ -140,7 +114,7 @@ block content
         .h1 #{workday.date} Slots 
         +nextWd(workday)
 
-    #background
+    #background(_="install Background")
 
         #SlotGrid
             for slot in slots

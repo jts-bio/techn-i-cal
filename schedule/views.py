@@ -16,6 +16,7 @@ from flow import views as flow_views
 
 from django.db import models
 from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog
 import json
@@ -88,6 +89,20 @@ def schDetailView(request, schId):
 
 
 class Sections:
+    """
+        contains fx:
+        ```
+        MODAL
+        SCH STATS
+        SCH MISTEMPLATED
+        SCH UNFAVORABLES
+        SCH PTOCONFLICTS
+        SCH PTOGRID
+        SCH EMUSR
+        SCH EMPTYLIST 
+        SCH EMUSRPAGE
+        ```
+    """
     
     def modal(request):
         return render(request, "modal.html")
@@ -161,20 +176,23 @@ class Sections:
             if day.is_pto or day.is_shift:
                 print(day.date, day.is_pto, day.is_shift)
         
-        return render(
-            request, "tables/empl-pto-grid.html", {
+        return render(request, "tables/empl-pto-grid.html", {
                 "ptos": ptos,
                 "sch": sch,
                 "employee": emp,
                 "days": days,
-            }
-        )
+            })
+        
     def schEmusr(request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
+    
+   
+
     def schEmptyList(request, schId):
+        
         version = schId[-1]
 
         data = ApiViews.schedule__get_empty_list(request, schId)
@@ -184,7 +202,29 @@ class Sections:
             d["workday"] = d["workday"][0:10]
             d["workday_url"] = reverse("wday:detail", args=[f"{d['workday']}{version}"])
 
-        return render(request, "tables/emptys.pug", {"empty_slots": data})
+        # Add pagination
+        page = request.GET.get('page', 1)
+        paginator = Paginator(data, 20)  # Show 20 data per page
+        try:
+            data_paginated = paginator.page(page)
+        except PageNotAnInteger:
+            data_paginated = paginator.page(1)
+        except EmptyPage:
+            data_paginated = paginator.page(paginator.num_pages)   
+            
+        for slot in Slot.objects.filter(slug__in=[s['slug'] for s in data_paginated]):
+            slot.save()
+            
+        return render (request, "tables/emptys.pug", 
+            {"empty_slots": data_paginated, 
+             'paginator': paginator, 
+             'page': int(page), 
+             'pageNext':int(page)+1,
+             'totalPages':paginator.num_pages, 
+             'workday_version': version,
+             'schId': schId, 
+            })
+    
     def schEmusrPage(request, schId):
         from django.db.models.functions import Coalesce
 
@@ -199,11 +239,10 @@ class Sections:
                         ).values("employee")
                     )
                 ),
-                0,
+            0,)
             )
-
-        )
         return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
+    
     def schEmployeeEmusrSlots(request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
@@ -214,6 +253,7 @@ class Sections:
             "tables/emusr-empl.pug",
             {"slots": slots, "emp": emp, "sch": sch, "n": n},
         )
+        
     def schUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = sch.slots.untrained().all()

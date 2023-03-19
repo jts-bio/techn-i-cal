@@ -6,21 +6,45 @@
 -- author: JOSH STEINBECKER
 -----------------------------------------
 
+behavior Background
+    init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
+    end
+    on click 
+        send unfocus to .employee
+    end
+end 
+
+behavior TemplateEmployeeBtn
+    on click 
+        if slot.template_employee != slot.employee 
+            fetch #{slot.shift}/fill-template/ 
+            put result into me.parentNode 
+            then call window.location.reload() 
+            end
+        if slot.template_employee == slot.employee 
+            call alert('Template Employee is already properly assigned.')
+            end
+        end
+    end
+
 behavior Slot
     on click
-        if .active exists 
+        if .active.length > 0 
             if .active in me == false
-                trigger checkAndAssign
+            trigger checkAndAssign
             end
         end
     on dragover 
+        call event.preventDefault() then
         add .dragged-over
         end
-    on dragend or dragleave or drop 
+    on dragleave or drop 
         send hideHint to .slot
         remove .dragged-over
     on drop 
-        trigger checkAndAssign
+        call event.dataTransfer.getData("text") 
+        then set employeeId to result then
+            trigger checkAndAssign
         end 
     on showHint 
         if first .active@data-available includes @data-shift
@@ -34,25 +58,25 @@ behavior Slot
         end
     on checkAndAssign 
         set incomingEmployee to .active 
-        set avble to incomingEmployee@data-available
+            set avble to incomingEmployee@data-available
         send hideHint to .slot
-        tell .employee 
+            tell .employee 
                 transition *scale to 1 over 100ms 
             end
-        if @data-shift is in avble[0].split(' ')
-            set empId to incomingEmployee@data-employee-id
-            put incomingEmployee at the end of me
+            if @data-shift is in avble[0].split(' ')
+                set empId to incomingEmployee@data-employee-id
+                put incomingEmployee at the end of me
             then remove .active from (.employee in me)
             then fetch `${@data-shift}/${empId}/assign/` then 
             call showToast(result,"success")
             if (.employee in me).length > 1
-                send showAccepted to (.employee in me)[1]
-                send showBooted to (.employee in me)[0]
-                put (.employee in me)[0] at the start of #ScrollingDeck
-            end
+                    send showAccepted to (.employee in me)[1]
+                    send showBooted to (.employee in me)[0]
+                    put (.employee in me)[0] at the start of #ScrollingDeck
+                    end 
         else call 
             alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`)
-        end
+    end
 
 behavior Employee 
     init 
@@ -70,6 +94,12 @@ behavior Employee
             set @data-period-hours to 0
         else set @data-period-hours to @data-period-hours as Int
             end
+        if @data-prev-day == "AM" add .text-yellow-400 .opacity-50 to .prev-arrow in me then remove .text-white from .prev-arrow in me end 
+        if @data-prev-day == "PM" add .text-sky-400 .opacity-50 to .prev-arrow in me then remove .text-white from .prev-arrow in me end
+        if @data-next-day == "AM" add .text-yellow-400 .opacity-50 to .next-arrow in me then remove .text-white from .next-arrow in me end
+        if @data-next-day == "PM" add .text-sky-400 .opacity-50 to .next-arrow in me then remove .text-white from .next-arrow in me end
+        if @data-in-daytime is in ["PM","XN"] and @data-next-day == "AM" add .bg-orange-900 .bg-opacity-40 to me end
+        if @data-in-daytime is "AM" and @data-prev-day == "PM" add .bg-orange-900 .bg-opacity-40 to me end
         put `${@data-week-hours}/${@data-period-hours} hrs` into .hours-display in me 
         end
     on click 
@@ -87,6 +117,7 @@ behavior Employee
             end
         end
     on dragstart 
+        call event.dataTransfer.setData("text",event.target.dataset.employeeId) then
         take .active from .employee 
         then if I do not match .active 
             add .active to me 
@@ -95,8 +126,8 @@ behavior Employee
         then log @data-available
         end 
     on dragend 
-        remove .active 
-        then send hideHint to .slot
+        send hideHint to .slot then 
+        wait 500ms then remove .active
         end
     on showBooted 
         repeat for i in [1,2,3,4]
@@ -115,6 +146,7 @@ behavior Employee
             end
         end
     end
+
 
 
 

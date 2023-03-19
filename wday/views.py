@@ -12,6 +12,7 @@ from sch.models import Schedule, Workday, Employee, Slot, Shift, WorkdayViewPref
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
+
 # LOGGING ================================
 logging.basicConfig(
         filename='workday-logs.log',
@@ -31,10 +32,12 @@ class Partials:
         wd = Workday.objects.get(slug=wdSlug)
         context = {'workday': wd}
         return render(request, 'wday/partials/SPWD.html', context)
+    
     def slotPopover (request, slotId):
         slot = Slot.objects.get(id=slotId)
         context = {'slot': slot}
         return render(request, 'wday/partials/popover.html', context)
+    
     def events (request):
         return render(request, 'wday/partials/events.html')
 
@@ -82,9 +85,9 @@ def wdDetailView (request, slug:str):
             slot.employee.weekHours = Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek))
     
     logger = logging.getLogger('workdayLogger')
-    logger.info (f'WORKDAY DETAIL VIEW ::: '+str(request.user))
-    logger.info (f'   workday: {wd}')
-    logger.info (f'   weekHours : {{empl: empl.weekHours for empl in wd.on_deck().all()}}')
+    logger.info (f'WORKDAY DETAIL VIEW ::: viewed by user='+str(request.user))
+    logger.info (f'     workday: {wd}')
+    logger.info (f'     weekHours : {[(empl.slug, empl.weekHours(wd)) for empl in wd.on_deck().all()]}')
     
     context = dict (
             workday =    wd, 
