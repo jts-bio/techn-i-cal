@@ -98,12 +98,12 @@ def wdDetailView (request, slug:str):
             )
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
     
-    # NOTE /
+    #   NOTE /
     #   THIS VIEW UTILIZES A USER PREFERENCE 
     #   TO DETERMINE TEMPLATE USED
     return render(request, WD_VIEW_PREF_CHOICES[int(viewPref_template)][1] , context)
 
-class WdActions:
+class WdActions: 
     
     @staticmethod
     def empl_can_fill (request, slug:str ,empSlug:str):

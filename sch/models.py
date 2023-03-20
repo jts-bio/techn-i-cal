@@ -1548,7 +1548,7 @@ class Slot (models.Model) :
         ordering = [
                     'workday__date', 
                     'shift__start',
-                    'employee__name'
+                    'shift__name'
                 ]
         constraints = [
             models.UniqueConstraint (fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
