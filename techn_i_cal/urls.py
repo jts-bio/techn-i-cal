@@ -46,14 +46,10 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
-
 @public
 def mail (request):
     return render(request, 'mail.html', {'slots': Slot.objects.all()})
     
-    
-
-
 @public
 def loginView (request):
     template = loader.get_template('sch/login.html')
@@ -63,14 +59,10 @@ def loginView (request):
         print(request.__dict__)
         if request.POST.get("username"): 
             username = request.POST.get("username")
-            print(username)
             password = request.POST.get("password")
-
-            user = authenticate(request, username=username, password=password)
-            print('USER:',user)
+            user     = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                print('login')
                 return HttpResponseRedirect(reverse('index'))
             else:
                 return HttpResponseRedirect(reverse('login'))
@@ -90,12 +82,12 @@ def logoutView (request):
 
 
 urlpatterns = [
-    path('' ,           index,          name='index'),
-    path('login/',      loginView,      name='login-view'),
-    path('logout/',     logoutView,     name='logout-view'),
-    path('accounts/',   include        ('django.contrib.auth.urls')),
-    path('grappelli/',  include        ('grappelli.urls')),
-    path('admin/doc/',  include        ('django.contrib.admindocs.urls')),
+    path('' ,           index,                    name='index'),
+    path('login/',      loginView,                name='login-view'),
+    path('logout/',     logoutView,               name='logout-view'),
+    path('accounts/',   include('django.contrib.auth.urls')),
+    path('grappelli/',  include('grappelli.urls')),
+    path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls,          name='admin'),
     path('sch/',        include('sch.urls'),      name='sch'),
     path('schedule/',   include('schedule.urls'), name='schedule'),
@@ -105,5 +97,5 @@ urlpatterns = [
     path('api/',        include('flow.urls'),     name='flow'),
     path('mail/',       mail,                     name='mail'),
 
-] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
+] + static ( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

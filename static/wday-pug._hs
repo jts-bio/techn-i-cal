@@ -16,13 +16,19 @@ end
 
 behavior TemplateEmployeeBtn
     on click 
-        if slot.template_employee != slot.employee 
-            fetch #{slot.shift}/fill-template/ 
-            put result into me.parentNode 
+        log @data-employee
+        log @data-template
+        call event.stopImmediatePropagation() then
+        if @data-template != @data-employee 
+            set sft to @data-shift then 
+            log `${sft}/fill-template/` then
+            fetch `${sft}/fill-template/` then
+            call showToast(result, "success")
+            then wait 1s 
             then call window.location.reload() 
             end
-        if slot.template_employee == slot.employee 
-            call alert('Template Employee is already properly assigned.')
+        if @data-template == @data-employee 
+            call alert('Template Employee ($slot.template) is already properly assigned.')
             end
         end
     end
@@ -57,8 +63,8 @@ behavior Slot
         transition my *opacity to 100% over 300ms
         end
     on checkAndAssign 
-        set incomingEmployee to .active 
-            set avble to incomingEmployee@data-available
+        set incomingEmployee to .active then
+        set avble to incomingEmployee@data-available
         send hideHint to .slot
             tell .employee 
                 transition *scale to 1 over 100ms 
@@ -66,17 +72,21 @@ behavior Slot
             if @data-shift is in avble[0].split(' ')
                 set empId to incomingEmployee@data-employee-id
                 put incomingEmployee at the end of me
-            then remove .active from (.employee in me)
-            then fetch `${@data-shift}/${empId}/assign/` then 
-            call showToast(result,"success")
-            if (.employee in me).length > 1
-                    send showAccepted to (.employee in me)[1]
-                    send showBooted to (.employee in me)[0]
-                    put (.employee in me)[0] at the start of #ScrollingDeck
-                    end 
-        else call 
-            alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`)
-    end
+                then remove .active from (.employee in me)
+                then fetch `${@data-shift}/${empId}/assign/` then 
+                call showToast(result,"success")
+                then if (.employee in me).length > 1
+                        send showAccepted to (.employee in me)[1]
+                        send showBooted to (.employee in me)[0]
+                        put (.employee in me)[0] at the start of #ScrollingDeck
+                        end 
+            else 
+                call alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`)
+                then tell .employee 
+                    transition *scale to 1 over 100ms
+                    then remove .active
+                    end
+                end
 
 behavior Employee 
     init 

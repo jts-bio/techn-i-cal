@@ -1,88 +1,85 @@
 extends 'base.html'
 
-mixin nextWd(workday)
-    a(href=workday.nextWD().url())
-        i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+block mymixins
 
-mixin prevWd(workday)
-    a(href=workday.prevWD().url())
-        i.fas.fa-chevron-left.opacity-40.text-xs.px-2
+    mixin nextWd(workday)
+        a(href=workday.nextWD().url())
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
 
-mixin day-breadcrumbs(workday)
-    #breadcrumbs
-        a(href=workday.schedule.url())
-            | SCHD #{workday.schedule.slug} 
-        i.fas.fa-chevron-right.opacity-40.text-xs.px-2
-        a(href=workday.period.url()) 
-            | PRD #{workday.period.number}
-        i.fas.fa-chevron-right.opacity-40.text-xs.px-2
-        a(href=workday.week.url())
-            | WEEK #{workday.week.number}
-        i.fas.fa-chevron-right.opacity-40.text-xs.px-2
-        span#wdid(data-value=workday.n()) DAY #{workday.n}
+    mixin prevWd(workday)
+        a(href=workday.prevWD().url())
+            i.fas.fa-chevron-left.opacity-40.text-xs.px-2
 
-mixin time-icon(daytime)
-    if daytime == 'AM'
-        i.fas.fa-sun.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
-    if daytime == 'PM'
-        i.fas.fa-moon.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
-    if daytime == 'XN'
-        i.fas.fa-tombstone.opacity-10.px-2.text-3xl.-left-6.-top-2.relative
+    mixin day-breadcrumbs(workday)
+        #breadcrumbs
+            a(href=workday.schedule.url())
+                | SCHD #{workday.schedule.slug} 
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            a(href=workday.period.url()) 
+                | PRD #{workday.period.number}
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            a(href=workday.week.url())
+                | WEEK #{workday.week.number}
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            span#wdid(data-value=workday.n()) DAY #{workday.n}
 
-mixin hiddenPtoList(wd)
-    div#pto-list.hidden(
-        data-employees=' '.join(list(wd.pto_list()))
-        )
+    mixin time-icon(daytime)
+        if daytime == 'AM'
+            i.fas.fa-sun.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
+        if daytime == 'PM'
+            i.fas.fa-moon.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
+        if daytime == 'XN'
+            i.fas.fa-tombstone.opacity-10.px-2.text-3xl.-left-6.-top-2.relative
 
-mixin template-empl-btn(slot)
-    if slot.template_employee != slot.employee
-        i.fa-solid.fa-street-view.opacity-30(_="install TemplateEmployeeBtn", class="hover:text-amber-400 hover:opacity-50")
+    mixin hiddenPtoList(wd)
+        div#pto-list.hidden(
+            data-employees=' '.join(list(wd.pto_list()))
+            )
 
-mixin empl-context-arrows(empl, workday)
-    span.absolute.bottom-0.right-0.mr-2.mb-3.fa-2x
-        i.prev-arrow.fa-solid.fa-play.text-white.opacity-10.rotate-180
-        i.next-arrow.fa-solid.fa-play.text-white.opacity-10.px-1
+    mixin template-empl-btn(slot)
+        if slot.template_employee != slot.employee
+            i.fa-solid.fa-street-view.opacity-30(
+                _="install TemplateEmployeeBtn", 
+                class="hover:text-amber-400 hover:opacity-50",
+                data-employee=slot.employee,
+                data-shift=slot.shift.name,
+                data-template=slot.template_employee
+                )
 
-mixin Employee(empl, workday)
-    div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
-        draggable='true', 
-        data-employee-id=empl.slug,
-        data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True))),
-        data-week-hours= empl.weekHours(workday.slug),
-        data-period-hours= empl.periodHours(workday.slug),
-        data-prev-day= empl.check_prev_day(workday.slug),
-        data-next-day= empl.check_next_day(workday.slug),
-        data-in-daytime= empl.check_daytime(workday.slug),
-        _='install Employee')
-            img(src=empl.image_url draggable="false").w-10.h-10.rounded-full
-            span.font-thin.text-sm.truncate= empl.name.upper
-            div.hours-display.truncate
-            +empl-context-arrows(empl, workday)
-            
-mixin Slot(slot)
-    if slot.employee == null
+    mixin empl-context-arrows(empl, workday)
+        span.absolute.bottom-0.right-0.mr-2.mb-3.fa-2x
+            i.prev-arrow.fa-solid.fa-play.text-white.opacity-10.rotate-180
+            i.next-arrow.fa-solid.fa-play.text-white.opacity-10.px-1
+
+    mixin Employee(empl, workday)
+        div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
+            draggable='true', 
+            data-employee-id=empl.slug,
+            data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True))),
+            data-week-hours= empl.weekHours(workday.slug),
+            data-period-hours= empl.periodHours(workday.slug),
+            data-prev-day= empl.check_prev_day(workday.slug),
+            data-next-day= empl.check_next_day(workday.slug),
+            data-in-daytime= empl.check_daytime(workday.slug),
+            _='install Employee')
+                img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
+                span.font-thin.text-sm.truncate= empl.name.upper
+                div.hours-display.truncate
+                +empl-context-arrows(empl, workday)
+                
+    mixin Slot(slot)
         div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
             data-shift=slot.shift.name,
             data-template=slot.template_employee,
             _='install Slot')
                 div
-                    span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
-                    +time-icon(slot.shift.group)
+                    a(href=slot.url())
+                        span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
+                        +time-icon(slot.shift.group)
                     if slot.template_employee != null 
                         +template-empl-btn(slot)
-
-    if slot.employee != null
-        div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
-            data-shift=slot.shift.name,
-            data-employee=slot.employee.slug,
-            data-template=slot.template_employee,
-            _='install Slot')
-                div
-                    span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
-                    +time-icon(slot.shift.group)
-                    if slot.template_employee != null 
-                        +template-empl-btn(slot)
-                +Employee(slot.employee, slot.workday)
+                if slot.employee != null
+                    +Employee(slot.employee, slot.workday)
 
 block style 
     style.
@@ -93,6 +90,7 @@ block style
         .dragged-over    {background-color: #ccffcc33!important;}
         .hours-display   {font-size: 9px; font-family: 'JetBrains Mono'; opacity: 0.5; text-overflow: ellipsis;}
         .pto-flag::after {content: 'PTO'; font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ff0000; position: absolute; top: 0; right: 0;}
+        .ot-flag::after  {content: 'OT';  font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ee6655; position: absolute; top: 0; right: 0;}
         .badge-top-right {position: absolute; top: 0; right: 0;}
 
 block pre 

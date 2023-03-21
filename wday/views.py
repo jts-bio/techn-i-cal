@@ -116,7 +116,7 @@ class WdActions:
         
         return HttpResponse(fillable_slots)
     
-    @staticmethod
+    
     def fill_with_template (request, wd, shift):
         slot = Slot.objects.get(workday__slug=wd,shift__name=shift)
         slot.actions.set_template_employee (slot)
