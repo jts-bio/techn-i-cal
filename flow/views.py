@@ -103,8 +103,6 @@ class ApiViews :
         return JsonResponse ( data, safe=False )
     def schedule__get_n_turnarounds (request, schId):
         sch = Schedule.objects.get(slug=schId)
-        for s in sch.slots.turnarounds():
-            s.save()
         return JsonResponse ( sch.slots.turnarounds().count(), safe=False )
     def schedule__get_overtime_hours (request, schId):
         sch = Schedule.objects.get(slug=schId)

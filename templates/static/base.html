@@ -71,6 +71,9 @@
 			
 
 			<div class="content mx-3 lg:ml-60">
+				
+				{% block pre %}
+				{% endblock %}
 
 				{% block content %}
 				{% endblock %}
@@ -85,25 +88,22 @@
 
 		
 			<script src="{% static 'Toasty.js' %}"></script>
+			<script src="{% static 'coffee-beans.js' %}"></script>
 			
-			<script>
+			
 			{% if messages %}
-					{% for msg in messages %}
-						
-							showToast ("{{ msg }}", "{{ msg.tags }}");
-							console.log("{{ msg }}", "{{ msg.tags }}");
-						
-					{% endfor %}
+				{% for msg in messages %}
+					<script> showToast ("{{ msg }}", "{{ msg.tags }}"); </script>
+				{% endfor %}
 			{% endif %}
-			</script>
+			
 
 				
 				{# TAILWINDCSS #}<script src="https://cdn.tailwindcss.com"></script>
 				{# FLOWBITE #} <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
 				{# HTMX #} <script src="https://unpkg.com/htmx.org"></script>
 				{# HYPERSCRIPT #} <script src="https://unpkg.com/hyperscript.org"></script>
-				{# COFFEESCRIPT #} <script src="https://cdnjs.cloudflare.com/ajax/libs/coffee-script/2.5.1/coffeescript.min.js"></script>
-				{# PIETY #} <script type="text/javascript" src="{% static 'piety.min.js' %}"></script>
+				{# PEITY #} <script type="text/javascript" src="{% static 'peity.js' %}"></script>
 				
 				<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" 
 						integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" 

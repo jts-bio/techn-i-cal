@@ -1,0 +1,8 @@
+mixin next(workday)
+    a(href=workday.nextWD().url())
+        i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+
+
+mixin previous(workday)
+    a(href=workday.prevWD().url())
+        i.fas.fa-chevron-left.opacity-40.text-xs.px-2

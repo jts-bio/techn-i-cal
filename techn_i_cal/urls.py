@@ -1,20 +1,3 @@
-"""pkpr URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-
 from django.contrib import admin
 from django.urls import include, path, reverse
 from django.template import loader
@@ -34,6 +17,17 @@ from .forms import LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 
+"""__________________________________________________________________
+
+    +=================================+
+    | ROOT URLS FOR 'FLOWRATE' WEBAPP |
+    +=================================+
+    
+    _________________________________________________________________
+"""
+
+__author__ = "JOSH STEINBECKER"
+
 
 
 
@@ -52,22 +46,21 @@ def index(request):
     }
     return HttpResponse(template.render(context, request))
 
+@public
 def mail (request):
     return render(request, 'mail.html', {'slots': Slot.objects.all()})
-
+    
 @public
 def loginView (request):
     template = loader.get_template('sch/login.html')
 
     if request.method == "POST":
         print("post")
+        print(request.__dict__)
         if request.POST.get("username"): 
             username = request.POST.get("username")
-            print(username)
             password = request.POST.get("password")
-
-            user = authenticate(request, username=username, password=password)
-            print('USER:',user)
+            user     = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 return HttpResponseRedirect(reverse('index'))
@@ -89,19 +82,20 @@ def logoutView (request):
 
 
 urlpatterns = [
-    path('' ,           index,          name='index'),
-    path('login/',      loginView,      name='login-view'),
-    path('logout/',     logoutView,     name='logout-view'),
-    path('accounts/',   include        ('django.contrib.auth.urls')),
-    path('grappelli/',  include        ('grappelli.urls')),
-    path('admin/doc/',  include        ('django.contrib.admindocs.urls')),
+    path('' ,           index,                    name='index'),
+    path('login/',      loginView,                name='login-view'),
+    path('logout/',     logoutView,               name='logout-view'),
+    path('accounts/',   include('django.contrib.auth.urls')),
+    path('grappelli/',  include('grappelli.urls')),
+    path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls,          name='admin'),
     path('sch/',        include('sch.urls'),      name='sch'),
     path('schedule/',   include('schedule.urls'), name='schedule'),
     path('wday/',       include('wday.urls'),     name='wday'),
+    path('prd/',        include('prd.urls'),      name="prd"),
     path('pds/',        include('pds.urls'),      name="pds"),
-    path('api/',       include('flow.urls'),      name='flow'),
+    path('api/',        include('flow.urls'),     name='flow'),
     path('mail/',       mail,                     name='mail'),
 
-] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
+] + static ( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
 

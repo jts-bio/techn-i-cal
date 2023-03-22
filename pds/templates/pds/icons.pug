@@ -1,0 +1,17 @@
+
+
+script(type="text/coffeescript").
+    josh = 
+        name: "Josh"
+        slot: "MI"
+        weekHours: 30
+    brit = 
+        name: "Brittanie"
+        slot: "OP"
+        weekHours: 40
+
+    employees = [josh, brit]
+
+div 
+    span Employees 
+    span.employees= employees

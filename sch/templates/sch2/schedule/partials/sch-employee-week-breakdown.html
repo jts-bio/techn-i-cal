@@ -1,9 +1,10 @@
 {% load tags %}
+
 <script type="text/hyperscript">
     behavior ClearOT 
         on click 
             add .fa-beat then fetch actions/clear-ot-slots/  
-            then call showToast('All Overtime assignments removed','success')
+            then call showToast('All Overtime assignments removed',`success`)
             then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
             then put result into #swap-panel
             end 
@@ -11,7 +12,7 @@
     behavior ClearPRN 
         on click 
             add .fa-beat then fetch actions/clear-prn-slots/  
-            then call showToast('PRN Employees Removed from all scheduled assignments','success')
+            then call showToast('PRN Employees Removed from all scheduled assignments',`success`)
             then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
             then put result into #swap-panel
             end
@@ -24,11 +25,15 @@
     <div id="scheduleid" id="{{ schedule.slug }}"></div>
 
     <div id="extra-actions-bar" class="flex flex-row my-2 gap-8">
-            <i class="relative fa-solid fa-comment-minus hover:text-yellow-700" 
+            {# ------ PRN ICON / CLEAR ----- #}
+            <i 
+                class="relative fa-solid fa-comment-minus hover:text-yellow-700" 
                 title="REMOVE PRN ASSIGNMENTS"
                 _="install ClearPRN">
             </i>
-            <i class="relative fa-solid fa-overline hover:text-yellow-500" 
+            {# ----- OVERTIME ICON / CLEAR ----- #}
+            <i 
+                class="relative fa-solid fa-overline hover:text-rose-500" 
                 title="CLEAR OVERTIME SLOTS ASSIGNMENTS"
                 _="install ClearOT">
             </i>
@@ -54,11 +59,16 @@
 
            <tr id="empl-row-{{ employee.slug }}">
                 <th>
-                    <a href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}">
+                    <a 
+                        href="{% url 'sch:v2-employee-schedule' employee.slug schedule.slug %}" 
+                        class="jbm hover:underline">
                         {{ employee }}
                     </a>
-                    <i class="fa-duotone fa-trash hover:text-rose-400 hover:scale-[115%]"
+                    {# ----- TRASH ICON ----- #}
+                    <i 
+                        class="fa-duotone fa-trash hover:text-rose-400 hover:scale-[115%]"
                         hx-get="{% url 'flow:sch__clear_empl' schedule.slug employee.slug %}"
+                        hx-trigger="click"
                         hx-target="#empl-row-{{ employee.slug }}">
                     </i>
                 </th>
@@ -125,7 +135,16 @@
                     $.each(data.slots, function(i,value) {
                         emplname.text(value.employee);
                         console.log(value);
-                        var html = `<div class="p-3 text-center bg-zinc-300 rounded m-2 ring ring-indigo-500 ring-offset-2 border-indigo-400 border-double border"><div class="shift font-bold text-blue-900">${value.shift}</div><div class="text-2xs opacity-70 text-black">${value.workday}</div></div>`;
+                        var html = `<div class="p-3 text-center bg-zinc-300 rounded m-2 
+                                        ring ring-indigo-500 ring-offset-2 border-indigo-400 
+                                        border-double border">
+                                        <div class="shift font-bold text-blue-900">
+                                            ${value.shift}
+                                        </div>
+                                        <div class="text-2xs opacity-70 text-black">
+                                            ${value.workday}
+                                        </div>
+                                    </div>`;
                         var $html = $(html);
                          // Add a click event listener to the slot element
                     $html.on('click', function() {

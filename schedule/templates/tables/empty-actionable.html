@@ -1,5 +1,5 @@
 <i id="reloader" class="fas fa-arrows-spin text-lg hover:text-sky-300"
-    _="on click add .fa-pulse 
+    _="on click add .fa-spin 
             then fetch actions/update-fills-with/ 
             then put result into #reload-response 
             then wait 1s then call window.loaction.reload()
@@ -12,29 +12,41 @@
         <th>Slot</th>
         <th>Tenable Options</th>
     </tr>
-    {% for slot in data %}
-    <tr>
-        <td>
-            <div class="flex flex-row">
-                <div class="bg-zinc-50 text-black text-lg font-bold rounded pt-1 pl-2 w-9 h-9">
-                    {{ slot.shift }}
+        {% for slot in data %}
+        <tr>
+            <td>
+                <div class="flex flex-row">
+                    <div class="bg-zinc-50 text-black text-lg font-bold rounded pt-1 pl-2 w-9 h-9">
+                        {{ slot.shift }}
+                    </div>
+                <div class="flex flex-col px-1 text-sm">
+                    <a href="wd/{{slot.workday_slug}}/">{{ slot.workday }}</a>
+                    <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {% endif %}">
+                        {{ slot.weekday }}
+                    </div> 
                 </div>
-            <div class="flex flex-col px-1 text-sm">
-                <a href="wd/{{slot.workday_slug}}/">{{ slot.workday }}</a>
-                <div class="text-2xs {% if slot.n_options == 0%} opacity-70 italic font-thin {% endif %}">
-                    {{ slot.weekday }}
-                </div> 
-            </div>
-            </div>
-        </td>
-        <td>
-            {% include "./empty-dropdown.html" %}
-            {% if slot.template_employee %} {{ slot.template_employee }} {% endif %}
-        </td>
-       
-    </tr>
-    {% endfor %}
+                </div>
+            </td>
+            <td>
+                {% include "./empty-dropdown.html" %}
+                {% if slot.template_employee %} {{ slot.template_employee }} {% endif %}
+            </td>
+        
+        </tr>
+        {% endfor %}
 </table>
+
+<div hx-get="/schedule/partials/#{schid}/empty-list/?page=#{page+1}"
+    hx-target="#swap-panel" 
+        class="border border-yellow-500 rounded hover:bg-yellow-500">
+    Load more...
+</div>       
+
+
+
+
+
+
 
 
 <script>

@@ -19,7 +19,11 @@
                         hx-post="actions/clear-all-pto-conflicts/"
                         hx-trigger="click"
                         hx-target="#conflict-section"
-                        _="on click trigger recheck on ">EMPTY ALL</div>
+                        _="on click 
+                                trigger recheck on #pto-rt 
+                                end">
+                            EMPTY ALL
+                    </div>
                 </th>
             </tr>
             {% for slot in ptoconflicts %}
@@ -28,14 +32,17 @@
                         <i class="fa-duotone fa-triangle-exclamation"></i>
                         {{ slot.employee }}
                     </td>
-                    <td><a href="{{ slot.workday.slug }}">{{ slot.workday }}</a></td>
+                    <td>
+                        <a href="{{ slot.workday.slug }}">{{ slot.workday }}</a>
+                    </td>
                     <td id="actions-{{ slot.slug }}">
                         <span hx-post="actions/clear-slot/{{ slot.workday.slug }}/{{ slot.shift.name }}/"
                             hx-trigger="click"
                             hx-swap="innerHTML"
                             hx-target="#actions-{{ slot.slug }}"
-                        _="on click 
-                                add .line-through to previous .empl-cell">
+                            _="on click 
+                                add .line-through to previous .empl-cell
+                                end">
                         <i class="mx-1 fa-duotone fa-island-tropical text-xl hover:text-emerald-400"
                             title="Grant PTO and Resolve"></i>
                         </span>
@@ -60,7 +67,8 @@
                 hx-target="#emp-pto"
                 _="on click
                         remove .bg-orange-800 from .empl-selector then 
-                        add .bg-orange-800 to me">
+                        add .bg-orange-800 to me
+                        end">
                 {{ employee }}
                 <span class="pto-count rounded bg-gray-200 text-black"
                     data-count="{% ptoCount employee schedule %}"></span>

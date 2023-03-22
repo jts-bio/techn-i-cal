@@ -1,0 +1,163 @@
+-- file
+-----------------------------------------
+-- WORKDAY VIEW // 
+-- INTERACTIVE SCRIPTING
+-----------------------------------------
+-- author: JOSH STEINBECKER
+-----------------------------------------
+
+behavior Background
+    init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
+    end
+    on click 
+        send unfocus to .employee
+    end
+end 
+
+behavior TemplateEmployeeBtn
+    on click 
+        log @data-employee
+        log @data-template
+        call event.stopImmediatePropagation() then
+        if @data-template != @data-employee 
+            set sft to @data-shift then 
+            log `${sft}/fill-template/` then
+            fetch `${sft}/fill-template/` then
+            call showToast(result, "success")
+            then wait 1s 
+            then call window.location.reload() 
+            end
+        if @data-template == @data-employee 
+            call alert('Template Employee ($slot.template) is already properly assigned.')
+            end
+        end
+    end
+
+behavior Slot
+    on click
+        if .active.length > 0 
+            if .active in me == false
+            trigger checkAndAssign
+            end
+        end
+    on dragover 
+        call event.preventDefault() then
+        add .dragged-over
+        end
+    on dragleave or drop 
+        send hideHint to .slot
+        remove .dragged-over
+    on drop 
+        call event.dataTransfer.getData("text") 
+        then set employeeId to result then
+            trigger checkAndAssign
+        end 
+    on showHint 
+        if first .active@data-available includes @data-shift
+            add .text-emerald-300 to .shift-name in me
+        else 
+            transition my *opacity to 20% over 500ms
+        end
+    on hideHint 
+        remove .text-emerald-300 from .shift-name in me
+        transition my *opacity to 100% over 300ms
+        end
+    on checkAndAssign 
+        set incomingEmployee to .active then
+        set avble to incomingEmployee@data-available
+        send hideHint to .slot
+            tell .employee 
+                transition *scale to 1 over 100ms 
+            end
+            if @data-shift is in avble[0].split(' ')
+                set empId to incomingEmployee@data-employee-id
+                put incomingEmployee at the end of me
+                then remove .active from (.employee in me)
+                then fetch `${@data-shift}/${empId}/assign/` then 
+                call showToast(result,"success")
+                then if (.employee in me).length > 1
+                        send showAccepted to (.employee in me)[1]
+                        send showBooted to (.employee in me)[0]
+                        put (.employee in me)[0] at the start of #ScrollingDeck
+                        end 
+            else 
+                call alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`)
+                then tell .employee 
+                    transition *scale to 1 over 100ms
+                    then remove .active
+                    end
+                end
+
+behavior Employee 
+    init 
+        if #pto-list.dataset.employees contains @data-employee-id
+            add @data-pto to me then 
+            set @data-pto to true then
+            make a <span.pto-flag/> then put 'PTO' into it then 
+            append it to the end of me 
+            end
+        if @data-week-hours == null 
+            set @data-week-hours to 0
+        else set @data-week-hours to @data-week-hours as Int
+            end
+        if @data-period-hours == null 
+            set @data-period-hours to 0
+        else set @data-period-hours to @data-period-hours as Int
+            end
+        if @data-prev-day == "AM" add .text-yellow-400 .opacity-50 to .prev-arrow in me then remove .text-white from .prev-arrow in me end 
+        if @data-prev-day == "PM" add .text-sky-400 .opacity-50 to .prev-arrow in me then remove .text-white from .prev-arrow in me end
+        if @data-next-day == "AM" add .text-yellow-400 .opacity-50 to .next-arrow in me then remove .text-white from .next-arrow in me end
+        if @data-next-day == "PM" add .text-sky-400 .opacity-50 to .next-arrow in me then remove .text-white from .next-arrow in me end
+        if @data-in-daytime is in ["PM","XN"] and @data-next-day == "AM" add .bg-orange-900 .bg-opacity-40 to me end
+        if @data-in-daytime is "AM" and @data-prev-day == "PM" add .bg-orange-900 .bg-opacity-40 to me end
+        put `${@data-week-hours}/${@data-period-hours} hrs` into .hours-display in me 
+        end
+    on click 
+        if I do not match .active
+            transition .active*scale to 1 over 200ms
+            take .active from .employee 
+            then transition my *scale to 1.25 over 300ms
+            then send hideHint to .slot
+            then send showHint to .slot
+            then log JSON.stringify(me.dataset, null, 2)
+        else 
+            remove .active 
+            then transition my *scale to 1 over 300ms
+            then send hideHint to .slot
+            end
+        end
+    on dragstart 
+        call event.dataTransfer.setData("text",event.target.dataset.employeeId) then
+        take .active from .employee 
+        then if I do not match .active 
+            add .active to me 
+        then send hideHint to .slot
+        then send showHint to .slot
+        then log @data-available
+        end 
+    on dragend 
+        send hideHint to .slot then 
+        wait 500ms then remove .active
+        end
+    on showBooted 
+        repeat for i in [1,2,3,4]
+            add .bg-amber-700 
+            then wait 300ms
+            then remove .bg-amber-700 
+            then wait 300ms
+            end
+        end
+    on showAccepted
+        repeat for i in [1,2,3,4]
+            add .bg-emerald-700 
+            then wait 300ms
+            then remove .bg-emerald-700 
+            then wait 300ms
+            end
+        end
+    end
+
+
+
+
+  

@@ -421,7 +421,7 @@ class Shift (models.Model) :
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
     
     class Meta:     
-        ordering = ['start']
+        ordering = ['start','name']
         
     def percent_templated (self):
         n = ShiftTemplate.objects.filter(shift=self).count()
@@ -508,11 +508,17 @@ class Employee (models.Model) :
         return self.fte_14_day / 80
     def url(self):
         return reverse("sch:empl", kwargs={"empId": self.pk})
-    def weekHours (self, wd):
+    def weekHours (self, wd, week=None):
+        if isinstance(wd, Week):
+            return week.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
         if type(wd) == str:
             wd = Workday.objects.get(slug=wd)
         return wd.week.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
-    def periodHours (self, wd):
+    def periodHours (self, wd, period=None):
+        if isinstance(wd, Period):
+            return period.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
+        if type(wd) == str:
+            wd = Workday.objects.get(slug=wd)
         return wd.period.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def fte_weekly (self):
         wfte = self.fte_14_day / 2 
@@ -629,6 +635,30 @@ class Employee (models.Model) :
             else:
                 empl_schedule[wd] = None
         return empl_schedule
+    def check_pto (self, wd):
+        wd = Workday.objects.get(pk=wd)
+        if wd.pto().filter(employee=self).exists():
+            return wd.pto_requests.filter(employee=self).first()
+    def check_tdo (self, wd):
+        wd = Workday.objects.get(pk=wd)
+        if wd.tdo().filter(employee=self).exists():
+            return wd.templated_days_off.filter(employee=self).first()
+    def check_prev_day(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        if wd.prevWD().slots.filter(employee=self):
+            return wd.prevWD().slots.get(employee=self).shift.group
+        return "None"
+    def check_next_day(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        if wd.nextWD().slots.filter(employee=self):
+            return wd.nextWD().slots.get(employee=self).shift.group
+        return "None"
+    def check_daytime(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        slots = wd.slots.filter(employee=self)
+        if not slots.exists():
+            return "None"
+        return slots.first().shift.group
     def save (self, *args, **kwargs):
         super().save(*args, **kwargs)
         slugString = self.name.strip().replace(" ","-")
@@ -665,6 +695,8 @@ class Workday (models.Model) :
         return self.prevWD().slots.filter(shift__group='AM').values('employee')
     def show_prev_pm (self):
         return self.prevWD().slots.filter(shift__group=['PM','XN']).values('employee')
+    def n (self):
+        return self.sd_id + 1
     @property
     def weekday (self): 
         # Sun -> Sat
@@ -1290,7 +1322,7 @@ class Schedule (models.Model):
                 slot.fillWithBestChoice()
                 print(f'Filled Slots {slot.workday.date.month}-{slot.workday.date.day} {slot.shift}: with {slot.employee}')
             print(f'Schedule-Wide Solution Completed at {dt.datetime.now()}')  
-            n_filled = n_empty - instance.slots.empty.count()
+            n_filled = n_empty_i - instance.slots.empty.count()
             n_empty_f = instance.slots.empty.count()
         
             LogEvent.objects.create(
@@ -1516,7 +1548,7 @@ class Slot (models.Model) :
         ordering = [
                     'workday__date', 
                     'shift__start',
-                    'employee__name'
+                    'shift__name'
                 ]
         constraints = [
             models.UniqueConstraint (fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
@@ -1863,7 +1895,7 @@ class Slot (models.Model) :
                 return "ASSIGNED VIA TEMPLATE"
         return
     def save (self, *args, **kwargs):
-        if not self.template_employee:
+        if self.template_employee == None:
             if ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).exists():
                 empl = ShiftTemplate.objects.filter(sd_id=self.workday.sd_id, shift=self.shift).first().employee
                 self.template_employee = empl
@@ -1882,8 +1914,9 @@ class Slot (models.Model) :
         if self.employee :
             self.streak = self._streak()
             self.slug = self.workday.date.strftime('%Y-%m-%d') + self.schedule.version + "-" + self.shift.name
+        if hasattr(self, 'pk'):
+            self.update_fills_with()
         super().save(*args, **kwargs)
-        self.update_fills_with()
     def update_fills_with (self):
         self.fills_with.clear()
         for empl in self._fillableBy():
@@ -2198,15 +2231,36 @@ class ShiftSortPreference (models.Model):
     def __str__(self):
         return f"[{self.shift} SortPref]"
     def save (self,*args,**kwargs):
-        super().save(*args,**kwargs)
         self.rank = self.score + 1
         n = self.employee.shift_sort_prefs.count()
-        self.scaled = int ((n-self.score)/n * 100)
+        if n != 0:
+            self.scaled = int ((n-self.score)/n * 100)
+        else:
+            self.scaled = 0
         super().save(*args,**kwargs)
     objects = ShiftSortPreferenceManager.as_manager()
 # ============================================================================
 class ScheduleEmusr (models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE)
+    n_unfav  = models.SmallIntegerField()
+    n_var    = models.SmallIntegerField()
+    std_dev  = models.FloatField()
+    
+    
+    class Actions:
+        def update_n_unfav(self):
+            self.n_unfav = self.schedule.slots.unfavorables().count()
+        def update_n_var(self):
+            qs = ScheduleEmusr.objects.values('n_unfav')
+            avg = qs.aggregate(Avg('n_unfav'))['n_unfav__avg']
+            self.n_var = int(self.n_unfav - avg)
+    actions = Actions()
+        
+    def __str__ (self):
+        return f"{self.schedule} ({self.n_unfav})"
+    def save(self):
+        self.actions.update_n_unfav()
+        super().save()
 
 def generate_schedule (year,number):
     """
@@ -2250,7 +2304,7 @@ def tally (lst):
             tally[item] = 1
     return tally
 
-def sortDict (d, reverse=False):
+def sortDict (d:dict, reverse=False) -> dict:
     """ SORT DICT BY VALUE """
     if reverse == True:
         return dict(sorted(d.items(), key=lambda item: item[1], reverse=True))

@@ -5,19 +5,23 @@
 <div class="relative inline-block text-left">
     <div class="swap-tgt"></div>
     <span class="hidden undo-btn hover:text-sky-300 cursor-pointer text-2xs px-1"
-                _="on click fetch actions/clear-slot/{{slot.workday}}/{{slot.shift}}/ with method:'POST' then 
-                    put result into previous .swap-tgt then
-                    add .hidden to me then 
-                    remove .hidden from next .dd-button 
-                    then wait 4s then put `` into previous .swap-tgt end">
+                _="on click 
+                      fetch actions/clear-slot/{{slot.workday}}/{{slot.shift}}/ 
+                      with method:'POST' then 
+                      put result into previous .swap-tgt then
+                      add .hidden to me then 
+                      remove .hidden from next .dd-button 
+                      then wait 4s 
+                      then put `` into previous .swap-tgt 
+                      end">
                 UNDO
             </span>
     <button type="button" class="dd-button inline-flex w-full justify-center rounded-md border border-gray-300 
-                                  bg-white {% if slot.n_options == 0 %} bg-gray-300 {% endif %}
-                                  px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 
+                                  {% if slot.n_options == 0 %} bg-gray-400 opacity-90 {% else %} bg-white {% endif %}
+                                  px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:ring-2
+                                  w-[12.5rem]
                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
-                                  focus:ring-offset-gray-100
-                                  {% if slot.n_options == 0 %} bg-zinc-300 {% endif %}" 
+                                  focus:ring-offset-gray-100" 
             aria-expanded="true" aria-haspopup="true"
             {% if slot.n_options == 0 %} disabled {% endif %}
             onclick="showDropdownOptions(event)">
@@ -29,29 +33,61 @@
     </button>
     <div class="dd-options absolute hidden right-0 z-10 mt-2 w-56 
                 origin-top-right rounded-md bg-sky-900 shadow-lg 
+                cursor-pointer
                 border border-sky-200 drop-shadow drop-shadow-white
                 ring-1 ring-black ring-opacity-5 focus:outline-white" 
                 role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
           _="on signal send fsignal to .fetcher in me">
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
-            <div _="on click fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ with method:'POST' then
-                    put it into previous .swap-tgt then
-                    add .hidden to previous .dd-button 
-                    then remove .hidden from previous .undo-btn"
-              class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
-              role="menuitem" tabindex="-1" id="menu-item-0">
-                {% if slot.template_employee == empl %} <i class="fas fa-star"></i> {% endif %}
+            <div _="on click 
+                      fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/
+                      if result >= 40 
+                        call confirm('This will put {{ empl }} into overtime status. Do you want to continue?')
+                        if result == true 
+                          fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
+                          with method:'POST' then
+                          put it into previous .swap-tgt then
+                          add .hidden to previous .dd-button 
+                          then remove .hidden from previous .undo-btn
+                          end
+                      else 
+                        log the result
+                        fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
+                        with method:'POST' then
+                        put it into previous .swap-tgt then
+                        add .hidden to previous .dd-button 
+                        then remove .hidden from previous .undo-btn
+                        end
+                      send recheck to #n-empty 
+                      end"
+                  class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
+                  id="menu-item-0" >
+
+                {% if slot.template_employee == empl %} 
+                    <i class="fas fa-star"></i> 
+                {% endif %}
+
                 {{ empl }}
+
                 <span class="text-xs opacity-70 italic">
                   <span class="fetcher"
                   _="on fsignal fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/ then
-                        put result into me end">
+                        if result is not 'None'
+                          put result into me 
+                        else
+                          put 0 into me 
+                          end">
                   </span>/ 
                   <span class="fetcher"
                   _="on fsignal fetch /api/employee/{{empl}}/period-hours/{{slot.schedule}}/{{slot.workday}}/ then
-                        put `$result hrs.` into me end">
+                        if result is not 'None'
+                          put result into me 
+                        else
+                          put 0 into me 
+                          end">
                   </span>
+                  <span> hrs. </span>
                 </span>
             </div>
         {% endfor %}

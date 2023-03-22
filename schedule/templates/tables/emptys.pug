@@ -1,16 +1,50 @@
-i#reloader.fas.fa-arrows-spin.text-lg(
-    class="hover:text-sky-300"
-    _="on click add .fa-pulse then fetch actions/update-fills-with/ then put result into #reload-response then wait 1s then call window.loaction.reload() end"
-    )
+if page == 1
 
-div#reload-response
+    script(type="text/hyperscript").
+        behavior LastRow 
+            on click 
+                remove .hidden from .fa-spinner in me
+                fetch /schedule/partials/#{schId}/empty-list/?page=#{pageNext} 
+                then put result at the end of the closest .tbody 
+                then add .hidden to the closest .last-row 
+                end
 
-table
-    tr
-        th Slot
-        th Tenable Options
-        th Details
+    i#reloader.fas.fa-arrows-spin.text-lg(
+        class="hover:text-sky-300"
+        _="on click add .fa-pulse then fetch actions/update-fills-with/ then put result into #reload-response then wait 1s then call window.loaction.reload() end"
+        )
 
+    div#reload-response
+
+    table
+        tr
+            th Slot
+            th Tenable Options
+            th Details
+        tbody.tbody 
+            each slot in empty_slots
+                tr
+                    td
+                        div.flex.flex-row
+                            div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9= slot.shift
+                            div.flex.flex-col.px-1.text-sm
+                                a(href=slot['workday_url'])= slot.workday
+                                div.text-2xs= slot.weekday
+                    td
+                        include ./empty-dropdown.html
+                    td
+                        if slot.template_employee
+                            span TEMPLATE: #{slot.template_employee}
+            if page < totalPages
+                tr.last-row
+                    td
+                    td
+                        div(class="border border-yellow-500 rounded hover:bg-yellow-800 h-9 m-2 p-2", _="install LastRow") 
+                            span Load more...
+                            i.hidden.fa-duotone.fa-spinner.fa-spin 
+                    td
+
+if page > 1
     each slot in empty_slots
         tr
             td
@@ -24,22 +58,33 @@ table
             td
                 if slot.template_employee
                     span TEMPLATE: #{slot.template_employee}
+    if page < totalPages
+        tr.last-row
+            td
+            td
+                div(class="border border-yellow-500 rounded hover:bg-yellow-800 h-9 m-2 p-2", _="install LastRow")
+                    span Load more...
+                    i.hidden.fa-duotone.fa-spinner.fa-spin 
+            td
 
 script.
     function showDropdownOptions (event) {
-    const dropdown = event.target.closest('.dd-button');
-    const options = dropdown.closest('.relative').querySelector('.dd-options');
-    options.classList.remove('hidden');
-    // add event listener to add .hidden when click is outside of the dropdown
-    document.addEventListener('click', function hideDropdownOptions (event) {
-    if (!dropdown.contains(event.target)) {
-    options.classList.add('hidden');
-    document.removeEventListener('click', hideDropdownOptions);
-    }
-    });
-    // send fsignal to fetcher elements
-    const fetchers = options.querySelectorAll('.fetcher');
-    fetchers.forEach(fetcher => {
-    fetcher.dispatchEvent(new CustomEvent('fsignal'));
-    });
-    }
+        const dropdown = event.target.closest('.dd-button');
+        const options = dropdown.closest('.relative').querySelector('.dd-options');
+        options.classList.remove('hidden');
+        // add event listener to add .hidden when click is outside of the dropdown
+        document.addEventListener('click', 
+    
+            function hideDropdownOptions (event) {
+                if (!dropdown.contains(event.target)) {
+                    options.classList.add('hidden');
+                    document.removeEventListener('click', hideDropdownOptions);
+                    }
+                });
+                // send fsignal to fetcher elements
+                const fetchers = options.querySelectorAll('.fetcher');
+                fetchers.forEach(fetcher => {
+                fetcher.dispatchEvent(new CustomEvent('fsignal'));
+                console.log('fsignal dispatched from .empty-drown');
+                });
+            }

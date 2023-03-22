@@ -1,6 +1,6 @@
 behavior PtoSwitch
     init
-        if @data-has-pto > 0
+        if @data-has-pto == "True"
             add .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 to me
             then remove .hidden from (.fa-circle-check in me)
             then add .text-blue-400 .font-bold to (.text-md in me)
@@ -12,20 +12,24 @@ behavior PtoSwitch
         then send recheck to #pto-check 
         end
     on click
-        if @data-has-pto > 0
+        if [@data-has-pto] == "True"
             set url to my [@data-delete-url]
             then fetch `${url}`
             then call showToast(result,"warn")  
-            then set @data-has-pto to 0
-        else if @data-has-pto < 1
+            then set [@data-has-pto] to "False"
+        else if [@data-has-pto] == "False"
             set url to my [@data-create-url]
             then fetch `${url}`
             then call showToast(result,"success")
-            then set @data-has-pto to 1
+            then set [@data-has-pto] to "True"
         end
     end
-    on mouseenter if @data-has-shift == 0
-            toggle .bg-sky-900 .ring .ring-sky-700 until mouseleave 
-        else toggle .bg-amber-900 .ring .ring-amber-700 until mouseleave
+    on mouseenter 
+        if [@data-has-shift] == "False"
+            toggle .bg-sky-900 .ring .ring-sky-700 
+            until mouseleave 
+        else if [@data-has-shift] == "True"
+            toggle .bg-amber-900 .ring .ring-amber-700 
+            until mouseleave
+        end
     end
-end

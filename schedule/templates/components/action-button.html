@@ -12,19 +12,20 @@
         <li>
             <div id="favorable-finished" class="dropdown-item hover:bg-amber-300 font-bold pointer" 
                  _="on click 
-                        remove .hidden from #action-button-indicator
                         add .active to me 
                         then send recheck to me then 
-                        fetch actions/fill-with-favorables/ then 
+                        fetch actions/fill-with-favorables/  
                         then put result into #swap-panel then wait 1s then 
+                        log `swapping...` then 
                         call window.location.reload() 
                         end 
                     on recheck 
-                        repeat while #favorable-finished matches .active
-                            trigger recheck on #n-empty-check 
-                            wait 1s
+                        repeat while 
+                            #favorable-finished matches .active
+                        trigger recheck on #n-empty-check 
+                        wait 1s
                         end">
-                 <i class="fa-regular fa-smile text-lg text-amber-500"></i> Fill Favorables <span id="favorable-indicator" class="fa-spinner fa-pulse htmx-indicator"></span>
+                 <i class="fa-regular fa-smile text-lg text-amber-500"></i> MAXIMIZE SATISFACTION <span id="favorable-indicator" class="fa-spinner fa-pulse htmx-indicator"></span>
                     <div class="text-2xs font-thin text-amber-700"> 
                         ASSIGNMENTS WILL BE MADE ONLY ON 
                         <br/>PREFFERED TIME OF DAY
@@ -32,7 +33,8 @@
                 </div>
         </li>
         <li>
-            <div id="template-finished" class="dropdown-item hover:bg-indigo-200 font-bold cursor-pointer" 
+            <div id="template-finished" 
+                 class="dropdown-item hover:bg-indigo-200 font-bold cursor-pointer" 
                  hx-get="actions/set-templates/"
                  hx-swap="none"
                  hx-indicator="#template-indicator"
