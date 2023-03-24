@@ -84,6 +84,7 @@ function showToast(message, type) {
             // slide the toast in from the bottom
             toast.style.bottom = "-8x";
             toast.style.opacity = 0;
+            toast.setAttribute("_", "install Toast");
             setTimeout(function() {
                 toast.style.bottom = "20px";
                 toast.style.opacity =0.85;

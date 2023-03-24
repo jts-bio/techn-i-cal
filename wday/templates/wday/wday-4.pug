@@ -3,12 +3,14 @@ extends 'base.html'
 block mymixins
 
     mixin nextWd(workday)
-        a(href=workday.nextWD().url())
-            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+        if workday.sd_id != 41
+            a(href=workday.nextWD().url())
+                i.fas.fa-chevron-right.opacity-40.text-xs.px-2
 
     mixin prevWd(workday)
-        a(href=workday.prevWD().url())
-            i.fas.fa-chevron-left.opacity-40.text-xs.px-2
+        if workday.sd_id != 0
+            a(href=workday.prevWD().url())
+                i.fas.fa-chevron-left.opacity-40.text-xs.px-2
 
     mixin day-breadcrumbs(workday)
         #breadcrumbs
@@ -53,14 +55,14 @@ block mymixins
 
     mixin Employee(empl, workday)
         div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
-            draggable='true', 
-            data-employee-id=empl.slug,
-            data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True))),
-            data-week-hours= empl.weekHours(workday.slug),
-            data-period-hours= empl.periodHours(workday.slug),
-            data-prev-day= empl.check_prev_day(workday.slug),
-            data-next-day= empl.check_next_day(workday.slug),
-            data-in-daytime= empl.check_daytime(workday.slug),
+            draggable='true'
+            data-employee-id=empl.slug
+            data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True)))
+            data-week-hours= empl.weekHours(workday.slug)
+            data-period-hours= empl.periodHours(workday.slug)
+            data-prev-day= empl.check_prev_day(workday.slug)
+            data-next-day= empl.check_next_day(workday.slug)
+            data-in-daytime= empl.check_daytime(workday.slug)
             _='install Employee')
                 img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
                 span.font-thin.text-sm.truncate= empl.name.upper
@@ -69,11 +71,17 @@ block mymixins
                 
     mixin Slot(slot)
         div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
-            data-shift=slot.shift.name,
-            data-template=slot.template_employee,
-            _='install Slot')
+            data-shift= slot.shift.name
+            data-template= slot.template_employee
+            data-employee= slot.employee
+            data-time-of-day= slot.shift.group
+            dath-hours= slot.shift.hours
+            _= 'install Slot')
                 div
-                    a(href=slot.url())
+                    a.slot-link(
+                        href=slot.url()
+                        _="init if my.parentNode.parentNode@data-employee == null remove @href"
+                        )
                         span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
                         +time-icon(slot.shift.group)
                     if slot.template_employee != null 
@@ -84,6 +92,7 @@ block mymixins
 block style 
     style.
         .h1              {font-size: 32px; font-family: 'JetBrains Mono';}
+        .h4              {font-size: 20px; border-radius: 6px; color: #000044!important; background-color: white; font-weight: bold; padding: 5px 2px 5px 2px;}
         #SlotGrid        {display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 1rem; overflow-x:scroll;}
         #ScrollingDeck   {display: flex; flex-direction: row; overflow-x: scroll; padding: 12px; box-shadow: 0 0 10px #11441155;}
         .active          {background-color: #ccffdd55!important; drop-shadow: 0 0 10px #ccffdd55;}
@@ -97,9 +106,6 @@ block pre
     script(type='text/coffeescript', src='/static/wday-pug.coffee') 
     script(type='text/hyperscript',  src='/static/wday-pug._hs')
 
- 
-
-        
 
 //------------------ CONTENT ------------------//
 
@@ -109,7 +115,9 @@ block content
 
     .flex.flex-row 
         +prevWd(workday)
-        .h1 #{workday.date} Slots 
+        .text-center
+            h1.h1= workday.date
+            h4.h4= workday.weekday
         +nextWd(workday)
 
     #background(_="install Background")
@@ -118,7 +126,7 @@ block content
             for slot in slots
                 +Slot(slot)
 
-        #ScrollingDeck
+        #ScrollingDeck(_="install Deck")
             for empl in workday.on_deck.all
                 +Employee(empl, workday)
 

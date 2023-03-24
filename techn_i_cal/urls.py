@@ -17,6 +17,8 @@ from .forms import LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 
+import logging
+
 """__________________________________________________________________
 
     +=================================+
@@ -55,8 +57,6 @@ def loginView (request):
     template = loader.get_template('sch/login.html')
 
     if request.method == "POST":
-        print("post")
-        print(request.__dict__)
         if request.POST.get("username"): 
             username = request.POST.get("username")
             password = request.POST.get("password")

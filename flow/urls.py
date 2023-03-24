@@ -30,7 +30,7 @@ shift_urls = [
 ]
 
 slot_urls = [
-    path('<slotId>/actions/ignore-mistemplate/', ApiActionViews.ignoreMistemplateFlag, name='slot__ignore_mistemplate'),
+    path('<slotId>/actions/ignore-mistemplate/', ApiActionViews.ignore_mistemplated_flag, name='slot__ignore_mistemplate'),
 ]
 
 pto_urls = [
@@ -44,7 +44,7 @@ emp_urls = [
 ]
 
 urlpatterns = [
-    path('build-schedule/<int:year>/<int:num>/<version>/', ApiActionViews.build_dict, name='build-schedule'),
+    path('build-schedule/<int:year>/<int:num>/<version>/', ApiActionViews.build_schedule, name='build-schedule'),
     path('schedule/', include(schedule_urls)),
     path('shift/',    include(shift_urls)),
     path('ptoreq/',   include(pto_urls)),

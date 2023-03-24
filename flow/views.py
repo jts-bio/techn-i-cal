@@ -128,10 +128,31 @@ class ApiViews :
 
 
 class ApiActionViews:
+    """
+    API DRIVEN ACTION VIEWS
+    ---
+    ```
+    build_dict 
+    build_alt_dict 
+    deleteSch 
+    set__shift_img
+    pto_req__delete
+    pto_req__create
+    clear_fte_overages 
+    ignoreMistemplateFlag
+    ```
+    """
     
     
-    def build_dict (request, year, num, version):
-        
+    def build_schedule (request, year, num, version):
+        """Build Schedule
+        ---
+        ```
+        params:
+            1 year 
+            2 num_of_sch
+            3 version_char
+        """
         #basic time data
         start_date = Schedule.START_DATES[year][num]
         pd_nums = [num*2 + i for i in range(3)]
@@ -149,6 +170,7 @@ class ApiActionViews:
         pd_start_dates = [dates[i] for i in [0, 14, 28]]
         pd_nums = [num*2 + i for i in range(3)]
         pds = []
+        
         for i in range (3): 
             pd = Period.objects.create(
                 year=year, start_date=pd_start_dates[i], schedule=schedule, number=pd_nums[i]
@@ -166,6 +188,7 @@ class ApiActionViews:
             wk.save()
             wks.append(wk)
         wdlist = []
+        
         for i in range(42):
                 slug=f"{dates[i].strftime('%Y-%m-%d')}{version}"
                 date=dates[i]
@@ -178,6 +201,7 @@ class ApiActionViews:
                 iweekday=i % 7
                 sd_id=i
                 wdlist += [Workday(schedule=schedule, slug=slug, date=date, period=period, week=week, iweekday=iweekday, sd_id=sd_id)]
+        
         for wd in wdlist:
             wd.save()
             slotlist = []
@@ -194,14 +218,14 @@ class ApiActionViews:
         slots.update()
         return HttpResponseRedirect(schedule.url())
     
-    def build_alt_draft (request, schId):
+    def build_alternate_draft (request, schId):
         # ``
         sch = Schedule.objects.get(slug=schId) 
         c = Schedule.objects.filter(year=sch.year, number=sch.number).count()
         version = 'ABCDEFGHIJ'[c]
-        return ApiActionViews.build_dict(request, sch.year, sch.number, version)
+        return ApiActionViews.build_schedule(request, sch.year, sch.number, version)
     
-    def deleteSch (request, schId):
+    def delete_schedule (request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.delete()
         return HttpResponseRedirect(reverse('schd:list'))
@@ -224,6 +248,7 @@ class ApiActionViews:
             ptos.delete()
             return HttpResponse(f"Request for {emp} deleted")
         return HttpResponse(f"No request for {emp} found")
+    
     @csrf_exempt
     def ptoreq__create (request, day, emp):
         emp = Employee.objects.get(slug=emp)
@@ -240,7 +265,7 @@ class ApiActionViews:
         sch.clear_fte_overages()
         return HttpResponseRedirect(sch.url())
     
-    def payPeriodFiller(request, schId):
+    def payPeriodFiller (request, schId):
         sch = Schedule.objects.get(slug=schId)
         for pd in sch.periods.all():
             empties = pd.slots.empty().all()
@@ -270,7 +295,7 @@ class ApiActionViews:
         
         return HttpResponse(f'Filled {empty_n_i - empty_n_f} slots')
 
-    def ignoreMistemplateFlag(request, slotId):
+    def ignore_mistemplated_flag (request, slotId):
         slot = Slot.objects.get(slug=slotId)
         slot.tags.add(Slot.IGNORE_MISTEMPLATE_FLAG)
         slot.save()
@@ -278,7 +303,7 @@ class ApiActionViews:
     
 class VizViews:
     
-    def tallyPlotDataGenerator (request, empId):    
+    def tally_plot_data_generator (request, empId):    
         from django.db.models import Count, OuterRef, Subquery
         import pandas as pd
         import seaborn as sns
@@ -346,6 +371,7 @@ class VizViews:
         plt.legend(loc='upper left')
         buf = BytesIO()
         
+        plt.savefig(buf, format='svg')
         plt.savefig(buf, format='svg')
         # get the SVG contents as bytes and encode to base64
         svg_bytes = buf.getvalue()

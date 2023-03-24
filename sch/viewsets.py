@@ -608,6 +608,7 @@ class SlotViews:
             "streak"  : streak,
         }
         return render(request, html_template, context)
+    
     def clearSlotViaShift (request, wdId, shiftId):
         """
         Clear Slot Via Shift: 
@@ -619,6 +620,7 @@ class SlotViews:
         slot.employee = None
         slot.save()
         return HttpResponseRedirect(wd.url())
+    
     def slotClearActionView (request, slotId):
         """
         Slot Clear Action View
@@ -876,6 +878,7 @@ class EmpViews:
         plt.legend(loc='upper left')
         buf = BytesIO()
 
+        plt.savefig(buf, format='svg')
         plt.savefig(buf, format='svg')
         # get the SVG contents as bytes and encode to base64
         svg_bytes = buf.getvalue()

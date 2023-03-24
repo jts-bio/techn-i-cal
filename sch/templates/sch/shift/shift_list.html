@@ -28,18 +28,19 @@
 
             <a href="/sch/shifts/new/" 
                class="bg-blue-900 border px-4 m-2 hover:bg-blue-700 
-                      border-blue-300 rounded float-right"> 
+                      border-blue-300 rounded 
+                      hidden md:block md:float-right"> 
                 <div class="hstack">
                     <div> {% plusIcon %} </div>
                     <div> NEW </div>
                 </div>
-                </a>
+            </a>
     
         <div class="hidden md:block md:panel">
             <div>{% render_table shiftTable %}</div>
         </div>
 
-        <div class="block grid grid-cols-2 gap-5 bg-zinc-900 p-2 rounded sm:grid-cols-3 md:hidden">
+        <div class="block grid grid-cols-3 gap-5 bg-zinc-900 p-2 rounded md:hidden">
             {% for shift in shifts %}
                 <a  href ="{{shift.url}}" 
                     class="bg-zinc-900 border border-zinc-200 rounded py-2 w-24 center text-center
@@ -49,11 +50,9 @@
                                 {% elif shift.group == 'PM' %} text-sky-700 
                                 {% else %} text-indigo-600 {% endif %}">
                         {{ shift.name }}
-                    </div>
-                    <div>
-                       {% if shift.group == 'AM' %} <i class="fas text-amber-400 fa-sun"></i>
-                        {% elif shift.group == 'PM' %} <i class="fas text-sky-700 fa-moon"></i>
-                        {% else %} <i class="fas text-indigo-600 fa-galaxy"></i> {% endif %}
+                        {% if shift.group == 'AM' %} <i class="fas text-amber-400 fa-sun opacity-40"></i>
+                        {% elif shift.group == 'PM' %} <i class="fas text-sky-700 fa-moon opacity-40"></i>
+                        {% else %} <i class="fas text-indigo-600 fa-tombstone opacity-40"></i> {% endif %}
                     </div>
                 </a>
             {% endfor %}

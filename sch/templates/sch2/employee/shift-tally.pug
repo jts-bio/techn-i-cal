@@ -3,16 +3,16 @@
 
 extends ../base.html
 
-block content 
+block pre 
     script(src="https://code.jquery.com/jquery-3.1.1.min.js")
     script(src="https://code.highcharts.com/highcharts.js")
 
-
+block content
     h1 Shift Tallies
     h3 #{emp.name}
 
-    .flex.flex-row.gap-10
-        div(class="h-[500px]")
+    .flex.flex-col(class="md:flex-row md:gap-10")
+        div(class="md:h-[500px]")
             table.w-fc
                 tr.h-10
                     th.font-bold Scored At
@@ -21,7 +21,7 @@ block content
                 each tally in tallies
                     tr.h-12
                         td.text-lg #{tally.score}
-                        td.text-md #{tally.shifts}
+                        td.text-md #{emp.shift_prefs}
                         td.text-lg #{tally.count}
         div
             div
