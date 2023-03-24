@@ -30,15 +30,15 @@ def schListView(request):
     schedules, and allows the user to generate new schedules.
     """
     VERSION_COLORS = {
-        "A": "amber",
-        "B": "emerald",
-        "C": "blue",
-        "D": "pink",
-        "E": "rose",
-        "F": "purple",
-        "G": "orange",
-        "H": "sky",
-    }
+            "A":  "amber",
+            "B":  "emerald",
+            "C":  "blue",
+            "D":  "pink",
+            "E":  "rose",
+            "F":  "purple",
+            "G":  "orange",
+            "H":  "sky",
+        }
     schedules = Schedule.objects.annotate(
         nEmpty=Count("slots", filter=Q(slots__employee=None))
     )
@@ -52,7 +52,6 @@ def schListView(request):
     if request.method == "POST":
         sd = request.POST.get("start_date")
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
-        print(start_date)
         i = -1
         idate = start_date
         year  = start_date.year
@@ -61,7 +60,7 @@ def schListView(request):
             idate = idate - dt.timedelta(days=42)
         s = Schedule.objects.filter(year=year, number=i).count()
         version = "ABCDEFGH"[s]
-        return HttpResponseRedirect(f'/api/build-schedule/{year}/{i}/{version}/')
+        return HttpResponseRedirect (f'/api/build-schedule/{year}/{i+1}/{version}/')
 
     context = {
         "schedules": schedules.order_by("-start_date"),

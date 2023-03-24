@@ -3,13 +3,14 @@ from . import views, api
 
 app_name = 'wday'
 
+
 urlpatterns = [
     path('testing/<wdSlug>/', views.testing, name='testing'),
     path('', views.wdListView, name='wd-list'),
     path('<slug>/', views.wdDetailView, name='detail'),
     path('<slug>/slot/<shiftId>/', views.slotDetailView, name='slot-detail'),
     path('<slug>/delete/', views.SlotActions.slotDeleteView, name='slot-delete'),
-    path('<slug>/slot/<shiftId>/update/', views.SlotActions.slotUpdateView, name='slot-update'),
+    path('<slug>/'+'slot/'+'<shiftId>/'+'update/', views.SlotActions.slotUpdateView, name='slot-update'),
     
     # API paths ~~~~~~~~~~~~~~~~~~~~~~
     path('<wdSlug>/api-context/', api.workday_context, name='workday-api-context'),

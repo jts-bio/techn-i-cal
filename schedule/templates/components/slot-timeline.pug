@@ -14,19 +14,19 @@ mixin icon(iconName)
 mixin timeline(slots)
     
     each slot in slots
-        if slot.workday.iweekday == 6
-            .Slot.week-break
+        if slot == mainSlot
+            .Slot.bg-zinc-400.rounded.bg-opacity-30.px-2(_="init if @wkd == 6 add .week-break end")
                 .Badge
                     +icon('calendar')
-                .h3= slot.shift 
+                h3.h3= slot.shift 
                 a(href='#{slot.workday.url()}') 
                     .text-2xs= slot.workday.weekday 
                     .text-sm= slot.workday
-        if slot.workday.iweekday != 6
-            .Slot
+        else
+            .Slot(_="init if @wkd == 6 add .week-break end")
                 .Badge
                     +icon('calendar')
-                .h3= slot.shift 
+                h3.h3= slot.shift 
                 a(href='#{slot.workday.url()}') 
                     .text-2xs= slot.workday.weekday 
                     .text-sm= slot.workday
@@ -40,3 +40,4 @@ block content
 
     .FlexRow.bg-zinc-900.rounded.border.py-4
         +timeline(streak)
+        

@@ -39,7 +39,7 @@
         <div> Schedule {{ week.schedule.number }}</div>
     </a>
     
-    <!-- NAV ARROWS & TITLE --->
+    <!-- NAV ARROWS & TITLE -->
     <div class="flex flex-row gap-4">
 
         <a href="{% url 'sch:prev-week' week.pk %}">
@@ -162,47 +162,49 @@
 
     {% regroup slots by employee as slotCount %}
 
-    {% for empl in slotCount %}
+    <div class="grid grid-cols-1 md:grid-cols-3">
 
-        <p> 
-        {{ empl.grouper }} 
-            <span class="bg-gray-200 text-gray-800 text-xs rounded-sm px-3 m-1"> 
-                {% sumSlotHours empl.list %} hrs.
-            </span> 
-        </p> 
+        {% for empl in slotCount %}
 
-       
-        {% for slot in empl.list %}
-            <a 
-                draggable=true 
-                ondragstart="dragStartSlot(event);" ondragend="dragEndSlot(event);"
-                data-slot="{{slot.employee.slug}}"
-                href="{{ slot.url }}">
+        <div>
 
-                {% if slot.shouldBeTdo %}
-                    <span 
-                        class='slot bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
-                {% elif slot.shouldBePto %}
-                    <span 
-                        class='slot bg-red-600 ring border-2 border-red-100 ring-offset-3 ring-red-300  px-2 rounded-lg'> 
-                {% else %}
-                    <span 
-                        class='slot bg-blue-600 px-2 rounded-lg'>
-                {% endif %}
-                        <span class='text-white italic text-xs'>
-                            {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+            <p> 
+                {{ empl.grouper }} 
+                <span class="bg-gray-200 text-gray-800 text-xs rounded-sm px-3 m-1"> 
+                    {% sumSlotHours empl.list %} hrs.
+                </span> 
+            </p> 
+
+        
+            {% for slot in empl.list %}
+                <a 
+                    draggable=true 
+                    ondragstart="dragStartSlot(event);" ondragend="dragEndSlot(event);"
+                    data-slot="{{slot.employee.slug}}"
+                    href="{{ slot.url }}">
+
+                    {% if slot.shouldBeTdo %}
+                        <span 
+                            class='slot bg-amber-600 ring border-2 border-amber-100 ring-offset-3 ring-amber-300  px-2 rounded-lg'> 
+                    {% elif slot.shouldBePto %}
+                        <span 
+                            class='slot bg-red-600 ring border-2 border-red-100 ring-offset-3 ring-red-300  px-2 rounded-lg'> 
+                    {% else %}
+                        <span 
+                            class='slot bg-blue-600 px-2 rounded-lg'>
+                    {% endif %}
+                            <span class='text-white italic text-xs'>
+                                {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+                            </span>
+                            <span class="text-xs text-indigo-200">
+                                {{ slot.shift }} 
+                            </span>
                         </span>
-                        <span class="text-xs text-indigo-200">
-                            {{ slot.shift }} 
-                        </span>
-                    </span>
-            </a>  
-                
-
-        {% endfor slot %}     
-
-      
-    {% endfor empl %}
+                </a>  
+            {% endfor slot %}  
+        </div>   
+        {% endfor empl %}
+    </div>
     
     </div>
 

@@ -22,16 +22,25 @@
                href="wd/{{ slot.workday }}">{{ slot.workday }} {{ slot.shift }}</a>
         </td>
         <td>
-            <div class="py-1 pl-2 rounded-sm bg-zinc-300 text-zinc-900">{{ slot.employee }}</div>
+            <div class="current-empl py-1 pl-2 rounded-sm bg-zinc-300 text-zinc-900">{{ slot.employee }}</div>
         </td>
         <td> 
-            <span hx-post="actions/override-slot/{{ slot.workday }}/{{ slot.shift }}/{{ slot.template_employee }}/"
+            <span class="swap-btn" 
+                 hx-post="actions/override-slot/{{ slot.workday }}/{{ slot.shift }}/{{ slot.template_employee }}/"
                  hx-trigger="click" 
-                 hx-swap="innerHTML">
+                 hx-swap="innerHTML"
+                 data-tmplt="{{ slot.template_employee}}"
+                 _="on click hide the next .bell-btn
+                    then put @data-tmplt into previous .current-empl 
+                    then add .bg-emerald-200 to previous .current-empl">
                 <i class="fa-light fa-arrow-turn-down-left hover:fa-solid hover:text-emerald-300" 
-                    itle="Swap In Templated Employee ({{ slot.template_employee }})"></i>
+                    title="Swap In Templated Employee ({{ slot.template_employee }})"></i>
             </span>
-            <span hx-get="/api/slot/{{ slot.slug }}/actions/ignore-mistemplate/">
+            <span class="bell-btn"
+                hx-get="/api/slot/{{ slot.slug }}/actions/ignore-mistemplate/"
+                _="on click hide the previous .swap-btn
+                   then add .bg-amber-300 to previous .current-empl 
+                   then put '' into next <td/>">
                 <i class="fa-solid fa-bell-slash hover:text-orange-300" 
                    title="Ignore Mistemplated Flag"></i>
             </span>

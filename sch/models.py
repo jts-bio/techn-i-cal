@@ -645,13 +645,15 @@ class Employee (models.Model) :
             return wd.templated_days_off.filter(employee=self).first()
     def check_prev_day(self, wd):
         wd = Workday.objects.get(slug=wd)
-        if wd.prevWD().slots.filter(employee=self):
-            return wd.prevWD().slots.get(employee=self).shift.group
+        if wd.sd_id != 0:
+            if wd.prevWD().slots.filter(employee=self):
+                return wd.prevWD().slots.get(employee=self).shift.group
         return "None"
     def check_next_day(self, wd):
         wd = Workday.objects.get(slug=wd)
-        if wd.nextWD().slots.filter(employee=self):
-            return wd.nextWD().slots.get(employee=self).shift.group
+        if wd.sd_id != 41:
+            if wd.nextWD().slots.filter(employee=self):
+                return wd.nextWD().slots.get(employee=self).shift.group
         return "None"
     def check_daytime(self, wd):
         wd = Workday.objects.get(slug=wd)
@@ -1715,22 +1717,22 @@ class Slot (models.Model) :
         prevDay = self.workday.prevWD()
         while Slot.objects.filter(workday=prevDay, employee=self.employee, schedule=self.schedule).exists() == True:
             siblings += [Slot.objects.get(workday=prevDay, employee=self.employee, schedule=self.schedule).pk]
-            prevDay = prevDay.prevWD()
+            prevDay   = prevDay.prevWD()
         nextDay = self.workday.nextWD()
         while Slot.objects.filter(workday=nextDay, employee=self.employee, schedule=self.schedule).exists() == True:
             siblings += [Slot.objects.get(workday=nextDay, employee=self.employee, schedule=self.schedule).pk]
-            nextDay = nextDay.nextWD()
-        return Slot.objects.filter(pk__in=siblings).order_by('workday__date')
+            nextDay   = nextDay.nextWD()
+        return Slot.objects.filter (pk__in=siblings).order_by('workday__date')
     def tenable_trades (self):
         primaryScore   = self.prefScore()
         primaryShift   = self.shift
-        otherShifts    = self.siblings_day.values('shift')
-        otherEmployees = self.siblings_day.values('employee')
+        otherShifts    = self.siblings_day.values ('shift') 
+        otherEmployees = self.siblings_day.values ('employee')
         return ShiftPreference.objects.filter(employee=self.employee,shift=self.shift,score__gt=primaryScore)           
     def _streak (self):
         if self.siblings_streak().count() == 0:
             return 1
-        return self.siblings_streak().filter(workday__date__lt=self.workday.date).count() + 1
+        return self.siblings_streak().filter (workday__date__lt=self.workday.date).count() + 1
     def isOverStreakPref (self):
         if not self.employee:
             return False

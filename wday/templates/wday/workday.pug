@@ -1,4 +1,7 @@
-#bkgd-area(_="on click send unfocus to .employee then send unhighlight to .slot then add .hidden to .trashbin end")
+#bkgd-area(
+    _="on click send unfocus to .employee then send unhighlight to .slot then add .hidden to .trashbin end"
+    )
+    
     include wday/partials/SPWD.html
 
     .w-fc.flex.flex-col
@@ -14,6 +17,8 @@
                     span#wdId.hidden #{workday.slug}
                 a(href=`${workday.nextWD.url}`, class="hover:scale-[110%]")
                     i.fa-duotone.fa-circle-arrow-right
+
+
 // _____ SECTION: SLOT GRID ______ 
 .all-shifts.grid.grid-cols-2(class="md:grid-cols-4", _="on click send unfocus to .emp-card then remove .active-emp-card from .emp-card then send unhighlight to .slot then add .hidden to .trashbin end")
     each slot in workday.slots.all
