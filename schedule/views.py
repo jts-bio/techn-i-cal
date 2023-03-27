@@ -52,15 +52,14 @@ def schListView(request):
     if request.method == "POST":
         sd = request.POST.get("start_date")
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
-        i = -1
         idate = start_date
         year  = start_date.year
-        while idate.year == start_date.year:
-            i += 1
-            idate = idate - dt.timedelta(days=42)
-        s = Schedule.objects.filter(year=year, number=i).count()
+        i = Schedule.START_DATES[year].index(start_date) + 1
+        s = Schedule.objects.filter(year=year,number=i).count()
         version = "ABCDEFGH"[s]
-        return HttpResponseRedirect (f'/api/build-schedule/{year}/{i+1}/{version}/')
+        flow_views.ApiActionViews.build_schedule(request, year, i, version )
+        sch = Schedule.objects.get(year=year, number=i, version=version)
+        return HttpResponseRedirect(sch.url())
 
     context = {
         "schedules": schedules.order_by("-start_date"),
@@ -83,8 +82,14 @@ def groupedScheduleListView(request):
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
+    prct = sch.percent
+    alternates = Schedule.objects.filter(
+            year=sch.year, number=sch.number).exclude(pk=sch.pk).order_by('version').annotate(
+            # ANNOTATE DIFFERENCE OF PERCENTS-FILLED
+            difference= F('percent') - prct 
+        )
     sch.save()
-    return render(request, "sch-detail.html", {"schedule": sch})
+    return render(request, "sch-detail.html", {"schedule": sch, "alternates": alternates})
 
 
 class Sections:
@@ -160,7 +165,7 @@ class Sections:
             {"pto": pto, "schedule": sch, "ptoconflicts": ptoconflicts},
         )
 
-    def schPtoGrid(request, schId, emp):
+    def schPtoGrid (request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
         ptos = list(sch.pto_requests.filter(employee=emp).values_list('workday',flat=True))
@@ -182,7 +187,7 @@ class Sections:
                 "days": days,
             })
         
-    def schEmusr(request, schId):
+    def schEmusr (request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
@@ -190,7 +195,7 @@ class Sections:
     
    
 
-    def schEmptyList(request, schId):
+    def schEmptyList (request, schId):
         
         version = schId[-1]
 
@@ -205,63 +210,64 @@ class Sections:
         page = request.GET.get('page', 1)
         paginator = Paginator(data, 20)  # Show 20 data per page
         try:
+            for slot in paginator.page(page):
+                Slot.objects.get(id=slot['id']).update_fills_with()
             data_paginated = paginator.page(page)
         except PageNotAnInteger:
             data_paginated = paginator.page(1)
         except EmptyPage:
             data_paginated = paginator.page(paginator.num_pages)   
             
-        for slot in Slot.objects.filter(slug__in=[s['slug'] for s in data_paginated]):
-            slot.save()
+        
             
         return render (request, "tables/emptys.pug", 
-            {"empty_slots": data_paginated, 
-             'paginator': paginator, 
-             'page': int(page), 
-             'pageNext':int(page)+1,
-             'totalPages':paginator.num_pages, 
-             'workday_version': version,
-             'schId': schId, 
-            })
+                            {"empty_slots": data_paginated, 
+                            'paginator': paginator, 
+                            'page': int(page), 
+                            'pageNext':int(page)+1,
+                            'totalPages':paginator.num_pages, 
+                            'workday_version': version,
+                            'schId': schId, 
+                        })
     
-    def schEmusrPage(request, schId):
+    def schEmusrPage (request, schId):
         from django.db.models.functions import Coalesce
 
         sch = Schedule.objects.get(slug=schId)
 
-        emusr_employees = sch.employees.emusr_employees().annotate(
-            uf_count=Coalesce(
-                Count(
-                    Subquery(
-                        Slot.objects.filter(
-                            employee=OuterRef("pk"), is_unfavorable=True
-                        ).values("employee")
-                    )
-                ),
-            0,)
-            )
+        emusr_employees = sch.employees.emusr_employees()
+        for empl in emusr_employees:
+            empl.uf_count = sch.slots.filter(employee=empl, shift__start__hour__gte=10).count()
+            
         return render(request, "tables/emusr.pug", {"emusr_employees": emusr_employees})
     
     def schEmployeeEmusrSlots(request, schId, emp):
-        sch = Schedule.objects.get(slug=schId)
-        emp = Employee.objects.get(slug=emp)
-        slots = sch.slots.filter(employee=emp).unfavorables()
-        n = slots.count()
-        return render(
-            request,
-            "tables/emusr-empl.pug",
-            {"slots": slots, "emp": emp, "sch": sch, "n": n},
+        sch          = Schedule.objects.get( slug=schId)
+        emp          = Employee.objects.get( slug=emp)
+        slots        = sch.slots.filter( employee=emp, shift__start__hour__gte=10)
+            
+        return render (request, "tables/emusr-empl.pug",
+            {
+                "slots": slots,
+                "n"    : slots.count() if slots.exists() else 0,
+                "emp"  : emp, 
+                "sch"  : sch, 
+            },
         )
         
     def schUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         data = sch.slots.untrained().all()
         return render(request, "tables/untrained.html", {"data": data})
+    
     def schLogView(request, schId):
         sch = Schedule.objects.get(slug=schId)
         return render(request, "tables/routine-log.html", {"schedule": sch})
+    
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
+        for turnaround in sch.slots.turnarounds().all():
+            turnaround.save()
         turnarounds = sch.slots.turnarounds().preturnarounds().all()
         return render(request, "tables/turnarounds.pug", {"turnarounds": turnarounds, "sch": sch})
 
@@ -273,10 +279,13 @@ class Actions:
 
     class Updaters:
 
-        def update_fills_with(request, schId):
+        def update_fills_with (request, schId):
             for slot in Schedule.objects.get(slug=schId).slots.empty():
                 slot.update_fills_with()
-            return HttpResponse("<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>")
+            return HttpResponse(
+                "<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>"
+            )
+
 
     def clearUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -355,7 +364,7 @@ class Actions:
             weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef(
                 'pk')).annotate(hours=Sum('shift__hours')).values('hours'))
         )
-        
+         
         for slot in slots:
             print('Before FILTER:', [e.slug for e in slot.fills_with.all()])
             empls = slot.fills_with.all().annotate(
