@@ -35,8 +35,17 @@ behavior TemplateEmployeeBtn
 
 behavior Deck 
     on recieve
+        log 'recieved!'
         tell .employee in me 
-            set @data-in-daytime to 'None' 
+            set @data-in-daytime to 'None'
+            if @data-pto is 'true'
+                log `$you@data-employee-id has PTO pto flag`
+                set @data-pto to false then 
+                remove .pto-flag from you 
+                then transition you.style.opacity to 0% over 2s 
+                then wait 2s
+                then remove you 
+                end            
             end
         end
     end
@@ -51,10 +60,10 @@ behavior Slot
             end
         end
     on dragover 
+        call event.preventDefault() then
         set incomingEmployee to first .active then
         set avble to incomingEmployee@data-available then
-        call event.preventDefault() then
-        if @data-shift is in avble.split(' ') and .active is not in me 
+        if @data-shift is in avble.split(' ') 
             add .dragged-over 
         else 
             add .dragged-over-prohibited
@@ -81,7 +90,7 @@ behavior Slot
     on mutation of @data-employee 
         tell .employee in me 
             set @data-in-daytime to tod 
-            trigger checkFlags 
+            trigger checkFlags  
             end
         end
     on checkAndAssign 
@@ -184,6 +193,8 @@ behavior Employee
         if @data-in-daytime is "AM" and @data-prev-day == "PM" add .bg-orange-900 .bg-opacity-40 to me end
         end
     end
+
+
 
 
 

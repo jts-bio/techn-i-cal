@@ -3,7 +3,7 @@ h3.text-lg.bg-zinc-200.text-black #{emp.name} Unfavorables
 
 #count
     span.n= slots.count
-    span Unfavorables in Schedule
+    span unfavorable slots
 
 
 table  
@@ -12,21 +12,18 @@ table
         th Shift 
         th Actions 
     tbody 
-        if slots
-            each unf in slots
-                tr 
-                    td #{unf.workday.date}
-                    td #{unf.shift}
-                    td
-                        .action-response
-                            i.fa-duotone.fa-calendar(href='/wday/#{unf.workday.slug}/' class="m-1 text-gray-500 hover:text-blue-500" )
-                            i.bg-transparent.fa-duotone.fa-pencil(class="m-1 text-gray-500 hover:text-amber-500")
-                            i.fa-duotone.fa-trash(
-                                class="m-1 text-gray-500 hover:text-red-500" 
-                                _='on click fetch actions/clear-slot/#{unf.workday.slug}/#{unf.shift}/ with method:"POST" put result into closest .action-response end')
-    
+        each unf in slots
+            tr 
+                td #{unf.workday}
+                td #{unf.shift}
+                td
+                    .action-response
+                        i.fa-duotone.fa-calendar(href='/wday/#{unf.workday.slug}/' class="m-1 text-gray-500 hover:text-blue-500" )
+                        i.bg-transparent.fa-duotone.fa-pencil(class="m-1 text-gray-500 hover:text-amber-500")
+                        i.fa-duotone.fa-trash(
+                            class="m-1 text-gray-500 hover:text-red-500" 
+                            _='on click fetch actions/clear-slot/#{unf.workday.slug}/#{unf.shift}/ with method:"POST" put result into closest .action-response end')
 
-style.
-    .n        {font-size: 1.5rem; padding: 0 0.5rem }
-    .calendar { @apply fa-duotone fa-calendar m-1 text-gray-500 hover:text-blue-500 ; }
+
+
     

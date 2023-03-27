@@ -117,7 +117,7 @@ def schDetailShiftGridView (request, schId):
 
 def schDetailSingleEmployeeView (request, schId, empId):
     schedule = Schedule.objects.get(slug=schId)
-    employee = Employee.objects.get(slug=empId)
+    employee = Employee.objects.get(slug__iexact=empId)
     empl_schedule = employee.schedule_data(schedule.slug)
 
     html_template = 'sch2/employee/empl-schedule-view.html'

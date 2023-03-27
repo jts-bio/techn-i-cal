@@ -23,7 +23,7 @@ if page == 1
             th Details
         tbody.tbody 
             each slot in empty_slots
-                tr
+                tr.swap-tgt
                     td
                         div.flex.flex-row
                             div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9= slot.shift

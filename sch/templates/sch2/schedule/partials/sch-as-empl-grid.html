@@ -20,7 +20,7 @@
                             {% endfor %}
                         </tr>
                         <tr>
-                            <td class="stl bg-sky-800 ring ring-sky-800">
+                            <td class="stl bg-zinc-700 text-xs helv font-light">
                             </td>
                             {% for workday in schedule.workdays.all %}
                                 <td>
@@ -36,9 +36,9 @@
                             <tr>
                                 <!-- ROW HEADER: Employee name -->
                                 <th class="stl bg-zinc-700 text-xs helv font-light">
-                                            
-                                    {{ employee }}
-
+                                    <a href="{% url 'sch:empl-schedule-detail' employee|slugify schedule.slug %}">
+                                        {{ employee }}
+                                    </a>
                                 </th>
 
                                 <!-- ROW BODY: Employee assignments within schedule -->

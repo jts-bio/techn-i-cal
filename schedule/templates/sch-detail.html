@@ -24,25 +24,27 @@
   <h3 class="text-lg text-zinc-100 font-light">
     VERSION
     <span id="scheduleVersionId">{{ schedule.version }}</span>
-    <span id="versionEllipsis" class="opacity-50 hover:opacity-90 text-sm">
-      <i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i>
+    <span id="versionEllipsis" 
+          class="opacity-50 hover:opacity-90 text-sm"
+          onclick="showContextMenu(event)">
+        <i class="fa-duotone fa-circle-ellipsis opacity-50 hover:opacity-100"></i>
     </span>
   </h3>
-
+ 
   <div class="flex flex-row align-items">
 
     {# ======== ACTION BUTTON ========= #}
     {% include 'components/action-button.html' %}
     <div id="action-button-indicator" class="hidden bg-yellow-300 rounded h-6 text-black animate-pulse jbm">Please Wait...</div>
-
+    <section id="TAB-BAR-MAIN">
+        {% include 'sch2/schedule/partials/sch-tabBar.html' %}
+    </section>
   </div>
 </div>
 
 <div class="flex flex-col">
 
-  <section id="TAB-BAR-MAIN">
-    {% include 'sch2/schedule/partials/sch-tabBar.html' %}
-  </section>
+  
 
   <section id="LOWER-BODY">
 
@@ -51,7 +53,9 @@
       {% include 'stats.html' %}
 
       <div id="swap-panel"
-           class="container overflow-x-scroll overscroll-x-auto px-1 md:px-4 md:m-4">
+           class="container overflow-x-scroll overscroll-x-auto
+                  px-1 md:px-4 md:m-4 bg-zinc-900 rounded 
+                  shadow">
           <i id="swap-panel-indic" 
              class="fas fa-spinner fa-spin fa-beat htmx-indicator"></i>
       </div>
@@ -73,28 +77,62 @@
   
     <a href="build-alt-draft/" 
        class="hover:underline">
+       <i class="fas fa-hammer opacity-80"></i>
        Build Alternate Draft Version
     </a>
+    <div>
+      {% for alt in alternates %}
+        <div>
+          <a href="{{ alt.url }}"
+             class="text-xs opacity-70 hover:opacity-100 py-2">
+             Version {{ alt.version }}
+             {% if alt.difference > 0 %}
+                <span class="text-emerald-300">(+{{ alt.difference }}% more complete)</span>  
+             {% elif alt.difference < 0 %} 
+                <span class="text-red-300">({{ alt.difference }}% less complete)</span>
+             {% endif %}
+          </a>
+        </div>
+      {% endfor %}
+    </div>
 </div>
 
+<div id="wait-indicator" class="hidden">
+  <div class="click-through w-full h-full fixed inset-0 flex items-center justify-center z-50 ">
+    <div class="absolute fa-ping fa-beat ring ring-zinc-400 py-4 rounded bg-zinc-300 text-800 opacity-70 rounded-lg shadow-lg w-[140px]">
+        <div class="text text-center text-black text-3xl">
+            <i class="fas fa-user-robot text-zinc-600"></i>
+        </div>
+        <div class="text text-black text-center text-xs">Please wait...</div>
+    </div>
+  </div>
+</div>
 
 <script type="text/javascript">
 
-  function showContextMenu(e) {
-    e.preventDefault();
-    var contextMenu = document.getElementById("contextMenu");
-    contextMenu.style.display = "block";
-    contextMenu.style.left = e.pageX + "px";
-    contextMenu.style.top = e.pageY + "px";
-  }
+function showContextMenu(e) {
+  console.log('CtxtMenu Called')
+  e.preventDefault();
+  var contextMenu = document.getElementById("contextMenu");
+  contextMenu.style.display = "block";
+  contextMenu.style.left = e.pageX + "px";
+  contextMenu.style.top = e.pageY + "px";
+  // remove previous event listener if exists
+  document.removeEventListener('mousedown', hideContextMenu);
+  // then add event listener to close menus when user clicks outside
+  document.addEventListener('mousedown', hideContextMenu);
+}
 
-  function hideContextMenu() {
-    var contextMenu = document.getElementById("contextMenu");
-    contextMenu.style.display = "none";
-  }
+function hideContextMenu(ev) {
+  var contextMenu = document.getElementById("contextMenu");
+  contextMenu.style.display = "none";
+}
 
-  document.addEventListener("click", hideContextMenu);
-  document.getElementById('versionEllipsis').addEventListener("contextmenu", showContextMenu);
+function showWaitIndicator(ev) {
+  console.log('SHOWING indicator');
+  var indicator = document.getElementById("wait-indicator");
+  indicator.classList.remove("hidden");
+}
 
   function showVersionEllipsis() {
     var versionEllipsis = document.getElementById("versionEllipsis");

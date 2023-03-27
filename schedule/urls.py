@@ -24,7 +24,7 @@ urlpatterns = [
     path('partials/<schId>/pto-conflicts/<emp>/', Sections.schPtoGrid, name="pto-grid"),
     path('partials/<schId>/turnarounds/', Sections.schTurnarounds, name="turnarounds"),
     path('partials/<schId>/log/', Sections.schLogView, name="log"),
-    path('partials/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
+    path('detail/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
     
     #~~ ACTIONS ~~#

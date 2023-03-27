@@ -1060,7 +1060,7 @@ class EMPLOYEE:
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            employee = Employee.objects.get(name=self.kwargs['name'])
+            employee = Employee.objects.get(slug__iexact=self.kwargs['empId'])
             
             context['employee'] = employee
             ptoReqs = PtoRequest.objects.filter(employee=employee)
@@ -1071,10 +1071,12 @@ class EMPLOYEE:
                 slotScheduled = Slot.objects.filter(employee=employee, workday=OuterRef('pk'))
             )
             slots = schedule.slots.filter(employee=employee)
-            days = [{
-                'date':i.strftime("%Y-%m-%d"),
-                'slot': slots.filter(workday__date=i)
-                } for i in (schedule.workdays.all().values_list('date',flat=True))]
+            days = [
+                {
+                    'date':i.strftime("%Y-%m-%d"),
+                    'slot': slots.filter(workday__date=i)
+                } for i in (schedule.workdays.all().values_list('date',flat=True))
+            ]
             
             context['days'] = days
             context['workdays'] = workdays

@@ -1188,9 +1188,19 @@ class Schedule (models.Model):
                 self.data['percent'] = self.percent
                 self.data['n_empty'] = self.slots.empty().count()
                 self.data['turnarounds'] = [
-                    ta.slug for ta in self.slots.turnarounds()]
+                    ta.slug for ta in self.slots.turnarounds()
+                    ]
                 self.data['pto_conflicts'] = [
-                    pc.slug for pc in self.pto_conflicts()]
+                    pc.slug for pc in self.pto_conflicts()
+                    ]
+                self.data['emusr'] = self.slots.filter(
+                    employee__in=Employee.objects.emusr_employees(), shift__group__in=['PM','XN']
+                    ).count()
+                if self.pto_requests.count() == 0:
+                    self.pto_requests.set(PtoRequest.objects.filter(
+                        workday__gte=self.workdays.first().date, 
+                        workday__lte=self.workdays.last().date)
+                                          ) 
             else:
                 self.percent = 0
                 self.data['percent'] = 0
@@ -1540,7 +1550,7 @@ class Slot (models.Model) :
     is_unfavorable    = models.BooleanField        (default=False )
     streak            = models.SmallIntegerField   (null=True, default=None )
     template_employee = models.ForeignKey   ("Employee", on_delete=models.CASCADE, null=True, related_name="slot_templates" )
-    fills_with     = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True )
+    fills_with     = models.ManyToManyField ('Employee', related_name='fills_slots', blank=True)
     last_update    = models.DateTimeField   (auto_now=True )
     
     html_template           = 'sch2/schedule/sch-detail.html'
@@ -1556,6 +1566,7 @@ class Slot (models.Model) :
             models.UniqueConstraint (fields=["workday", "shift", "schedule"],    name='Shift Duplicates on day'),
             models.UniqueConstraint (fields=["workday", "employee", "schedule"], name='Employee Duplicates on day'),
         ]
+        
     class Actions:
         def set_template_employee (self, instance, force=True):
             if instance.template_employee:
@@ -1611,7 +1622,6 @@ class Slot (models.Model) :
             else:
                 print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')               
     actions = Actions()
-    
     def url__clear (self):
         return reverse('schd:clear-slot', args=[self.schedule.pk, self.workday.pk, self.shift.pk])
     

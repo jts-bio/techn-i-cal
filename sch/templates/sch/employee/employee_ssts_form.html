@@ -26,8 +26,8 @@
         Cancel
     </a>
 
-    {% with "border border-amber-200 rounded transition hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition" as INPUT_CSS %}
-    {% with "panel w-full grid-7-by-2" as DAYWRAPPER_CSS %}
+    {% with "border border-amber-200 rounded my-5 transition hover:bg-amber-400 hover:text-black hover:scale-105 hover:transition" as INPUT_CSS %}
+    {% with "panel w-fc grid-7-by-2 lg:place-self-center" as DAYWRAPPER_CSS %}
   
 
     <div class="text text-center">
@@ -38,17 +38,19 @@
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
-            
-        <div class="{{ DAYWRAPPER_CSS }}">
+        
+        <div class="w-full flex flex-row justify-center">
+            <div class="{{ DAYWRAPPER_CSS }}">
 
-            {% for form in formset %} 
+                {% for form in formset %} 
 
-                <div class="dayContainer rounded-lg shadow shadow-lg compact> 
-                    {{ form }} 
-                </div> 
-                
-            {% endfor %}
+                    <div class="dayContainer w-20 rounded-lg shadow shadow-lg text-xs"> 
+                        {{ form }} 
+                    </div> 
+                    
+                {% endfor %}
 
+            </div>
         </div>
 
         <input class="{{ INPUT_CSS }}" type="submit" value="Submit"/>

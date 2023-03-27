@@ -200,8 +200,10 @@ class SchViews:
             mean = statistics.mean(ufs)
             ufs_stdev = statistics.stdev(ufs)
             uf_stdev_diff = schedule.unfavorable_ratio - mean 
-            
-            distr = uf_stdev_diff / ufs_stdev
+            if ufs_stdev != 0:
+                distr = uf_stdev_diff / ufs_stdev
+            else:
+                distr = 0
             return JsonResponse(round(distr,2), safe=False)
         def n_empty (request, schId):
             sch = Schedule.objects.get(slug=schId)
