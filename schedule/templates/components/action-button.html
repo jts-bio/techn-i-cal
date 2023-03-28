@@ -114,12 +114,20 @@
 
         <li><div class="dropdown-item hover:bg-sky-200 font-bold pointer"
                 data-link="{% url 'sch:sch-clear-over-fte' schedule.slug %}"
-                _="on click call showWaitIndicator(event) then
+                _="on click 
+                        call showWaitIndicator(event) then
                         remove .hidden from #action-button-indicator
-                        call prompt('This action will delete some assigned slots within the schedule. To continue, please type `verify`') then
-                        set x to result then log x
-                        if x is not 'verify' then go to the top of body smoothly then call showToast('Action canceled','warn') 
-                        if x is 'verify' call showToast('Maintainance script is running.','info') then log my.dataset.link then fetch my.dataset.link end">
+                        call prompt('This action will delete some assigned slots within the schedule. To continue, please type `verify`') 
+                        then set x to result 
+                        then log x
+                        if x != 'verify' 
+                            go to the top of body smoothly 
+                            then call showToast('Action canceled','warn') 
+                        if x == 'verify' 
+                            call showToast('Maintainance script is running.','info') 
+                            then log my.dataset.link 
+                            then fetch my.dataset.link 
+                            end">
                                         <i class="fa-duotone 
                                             fa-inboxes text-sky-400 text-lg"></i>
                                         Maintain

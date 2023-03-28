@@ -405,9 +405,9 @@ class Shift (models.Model) :
     model SHIFT
     ===========
     
-    >>>    hours               ---> 10.0
-    >>>    on_days_display     ---> "Sun Mon Tue Wed Thu Fri Sat"
-    >>>    ppd_ids             ---> 0,1,2,3,4,5,6,7,8,9,10,11,12,13
+    >>>    hours               --->  10.0
+    >>>    on_days_display     --->  "Sun Mon Tue Wed Thu Fri Sat"
+    >>>    ppd_ids             --->  0,1,2,3,4,5,6,7,8,9,10,11,12,13
     """
     # fields: name, start, duration 
     name            = models.CharField (max_length=100)
@@ -419,6 +419,7 @@ class Shift (models.Model) :
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
+    coverage_for    = models.ManyToManyField ('Shift', blank=True, related_name='covers', symmetrical=False)
     
     class Meta:     
         ordering = ['start','name']

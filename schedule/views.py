@@ -89,7 +89,7 @@ def schDetailView(request, schId):
             difference= F('percent') - prct 
         )
     sch.save()
-    return render(request, "sch-detail.html", {"schedule": sch, "alternates": alternates})
+    return render(request, "sch-detail.pug", {"schedule": sch, "alternates": alternates})
 
 
 class Sections:
@@ -274,8 +274,17 @@ class Sections:
 
 class Actions:
     """
-    SCHEDULE --- ACTION PERFORMING VIEWS
+    SCHEDULE :: ACTION PERFORMING VIEWS
+    ====================================
+    ```
+    _UPDATERS_
+        @update_fills_with 
+    @clearUntrained
+    @clearUnfavorables
+    @setTemplates 
+    @retemplateAll
     """
+    
 
     class Updaters:
 
