@@ -21,7 +21,7 @@
                         log `swapping...` then 
                         call window.location.reload() 
                         end 
-                    on recheck 
+                    on recheck   
                         repeat while 
                             #favorable-finished matches .active
                         trigger recheck on #n-empty-check 
@@ -142,7 +142,7 @@
         <li><div class="dropdown-item hover:bg-red-300 bg-opeacity-90 font-bold font-red-300 pointer"
                 hx-target="#actionMarker"
                 _="on click remove .hidden from #action-button-indicator
-                        call confirm ('Cleqr ALL slot assignments? This action cannot be undone.')
+                        call confirm ('Clear ALL slot assignments? This action cannot be undone.')
                         if result is true fetch actions/clear-all/ with method:'POST' then 
                         wait 200ms then call window.location.reload() end">
                     <i class="fa-duotone fa-eraser text-red-800"></i>

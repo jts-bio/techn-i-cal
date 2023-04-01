@@ -1,0 +1,12 @@
+
+
+div.px-5.py-1.bg-black(class="w-[100%]")
+    if user.is_authenticated
+        a.flex.flex-row.opacity-70.bg-white.bg-opacity-10.rounded.px-3.w-fc(
+            href="{% url 'sch:user-detail' user.username %}"
+            class="hover:opacity-100"
+            )
+            i.fa-duotone.fa-user-astronaut.opacity-70.baseline 
+            span.text-sm.jbm= user
+    else
+        a Login

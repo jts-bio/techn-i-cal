@@ -29,13 +29,13 @@ def testing (request, wdSlug):
 
 class Partials:
     def spwdBreadcrumb (request, wdSlug):
-        wd = Workday.objects.get(slug=wdSlug)
-        context = {'workday': wd}
+        wd      = Workday.objects.get(slug=wdSlug)
+        context = {'workday': wd }
         return render(request, 'wday/partials/SPWD.html', context)
     
     def slotPopover (request, slotId):
-        slot = Slot.objects.get(id=slotId)
-        context = {'slot': slot}
+        slot    = Slot.objects.get(id=slotId)
+        context = {'slot': slot }
         return render(request, 'wday/partials/popover.html', context)
     
     def events (request):
@@ -93,14 +93,14 @@ def wdDetailView (request, slug:str):
             workday =    wd, 
             slots =      wd.slots.all(),
             employees =  wd.schedule.employees.all().annotate(
-                weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek))), 
-                periodHours =   Sum('slots__shift__hours', filter=Q(slots__workday__period=wd.period)),
+                dayHours =      Sum('slots__shift__hours', filter=Q(slots__workday=wd)),
+                weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek)), 
+                periodHours =   Sum('slots__shift__hours', filter=Q(slots__workday__period=wd.period)))
             )
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
-    
-    #   NOTE /
-    #   THIS VIEW UTILIZES A USER PREFERENCE 
-    #   TO DETERMINE TEMPLATE USED
+
+    #   NOTE / THIS VIEW UTILIZES A USER PREFERENCE TO DETERMINE TEMPLATE USED
+
     return render(request, WD_VIEW_PREF_CHOICES[int(viewPref_template)][1] , context)
 
 class WdActions: 
@@ -137,6 +137,13 @@ class SlotActions:
         slot.save()
         messages.info (request, f"Slot {slot.shift} has been cleared successfully.")
         return HttpResponse (f"Slot {slot.shift} has been cleared successfully.")
+    
+    def slotClearView(request, wd, sft):
+        slot = Slot.objects.get(shift__name=sft, workday__slug=wd)
+        slot.employee = None
+        slot.save()
+        messages.info (request, f"Slot {slot.shift} has been cleared successfully.")
+        return HttpResponse (f"Slot {slot.shift} has been cleared successfully.")
 
     def slotUpdateView (request, slug, shiftId):
         # get the employee to update to from request header
@@ -153,8 +160,8 @@ class SlotActions:
         return HttpResponseRedirect( reverse('wday:detail', kwargs={'slug': slug} ))
     
     def slotAssignView (request, wd, sft, empl):
-        wd = Workday.objects.get(slug=wd)
-        sft = Shift.objects.get(name=sft)
+        wd   = Workday.objects.get(slug=wd)
+        sft  = Shift.objects.get(name=sft)
         empl = Employee.objects.get(slug=empl)
         slot = Slot.objects.get(workday=wd, shift=sft)
         if slot.siblings_day.filter(employee=empl).exists():

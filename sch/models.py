@@ -415,7 +415,7 @@ class Shift (models.Model) :
     start           = models.TimeField()
     duration        = models.DurationField()
     hours           = models.FloatField() 
-    group           = models.CharField(max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')), null=True)
+    group           = models.CharField (max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')), null=True)
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
@@ -430,6 +430,8 @@ class Shift (models.Model) :
     
     def __str__(self) :
         return self.name
+    def display_coverage_for (self):
+        return ', '.join(list(self.coverage_for.values_list('name', flat=True)))
     def url(self):
         return reverse("sch:shift-detail", kwargs={"cls":self.cls, "name": self.name})
     def url__template(self):
@@ -478,10 +480,18 @@ class Shift (models.Model) :
     objects = ShiftManager.as_manager()
 # ============================================================================
 class Employee (models.Model) :
-    # fields: name, fte_14_day , shifts_trained, shifts_available 
+    """
+    model EMPLOYEE
+    ==============
+    fields:
+    - name 
+    - shifts_trained (this is a many-to-many field)
+    - shifts_available (this is a many-to-many field)
+    
+    """
     name            = models.CharField (max_length=100)
     fte_14_day      = models.FloatField(default=80)
-    fte             = models.FloatField(default=1)
+    fte             = models.FloatField(default=-1)
     shifts_trained  = models.ManyToManyField (Shift, related_name='trained')
     shifts_available= models.ManyToManyField (Shift, related_name='available')
     streak_pref     = models.IntegerField (default=3)
@@ -509,6 +519,19 @@ class Employee (models.Model) :
         return self.fte_14_day / 80
     def url(self):
         return reverse("sch:empl", kwargs={"empId": self.pk})
+    def details_on_day(self, wd):
+        day_hours = self.dayHours(wd) if self.dayHours(wd) else 0
+        wk_hours  = self.weekHours(wd) if self.weekHours(wd) else 0
+        pd_hours  = self.periodHours(wd) if self.periodHours(wd) else 0
+        return {
+            'day_hours': day_hours, 
+            'wk_hours' : wk_hours-day_hours, 
+            'pd_hours' : pd_hours-day_hours 
+        }
+    def dayHours (self, wd):
+        if type(wd) == str:
+            wd = Workday.objects.get(slug=wd)
+        return wd.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
     def weekHours (self, wd, week=None):
         if isinstance(wd, Week):
             return week.slots.filter(employee=self).aggregate(hours=Sum('shift__hours'))['hours']
@@ -662,11 +685,18 @@ class Employee (models.Model) :
         if not slots.exists():
             return "None"
         return slots.first().shift.group
+    def check_slot(self, wd):
+        wd = Workday.objects.get(slug=wd)
+        slots = wd.slots.filter(employee=self)
+        if not slots.exists():
+            return "None"
+        return slots.first().shift.name
     def save (self, *args, **kwargs):
-        super().save(*args, **kwargs)
         slugString = self.name.strip().replace(" ","-")
         self.slug      = slugString
-        self._set_fte()
+        if self.fte == -1:
+            self.fte = self.fte_14_day / 80
+            
         super().save(*args, **kwargs)
         
     objects = EmployeeManager.as_manager()
@@ -1119,56 +1149,44 @@ class Schedule (models.Model):
         emusr= 0
     )
     
-    year       = models.IntegerField(null=True,default=None)
-    number     = models.IntegerField(null=True,default=None)
-    start_date = models.DateField()
-    status     = models.IntegerField( choices=list(enumerate("working,finished,discarded".split(",") )),default=0)
+    year       = models.IntegerField (null=True,default=None)
+    number     = models.IntegerField (null=True,default=None)
+    start_date = models.DateField ()
+    status     = models.IntegerField (choices=list(enumerate("working,finished,discarded".split(",") )),default=0)
     employees  = models.ManyToManyField ('employee', related_name='schedules')
-    version    = models.CharField(max_length=1,default='A')
-    slug       = models.CharField(max_length=20,default="")
+    version    = models.CharField (max_length=1,default='A')
+    slug       = models.CharField (max_length=20,default="")
     # calculated fields
-    percent             = models.IntegerField(default=0)
-    unfavorable_ratio   = models.FloatField(default=0)
-    action_log          = models.TextField(default="")
-    last_update         = models.DateTimeField(auto_now=True)
-    n_empty             = models.IntegerField(default=0)
-    data                = models.JSONField(default=DEFAULT_DATA)
-    weekly_hours        = models.JSONField(default=dict(all=0))
+    percent             = models.IntegerField (default=0)
+    unfavorable_ratio   = models.FloatField (default=0)
+    action_log          = models.TextField (default="")
+    last_update         = models.DateTimeField (auto_now=True)
+    n_empty             = models.IntegerField (default=0)
+    data                = models.JSONField (default=DEFAULT_DATA)
+    weekly_hours        = models.JSONField (default=dict(all=0))
     
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
     class Views :
         detail_view_template = 'sch2/schedule/sch-detail.html'
+        
+    
     def previous (self):
-        yr = self.year
-        num = self.number
-        ver = self.version
-        num -= 1
-        i = 0
-        while i < 3:
-            if Schedule.objects.filter(year=yr, number=num).exists():
-                return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
-            if num == 0:
-                yr -= 1
-                num = 9
-            num -= 1
-            i += 1
-        return self
+        if Schedule.objects.filter(start_date__year=self.start_date.year, number=self.number, version__lt=self.version).exists():
+            return Schedule.objects.filter(start_date__year=self.start_date.year, number=self.number, version__lt=self.version).last()
+        elif Schedule.objects.filter(start_date__year=self.start_date.year, number__lt=self.number).exists():
+            return Schedule.objects.filter(start_date__year=self.start_date.year, number__lt=self.number).last()
+        elif Schedule.objects.filter(start_date__year__lt=self.start_date.year).exists():
+            return Schedule.objects.filter(start_date__year__lt=self.start_date.year).last()
+        else:
+            return self
     def next (self):
-        yr = self.year
-        num = self.number
-        ver = self.version
-        num += 1
-        i = 0
-        while i < 3:
-            if Schedule.objects.filter(year=yr, number=num).exists():
-                return Schedule.objects.filter(year=yr, number=num).order_by('-version').first()
-            if num == 10:
-                yr += 1
-                num = 0
-            num += 1
-            i += 1
-        return self
+        if Schedule.objects.filter(start_date__gt=self.start_date).exists():
+            return Schedule.objects.filter(start_date__gt=self.start_date).first()
+        elif Schedule.objects.filter(year__gt=self.start_date.year).exists():
+            return Schedule.objects.filter(year__gt=self.start_date.year).first()
+        else:
+            return self
     def save (self, *args, **kwargs) :
         if not self.year:
             self.year = self.start_date.year 
@@ -1264,6 +1282,9 @@ class Schedule (models.Model):
             if self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).exists():
                 conflicts += [self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).first()]
         return self.slots.filter(pk__in=[c.pk for c in conflicts])
+    
+    def start_date_month (self):
+        return self.start_date.strftime("%B")
     def as_empl_dict  (self):
         all_schedules = {} 
         for empl in Employee.objects.all():

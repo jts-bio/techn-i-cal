@@ -46,4 +46,6 @@ urlpatterns = [
     path('detail/<schId>/actions/clear-prn-slots/', Actions.clearPrnEmployeeSlots, name="clear-prn-slots"),
     path('detail/<schId>/actions/clear-ot-slots/', Actions.clearOvertimeSlotsByRefillability, name="clear-ot-slots"),
     
+
+    
 ] 

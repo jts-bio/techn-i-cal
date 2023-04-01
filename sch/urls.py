@@ -99,6 +99,7 @@ shift_patterns = [
     path("v2/shift-sort-scores/<sft>/", viewsets.ShiftViews.sortPrefView, name='shift-sort-scores'),
     path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
     path('shift/<sft>/prefs/update/', views.SHIFT.shiftPrefUpdate, name='shift-prefs-update'),
+    path('v2/shift/<cls>/<sft>/coverage/', viewsets.ShiftViews.coverageFormView, name='shift-coverage-form'),
 ]
 
 slot_patterns = [
@@ -197,7 +198,6 @@ employee_patterns = [
 schedule_patterns = [   
     #*__________SCHEDULE DETAIL__________*
     path("v2/schedule/<str:schId>/", viewsets.SchViews.schDetail, name="v2-schedule-detail"),
-
     path("v2/generate-schedule/<int:year>/<int:n>/", views2.generate_schedule_view, name="v2-generate-schedule"),
     path("schedule/<int:year>-<int:number>-<str:version>/modal/<slug:workday>/<str:shift>/",views.SCHEDULE.scheduleSlotModalView, name="schedule-slot-modal"),
     path("schedule/current-schedule/", views2.currentSchedule, name="v2-current-schedule"),

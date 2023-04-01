@@ -46,4 +46,14 @@
         "test*.py"
     ],
     "compile-hero.disable-compile-files-on-did-save-code": true,
+    "search.useIgnoreFiles": false,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "dev",
+            "database": "db.sqlite3"
+        }
+    ],
+    "sqltools.useNodeRuntime": true,
 }

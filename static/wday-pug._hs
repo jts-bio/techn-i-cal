@@ -6,18 +6,22 @@
 -- author: JOSH STEINBECKER
 -----------------------------------------
 
+-- used in 
+-- 'wday/templates/wday/wday-4.pug'
+
 behavior Background
-    init set $clickmode to 0 then log `clickmode is ${$clickmode}` 
+    init 
+        set $clickmode to 0 
         end
     on click 
-        send unfocus to .employee
+        call event.stopPropagation()
+        if .active exists 
+            send unfocus to .active
         end
     end 
 
 behavior TemplateEmployeeBtn
     on click 
-        log @data-employee
-        log @data-template
         call event.stopImmediatePropagation() then
         if @data-template != @data-employee 
             set sft to @data-shift then 
@@ -38,6 +42,8 @@ behavior Deck
         log 'recieved!'
         tell .employee in me 
             set @data-in-daytime to 'None'
+            then set @data-day-hours to 0
+            then put `${@data-week-hours}/${@data-period-hours} hrs` into .hours-display in you
             if @data-pto is 'true'
                 log `$you@data-employee-id has PTO pto flag`
                 set @data-pto to false then 
@@ -49,16 +55,28 @@ behavior Deck
             end
         end
     end
-
-behavior Slot
-    on click
-        if .active.length > 1
-            log `warning: active returns more than 1 response: ${.active}` end
-        if .active.length > 0 
-            if .active in me == false
-                trigger checkAndAssign
+    on dragover 
+        call event.preventDefault() 
+        end
+    on drop 
+        call event.dataTransfer.getData("text")
+        then trigger checkAndTake
+        end
+    on checkAndTake
+            set incomingEmployee to first .active then
+            set sft to incomingEmployee@data-in-slot then
+            if sft is not 'None'
+                put incomingEmployee at the end of me
+                then set incomingEmployee@data-in-slot to 'None' 
+                then remove .active from (.employee in me)
+                then fetch `${sft}/clear/` 
+                then log result
             end
         end
+
+
+
+behavior Slot
     on dragover 
         call event.preventDefault() then
         set incomingEmployee to first .active then
@@ -77,49 +95,64 @@ behavior Slot
         then set employeeId to result
         trigger checkAndAssign
         end 
-    on showHint 
+    on showHint
         if first .active@data-available includes @data-shift
+            remove .hidden from .swap-in-btn in me then 
             add .text-emerald-300 .font-extrabold to .shift-name in me
         else 
             transition my *opacity to 20% over 500ms
         end
     on hideHint 
+        add .hidden to .swap-in-btn in me then
         remove .text-emerald-300 .font-extrabold from .shift-name in me
         transition my *opacity to 100% over 300ms
         end
     on mutation of @data-employee 
-        tell .employee in me 
-            set @data-in-daytime to tod 
+        set tod to @data-in-daytime
+        then tell .employee in me 
+            set your@data-time-of-day to tod
             trigger checkFlags  
+            then trigger renderHoursDisplay
             end
         end
     on checkAndAssign 
-        set incomingEmployee to .active then
+        set incomingEmployee to first .active then
         set avble to incomingEmployee@data-available
         send hideHint to .slot
             tell .employee 
                 transition *scale to 1 over 100ms 
             end
-            if @data-shift is in avble[0].split(' ')
-                set empId to incomingEmployee@data-employee-id
-                put incomingEmployee at the end of me
-                then remove .active from (.employee in me)
-                then fetch `${@data-shift}/${empId}/assign/` then 
-                call showToast(result,"success")
-                then if (.employee in me).length > 1
-                        send showAccepted to (.employee in me)[1]
-                        send showBooted to (.employee in me)[0]
-                        put (.employee in me)[0] at the start of #ScrollingDeck
-                        then trigger recieve on #ScrollingDeck
-                        end 
-                then set @data-employee to (.employee in me)[0]@data-employee-id 
-            else 
-                call alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`)
-                then remove .active from .employee
-                then tell .employee  
-                    transition *scale to 1 over 100ms
-                    end
+        if @data-shift is in avble.split(' ')
+            set empId to incomingEmployee@data-employee-id
+            put incomingEmployee at the end of me
+            then remove .active from (.employee in me)
+            then fetch `${@data-shift}/${empId}/assign/` then 
+            call showToast(result,"success")
+            if (.employee in me).length > 1
+                    send showAccepted to (.employee in me)[1]
+                    send showBooted to (.employee in me)[0]
+                    put (.employee in me)[0] at the start of #ScrollingDeck
+                    trigger recieve on #ScrollingDeck
+                    end 
+            then set @data-employee to (.employee in me)[0]@data-employee-id 
+            then trigger employeeChanged on me end
+        if @data-shift is not in avble.split(' ') 
+            call alert(`${@data-shift} not in ${incomingEmployee@data-employee-id}'s available shifts [${incomingEmployee@data-available}]`) 
+            remove .active from .employee
+            tell .employee  
+                transition *scale to 1 over 100ms
                 end
+            end
+    on employeeChanged 
+        set @data-employee to (.employee in me)[0]@data-employee-id 
+        set tod to @data-in-daytime
+        set hrs to @data-hours
+        then tell .employee in me 
+            set @data-in-daytime to tod
+            then set @data-day-hours to hrs
+            then trigger renderHoursDisplay
+            end
+        end
 
 behavior Employee 
     init 
@@ -130,6 +163,10 @@ behavior Employee
             make a <span.pto-flag/> then put 'PTO' into it then 
             append it to the end of me 
             end
+        if @data-day-hours == null 
+            set @data-day-hours to 0
+        else set @data-day-hours to @data-day-hours as Int
+            end
         if @data-week-hours == null 
             set @data-week-hours to 0
         else set @data-week-hours to @data-week-hours as Int
@@ -138,9 +175,14 @@ behavior Employee
             set @data-period-hours to 0
         else set @data-period-hours to @data-period-hours as Int
             end
-        put `${@data-week-hours}/${@data-period-hours} hrs` into .hours-display in me 
+        then trigger renderHoursDisplay
         end
+    on renderHoursDisplay
+        set wkhr to @data-week-hours as Int + @data-day-hours as Int then
+        set pdhr to @data-period-hours as Int + @data-day-hours as Int then
+        put `${wkhr}/${pdhr} hrs` into .hours-display in me 
     on click 
+        call event.stopPropagation()
         if I do not match .active
             transition .active*scale to 1 over 200ms
             add .active 
@@ -192,11 +234,25 @@ behavior Employee
         if @data-in-daytime is in ["PM","XN"] and @data-next-day == "AM" add .bg-orange-900 .bg-opacity-40 to me end
         if @data-in-daytime is "AM" and @data-prev-day == "PM" add .bg-orange-900 .bg-opacity-40 to me end
         end
+    on unfocus 
+        remove .active 
+        then transition my *scale to 1 over 300ms
+        then send hideHint to .slot
+        end
+    on dblclick 
+        call event.stopPropagation() then
+        set resp to JSON.stringify(me.dataset, null, 2) then 
+        call alert(resp)
     end
+end
 
 
-
-
-
-
-  
+behavior SwapButton
+        on click
+            if .active.length > 1
+                log `warning: active returns more than 1 response: ${.active}` end
+            if .active.length > 0
+                if .active in me == false
+                    trigger checkAndAssign
+                end
+            end

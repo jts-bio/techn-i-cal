@@ -12,15 +12,19 @@ if page == 1
     i#reloader.fas.fa-arrows-spin.text-lg(
         class="hover:text-sky-300"
         _="on click add .fa-pulse then fetch actions/update-fills-with/ then put result into #reload-response then wait 1s then call window.loaction.reload() end"
+        title="Update Employee Availability "
         )
+
+    h1.text-3xl.font-light Schedule #{schId}
+    h3.text-xl Empty Slots 
 
     div#reload-response
 
-    table
+    table.bg-main.rounded-lg
         tr
-            th Slot
+            th.rounded-tl-lg Slot
             th Tenable Options
-            th Details
+            th.rounded-tr-lg Details
         tbody.tbody 
             each slot in empty_slots
                 tr.swap-tgt
@@ -71,10 +75,10 @@ script.
     function showDropdownOptions (event) {
         const dropdown = event.target.closest('.dd-button');
         const options = dropdown.closest('.relative').querySelector('.dd-options');
+
         options.classList.remove('hidden');
         // add event listener to add .hidden when click is outside of the dropdown
         document.addEventListener('click', 
-    
             function hideDropdownOptions (event) {
                 if (!dropdown.contains(event.target)) {
                     options.classList.add('hidden');
@@ -85,6 +89,5 @@ script.
                 const fetchers = options.querySelectorAll('.fetcher');
                 fetchers.forEach(fetcher => {
                 fetcher.dispatchEvent(new CustomEvent('fsignal'));
-                console.log('fsignal dispatched from .empty-drown');
                 });
             }

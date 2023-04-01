@@ -25,7 +25,7 @@
             aria-expanded="true" aria-haspopup="true"
             {% if slot.n_options == 0 %} disabled {% endif %}
             onclick="showDropdownOptions(event)"
-            _="on click go to next .dd-options smoothly">
+            _="on click go to previous .dd-button smoothly">
       {{ slot.n_options }} Options
       <!-- Heroicon name: mini/chevron-down -->
       <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -43,41 +43,42 @@
         {% for empl in slot.fills_with %}
             <div _="on click 
                       fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/
-                      then set emphours to result
-                      then log emphours
-                      then set undobtn to previous .undo-btn
-                      if emphours >= 40 
-                        call confirm('This will put {{ empl }} into overtime status. Do you want to continue?')
-                        if result == true 
+                        then set emphours to result
+                        then log emphours
+                        then set undobtn to previous .undo-btn
+                        if emphours >= 40 
+                          call confirm('This will put {{ empl }} into overtime status. Do you want to continue?')
+                          if result == true 
+                            fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
+                            with method:'POST' then
+                            set response to result
+                            then log response
+                          else 
+                            exit
+                            end
+                          end
+                        if emphours < 40 
                           fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
                           with method:'POST' then
-                          set response to result
+                          set response to result 
                           then log response
                           end
-                        end
-                      if emphours < 40 
-                        fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
-                        with method:'POST' then
-                        set response to result 
-                        then log response
-                        end
-                      if emphours == 'None'
-                        fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
-                        with method:'POST' then
-                        set response to result 
-                        then log response
-                        end
-                      then make a <td/> 
-                      then set newtd to result 
-                      then put response into newtd 
-                      then put undobtn at end of newtd
-                      then set newtd@colspan to 3 
-                      then add .h-12 .text-center to newtd
-                      then put newtd into closest .swap-tgt 
-                      then remove .hidden from .undo-btn in newtd
-                      end"
-                      send recheck to #n-empty 
-                      end"
+                        if emphours == 'None'
+                          fetch actions/update/{{slot.workday}}/{{slot.shift}}/{{empl}}/ 
+                          with method:'POST' then
+                          set response to result 
+                          then log response
+                          end
+                        then make a <td/> 
+                        then set newtd to result 
+                        then put response into newtd 
+                        then put undobtn at end of newtd
+                        then set newtd@colspan to 3 
+                        then add .h-12 .text-center to newtd
+                        then put newtd into closest .swap-tgt 
+                        then remove .hidden from .undo-btn in newtd
+                        then send recheck to #n-empty 
+                        end"
                   class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
                   id="menu-item-0" >
 
@@ -94,7 +95,7 @@
                           put result into me 
                         else
                           put 0 into me 
-                          end">
+                          end"> ~
                   </span>/ 
                   <span class="fetcher"
                   _="on fsignal fetch /api/employee/{{empl}}/period-hours/{{slot.schedule}}/{{slot.workday}}/ then
@@ -102,7 +103,7 @@
                           put result into me 
                         else
                           put 0 into me 
-                          end">
+                          end"> ~
                   </span>
                   <span> hrs. </span>
                 </span>

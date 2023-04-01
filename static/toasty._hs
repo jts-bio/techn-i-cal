@@ -1,14 +1,23 @@
 behavior Toast
-    init set timeToLive to 6 
-         add .timer-on 
-         trigger turntimeron
-    end
-    on mouseover set timeToLive to 6 
-    end
-    on turntimeron 
-        repeat every 1s while i match .timer-on
-            decrement timeToLive 
-            log 'timeToLive'
-            if timeToLive < 1 log 'destroying' end
+    init set @timeToLive to 6 
+        then add .timer-on 
+        then trigger turntimeron
         end
+    on mouseover set timeToLive to 6 
+        end
+    on turntimeron 
+        repeat while I match .timer-on
+            decrement timeToLive 
+            then log timeToLive 
+            then wait 1 
+            then
+            if timeToLive < 1 
+                log 'destroying' 
+                then trigger destroy
+            end
+        end
+    on destroy
+        remove me 
+        end
+    end
     

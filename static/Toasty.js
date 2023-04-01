@@ -82,18 +82,11 @@ function showToast(message, type) {
             var wrapper = document.getElementById("toast-wrapper");
             wrapper.appendChild(toast);
             // slide the toast in from the bottom
+            toast.addEventListener("mouseover", mouseOverToast(toast));
             toast.style.bottom = "-8x";
             toast.style.opacity = 0;
             toast.setAttribute("_", "install Toast");
-            setTimeout(function() {
-                toast.style.bottom = "20px";
-                toast.style.opacity =0.85;
-            }, 1500);
-            // remove the toast after 5 seconds
-            setTimeout(function() {
-                toast.style.opacity = 0;
-                wrapper.removeChild(toast);
-            }, 6000);
+            
 }
 
 function mouseOverToast (toast) {

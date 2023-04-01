@@ -31,9 +31,7 @@
 
 {% block content %}
 
-<div class="w-full">
   <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
-
     {% #toggle-section title="New Schedule Dialog" %}
     <div class="border-2 border-slate-300 rounded">
       <div class="px-3 py-2 bg-zinc-900 rounded">
@@ -60,11 +58,9 @@
 
 
   </div>
-</div>
 
-
-<div class="hidden md:block">
-  <div class="panel w-fc p-8 m-8">
+<div class="md:block list list-view overflow-y-scroll">
+  <div class="column p-8 m-8">
     <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm">Schedule List</h2>
     <a href="grouped/"
        class="text-yellow-300 hover:underline float-right text-xs">Switch to Grouped View</a>
@@ -93,28 +89,6 @@
             id="button-{{sch.slug}}">
             Schedule {{sch.slug}}
           </a>
-
-          <script type="text/javascript">
-            function appendWithSpinner(event) {
-              var el = event.target;
-              var spinner = document.createElement("span");
-              spinner.classList.add("spinner");
-              el.appendChild(spinner);
-              el.classList.add('fa-beat');
-              // wait 300 ms 
-              setTimeout(function () {
-                window.location.href = el.href;
-              }, 300);
-              
-            }
-            function scaleUp(event) {
-              event.target.classList.add('scale-105');
-
-            }
-            function removeScale(event) {
-              event.target.classList.remove('scale-105');
-            }
-          </script>
         </td>
         <td>
           <span class="text-{{sch.versionColor}}-600 text-2xs mx-3"
@@ -138,7 +112,7 @@
         <td>
           {% if sch.status == 0 %} DRAFT 
           {% elif sch.status == 1 %} FINAL 
-          {%endif%}
+          {% endif %}
         </td>
       </tr>
       {% endfor %}
@@ -168,5 +142,4 @@
     {% endfor %}
   </div>
 </div>
-
 {% endblock content %}

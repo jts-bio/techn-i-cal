@@ -70,10 +70,6 @@ class PtoRequestViewSet (viewsets.ModelViewSet):
     queryset = PtoRequest.objects.all()
     serializer_class = PtoRequestSerializer
     
-    
-
-
-
 class Actions:
     class SlotActions:
         def clear_employee(request, slotId):
@@ -719,11 +715,33 @@ class ShiftViews:
         return render(request, html_template, context)
     
     def sortPrefView (request, sft):
-        shift = Shift.objects.get(name=sft)
-        sort_prefs = ShiftSortPreference.objects.filter(shift__name=sft).order_by('rank')
-        avg = sort_prefs.aggregate(Avg('rank'))
+        shift         = Shift.objects.get(name=sft)
+        for sp in ShiftSortPreference.objects.filter(shift=shift):
+            sp.save()
+        sort_prefs    = ShiftSortPreference.objects.filter(shift__name=sft).order_by('rank').annotate(
+               percent= F('rank') * 100 / Count(F('employee__shifts_available') * 100 )
+        )
+        avg           = sort_prefs.aggregate(Avg('rank'))
+        
         html_template = "sch3/sort-prefs.html"
-        return render(request, html_template, {'sort_prefs':sort_prefs, 'avg':avg, 'shift':shift})
+        return render (request, html_template, {'sort_prefs':sort_prefs, 'avg':avg, 'shift':shift})
+
+    def coverageFormView (request, cls, sft):
+        sft = Shift.objects.get(name=sft) #type: Shift
+        covers_for = sft.coverage_for.all() 
+        
+        other_shifts = Shift.objects.filter(group=sft.group).exclude(pk=sft.pk).order_by('name') #type: QuerySet[Shift]
+        
+        html_template = "sch3/coverage-form.pug"
+        context = {
+            'shift':sft,
+            'covers_for':covers_for,
+            'other_shifts':other_shifts
+        }
+        return render(request, html_template, context)
+        
+            
+
 
 class EmpViews:
 
@@ -761,21 +779,18 @@ class EmpViews:
         }
         return render(request, html_template, context)
     def empShiftTallies (request, empId, doRender=True):
-        from django.db.models import Count, OuterRef, Subquery
+        emp = Employee.objects.get (slug=empId)
+        shift_prefs = emp.shift_prefs.annotate(count=subquery)
         # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
         subquery = Subquery(
-            Slot.objects.filter(
-                employee=OuterRef('employee'),
-                shift=OuterRef('shift')
-            ).values('employee', 'shift').annotate(
-                count=Count('*')
-            ).values('count')[:1],
-            output_field=models.IntegerField()
+                        Slot.objects.filter(
+                            employee=OuterRef('employee'),
+                            shift=OuterRef('shift')
+                        ).values('employee', 'shift').annotate(
+                            count=Count('*')
+                        ).values('count')[:1],
+                output_field=models.IntegerField()
             )
-        # Count n of Slots, then if A ShiftPreference exists for that employee/shift combination
-        j = Employee.objects.get(name=empId)
-        j_shift_prefs = j.shift_prefs.annotate(count=subquery)
-
         score_subquery = Subquery(
             Slot.objects.filter(
                 employee=OuterRef('employee'),
@@ -785,25 +800,23 @@ class EmpViews:
             ).values('count')[:1],
             output_field=models.IntegerField()
         )
-        from django.db.models import Sum
-
-        j_shift_prefs_with_counts = j_shift_prefs.annotate(
+        shift_prefs_with_counts = shift_prefs.annotate(
             pref_score=Subquery(
                 ShiftPreference.objects.filter(
                     employee=OuterRef('employee'),
                     shift=OuterRef('shift')
                 ).values('score')[:1]
-            )
-        ).annotate(
-            score_count=Coalesce(score_subquery, 0)
-        ).values(
-            'score'
-        ).annotate(
-            count=Sum('score_count')
-        ).order_by('score')
+                    )
+                ).annotate(
+                    score_count=Coalesce(score_subquery, 0)
+                ).values(
+                    'score'
+                ).annotate(
+                    count=Sum('score_count')
+                ).order_by('score')
         # annotate the queryset with the list of shifts that the employee has that score for 
         # then annotate with 'Strongly Dislike' to 'Strongly Like' based on the -2 to 2 score 
-        j_shift_prefs_with_counts = j_shift_prefs_with_counts.annotate(
+        shift_prefs_with_counts = shift_prefs_with_counts.annotate(
             shifts=Subquery(
                 ShiftPreference.objects.filter(
                     employee=OuterRef('employee'),
@@ -812,7 +825,7 @@ class EmpViews:
             )
         )
         if doRender == False:
-            return j_shift_prefs_with_counts
+            return shift_prefs_with_counts
         
         from django.db.models import Count, OuterRef, Subquery
         import pandas as pd
@@ -861,9 +874,9 @@ class EmpViews:
         ).order_by('score')
 
         data = []
-        for j in sps:
-            for n in range(j['count']):
-                data.append(j['score'])
+        for emp in sps:
+            for n in range(emp['count']):
+                data.append(emp['score'])
 
         sns.kdeplot(data=data, fill=True, bw_adjust=1.5,
                     cut=4, label=f'{emp.name}')
@@ -890,10 +903,11 @@ class EmpViews:
         buf.close()
         plt.close()
         return render(request, 'sch2/employee/shift-tally.pug', {
-            'emp':j, 
-            'tallies': j_shift_prefs_with_counts,
-            'plot': svg_base64
-            })
+                'emp':emp, 
+                'tallies': shift_prefs_with_counts,
+                'plot': svg_base64
+                }
+            )
 
 
         

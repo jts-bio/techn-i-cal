@@ -1,22 +1,45 @@
 from django.contrib import admin
-
-# Register your models here.
 from .models import (
-    Shift, Employee, TemplatedDayOff, Workday, Slot, 
-    ShiftTemplate, PtoRequest, Week, Period, Schedule,
-    RoutineLog, LogEvent
-)
+                Shift, Employee, TemplatedDayOff, Workday, Slot, 
+                ShiftTemplate, PtoRequest, Week, Period, Schedule,
+                RoutineLog, LogEvent )
+
+class MyAdminSite(admin.AdminSite):
+    site_header = "Monty Python administration"
+
+
+admin_site = MyAdminSite(name="myadmin")
 
 @admin.register(Shift)
 class ShiftAdmin(admin.ModelAdmin):
-    fields          = ['name', 'start','duration','occur_days',]
-    list_display    = ['name','start','duration','occur_days',]
+    fields          = [
+                'name', 
+                'start',
+                'duration',
+                'occur_days',
+                'coverage_for'
+            ]
+    list_display    = [
+                'name', 
+                'start',
+                'duration',
+                'occur_days',
+                'display_coverage_for'
+            ]
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    fields          = ['name','fte_14_day','fte', 'streak_pref',
-                       'shifts_trained', 'shifts_available',
-                       'trade_one_offs', 'cls', 'time_pref']
+    fields          = [
+                'name',
+                'fte_14_day',
+                'fte', 
+                'streak_pref',
+                'shifts_trained', 
+                'shifts_available',
+                'trade_one_offs', 
+                'cls', 
+                'time_pref'
+            ]
     list_display    = ['name', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
 
 @admin.register(Workday)
@@ -27,9 +50,9 @@ class WorkdayAdmin(admin.ModelAdmin):
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
-    fields          = ['workday', 'shift','employee','start','slug','fills_with']
-    readonly_fields = ['start',  'slug', 'fills_with',]
-    list_display    = ['workday','shift','employee','start','slug' ]
+    fields          = ['workday', 'shift','employee','  start', 'slug','fills_with']
+    readonly_fields = ['start',   'slug', 'fills_with', 'streak']
+    list_display    = ['workday', 'shift','employee',  'start', 'slug','streak' ]
 
 @admin.register(ShiftTemplate)
 class ShiftTemplateAdmin(admin.ModelAdmin):

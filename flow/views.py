@@ -24,12 +24,10 @@ class ApiViews :
         schs = Schedule.objects.all()
         page = request.GET.get('page', 1)
         page_size = 5
-        return JsonResponse(schs[(page*page_size)-1:(page+1)*page_size])
-    
+        return JsonResponse(schs[(page*page_size)-1:(page+1)*page_size]) 
     def schedule__get_n_empty (request, schId ):
         sch = Schedule.objects.get (slug = schId )
-        return JsonResponse ( sch.slots.empty().count(), safe=False )
-    
+        return JsonResponse ( sch.slots.empty().count(), safe=False )   
     def schedule__get_weekly_hours(request, schId):
         sch = Schedule.objects.get(slug=schId)
         employee_week_breakdowns = {}
@@ -38,8 +36,7 @@ class ApiViews :
                 sum(list(week.slots.filter(employee=employee).values_list(
                     'shift__hours', flat=True))) for week in sch.weeks.all()
             ]
-        return JsonResponse ( employee_week_breakdowns , safe=False )
-    
+        return JsonResponse ( employee_week_breakdowns , safe=False )   
     def schedule__get_weekly_hours__employee ( request, schId, empName ):
         employee     = Employee.objects.filter ( name__contains= empName ).first()
         sch          = Schedule.objects.get ( slug = schId )
@@ -47,7 +44,6 @@ class ApiViews :
                     employee=employee).values_list(
                         'shift__hours',flat=True))) for week in sch.weeks.all() ]
         return JsonResponse ( employee.weekBreakdown, safe=False )
-    
     def schedule__get_emusr_list ( request, schId ):
         sch = Schedule.objects.get (slug = schId )
         emusrEmployees = sch.employees.emusr_employees()
@@ -55,7 +51,6 @@ class ApiViews :
             n = sch.slots.unfavorables().filter(employee=e).count()
             e.n_unfavorables = n
         return JsonResponse ({f'{e.name}': e.n_unfavorables for e in emusrEmployees}, safe=False )
-    
     def schedule__get_emusr_range ( request, schId ):
         sch = Schedule.objects.get (slug = schId )
         emusrEmployees = sch.employees.emusr_employees()
@@ -64,7 +59,6 @@ class ApiViews :
             e.n_unfavorables = n
         data = {f'{e.name}': e.n_unfavorables for e in emusrEmployees}
         return JsonResponse ( max(data.values()) - min(data.values()), safe=False )
-    
     def schedule__get_percent (request, schId):
         sch = Schedule.objects.get(slug=schId)
         calculatedPercent = int(sch.slots.filled().count()/ sch.slots.count() * 100)

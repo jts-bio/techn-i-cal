@@ -1,4 +1,5 @@
 // dataSouce: get from url "kdeplot/"
+
 var dataSource;
 
 $.ajax({
@@ -16,6 +17,7 @@ console.log(dataSource);
 let xiData = [];
 let animationDuration = 1500;
 let range = 7,
+
   startPoint = -3;
 for (i = 0; i < range; i++) {
   xiData[i] = startPoint + i;

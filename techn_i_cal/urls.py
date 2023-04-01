@@ -43,9 +43,7 @@ def index(request):
             token_field = request.POST.get("token")
             print(token_field)
             return HttpResponseRedirect(reverse('index'))
-    
-    context = {
-    }
+    context = {}
     return HttpResponse(template.render(context, request))
 
 @public
@@ -98,5 +96,5 @@ urlpatterns = [
     path('api/',        include('flow.urls'),     name='flow'),
     path('mail/',       mail,                     name='mail'),
 
-] + static ( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
+] + static ( settings.STATIC_URL,  document_root = settings.STATIC_ROOT )
 

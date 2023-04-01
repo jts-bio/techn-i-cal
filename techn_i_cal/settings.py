@@ -87,29 +87,8 @@ REQUIRE_LOGIN_PUBLIC_NAMED_URLS = (LOGIN_URL, LOGOUT_REDIRECT_URL)
 
 ROOT_URLCONF = "techn_i_cal.urls"
 
-# TEMPLATES = [
-#     {
-#         "BACKEND": "django.template.backends.django.DjangoTemplates",
-#         "DIRS": [
-#             BASE_DIR / "templates/static",
-#         ],
-#         "OPTIONS": {
-#             "context_processors": [
-#                 "django.template.context_processors.debug",
-#                 "django.template.context_processors.request",
-#                 "django.contrib.auth.context_processors.auth",
-#                 "django.contrib.messages.context_processors.messages",
-#             ],
-#             "builtins": [],
-#              "loaders": [
-#                 (
-#                     "pypugjs.ext.django.Loader",
-#                     ("django.template.loaders.filesystem.Loader", "django.template.loaders.app_directories.Loader",),
-#                 )
-#             ],
-#         },
-#     },
-# ]
+TEST_RUNNER = "django.test.runner.DiscoverRunner"
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

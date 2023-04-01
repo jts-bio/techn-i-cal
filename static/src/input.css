@@ -1,4 +1,34 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+* ===FIELD LIGHTS=== *
+--- color palette ---
+
+_application_ = FlowRate
+_created_     = MAR 2023
+_author_      = JOSH T STEINBECKER
+*/
+
+:root {
+        --ebony-clay:  #212733;
+        --mirage:      #1a1f28;
+        --woodsmoke:   #0e1014;
+        --timberwolf:  #d9d7ce;
+        --tundra:      #c7c5b9;   
+        --yellow-green:#bae67d;
+        --grandis:     #ffd580;
+        --uranium:     #eeda04;
+        --viking:      #5ac8df;
+        --porsche:     #e8a054;
+        --contessa:    #946363;
+        --burnt-clay:  #6a4242;
+        --alert:       #ff5c5c;
+        --amethyst:    #a074c4;
+        --indigo:      #5c5cff;
+    }

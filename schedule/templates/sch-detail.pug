@@ -2,39 +2,57 @@ extends base.html
 
 
 block content
-    .panel.text.text-center.mt-2
-        a.transition(class="hover:scale-105" href=sch.previous.url())
+
+    .page.text.text-center.mt-2
+        a(class="hover:scale-115" href=previousUrl)
             i.fa-arrow-circle-left.fa-duotone.transition(class="hover:scale-115")
-        a.transition(class="hover:scale-105" href=sch.next.url())
+        a(class="hover:scale-115" href=previousUrl)
             i.fa-arrow-circle-right.fa-duotone.transition(class="hover:scale-115")
         h1.text-3xl.text-zinc-400.font-bold Schedule #{schedule.number} (#{ schedule.year})
         span.text-xs.text-zinc-100.font-light VERSION  
         span#scheduleVersionId #{schedule.version}
-        span#versionEllipsis.jbm.mx-2(class="hover:text-amber-500 hover:fa-ping" _="on click js showContextMenu(event)")
+        span#versionEllipsis.jbm.mx-2(
+            class="hover:text-amber-500 hover:fa-ping" 
+            _="on click js showContextMenu(event)")
                 i.fa-duotone.fa-circle-ellipsis
         div.flex.flex-row.align-items
-        //- ACTION BUTTON
-        // include components/action-btn.pug
+        //- ACTION BUTTON 'components/action-btn.pug'
+        include components/action-btn.pug
         #action-button-indicator.hidden.bg-yellow-300.rounded.h-6.text-black.animate-pulse.jbm Please Wait...
         section#TAB-BAR-MAIN
             include sch2/schedule/partials/sch-tabBar.html
+            
 
-    div.flex.flex-col
+    div.page.flex(class="md:flex-row")
+        div
+            section#LOWER-BODY
+                div.flex.flex-col-reverse(class="md:flex-row md:flex-row mb-1 md:mb-3")
+                    include stats.html
+                    div.overflow-x-contain
+                        i#swap-panel-indic.fas.fa-spinner.fa-spin.text-xl.fa-beat.htmx-indicator.mx-5
+                        #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(class="md:px-4 md:m-4")
+                   
 
-    section#LOWER-BODY
-        div.flex.flex-col-reverse(class="md:flex-row md:flex-row mb-1 md:mb-3")
-        include stats.html
-        #swap-panel.container.overflow-x-scroll.overscroll-x-auto.px-1.bg-zinc-900.rounded.shadow(class="md:px-4 md:m-4")
-            i#swap-panel-indic.fas.fa-spinner.fa-spin.fa-beat.htmx-indicator
-
-    section#MAIN-BODY 
-        div#swap-panel 
 
 
 
 block outside
 
     script(type="text/javascript").
+        /* 
+            Function name	          Description	  Relevant columns
+            showContextMenu(e)	      Displays a context menu when the user right-clicks on an element	Event object e, Context menu element
+            hideContextMenu(ev)	      Hides the context menu that was previously displayed	Event object ev, Context menu element
+            showWaitIndicator(ev)	  Displays a loading indicator to indicate that the page is busy or processing data	Event object ev, Wait indicator element
+            showVersionEllipsis()	  Displays an ellipsis icon to indicate that there is more content available for a particular item	Version ellipsis element
+            hideVersionEllipsis()	  Hides the ellipsis icon that was previously displayed	Version ellipsis element
+            showScheduleVersionId()	  Displays a version ID for a particular schedule	Schedule version ID element
+            hideScheduleVersionId()	  Hides the version ID that was previously displayed	Schedule version ID element
+            showSwapPanel()	          Displays a panel that allows the user to swap elements or items	Swap panel element
+            hideSwapPanel()	          Hides the swap panel that was previously displayed	Swap panel element
+            showSwapPanelIndic()	  Displays an indicator that there is a swap panel available for the user	Swap panel indicator element
+            hideSwapPanelIndic()	  Hides the swap panel indicator that was previously displayed	Swap panel indicator element        */
+
         function showContextMenu(e) {
             console.log('CtxtMenu Called')
             e.preventDefault();
@@ -111,13 +129,14 @@ block outside
                         if alt.difference > 0
                             span.text-emerald-300 (+#{alt.difference}% more complete)
                         if alt.difference < 0
-                            span.text-red-300 ( #{alt} % less complete)
+                            - var pct = alt.difference * -1
+                            span.text-red-300 (#{pct}% less complete)
                         if alt.difference == 0
                             span.text-zinc-300 (Same level of completion)
 
-    #wait-indicator.hidden
-        .click-through.w-full.h-full.fixed.inset-0.flex.items-center.justify-center.z-50
-            .absolute.fa-ping.fa-beat.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.opacity-90.rounded-lg.shadow-lg.w-[140px]
+    #wait-indicator.click-through.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.absolute.fa-beat.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.opacity-90.rounded-lg.shadow-lg(
+            class="left-[33%] w-[34%] top-[10%] h-[30%]"
+            )
             .text.text-center.text-black.text-3xl
-                i.fas.fa-user-robot.text-zinc-600
+                i.fas.fa-user-robot.text-zinc-600.fa-shake
             .text.text-black.text-center.text-2xs.jbm.opacity-70.pt-2 PLEASE WAIT

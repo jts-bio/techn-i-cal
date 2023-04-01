@@ -82,14 +82,26 @@ def groupedScheduleListView(request):
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
-    prct = sch.percent
+    prct = sch.percent 
     alternates = Schedule.objects.filter(
             year=sch.year, number=sch.number).exclude(pk=sch.pk).order_by('version').annotate(
             # ANNOTATE DIFFERENCE OF PERCENTS-FILLED
             difference= F('percent') - prct 
         )
     sch.save()
-    return render(request, "sch-detail.pug", {"schedule": sch, "alternates": alternates})
+    return render(request, "sch-detail.pug", {
+        "schedule":    sch, 
+        "alternates":  alternates,
+        "nextUrl":     sch.next().url(),
+        "previousUrl": sch.previous().url(),
+        }
+    )
+
+
+class Components: 
+    
+    def action_button(request):
+        pass
 
 
 class Sections:
@@ -192,8 +204,6 @@ class Sections:
         data = ApiViews.schedule__get_emusr_list(request, schId).content
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
-    
-   
 
     def schEmptyList (request, schId):
         
@@ -277,12 +287,12 @@ class Actions:
     SCHEDULE :: ACTION PERFORMING VIEWS
     ====================================
     ```
-    _UPDATERS_
-        @update_fills_with 
-    @clearUntrained
-    @clearUnfavorables
-    @setTemplates 
-    @retemplateAll
+    UPDATERS
+        @ update_fills_with 
+    @ clearUntrained
+    @ clearUnfavorables
+    @ setTemplates 
+    @ retemplateAll
     """
     
 
@@ -294,6 +304,7 @@ class Actions:
             return HttpResponse(
                 "<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>"
             )
+            
 
 
     def clearUntrained(request, schId):
@@ -630,3 +641,12 @@ class Actions:
                 'schedule %': sch.percent,
                 })
         return HttpResponse(f"PRN employees cleared from {n} slots")
+
+    @csrf_exempt
+    def publish_schedule(request, pk):
+        schedule = Schedule.objects.get(pk=pk)
+        schedule.actions.publish(schedule)
+        other_versions = Schedule.objects.filter(year=schedule.year, number=schedule.number).exclude(pk=schedule.pk)
+        other_versions.update(published=False)
+        schedule.status
+        return HttpResponse(f"Schedule published")

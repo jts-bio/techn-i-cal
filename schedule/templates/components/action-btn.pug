@@ -1,74 +1,74 @@
-block mixins
-    mixin button-option(name,icon,color,descr)
-        li 
-            .text-md(
-                class="text-#{color}-400"
-                href="#"
-                )
-                i.fas(class="fa-#{icon}")
-                span.font-bold(class="text-#{color}-500")= name
-                span.text-2xs.italic.opacity-70= descr
-
-    mixin button-group(btn_title)
-        button.text-zinc-300.bg-zinc-900.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
-            i.fa-duotone.fa-lightbulb-exclamation-on.mr-3 
-            span.text-zinc-200 #{btn_title}
-            i.fa-duotone.fa-chevron-down.px-1 
 
 
-block baseData 
-    - var fillTemplateBtn = {\
-        title: 'Fill Templates',\
-        icon: 'robot-user',\
-        color: 'amber',\
-        descr: 'Fill the base template skeleton for schedule. PTO requests are never violated.' }
+mixin button-option(icon, title, subtitle, fetchUrl, color)
+    a.flex.flex-row.opacity-70.cursor-pointer.bg-opacity-20(
+        class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
+        data-fetch-url=fetchUrl
+        _="install ActionButton")
+            i(class="fas text-sm #{icon} w-3 mx-3")
+            .flex.flex-col.pr-3
+                span.jbm= title
+                span.text-2xs= subtitle
 
-    - var fillFavorableBtn = {\
-        title: 'Solve Prioritizing Satisfaction',\
-        icon: 'robot-user',\
-        color: 'indigo',\
-        descr: 'Fills employee-friendly slots first.' }
+mixin button-group(btn_title)
+    button.text-zinc-300.bg-zinc-900.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
+        i.fa-duotone.fa-bolt.mr-3 
+        span.text-zinc-200 #{btn_title}
+        i.fa-duotone.fa-chevron-down.px-1 
 
-    - var fillIdealStructuringBtn = {\
-        title: 'Solve Prioritizing Ideal Structuring',\
-        icon: 'robot-user',\
-        color: 'emerald',\
-        descr: 'Maximizes over all scheduling optimality.' }
+mixin button-clear()
+    a.flex.flex-row.opacity-70.cursor-pointer(
+        class="hover:opacity-100 hover:bg-red-500 hover:bg-opacity-20"
+        _="install ClearButton")
+            i(class="fas text-sm fa-eraser w-3 mx-3")
+            .flex.flex-col.pr-3
+                span.jbm CLEAR & RESET
+                span.text-2xs Clear All Slots within this schedule, while persisting the schedule instance.
     
-    - var option-btns = [fillTemplateBtn, fillFavorableBtn, fillIdealStructuringBtn]
-
 
 style. 
     ul { 
-        background-color: none !important; 
+        background-color: #333333aa!important; 
         margin-top: 40px; 
         classList: "dropdown dropdown-menu z-20 absolute overflow-y-visible";
     }
 
 script(type="text/hyperscript").
-    behavior ActionButton 
-        on click
-            add .active to me 
-            call showWaitIndicator(event) 
-            then send recheck to me then 
-            fetch actions/fill-with-favorables/  
-            then put result into #swap-panel then wait 1s then 
-            log `swapping...` then 
-            call window.location.reload() 
-            end 
-        on recheck 
-            repeat while 
-                #favorable-finished matches .active
-            trigger recheck on #n-empty-check 
-            wait 1s
-            end
+        behavior ActionButton 
+            on click
+                    add .active to me 
+                    call showWaitIndicator(event) 
+                    then send recheck to me then 
+                    fetch `${[@data-fetch-url]}`
+                    then put result into #swap-panel then wait 1s then 
+                    log `swapping...` then 
+                    call window.location.reload() 
+                    end 
+            on recheck 
+                    repeat while #favorable-finished matches .active
+                        trigger recheck on #n-empty-check 
+                        call window.location.reload()
+                        end
+   
+
+        behavior ClearButton 
+            on click 
+                call confirm ('Clear ALL slot assignments? This action cannot be undone.')
+                if result is true 
+                    call showWaitIndicator(event) 
+                    then fetch actions/clear-all/ with method:'POST'  
+                    then wait 200ms then call window.location.reload() end
 
 
 //- Content
 
-+button-group("Optimize this Schedule")
 
-ul.dropdown-menu
-    each option in option-btns
-        +button-option(option.title, option.icon, option.color, option.descr)
-    
+.button-group
+    +button-group("Actions")
+    .dropdown-menu.bg-zinc-900
+        +button-option("fa-robot" "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
+        +button-option("fa-bolt" "ALGORITHM B" "Solve via maximizing silimarity to manager generated schedules" "actions/solve-tca/" "sky")
+        +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")
+        +button-clear
+
+            
