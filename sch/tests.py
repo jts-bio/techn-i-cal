@@ -1,5 +1,5 @@
 from django.test import TestCase
-from .models import Workday, Shift, Employee, PtoRequest
+from .models import Workday, Shift, Employee, PtoRequest, Schedule, ShiftSortPreference, ShiftPreference
 import datetime as dt
 from django.urls import reverse
 from sch.forms import EmployeeSelectForm
@@ -46,8 +46,6 @@ Additional aspects:
 - The function uses the messages framework to display warning messages.
 - The function excludes the current schedule from the list of other schedules to display.
 """
-
-
 
 class TestSchdetailview(TestCase):
 
@@ -137,3 +135,133 @@ class TestSchdetailview(TestCase):
         
         # Asserting that the generated URL is correct
         assert url == f'/schedule/{Schedule.objects.first().slug}/'
+
+
+
+
+"""
+Code Analysis
+
+Main functionalities:
+The EmpViews class contains two methods that handle employee shift preferences and tallies. The empShiftSort method updates an employee's shift sort preferences based on a POST request, while the empShiftTallies method generates a visualization of an employee's shift preferences using a kernel density estimate plot.
+
+Methods:
+- empShiftSort: updates an employee's shift sort preferences based on a POST request
+- empShiftTallies: generates a visualization of an employee's shift preferences using a kernel density estimate plot
+
+Fields:
+The EmpViews class does not have any fields of its own, but it uses fields from other models such as Employee, ShiftSortPreference, and Shift.
+"""
+from sch.viewsets import EmpViews
+
+
+class TestEmpViews:
+
+    # Tests that empshiftsort updates an employee's shift sort preferences with valid data. tags: [happy path]
+    def test_empShiftSort_valid(self, mocker):
+        # Setup
+        emp = Employee.objects.create(name="John Doe")
+        shift1 = Shift.objects.create(name="Morning")
+        shift2 = Shift.objects.create(name="Afternoon")
+        emp.shifts_available.add(shift1, shift2)
+        request = mocker.Mock()
+        request.method = "POST"
+        request.POST = {
+            "bin-1": "shift-Morning",
+            "bin-2": "shift-Afternoon",
+        }
+        messages_mock = mocker.patch("django.contrib.messages.success")
+        # Exercise
+        response = EmpViews.empShiftSort(request, emp.id)
+        # Assert
+        assert response.status_code == 302
+        assert response.url == emp.url()
+        assert ShiftSortPreference.objects.filter(employee=emp).count() == 2
+        assert messages_mock.called_once_with(
+            request,
+            f"{emp} shift sort preferences updated: Morning (1), Afternoon (2)",
+        )
+
+    # Tests that empshiftsort handles a post request with missing data. tags: [edge case]
+    def test_empShiftSort_missingData(self, mocker):
+        # Setup
+        emp = Employee.objects.create(name="John Doe")
+        request = mocker.Mock()
+        request.method = "POST"
+        request.POST = {}
+        messages_mock = mocker.patch("django.contrib.messages.success")
+        # Exercise
+        response = EmpViews.empShiftSort(request, emp.id)
+        # Assert
+        assert response.status_code == 200
+        assert ShiftSortPreference.objects.filter(employee=emp).count() == 0
+        assert not messages_mock.called
+
+    # Tests that empshifttallies handles rendering a visualization with no data. tags: [edge case]
+    def test_empShiftTallies_noData(self, mocker):
+        # Setup
+        emp = Employee.objects.create(name="John Doe")
+        request = mocker.Mock()
+        request.method = "GET"
+        shift_prefs_with_counts_mock = mocker.Mock()
+        shift_prefs_with_counts_mock.annotate.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value.values.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value.values.return_value.annotate.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value.values.return_value.annotate.return_value.annotate.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value.values.return_value.annotate.return_value.annotate.return_value.values.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.annotate.return_value.annotate.return_value.values.return_value.annotate.return_value.annotate.return_value.values.return_value.annotate.return_value = shift_prefs_with_counts_mock
+        shift_prefs_with_counts_mock.order_by.return_value = shift_prefs_with_counts_mock
+        mocker.patch(
+            "sch.models.Employee.shift_prefs",
+            new_callable=mocker.PropertyMock(return_value=shift_prefs_with_counts_mock),
+        )
+        # Exercise
+        response = EmpViews.empShiftTallies(request, emp.slug)
+        # Assert
+        assert response.status_code == 200
+        assert response.context["emp"] == emp
+        assert response.context["tallies"] == shift_prefs_with_counts_mock
+        assert "plot" in response.context
+
+    # Tests that empshifttallies generates a visualization of an employee's shift preferences with valid data. tags: [happy path]
+    def test_empShiftTallies_valid(self, mocker):
+        emp = Employee.objects.create(name="John Doe")
+        shift1 = Shift.objects.create(name="Morning", hours=8)
+        shift2 = Shift.objects.create(name="Afternoon", hours=6)
+        pref1 = ShiftPreference.objects.create(employee=emp, shift=shift1, priority='SP')
+        pref2 = ShiftPreference.objects.create(employee=emp, shift=shift2, priority='P')
+        Slot.objects.create(employee=emp, shift=shift1)
+        Slot.objects.create(employee=emp, shift=shift1)
+        Slot.objects.create(employee=emp, shift=shift2)
+        request = mocker.Mock()
+        request.method = "GET"
+        response = EmpViews.empShiftTallies(request, emp.name)
+        assert response.status_code == 200
+        assert response.context['emp'] == emp
+        assert response.context['tallies'][0]['score'] == 2
+        assert response.context['tallies'][0]['count'] == 2
+        assert response.context['tallies'][0]['shifts'] == ['Morning']
+        assert response.context['tallies'][1]['score'] == 1
+        assert response.context['tallies'][1]['count'] == 1
+        assert response.context['tallies'][1]['shifts'] == ['Afternoon']
+        assert 'plot' in response.context
+
+    # Tests that empshiftsort handles invalid data. tags: [other possible issue]
+    def test_empShiftSort_invalidData(self, mocker):
+        emp = Employee.objects.create(name="John Doe")
+        request = mocker.Mock()
+        request.method = "POST"
+        request.POST = {"bin-1": "invalid-shift"}
+        response = EmpViews.empShiftSort(request, emp.id)
+        assert response.status_code == 302
+        assert len(ShiftSortPreference.objects.all()) == 0
+        assert len(messages.get_messages(request)) == 1
+
+    # Tests that empshifttallies handles invalid data. tags: [other possible issue]
+    def test_empShiftTallies_invalidData(self, mocker):
+        emp = Employee.objects.create(name="John Doe")
+        request = mocker.Mock()
+        request.method = "GET"
+        response = EmpViews.empShiftTallies(request, "invalid-employee")
+        assert response.status_code == 404

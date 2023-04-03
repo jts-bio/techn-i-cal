@@ -77,12 +77,26 @@ class WeekAdmin(admin.ModelAdmin):
 
 @admin.register(Period)
 class PeriodAdmin(admin.ModelAdmin):
-    fields          = ('number','year', 'schedule', 'start_date', 'hours' )
+    fields          = (
+                        'number',
+                        'year', 
+                        'schedule', 
+                        'start_date', 
+                        'hours' 
+                    )
     list_display    = ('number','year','schedule', 'start_date', 'hours' )
     
 @admin.register(Schedule)    
 class ScheduleAdmin (admin.ModelAdmin):
-    fields              = ('slug','number', 'year', 'start_date', 'pto_requests','pto_conflicts','data')
+    fields              = (
+                        'slug',
+                        'number', 
+                        'year', 
+                        'start_date', 
+                        'pto_requests',
+                        'pto_conflicts',
+                        'data'
+                    )
     readonly_fields     = ('slug','start_date', 'percent','pto_requests','pto_conflicts', )
     list_display        = ('slug','start_date', 'percent',)
 

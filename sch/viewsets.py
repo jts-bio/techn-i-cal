@@ -17,6 +17,7 @@ from .serializers import (WorkdaySerializer, WeekSerializer, PeriodSerializer,
                           ScheduleSerializer, SlotSerializer, ShiftTemplateSerializer, 
                           TemplatedDayOffSerializer, PtoRequestSerializer, EmployeeSerializer, 
                           ShiftSerializer)
+                          
 
 
 
@@ -32,8 +33,7 @@ class EmployeeViewSet(viewsets.ModelViewSet):
         'streak_pref__lte'  : 'streak_pref__lte',
         'available'         : 'shifts_available',
     }
-    
-    
+       
 class ShiftViewSet(viewsets.ModelViewSet):
     queryset = Shift.objects.all()
     serializer_class = ShiftSerializer
@@ -151,6 +151,7 @@ class Actions:
 #######--- END OF ACTIONS SECTION ---########
 
 class WeekViews:
+    
     def all_slots_fillable_by_view(request, weekId):
         html_template = "sch2/week/all-slots-fillable-by-view.html"
         week = Week.objects.get(pk=weekId)
@@ -266,7 +267,6 @@ class SchViews:
                 }
             return JsonResponse(output, safe=False)
             
-        
     def schDetail(request, schId):
         schedule = Schedule.objects.get(slug=schId)
         return HttpResponseRedirect(f'/schedule/detail/{schedule.slug}/')      
@@ -469,6 +469,7 @@ class SchViews:
         
         
 class SchPartials:
+
     def schStatBarPartial (request, schId):
         html_template = "sch2/schedule/partials/stat-bar.html"
         sch = Schedule.objects.get(slug=schId)
@@ -476,6 +477,7 @@ class SchPartials:
             "schedule": sch,
         }
         return render (request, html_template, context)
+    
     def schComplexTablePartial (request, schId):
         html_template = "sch2/schedule/partials/complex-table-wrapper.html"
         sch = Schedule.objects.get(slug=schId)
@@ -485,6 +487,7 @@ class SchPartials:
             "schedule": sch,
         }
         return render (request, html_template, context)
+    
     def schCompareSelectPartial (request, schId):
         html_template = "sch2/schedule/partials/compare-select.html"
         sch = Schedule.objects.get(slug=schId)
@@ -493,6 +496,7 @@ class SchPartials:
             "other_schedules": Schedule.objects.exclude(slug=schId),
         }
         return render (request, html_template, context)
+    
     def schViewSelectPartial (request, schId):
         html_template = "sch2/schedule/partials/view-select.html"
         sch = Schedule.objects.get(slug=schId)
@@ -500,6 +504,7 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
+    
     def schEmployeeGridPartial (request, schId):
         html_template = "sch2/schedule/partials/sch-as-empl-grid.html"
         sch = Schedule.objects.get(slug=schId)
@@ -507,6 +512,7 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
+    
     def schShiftGridPartial (request, schId):
         html_template = "sch2/schedule/partials/sch-as-shift-grid.html"
         sch = Schedule.objects.get(slug=schId)
@@ -514,6 +520,7 @@ class SchPartials:
             "schedule": sch,
         }
         return render(request, html_template, context)
+    
     def schFteRatioPartial (request, schId):
         html_template = "sch2/schedule/partials/fte-percents.html"
         sch = Schedule.objects.get(slug=schId)
@@ -535,6 +542,7 @@ class SchPartials:
             "employees": empls,
         }
         return render(request, html_template, context)
+    
     def schWeeklyBreakdownPartial (request,schId):
         html_template = "sch2/schedule/partials/sch-employee-week-breakdown.html"
         sch = Schedule.objects.get(slug=schId)
@@ -543,6 +551,7 @@ class SchPartials:
             'employees' : Employee.objects.all(),
         }
         return render(request, html_template, context)
+    
     def schMistemplatedPartial (request, schId):
         sch = Schedule.objects.get(slug=schId)
         mistemplated = sch.slots.mistemplated().all()
@@ -550,11 +559,13 @@ class SchPartials:
 
 
 class EmpPartials:
+
     def tdoPreview (request, empPk):
         empl = Employee.objects.get(pk=empPk)
         tdos = [empl.tdos.filter(sd_id=x).count() for x in range(42)]
         html_template = 'sch2/employee/partials/tdo-preview.html'
         return render(request, html_template, {'tdos':tdos } )
+    
     def workPrevDay (request, empPk, wdId):
         wd = Workday.objects.get(slug=wdId)
         empl = Employee.objects.get(pk=empPk)
@@ -562,6 +573,7 @@ class EmpPartials:
             return HttpResponse (wd.prevWD().slots.filter(employee=empl).first().shift.group)
         else :
             return HttpResponse ("")
+    
     def workNextDay (request, empPk, wdId):
         wd = Workday.objects.get(slug=wdId)
         empl = Employee.objects.get(pk=empPk)
@@ -569,14 +581,16 @@ class EmpPartials:
             return HttpResponse (wd.nextWD().slots.filter(employee=empl).first().shift.group)
         else :
             return HttpResponse ("")
+    
     def comingUp (request, empPk):
         empl = Employee.objects.get(pk=empPk)
-        comingUp = empl.slots.filter(workday__date__gte=date.today()).order_by('workday__date')[:7]
+        comingUp = empl.slots.filter(workday__date__gte=dt.date.today()).order_by('workday__date')[:7]
         html_template = 'sch2/employee/partials/coming-up.html'
         return render(request, html_template, {'empl':empl})
         
         
 class WdViews:
+
     def wdayDetailBeta (request, slug):
         wd = Workday.objects.get(slug=slug)
         html_template = "sch2/workday/wd-2.html"
@@ -746,41 +760,40 @@ class ShiftViews:
 class EmpViews:
 
     def empShiftSort(request, empId):
-        html_template = "sch2/employee/shift-sort.html"
         emp = Employee.objects.get(pk=empId)
         if request.method == "POST":
             print(request.POST)
             ShiftSortPreference.objects.filter(employee=emp).delete()
-            print(emp.shift_sort_prefs.all())
-            for i in range(1, emp.shifts_available.count() + 1):
-                shift = request.POST.get(f"bin-{i}")
-                if shift:
-                    shift = Shift.objects.get(name=shift.replace("shift-", ""))
-                    pref = ShiftSortPreference.objects.create(
-                            employee=emp, 
-                            shift=shift, 
-                            score=i, 
-                            rank=i-1
-                        )
-                    pref.score = i
-                    pref.rank = i - 1
-                    pref.save()
-            sort_repr = ", ".join([f"{pref.shift} ({pref.score})" for pref in emp.shift_sort_prefs.all()])
-            messages.success(
-                request,
-                f"{emp} shift sort preferences updated: {sort_repr}",
-            )
-            print(messages.get_messages(request))
+            shift_sorted = request.POST.getlist("shift")
+            print(shift_sorted)
+            i = 0
+            for s in shift_sorted:
+                shift = Shift.objects.get(pk=s)
+                pref = ShiftSortPreference.objects.create(
+                    employee=emp,
+                    shift=shift, 
+                    score=i, 
+                    rank=i-1
+                )
+                i += 1
+                pref.save()
+                print(pref, pref.score, pref.shift)
             return HttpResponseRedirect(emp.url())
 
         context = {
             "employee": emp,
             "nTotal": range(1, emp.shifts_available.all().count() + 1),
-        }
-        return render(request, html_template, context)
+            "shifts" : emp.shifts_available.all().annotate(rank=Subquery(
+                ShiftSortPreference.objects.filter(
+                    employee=emp,
+                    shift=OuterRef('pk')
+                ).order_by('rank').values('rank')[:1],
+                )),
+            }
+        return render(request, 'sch3/empl-sort-shifts.pug', context)
+    
     def empShiftTallies (request, empId, doRender=True):
         emp = Employee.objects.get (slug=empId)
-        shift_prefs = emp.shift_prefs.annotate(count=subquery)
         # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
         subquery = Subquery(
                         Slot.objects.filter(
@@ -790,7 +803,11 @@ class EmpViews:
                             count=Count('*')
                         ).values('count')[:1],
                 output_field=models.IntegerField()
-            )
+            ) 
+        
+        shift_prefs = emp.shift_prefs.all() 
+        shift_prefs.annotate(count=subquery)
+
         score_subquery = Subquery(
             Slot.objects.filter(
                 employee=OuterRef('employee'),
@@ -912,6 +929,7 @@ class EmpViews:
 
         
 class IdealFill:
+
     def levelA(request, slot_id):
         """Checks Training and No Turnarounds"""
         slot = Slot.objects.get(pk=slot_id)
@@ -919,6 +937,7 @@ class IdealFill:
         inConflictingSlots = slot._get_conflicting_slots().values("employee")
         available__noConflict = base_avaliable.exclude(pk__in=inConflictingSlots)
         return available__noConflict
+    
     def levelB(request, slot_id):
         """Checks for No Weekly Overtime"""
         slot = Slot.objects.get(pk=slot_id)
@@ -929,6 +948,7 @@ class IdealFill:
                 underFte += [n.pk]
         possible = IdealFill.levelA(None, slot_id)
         return possible.filter(pk__in=nh)
+    
     def levelC(request, slot_id):
         """Checks for No PayPeriod FTE overages"""
         slot = Slot.objects.get(pk=slot_id)
@@ -939,12 +959,14 @@ class IdealFill:
                 underFte += [n.pk]
         possible = IdealFill.levelA(None, slot_id)
         return possible.filter(pk__in=nh)
+    
     def levelD(request, slot_id):
         """Checks for Matching Time-of-day Preference"""
         slot = Slot.objects.get(pk=slot_id)
         timeGroup = slot.shift.group
         possible = IdealFill.levelC(None, slot_id)
         return possible.filter(time_pref=timeGroup)
+    
     def levelE(request, slot_id):
         """Checks for Preferred Streak-length not to be exceeded"""
         slot = Slot.objects.get(pk=slot_id)
@@ -957,6 +979,7 @@ class IdealFill:
             if slot.employee.streak_pref >= maxStreak:
                 ok_streak += [possibility]
         return Employee.objects.filter (pk__in=ok_streak)
+    
     def levelF(request, slot_id):
         for empl in IdealFill.levelE(None, slot_id):
             empl.shift

@@ -155,5 +155,12 @@ block content
             for empl in workday.on_deck.all
                 +Employee(empl, workday)
 
+        div(
+            hx-get="partial/speed-dial/"
+            hx-trigger="load"
+            )
+
+        
+
     +hiddenPtoList(workday)
             

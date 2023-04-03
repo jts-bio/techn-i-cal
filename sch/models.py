@@ -703,19 +703,27 @@ class Employee (models.Model) :
 # ============================================================================
 class Workday (models.Model) :
     # fields: date, shifts 
-    date     = models.DateField()
-    week     = models.ForeignKey  ("week",     on_delete=models.CASCADE, null=True, related_name='workdays')
-    period   = models.ForeignKey  ("Period",   on_delete=models.CASCADE, null=True, related_name='workdays')
-    schedule = models.ForeignKey  ("Schedule", on_delete=models.CASCADE, null=True, related_name='workdays')
-    pto_requests = models.ManyToManyField ("PtoRequest", blank=True, related_name='workdays')
-    slug     = models.CharField   (max_length=30, null=True, blank=True)
-    iweekday = models.IntegerField(default=-1)
-    iweek    = models.IntegerField(default=-1)
-    iperiod  = models.IntegerField(default=-1)
-    ischedule= models.IntegerField(default=-1)
-    ppd_id   = models.IntegerField(default=-1)
-    sd_id    = models.IntegerField(default=-1)  
-    percent  = models.IntegerField(default= 0)
+    date            = models.DateField()
+    week            = models.ForeignKey  ("Week",     on_delete=models.CASCADE, null=True, related_name='workdays')
+    period          = models.ForeignKey  ("Period",   on_delete=models.CASCADE, null=True, related_name='workdays')
+    schedule        = models.ForeignKey  ("Schedule", on_delete=models.CASCADE, null=True, related_name='workdays')
+    pto_requests    = models.ManyToManyField ("PtoRequest", blank=True, related_name='workdays')
+    slug            = models.CharField   (max_length=30, null=True, blank=True)
+    iweekday        = models.IntegerField(default=-1)
+    iweek           = models.IntegerField(default=-1)
+    iperiod         = models.IntegerField(default=-1)
+    ischedule       = models.IntegerField(default=-1)
+    ppd_id          = models.IntegerField(default=-1)
+    sd_id           = models.IntegerField(default=-1)  
+    percent         = models.IntegerField(default= 0)
+    
+    class Actions :
+        def solve (self,instance):
+            empties = instance.slots.filter(employee=None) # type: SlotManager
+            for slot in empties: 
+                slot # type: Slot 
+                slot.fillWithBestChoice()
+    actions = Actions()
     
     @property 
     def pto (self):
@@ -1313,6 +1321,15 @@ class Schedule (models.Model):
         return all_schedules
     
     class Actions :
+        def publish (self, instance):
+            instance.status = 1
+            sch.save()
+            to_discard = Schedule.objects.filter(year=instance.year, number=instance.number).exclude(pk=instance.pk)
+            for sch in to_discard:
+                sch.status = 2
+                sch.save()
+            return HttpResponse('PUB200: Schedule Published')
+
         def update_slots_fills_with (self, instance):
             for slot in instance.slots.all():
                 slot.update_fills_with()

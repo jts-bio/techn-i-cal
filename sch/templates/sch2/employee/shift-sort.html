@@ -144,11 +144,14 @@
 
           function drop(ev) {
             ev.preventDefault();
+            // send custom event to unsorted bin  display the submit button if it has 0 .shift children elements
+            const unsortedBin = document.getElementById('unsorted-bin');
+            const unsortedBinEvent = new CustomEvent('checkIfEmpty', { bubbles: true });
+            unsortedBin.dispatchEvent(unsortedBinEvent);
+            
             ev.target.style.background = "";
-          
             // Get the id of the target and add the moved element to the target's DOM
             const data = ev.dataTransfer.getData("text");
-          
             // If the target already has a child element, and the child element is not a text node, remove it and append it to the unsorted bin
             if (ev.target.lastChild && ev.target.lastChild.nodeType !== Node.TEXT_NODE) {
               document.getElementById('unsorted-bin').appendChild(ev.target.lastChild);
@@ -165,12 +168,16 @@
               }
             }
           }
-          
-          
-          
 
           function reloadPage() {
             location.reload();
+          }
+
+          function checkIfEmpty(ev) {
+            const shiftCount = ev.target.querySelectorAll('.shift').length;
+            if (shiftCount === 0) {
+              document.getElementById('sort-submit').hidden = false;
+            }
           }
         </script>
  

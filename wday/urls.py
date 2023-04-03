@@ -1,20 +1,26 @@
 from django.urls import path
 from . import views, api
+from sch import components
 
 app_name = 'wday'
 
 
 urlpatterns = [
-    path('testing/<wdSlug>/', views.testing, name='testing'),
+    
     path('', views.wdListView, name='wd-list'),
     path('<slug>/', views.wdDetailView, name='detail'),
     path('<slug>/slot/<shiftId>/', views.slotDetailView, name='slot-detail'),
-    path('<slug>/delete/', views.SlotActions.slotDeleteView, name='slot-delete'),
-    path('<slug>/'+'slot/'+'<shiftId>/'+'update/', views.SlotActions.slotUpdateView, name='slot-update'),
+    path('<wd>/delete/', views.WdActions.wdClearView, name='slot-delete'),
+    path('<wd>/solve/', views.WdActions.wdSolveView, name='slot-solve'),
+    path('<slug>/'+'slot/'+'<shiftId>/'+'update/',  views.SlotActions.slotUpdateView, name='slot-update'),
+
+    # Components ~~~~~~~~~~~~~~~~~~~~~
+    path('<wd>/partial/speed-dial/', views.Partials.speed_dial, name='speed-dial'),
     
     # API paths ~~~~~~~~~~~~~~~~~~~~~~
     path('<wdSlug>/api-context/', api.workday_context, name='workday-api-context'),
-
+    
+    path('testing/<wdSlug>/', views.testing, name='testing'),
     path('<wd>/<sft>/<empl>/assign/', views.SlotActions.slotAssignView, name='slot-assign'),
     path('<wd>/<sft>/clear/', views.SlotActions.slotClearView, name='slot-clear'),
     path('<wd>/<shift>/fill-template/', views.WdActions.fill_with_template, name='fill-template'),

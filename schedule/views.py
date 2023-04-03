@@ -294,7 +294,13 @@ class Actions:
     @ setTemplates 
     @ retemplateAll
     """
-    
+
+    def publishView (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        sch.actions.publish()
+        return HttpResponse(
+            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Schedule Published</div>"
+        )
 
     class Updaters:
 
@@ -305,7 +311,6 @@ class Actions:
                 "<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>"
             )
             
-
 
     def clearUntrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -325,6 +330,13 @@ class Actions:
         )
 
     def setTemplates(request, schId):
+        """
+        BASE SET TEMPLATES FOR SCHEDULE
+        -------------------------------
+        Will set the templates for the schedule based on the employee's templates. 
+        This function *will* consider context of PTO Requests.
+        """
+
         sch = Schedule.objects.get(slug=schId)
         to_clear  = []
         to_update = []

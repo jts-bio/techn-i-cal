@@ -1,0 +1,84 @@
+extends base.html
+
+block content
+    h1.text-indigo-300.font-bold Sorted Shift Preferences
+    h3= employee 
+
+    form(method="POST")
+    
+        input(type='hidden', value='{{ csrf_token }}', name='csrfmiddlewaretoken')
+        - var n = 1
+        div.flex.flex-row 
+
+            each shift in shifts
+
+                div.rank(_="install Rank")
+                    span.rank= n
+                    - var n = n + 1
+                    div.shift(draggable='true' _="install Shift")
+                        span.name= shift.name
+                        input(type="hidden" name="shift" value=shift.id)
+        input(type="submit" value="Save Changes")
+
+block style
+    style.
+        .rank {
+            text-align: center;
+            font-size: 0.8em;
+            background-color: var(--timberwolf);
+            color: #00000066;
+            width: 55px;
+            height: 90px;
+            border-radius: 5px;
+            padding: 5px;
+            margin: 0px 5px 0px 5px;
+        }
+        .shift {
+            display: inline-block;
+            width: 200px;
+            text-align: left;
+            font-size: 1.5em;
+            font-weight: bold;
+            color : var(--indigo);
+        }
+        .name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: black;
+        }
+
+block pre
+    script(type="text/hyperscript").
+
+        ----- SHIFT -----
+        -- The draggable component of the list.
+        -----------------
+        behavior Shift 
+            on dragstart 
+                add .dragging to me
+                then add .dragging-from to closest .rank
+                end 
+            end
+
+        ----- RANK -----
+        -- The drop targets representing the numerical rank.
+        ----------------
+        behavior Rank 
+            on dragover 
+                call event.preventDefault()
+                then toggle .opaciy-30 to .shift in me until removeFade
+                end
+            on drop 
+                call event.preventDefault() then 
+                set booting to .shift in me 
+                then set incoming to first .dragging 
+                then put incoming at the end of me 
+                put booting at the end of the first .dragging-from
+                then trigger removeFade
+                end
+            on dragend 
+                remove .dragging from .shift
+                then remove .dragging-from from .rank
+                then trigger removeFade
+                end 
+            end

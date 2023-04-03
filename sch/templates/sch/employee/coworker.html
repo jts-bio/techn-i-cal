@@ -19,12 +19,12 @@
     </div>
 
     <div class="hstack" style="justify-content:center;width:100%">
-        <table class="min-width-full divide-y table-auto">
+        <table class="table-striped bg-main rounded-lg">
         <thead>
             <tr>
-                <td></td>
-                <td>{{emp1}}</td>
-                <td>{{emp2}}</td>
+                <th class="rounded-tl-lg"></td>
+                <th class="">{{emp1}}</td>
+                <th class="rounded-tr-lg">{{emp2}}</td>
             </tr>
         </thead>
         {% for day in days %}
@@ -38,6 +38,6 @@
     
     </div>
 </div>
-    
+      
 {% endblock content %}
     

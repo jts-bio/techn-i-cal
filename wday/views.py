@@ -3,20 +3,27 @@ import logging
 
 from django.db import models
 from django.db.models import (
-    Subquery,Case, F, FloatField, IntegerField, SlugField,
-                              Sum, Value, When, F, Q, OuterRef)
+                            Subquery, Case, F, FloatField, 
+                            IntegerField, SlugField,
+                            Sum, Value, When, F, Q, OuterRef)
 from django.shortcuts import reverse, render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
 from sch.models import Schedule, Workday, Employee, Slot, Shift, WorkdayViewPreference, WD_VIEW_PREF_CHOICES
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
+from sch import components
+
+
+# URLs located at : 
+# "wday/urls.py"
 
 
 # LOGGING ================================
 logging.basicConfig(
         filename='workday-logs.log',
         level=logging.INFO)
+
 logging.root.handlers[0].setFormatter(logging.Formatter('%(message)s'))
 # ========================================
 
@@ -40,6 +47,9 @@ class Partials:
     
     def events (request):
         return render(request, 'wday/partials/events.html')
+    
+    def speed_dial (request, wd):
+        return render(request, 'wday/partials/speed-dial.pug')
 
 
 
@@ -78,29 +88,27 @@ def wdDetailView (request, slug:str):
     wd = Workday.objects.get(slug=slug) #type:Workday
     wd.save()
     
-    for employee in wd.on_deck().all():
-        employee.weekHours = Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek))
-    for slot in wd.slots.all():
-        if slot.employee:
-            slot.employee.weekHours = Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek))
-    
     logger = logging.getLogger('workdayLogger')
     logger.info (f'WORKDAY DETAIL VIEW ::: viewed by user='+str(request.user))
     logger.info (f'     workday: {wd}')
     logger.info (f'     weekHours : {[(empl.slug, empl.weekHours(wd)) for empl in wd.on_deck().all()]}')
+
+    dial = components.BasicSpeedDial()
+    dial.addOption(name="Show PTO Employees", url="include-pto/", icon="arrows-expand", color="sky")
     
     context = dict (
             workday =    wd, 
             slots =      wd.slots.all(),
             employees =  wd.schedule.employees.all().annotate(
-                dayHours =      Sum('slots__shift__hours', filter=Q(slots__workday=wd)),
-                weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__iweek=wd.iweek)), 
-                periodHours =   Sum('slots__shift__hours', filter=Q(slots__workday__period=wd.period)))
+                        shift =         F  ('slots__shift__name'),
+                        dayHours =      Sum('slots__shift__hours', filter=Q(slots__workday=wd)),
+                        weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__week=wd.week)), 
+                        periodHours =   Sum('slots__shift__hours', filter=Q(slots__workday__period=wd.period))),
             )
     viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
 
     #   NOTE / THIS VIEW UTILIZES A USER PREFERENCE TO DETERMINE TEMPLATE USED
-
+    #   MAIN TEMPLATE / 'wday/wday-4.pug'
     return render(request, WD_VIEW_PREF_CHOICES[int(viewPref_template)][1] , context)
 
 class WdActions: 
@@ -116,6 +124,17 @@ class WdActions:
         
         return HttpResponse(fillable_slots)
     
+    @csrf_exempt
+    def wdClearView (request, wd):
+        workday = Workday.objects.get(slug=wd)
+        workday.slots.all().update(employee=None)
+        return HttpResponse(f"Workday {wd} has been cleared successfully.")
+
+    @csrf_exempt
+    def wdSolveView (request, wd):
+        workday = Workday.objects.get(slug=wd) #type:Workday
+        workday.actions.solve(workday)
+        return HttpResponse(f"Workday {wd} has been solved successfully.")
     
     def fill_with_template (request, wd, shift):
         slot = Slot.objects.get(workday__slug=wd,shift__name=shift)
@@ -126,17 +145,7 @@ def slotDetailView (request, slug, shiftId):
     pass
 
 class SlotActions:
-    
-    @csrf_exempt
-    def slotDeleteView (request, slug):
-        print (request.headers)
-        empId = request.headers['empId']
-        if Slot.objects.filter(employee__pk=empId,workday__slug=slug).exists():
-            slot = Slot.objects.get(employee__pk=empId, workday__slug=slug)
-        slot.employee = None
-        slot.save()
-        messages.info (request, f"Slot {slot.shift} has been cleared successfully.")
-        return HttpResponse (f"Slot {slot.shift} has been cleared successfully.")
+        
     
     def slotClearView(request, wd, sft):
         slot = Slot.objects.get(shift__name=sft, workday__slug=wd)

@@ -2,13 +2,16 @@
     {% include 'tables/hs/pto-switch._hs' %}
 </script>
 
+<div class="bg-zinc-900 rounded-lg">
     <div class="text-blue-100 font-bold text-2xl py-1 px-4 h-20">
         {{ employee.name }} PTO Requests 
     </div>
+
+    <!-- PTO 7x6 GRID -->
     <div class="grid grid-cols-7">
 
         {% for day in days %}
-            <div class="day-button border rounded p-4 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300"
+            <div class="day-button border rounded p-1 lg:p-4 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300"
                 id="{{day.date|date:'Y-m-d'}}"
                 data-has-pto="{{day.is_pto}}" 
                 data-has-shift="{{day.is_shift}}"
@@ -17,84 +20,17 @@
                 _="install PtoSwitch">
 
                 <div class="flex flex-row">
-                    <h3 class="text-md">
+                    <h3 class="text-xs md:text-md">
                         {{day.date.month}}/{{day.date.day}}
                     </h3>
                     <i class="fa-duotone fa-circle-check hidden px-2 text-xs text-blue-500"></i>
                 </div>
-                <p class="text-[9px]">
+                <p class="text-[9px] truncate">
                     {{day.weekday}}
                 </p>
             </div>
         {% endfor %}
 
     </div>
-    
-    <!-- <script type="text/javascript">
-        
-        // clear var assignment of dayButtons
-        var dayButtons = null;
-        // get all .day-button 
-        var dayButtons = document.querySelectorAll('.day-button');
-        // loop through each day button
-        dayButtons.forEach(dayButton => {
-            // if the day has pto
-            if (dayButton.dataset.hasPto > 0) {
-                // set the data-has-pto attribute to true
-                dayButton.dataset.hasPto = "True";
-                // add the checkmark icon
-                dayButton.querySelector('.fa-circle-check').classList.remove('hidden');
-                // add blue background 
-                dayButton.classList.add('bg-blue-500');
-                dayButton.classList.add('bg-opacity-20');
-                // bold the h3 text
-                dayButton.querySelector('h3').classList.add('font-bold');
-            }
-        });
-        // create click listener for each day button
-        dayButtons.forEach(dayButton => {
-            dayButton.addEventListener('click', () => {
-                // if the day has pto
-                if (dayButton.dataset.hasPto == "True") {
-                    // remove the checkmark icon
-                    dayButton.querySelector('.fa-circle-check').classList.add('hidden');
-                    // remove blue background 
-                    dayButton.classList.remove('bg-blue-500');
-                    // remove bold the h3 text
-                    dayButton.querySelector('h3').classList.remove('font-bold');
-                    // set the data-has-pto attribute to false
-                    dayButton.dataset.hasPto = "False";
-                    // fetch '/api/<day>/<emp>/actions/delete/'
-                    var dayslug = dayButton.id;
-                    console.log('Fetching deletion url...')
-                    fetch(`/api/ptoreq/${dayslug}/{{employee.slug}}/actions/delete`)
-                            .then(response => response.json())
-                            .then(data => {
-                                console.log(data);
-                    })
-                } else {
-                    // add the checkmark icon
-                    dayButton.querySelector('.fa-circle-check').classList.remove('hidden');
-                    // add blue background 
-                    dayButton.classList.add('bg-blue-500');
-                    dayButton.classList.add('bg-opacity-20');
-                    // bold the h3 text
-                    dayButton.querySelector('h3').classList.add('font-bold');
-                    // set the data-has-pto attribute to true
-                    dayButton.dataset.hasPto = "True";
-
-                    // fetch '/api/<day>/<emp>/actions/create/'
-                    var dayslug = dayButton.id;
-                    console.log('Fetching creation url...')
-                    fetch(`/api/ptoreq/${dayslug}/{{employee.slug}}/actions/create`)
-                    // response will be HttpResponse 
-                            .then(response => response)
-                            .then(data => {
-                                console.log(data);
-                                showToast(data);
-                    })      
-                }
-            });
-        });
-    </script>
-     -->
+    <!--...end pto grid -->
+</div>
