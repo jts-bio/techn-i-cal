@@ -1,0 +1,7 @@
+mixin navItem(icon, text, link)
+
+  div.text-center.mt-2.w-18.h-18
+    a.flex.flex-col(href=link class="group relative flex justify-center rounded px-2 py-1.5 bg-zinc-800")
+      i.fas.text-blue-600(class="fa-"+icon)
+      span.text-3xs(class="group relative flex justify-center rounded px-2 py-1.5 text-gray-100")
+      | {text}

@@ -1,18 +1,14 @@
-mixin navItem(icon, text)
-  div.text-center.my-2
-    a.flex.flex-col(href="" class="group relative flex justify-center rounded px-2 py-1.5 bg-gray-100")
-      i.fas.text-blue-600(class="fa-"+icon)
-      span.text-2xs(class="group relative flex justify-center rounded px-2 py-1.5 text-gray-500")
-        | #{text}
+include ../partials/nav-tile.pug
+//- navItem (icon, text, link)
 
-div.flex.h-screen.w-16.flex-col.justify-between.border-r.bg-white
+div.flex.h-screen.w-16.flex-col.justify-between.border-r.bg-zinc-900.absolute.top-0.left-0.z-20
   div
-    div.inline-flex.h-16.w-16.items-center.justify-center
-      span.grid.h-10.w-10.place-content-center.rounded-lg.bg-gray-300.text-xs.text-gray-900.text-opacity-60
-        | JS
+    div.inline-flex.h-16.w-16.items-center.justify-center.text-white
+      span.grid.h-10.w-10.place-content-center.rounded-lg.bg-zin-800.text-xs.text-gray-100.text-opacity-60
+        | #{user.username}
     div.border-t.border-gray-100
       nav(aria-label="Main Nav" class="flex flex-col p-2")
         div.py-3
-          +navItem("calendar", "Schedules")
-          +navItem("syringe", "Shifts")
-          +navItem("user-astronaut", "Employees")
+          +navItem("calendar",        "Schedules",  "/schedule/")
+          +navItem("syringe",         "Shifts",     "/shift/")
+          +navItem("user-astronaut",  "Employees",  "/employee/")

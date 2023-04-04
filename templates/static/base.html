@@ -79,24 +79,17 @@
 
 	<body class="bg-main">
 
-			{# HEADER #}	
+			{% comment %} {# HEADER #}	
 			{% include 'header.html' %}
 			{# BANNER #}
 			{% include 'nav-banner.pug' %} 
 
-			{% include 'navbar-left.pug' %}
-
-			
-
 			<div class="content mx-3 lg:ml-60">
-				
-				{% block pre %}
-				{% endblock %}
 
-				{% block content %}
-				{% endblock %}
+				{% include 'navbar-left.pug' %}	
 
-			</div>
+			</div> {% endcomment %}
+			{% include 'shell.html' %}
 
 
 			<div 
