@@ -176,15 +176,22 @@ class SchViews:
     =================================
     """
     def newSchView (request):
+        """
+        View for rendering the form for creating a new schedule.
+
+        Args:
+            request (HttpRequest): The HTTP request object.
+
+        Returns:
+            HttpResponse: The HTTP response object containing the rendered template.
+        """
         dates = Schedule.START_DATES
         return render(request, 'sch2/schedule/new.pug', {'dates':dates})
     
     class Calc:
         
-        def uf_distr (
-                request, 
-                schId 
-                ) -> JsonResponse:
+        def uf_distr (request, schId ) -> JsonResponse:
+            
             schedule = Schedule.objects.get(slug=schId)
             
             emusr = SchViews.schEMUSR(None, schedule.slug, asTable=False)
@@ -381,13 +388,13 @@ class SchViews:
         
         html_template = "sch2/schedule/emusr.html"
         
-        sch = Schedule.objects.get(slug=schId)
-        emusr = SchViews.schEMUSR(None, sch.slug)
+        sch               = Schedule.objects.get(slug=schId)
+        emusr             = SchViews.schEMUSR(None, sch.slug)
         emusr_differences = list(emusr.values_list("difference", flat=True))
         emusr_differences = [x for x in emusr_differences if x is not None]
         context = {
-            "sch": sch,
-            "emusr": emusr.exclude(emusr=0),
+            "sch":        sch,
+            "emusr":      emusr.exclude(emusr=0),
             "emusr_dist": max(emusr_differences) - min(emusr_differences),
         }
         return render(request, html_template, context)
@@ -399,8 +406,8 @@ class SchViews:
         emusr = SchViews.schEMUSR(None, sch.slug).get(pk=empl)
 
         context = {
-            "sch": sch,
-            "emusr": emusr,
+            "sch":          sch,
+            "emusr":        emusr,
             "unfavorables": unfavorables,
         }
         return render(request, html_template, context)
@@ -436,8 +443,13 @@ class SchViews:
         return render(request, html_template, context)
 
     def clearOverFteSchView (request,schId):
-        schedule = Schedule.objects.get(slug=schId)
-        empty_initial = schedule.slots.empty().count()
+        """Clear Over-FTE Slots
+        =======================
+        Action View--
+        Will Clear assignments in excess of 40 hr/wk
+        """
+        schedule        = Schedule.objects.get(slug=schId)
+        empty_initial   = schedule.slots.empty().count()
         slots  = []
         for prd in schedule.periods.all():
             for employee in prd.slots.values("employee").distinct():
@@ -587,8 +599,7 @@ class EmpPartials:
         comingUp = empl.slots.filter(workday__date__gte=dt.date.today()).order_by('workday__date')[:7]
         html_template = 'sch2/employee/partials/coming-up.html'
         return render(request, html_template, {'empl':empl})
-        
-        
+               
 class WdViews:
 
     def wdayDetailBeta (request, slug):
@@ -754,9 +765,6 @@ class ShiftViews:
         }
         return render(request, html_template, context)
         
-            
-
-
 class EmpViews:
 
     def empShiftSort(request, empId):
@@ -925,9 +933,7 @@ class EmpViews:
                 'plot': svg_base64
                 }
             )
-
-
-        
+     
 class IdealFill:
 
     def levelA(request, slot_id):

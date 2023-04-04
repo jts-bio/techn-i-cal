@@ -45,6 +45,8 @@ urlpatterns = [
     path('detail/<schId>/delete/', ApiActionViews.delete_schedule, name='sch__delete'),
     path('detail/<schId>/actions/clear-prn-slots/', Actions.clearPrnEmployeeSlots, name="clear-prn-slots"),
     path('detail/<schId>/actions/clear-ot-slots/', Actions.clearOvertimeSlotsByRefillability, name="clear-ot-slots"),
+    path('detail/<schId>/actions/publish/', Actions.publishView, name="publish"),
+    path('detail/<schId>/actions/unpublish/', Actions.unpublishView, name="unpublish"),
     
 
     

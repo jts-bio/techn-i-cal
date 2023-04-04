@@ -502,7 +502,7 @@ class Employee (models.Model) :
     hire_date       = models.DateField (default=dt.date(2018,4,11))
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
     active          = models.BooleanField (default=True )
-    
+    std_wk_max      = models.IntegerField (default=40)
     
     class Meta:
         ordering    = ['cls', 'name']
@@ -955,7 +955,7 @@ class Week (models.Model) :
         total_hours_subquery = data.filter(employee=OuterRef('pk')).values('hours')
         # Annotate the Employee queryset with the total hours for each employee
         return Employee.objects.annotate(hours=Subquery(total_hours_subquery)).annotate(
-            overtime_hours=40 - F('hours')).filter(overtime_hours__gt=0).order_by('-overtime_hours')
+            overtime_hours= F('hours') - 40).filter(overtime_hours__gt=0).order_by('-overtime_hours')
     def needed_hours (self):
         """
         >>> {<Josh> : 10, <Sabrina> : 5 }
@@ -1162,8 +1162,8 @@ class Schedule (models.Model):
     start_date = models.DateField ()
     status     = models.IntegerField (choices=list(enumerate("working,finished,discarded".split(",") )),default=0)
     employees  = models.ManyToManyField ('employee', related_name='schedules')
-    version    = models.CharField (max_length=1,default='A')
-    slug       = models.CharField (max_length=20,default="")
+    version    = models.CharField (max_length=1, default='A')
+    slug       = models.CharField (max_length=20, default="")
     # calculated fields
     percent             = models.IntegerField (default=0)
     unfavorable_ratio   = models.FloatField (default=0)
@@ -1172,6 +1172,8 @@ class Schedule (models.Model):
     n_empty             = models.IntegerField (default=0)
     data                = models.JSONField (default=DEFAULT_DATA)
     weekly_hours        = models.JSONField (default=dict(all=0))
+    prn_maxes           = models.ManyToManyField ('SchedulingMax', related_name="schedules")
+    
     
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
@@ -1237,6 +1239,14 @@ class Schedule (models.Model):
         self.actions.update_hours(self)
         if self.employees.count() == 0:
             self.employees.set(Employee.objects.filter(active=True))
+        for prn_empl in self.employees.prn_employees():
+            if not SchedulingMax.objects.filter(employee=prn_empl, number=self.number, year=self.year).exists():
+                self.prn_maxes.create(
+                    employee= prn_empl, 
+                    number= self.number, 
+                    year= self.year, 
+                    max_hours= prn_empl.std_wk_max
+                )
         if not RoutineLog.objects.filter(schedule=self).exists():
             RoutineLog.objects.create(schedule=self)
         if self.slots.all().count() != 0:
@@ -1290,7 +1300,10 @@ class Schedule (models.Model):
             if self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).exists():
                 conflicts += [self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).first()]
         return self.slots.filter(pk__in=[c.pk for c in conflicts])
-    
+    def is_best_version (self) -> bool: 
+        if self != Schedule.objects.filter(year=self.year,number=self.number).order_by('percent').first():
+                return False
+        return True
     def start_date_month (self):
         return self.start_date.strftime("%B")
     def as_empl_dict  (self):
@@ -1323,12 +1336,20 @@ class Schedule (models.Model):
     class Actions :
         def publish (self, instance):
             instance.status = 1
-            sch.save()
+            instance.save()
             to_discard = Schedule.objects.filter(year=instance.year, number=instance.number).exclude(pk=instance.pk)
             for sch in to_discard:
                 sch.status = 2
                 sch.save()
-            return HttpResponse('PUB200: Schedule Published')
+            return 'PUB200: Schedule Published | %s' % instance.slug
+        def unpublish (self, instance):
+            instance.status = 0 
+            instance.save()
+            recovered = Schedule.objects.filter(year=instance.year, number=instance.number).exclude(pk=instance.pk)
+            for sch in recovered:
+                sch.status = 0
+                sch.save()
+            return 'RCVR200: Schedule Unpublished, Alternates recovered | %s' % instance.slug
 
         def update_slots_fills_with (self, instance):
             for slot in instance.slots.all():
@@ -2263,11 +2284,11 @@ class ShiftPreference (ComputedFieldsModel):
 class SchedulingMax (models.Model):
     employee   = models.ForeignKey(Employee, on_delete=models.CASCADE)
     year       = models.IntegerField()
-    pay_period = models.IntegerField(null=True, blank=True)
+    number     = models.IntegerField(null=True, blank=True)
     max_hours  = models.IntegerField()
     
     class Meta:
-        unique_together = ('employee', 'year', 'pay_period')
+        unique_together = ('employee', 'year', 'number')
 # ============================================================================
 class ShiftSortPreference (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='shift_sort_prefs')

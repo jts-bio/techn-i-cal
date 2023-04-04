@@ -58,13 +58,19 @@ class EmployeeForm (forms.ModelForm) :
     class Meta:
         model = Employee
         fields = [
-            'name', 'fte', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls','time_pref'
+            'name', 'fte', 'shifts_trained', 
+            'shifts_available', 'streak_pref', 
+            'cls', 'time_pref', 'std_wk_max'
             ] 
         labels = {
             'fte'        : 'FTE',
             'cls'        : 'Employee Class',
-            'time_pref'  : 'Shift Time Preference'
+            'time_pref'  : 'Shift Time Preference',
+            'std_wk_max' : 'Standard Weekly Max Hours',
         }
+        help_text = dict(
+            std_wk_max="The maximum number of hours to scheduling within a week. This should remain at 40hrs for 1FTE employees"
+            )
         widgets = {
             'name'   : forms.TextInput(attrs={'class': 'form-control'}),
             'shifts_trained'   : forms.CheckboxSelectMultiple(),
@@ -130,12 +136,14 @@ class EmployeeEditForm (forms.ModelForm) :
             'name',             'fte_14_day',   
             'streak_pref',      'shifts_trained',   
             'shifts_available', 'cls', 
-            'time_pref',        'hire_date'
+            'time_pref',        'hire_date',
+            'std_wk_max'
             ] 
         labels = {
             'fte_14_day'    : 'FTE (hours/ 14 Days)',
             'cls'           : 'Employee Class',
-            'time_pref'     : "Time Preference"
+            'time_pref'     : "Time Preference",
+            'std_wk_max'    : 'Standard Weekly Max Hours',
         }
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple (attrs={'class':'form-control'}), 

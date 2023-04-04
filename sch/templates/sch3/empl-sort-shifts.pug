@@ -19,7 +19,6 @@ block content
                         span.name= shift.name
                         input(type="hidden" name="shift" value=shift.id)
         input(type="submit" value="Save Changes")
-
 block style
     style.
         .rank {
@@ -49,36 +48,29 @@ block style
 
 block pre
     script(type="text/hyperscript").
-
-        ----- SHIFT -----
-        -- The draggable component of the list.
-        -----------------
         behavior Shift 
             on dragstart 
                 add .dragging to me
                 then add .dragging-from to closest .rank
                 end 
             end
-
-        ----- RANK -----
-        -- The drop targets representing the numerical rank.
-        ----------------
+            on dragend 
+                remove .dragging from .shift
+                then remove .dragging-from from .rank
+                then trigger removeFade
+            end 
+    script(type="text/hyperscript").
         behavior Rank 
             on dragover 
                 call event.preventDefault()
-                then toggle .opaciy-30 to .shift in me until removeFade
+                then toggle .opaciy-30 on .shift in me until removeFade
                 end
             on drop 
-                call event.preventDefault() then 
                 set booting to .shift in me 
                 then set incoming to first .dragging 
                 then put incoming at the end of me 
                 put booting at the end of the first .dragging-from
                 then trigger removeFade
                 end
-            on dragend 
-                remove .dragging from .shift
-                then remove .dragging-from from .rank
-                then trigger removeFade
-                end 
             end
+  

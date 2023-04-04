@@ -59,18 +59,20 @@ behavior Deck
         call event.preventDefault() 
         end
     on drop 
+        call event.stopPropagation()
         call event.dataTransfer.getData("text")
+        then set employeeId to result
         then trigger checkAndTake
         end
     on checkAndTake
             set incomingEmployee to first .active then
             set sft to incomingEmployee@data-in-slot then
-            if sft is not 'None'
+            if sft is not 'None' 
                 put incomingEmployee at the end of me
                 then set incomingEmployee@data-in-slot to 'None' 
                 then remove .active from (.employee in me)
                 then fetch `${sft}/clear/` 
-                then log result
+                then add .bg-green-300 .bg-opacity-50 then wait 1s then remove .bg-green-300 .bg-opacity-50 
             end
         end
 

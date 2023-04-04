@@ -1,24 +1,38 @@
 extends base.html
 
+//- ================================
+//- SCHEDULE DETAIL TEMPLATE
+//- ================================
 
 block content
-
+    //- PAGE 
     .page.text.text-center.mt-2
+        //- NAV BAR
         a(class="hover:scale-115" href=previousUrl)
             i.fa-arrow-circle-left.fa-duotone.transition(class="hover:scale-115")
         a(class="hover:scale-115" href=previousUrl)
             i.fa-arrow-circle-right.fa-duotone.transition(class="hover:scale-115")
-        h1.text-3xl.text-zinc-400.font-bold Schedule #{schedule.number} (#{ schedule.year})
-        span.text-xs.text-zinc-100.font-light VERSION  
-        span#scheduleVersionId #{schedule.version}
-        span#versionEllipsis.jbm.mx-2(
-            class="hover:text-amber-500 hover:fa-ping" 
-            _="on click js showContextMenu(event)")
-                i.fa-duotone.fa-circle-ellipsis
+        //- TITLE
+        h1.text-3xl.text-zinc-400.font-bold Schedule #{schedule.number} (#{schedule.year})
+        //- VERSION INFO
+        //- IF DRAFT
+        if schedule.status == 0 
+            span.text-xs.text-zinc-100.font-light VERSION  
+            span#scheduleVersionId #{schedule.version}
+            span#versionEllipsis.jbm.mx-2(
+                class="hover:text-amber-500 hover:fa-ping" 
+                onclick="showContextMenu(event)")
+                    i.fa-duotone.fa-circle-ellipsis
+        //- IF PUBLISHED
+        if schedule.status == 1 
+            span.text-sm.bg-amber-500.text-black.rounded.px-4 PUBLISHED
+                i.fas-fa-x.text-amber-800(_="on click call confirm('Verify You will Unpublish this schedule.') if result == true fetch actions/unpublish/ then call window.location.reload()")
+                    i.fas.fa-x.opacity-50.text-amber-800.mx-1.cursor-pointer(class="hover:opacity-100")
         div.flex.flex-row.align-items
-        //- ACTION BUTTON 'components/action-btn.pug'
+        //- ACTION BUTTON   'components/action-btn.pug'
         include components/action-btn.pug
         #action-button-indicator.hidden.bg-yellow-300.rounded.h-6.text-black.animate-pulse.jbm Please Wait...
+        //- TAB BAR
         section#TAB-BAR-MAIN
             include sch2/schedule/partials/sch-tabBar.html
             
@@ -32,7 +46,50 @@ block content
                         i#swap-panel-indic.fas.fa-spinner.fa-spin.text-xl.fa-beat.htmx-indicator.mx-5
                         #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(class="md:px-4 md:m-4")
                    
+    //- CONTEXT MENU
+    #contextMenu.rounded.bg-black.text-white.p-3(
+        style="display:none;" 
+        class="z-10 absolute bg-opacity-[30%]"
+        )
+        //- Build Alternate Draft
+        div
+            a(href="build-alt-draft/" class="hover:underline")
+                i.fas.fa-hammer.opacity-80.pr-2 
+                span Build Alternate Draft Version
+        //- Publish this Schedule
+        div
+            div(
+                class="hover:underline"
+                _="on click if #{schedule.is_best_version()} == True fetch actions/publish/ then call window.location.reload() else call confirm('There is a better version available, publish anyway?') if result == true fetch actions/publish/ then call window.location.reload() end"
+                )
+                i.fas.fa-network-wired.opacity-80.pr-2.cursor-pointer
+                span Publish this Version (Version #{schedule.version})
+        //- Alternates
+        if alternates
+            div
+                div.text-2xs.opacity-2xs.bg-zinc-300.text-black.font-bold.mt-5.px-3
+                    | ALTERNATE VERSIONS
+                each alt in alternates
+                    div
+                        a.text-xs.opacity-70(class="hover:opacity-100" href=alt.url()) Version #{alt.version} 
+                            |
+                            if alt.difference > 0
+                                span.text-emerald-300 
+                                    | (+#{alt.difference}% more complete)
+                            if alt.difference < 0
+                                - var pct = alt.difference * -1
+                                span.text-red-300 
+                                    | (#{pct}% less complete)
+                            if alt.difference == 0
+                                span.text-zinc-300 
+                                    | (Same level of completion)
 
+    #wait-indicator.click-through.fixed.inset-0.flex.flex-col.items-center.justify-center.z-50.hidden.absolute.fa-beat.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.opacity-90.rounded-lg.shadow-lg(
+            class="left-[40%] w-[20%] top-[10%] h-[20%]"
+            )
+            div.text.text-center.text-black.text-3xl
+                i.fas.fa-user-robot.text-zinc-600.fa-shake.px-3
+            div.text.text-black.text-center.text-2xs.jbm.opacity-70.pt-2.animate-ping PLEASE WAIT...
 
 
 
@@ -58,8 +115,8 @@ block outside
             e.preventDefault();
             var contextMenu = document.getElementById("contextMenu");
             contextMenu.style.display = "block";
-            contextMenu.style.left = e.pageX + "px";
-            contextMenu.style.top = e.pageY + "px";
+            contextMenu.style.left    = e.pageX + "px";
+            contextMenu.style.top     = e.pageY + "px";
             //- remove previous event listener if exists
             document.removeEventListener('mousedown', hideContextMenu);
             //- then add event listener to close menus when user clicks outside
@@ -67,8 +124,11 @@ block outside
         }
 
         function hideContextMenu(ev) {
-            var contextMenu = document.getElementById("contextMenu");
-            contextMenu.style.display = "none";
+            // if click is not in context menu
+            if (!document.getElementById("contextMenu").contains(ev.target)) {
+                var contextMenu = document.getElementById("contextMenu");
+                contextMenu.style.display = "none";
+            }
         }
 
         function showWaitIndicator(ev) {
@@ -117,26 +177,4 @@ block outside
             swapPanelIndic.style.display = "none";
         }
 
-    #contextMenu.rounded.bg-black.text-white.p-3(display="none" class="z-10 absolute bg-opacity-[30%]")
-        a(href="build-alt-draft/" class="hover:underline")
-            i.fas.fa-hammer.opacity-80  
-            span Build Alternate Draft Version
-        div
-            each alt in alternates
-                div
-                    a.text-xs.opacity-70(class="hover:opacity-100" href=alt.url) Version #{alt.version} 
-                        |
-                        if alt.difference > 0
-                            span.text-emerald-300 (+#{alt.difference}% more complete)
-                        if alt.difference < 0
-                            - var pct = alt.difference * -1
-                            span.text-red-300 (#{pct}% less complete)
-                        if alt.difference == 0
-                            span.text-zinc-300 (Same level of completion)
 
-    #wait-indicator.click-through.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.absolute.fa-beat.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.opacity-90.rounded-lg.shadow-lg(
-            class="left-[33%] w-[34%] top-[10%] h-[30%]"
-            )
-            .text.text-center.text-black.text-3xl
-                i.fas.fa-user-robot.text-zinc-600.fa-shake
-            .text.text-black.text-center.text-2xs.jbm.opacity-70.pt-2 PLEASE WAIT

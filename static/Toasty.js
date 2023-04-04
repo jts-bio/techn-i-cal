@@ -78,44 +78,46 @@ function showToast(message, type) {
             toast.appendChild(toastspan);
             // set the toast message
             toastspan.innerHTML = message;
+            toast.style.opacity = 0;
             // add the toast to the wrapper
             var wrapper = document.getElementById("toast-wrapper");
             wrapper.appendChild(toast);
             // slide the toast in from the bottom
-            toast.addEventListener("mouseover", mouseOverToast(toast));
             toast.style.bottom = "-8x";
-            toast.style.opacity = 0;
-            toast.setAttribute("_", "install Toast");
-            
-}
-
-function mouseOverToast (toast) {
-            // reset the time unitl removeChild 
-            toast.style.opacity = 1;
-            toast.style.transition = "none";
-            // remove the toast after 5 seconds
-            setTimeout(function() {
-                toast.style.transition = "all 0.5s ease";
+            toast.ontransitionrun = () => {
+                toast.style.transition = "bottom 500ms cubic-bezier(0.34,0.74,0.24,1.47)";
+                toast.style.bottom = "0px";
+            }
+            toast.ontransitionend = () => {
+                toast.style.transition = "opacity 500ms linear";
+                toast.style.opacity = 1;
+            }   
+            // animate the toast out after 2 seconds
+            setTimeout(() => {
+                toast.style.transition = "opacity 1000ms linear";
                 toast.style.opacity = 0;
-                setTimeout(function() {
-                var wrapper = document.getElementById("toast-wrapper");
-                wrapper.removeChild(toast);
-                }, 500);
-            }, 5000);
+                toast.ontransitionend = () => {
+                    wrapper.removeChild(toast);
+                }   
+            }, 2000);
+
+                toast.setAttribute("_", "install Toast");
+            
+                //mouseenter remove ev listener 
+                toast.addEventListener("mouseenter", () => {
+                    toast.removeEventListener("", ()=>{}, true);
+                });
+                //mouseleave reintall listener
+                toast.addEventListener("mouseleave", () => {
+                    setTimeout(() => {
+                        toast.setAttribute("_", "install Toast");
+                    }
+                , 3000);
+            }
+            );
 }
 
 
 
 
-// create eventlistener 
-document.addEventListener("DOMContentLoaded", function() {
-    // get all the toasts
-    var toasts = document.getElementsByClassName("my-toast");
-    // loop through the toasts
-    for (var i = 0; i < toasts.length; i++) {
-        // add eventlistener to each toast
-        toasts[i].addEventListener("mouseover", function() {
-        mouseOverToast(this);
-        });
-    }
-    });
+

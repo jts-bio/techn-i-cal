@@ -10,7 +10,7 @@ urlpatterns = [
     path('', views.wdListView, name='wd-list'),
     path('<slug>/', views.wdDetailView, name='detail'),
     path('<slug>/slot/<shiftId>/', views.slotDetailView, name='slot-detail'),
-    path('<wd>/delete/', views.WdActions.wdClearView, name='slot-delete'),
+    path('<wd>/clear-slots/', views.WdActions.wdClearView, name='clear-slots'),
     path('<wd>/solve/', views.WdActions.wdSolveView, name='slot-solve'),
     path('<slug>/'+'slot/'+'<shiftId>/'+'update/',  views.SlotActions.slotUpdateView, name='slot-update'),
 

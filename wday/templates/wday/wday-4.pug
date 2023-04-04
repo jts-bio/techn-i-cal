@@ -52,20 +52,19 @@ block mymixins
 
     mixin empl-context-arrows(empl, workday)
         span.absolute.bottom-0.right-0.mr-2.mb-3.fa-2x
-            i.prev-arrow.fa-solid.fa-play.text-white.opacity-10.rotate-180
-            i.next-arrow.fa-solid.fa-play.text-white.opacity-10.px-1
+            i.prev-arrow.e-right.fa-solid.fa-play.text-white.opacity-10.rotate-180
+            i.next-arrow.e-left.fa-solid.fa-play.text-white.opacity-10.px-1
 
     mixin swap-in-button(slot)
-        .swap-in-btn.hidden.z-10.bg-emerald-400.pointer-cursor.border.float-right.rounded.px-2.fa-beat.truncate(
+        .swap-in-btn.hidden.z-10.bg-emerald-400.pointer-cursor.drop-shadow.float-right.rounded-full.px-3.fa-beat.truncate(
             _="install SwapButton"
             )
-                i.fas.fa-arrow-down-to-bracket.text-emerald-700
-                span.text-sm.text-emerald-900.jbm SWAP IN
+                i.fa-solid.fa-arrow-down-to-bracket.text-emerald-700.text-xl
 
     // MAIN MIXINS --------------------------------
 
     mixin Employee(empl, workday)
-        div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
+        div.employee.relative.bg-slate-700.rounded.border-white.border.h-20.w-34.m-1(
             draggable='true'
             data-employee-id=empl.slug
             data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True)))
@@ -77,11 +76,11 @@ block mymixins
             data-in-daytime= empl.check_daytime(workday.slug)
             data-in-slot= empl.check_slot(workday.slug)
             _='install Employee')
-                img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
-                span.font-thin.text-sm.truncate= empl.name.upper
-                div.hours-display.truncate
-                +empl-context-arrows(empl, workday)
-                
+                    img.e-img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
+                    div.e-name.font-thin.text-sm.truncate= empl.name.upper
+                    div.e-hours.hours-display.truncate.mt-1
+                    +empl-context-arrows(empl, workday)
+
     mixin Slot(slot)
         div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
             data-shift= slot.shift.name
@@ -108,11 +107,12 @@ block mymixins
                     +Employee(slot.employee, slot.workday)
 
 block style 
+
     style.
         .h1              {font-size: 32px; font-family: 'JetBrains Mono';}
         .h4              {font-size: 20px; border-radius: 6px; color: #000044!important; background-color: white; font-weight: bold; padding: 5px 2px 5px 2px;}
         #SlotGrid        {display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 1rem; overflow-x:scroll;}
-        #ScrollingDeck   {display: flex; flex-direction: row; overflow-x: scroll; margin:12px;adding: 12px; box-shadow: 0 0 10px #ffffff55;background-color: #ffffff55;}
+        #ScrollingDeck   {display: flex; flex-direction: wrap; overflow; margin:12px;padding: 12px; box-shadow: 0 0 10px #ffffff55;background-color: #ffffff55;}
         .active          {background-color: #ccffdd55!important; drop-shadow: 0 0 10px #ccffdd55;}
         .dragged-over-prohibited {background-color: #ff003333!important; drop-shadow: 0 0 10px #ff003377;}
         .dragged-over    {background-color: #ccffcc33!important;}
@@ -121,8 +121,16 @@ block style
         .pto-flag::after {content: 'PTO'; font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ff0000; position: absolute; top: 0; right: 0;}
         .ot-flag::after  {content: 'OT';  font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ee6655; position: absolute; top: 0; right: 0;}
         .badge-top-right {position: absolute; top: 0; right: 0;}
+        .employee        { display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(4, 1fr); grid-column-gap: 0px;grid-row-gap: 0px; }
+            .e-img          { grid-area: 1 / 1 / 4 / 4; } 
+            .e-name         { grid-area: 1 / 4 / 2 / 11; padding-left: 3px; padding-top: 3px; } 
+            .e-hours        { grid-area: 2 / 4 / 3 / 11; padding-left: 3px; } 
+            .e-left         { grid-area: 3 / 4 / 5 / 6; } 
+            .e-ctr          { grid-area: 3 / 6 / 5 / 9; } 
+            .e-right        { grid-area: 3 / 9 / 5 / 11; } 
 
 block pre 
+
     script(type='text/coffeescript', src='/static/wday-pug.coffee') 
     script(type='text/coffeescript', src='/static/workday/employee.coffee')
     script(type='text/hyperscript',  src='/static/wday-pug._hs')

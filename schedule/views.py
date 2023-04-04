@@ -62,7 +62,7 @@ def schListView(request):
         return HttpResponseRedirect(sch.url())
 
     context = {
-        "schedules": schedules.order_by("-start_date"),
+        "schedules": schedules.order_by("-start_date").exclude(status=2), # status 2 = discarded
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)
@@ -281,6 +281,10 @@ class Sections:
         turnarounds = sch.slots.turnarounds().preturnarounds().all()
         return render(request, "tables/turnarounds.pug", {"turnarounds": turnarounds, "sch": sch})
 
+    def schOvertimeList(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        wk = sch.weeks.all()[0] #type: Week
+        wk.overtime_hours()
 
 class Actions:
     """
@@ -297,10 +301,13 @@ class Actions:
 
     def publishView (request, schId):
         sch = Schedule.objects.get(slug=schId)
-        sch.actions.publish()
-        return HttpResponse(
-            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Schedule Published</div>"
-        )
+        sch.actions.publish(sch)
+        return HttpResponseRedirect(sch.url())
+        
+    def unpublishView (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        sch.actions.unpublish(sch)
+        return HttpResponse()
 
     class Updaters:
 

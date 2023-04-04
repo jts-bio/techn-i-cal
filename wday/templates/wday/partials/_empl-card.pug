@@ -1,0 +1,39 @@
+style.
+    .employee { 
+        display: grid; 
+        grid-template-columns: repeat(5, 1fr); 
+        grid-template-rows: repeat(5, 1fr); 
+        grid-column-gap: 0px;
+        grid-row-gap: 0px; 
+        }
+        .d1 { grid-area: 1 / 1 / 6 / 3; } 
+        .d2 { grid-area: 1 / 3 / 2 / 6; } 
+        .d3 { grid-area: 2 / 3 / 3 / 6; } 
+        .d4 { grid-area: 4 / 3 / 5 / 4; } 
+        .d5 { grid-area: 4 / 4 / 5 / 5; } 
+        .d6 { grid-area: 4 / 5 / 5 / 6; } 
+
+
+ 
+    
+mixin Employee(empl, workday)
+    div.employee.relative.bg-slate-700.rounded.p-3.border-white.border.h-24.w-32.m-1(
+        draggable='true'
+        data-employee-id=empl.slug
+        data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True)))
+        data-week-hours= empl.details_on_day(workday.slug)['wk_hours']
+        data-period-hours= empl.details_on_day(workday.slug)['pd_hours']
+        data-day-hours= empl.details_on_day(workday.slug)['day_hours']
+        data-prev-day= empl.check_prev_day(workday.slug)
+        data-next-day= empl.check_next_day(workday.slug)
+        data-in-daytime= empl.check_daytime(workday.slug)
+        data-in-slot= empl.check_slot(workday.slug)
+        _='install Employee')
+            .d1
+                img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
+            .d2
+                span.font-thin.text-sm.truncate= empl.name.upper
+            .d3
+                div.hours-display.truncate
+            .d4
+                +empl-context-arrows(empl, workday)
