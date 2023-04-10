@@ -2,12 +2,12 @@
 <h1 class="text-2xl">PTO Management</h1>
 
 <div class="bg-slate-300 text-slate-800 font-bold rounded border border-white h-7 w-[32em] px-3">
-    Total PTO Requests: {{ pto.count }}
+    Total PTO Requests: {{ pto_request.count }}
 </div>
 
-{% if ptoconflicts %}
+{% if pto_conflicts %}
     <div id="conflict-section" class="border rounded border-sky-200 p-3 m-4">
-        <h3 class="text-lg">{{ ptoconflicts.count }} PTO Conflicts </h3>
+        <h3 class="text-lg">{{ pto_conflicts.count }} PTO Conflicts </h3>
 
         <table id="conflict-table">
             <tr>
@@ -26,7 +26,7 @@
                     </div>
                 </th>
             </tr>
-            {% for slot in ptoconflicts %}
+            {% for slot in pto_conflicts %}
                 <tr>
                     <td class="empl-cell">
                         <i class="fa-duotone fa-triangle-exclamation"></i>

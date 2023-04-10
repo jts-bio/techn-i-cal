@@ -1,0 +1,9 @@
+behavior SwapButton
+    on click
+        if .active.length > 1
+            log `warning: active returns more than 1 response: ${.active}` end
+        if .active.length > 0
+            if .active in me == false
+                trigger checkAndAssign
+            end
+        end

@@ -23,6 +23,7 @@ schedule_urls = [
     path('<schId>/fill-by-period/', ApiActionViews.payPeriodFiller, name='sch__fill_by_period'),
     path('<schId>/week-excess/<empId>/<wk>/', ApiViews.schedule__employee_excess_week_hours, name='sch__get_week_excess'),
     path('<schId>/clear-empl-slots/<empId>/', Actions.ScheduleActions.clearEmployeeSlots, name="sch__clear_empl"),
+    path('<schId>/is-best-version/', ApiViews.schedule__is_best_version, name='get_is_best_version')
 ]
 
 shift_urls = [
@@ -31,6 +32,7 @@ shift_urls = [
 
 slot_urls = [
     path('<slotId>/actions/ignore-mistemplate/', ApiActionViews.ignore_mistemplated_flag, name='slot__ignore_mistemplate'),
+    path('<slotId>/actions/flag-mistemplate/', ApiActionViews.flag_mistemplated, name='slot__flag_mistemplate'),
 ]
 
 pto_urls = [

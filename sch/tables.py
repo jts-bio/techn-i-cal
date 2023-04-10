@@ -108,10 +108,10 @@ class ShiftListTable (tables.Table) :
         return " ".join(output)
     
     def render_prefs (self, value):
-        return round(((50 * value.avg_score()['avg'])+100)/2, 2)
+        return round(((50 * value.avg_score())+100)/2, 2)
     
     def render_sort_prefs (self, value):
-        return round((value.avg_score()['avg']), 2)
+        return round((value.avg_score()), 2)
     
     
     

@@ -62,8 +62,8 @@
 
 
     {% if week.slots.empty.count > 0 %}
-        <div class="flex grow flex-grow mx-12 bg-red-300 
-                    py-4 mt-2 mb-12 text-red-800 font-light 
+        <div class="flex flex-grow mx-12 text-red-300 w-[250px]
+                    py-4 mt-2 mb-12 bg-red-800 font-bold jbm  
                     text-xs px-7 rounded border border-red-700"
 
             _="on mouseover toggle .bg-red-400 .text-white .animate-pulse .rounded
@@ -73,7 +73,7 @@
                     on <td.empty-slot/> 
                     until mouseleave end"
             >
-            <i class="fas">{% warnIcon %}</i>
+            <i class="fas pr-5">{% warnIcon %}</i>
             {{ week.slots.empty.count }} empty slots
         </div>
     {% endif %}
@@ -139,26 +139,6 @@
     </div>
     <div>
 
-        <div class="hstack bg-slate-800">
-            <form action="{% url 'sch:v2-week-fill-templates' week.pk %}"
-                  method="POST"> {% csrf_token %}
-            <button type="submit"
-                class="bg-sky-100 text-sky-800 hover:bg-sky-200 p-2 m-2 rounded">
-                 FILL TEMPLATES
-            </button>
-            </form>
-            
-            <form method="POST" 
-                hx-post="{% url 'sch:v2-week-clear-slots' week.pk %}"
-                hx-confirm="Verify {{week.slots.all.count}} slots will be cleared out."> 
-                {% csrf_token %}
-                <button type="submit"
-                
-                class="bg-red-100 text-red-800 hover:bg-red-200 p-2 m-2 rounded" >
-                    <span id="spinner" class="hidden animate animate-spin">{% include 'sch/comp/spinners/spinner-1.svg' %}</span> CLEAR SLOTS (WITHIN WEEK)
-                </button>
-            </form>
-        </div>
 
     {% regroup slots by employee as slotCount %}
 
@@ -179,7 +159,8 @@
             {% for slot in empl.list %}
                 <a 
                     draggable=true 
-                    ondragstart="dragStartSlot(event);" ondragend="dragEndSlot(event);"
+                    ondragstart="dragStartSlot(event);" 
+                    ondragend="dragEndSlot(event);"
                     data-slot="{{slot.employee.slug}}"
                     href="{{ slot.url }}">
 
@@ -217,10 +198,14 @@
 <script type="text/hyperscript">
 
     def pingEmptySlots ()
-        toggle .scale-125 .text-md 
-                .font-bold .m-1 
-                .animate-pulse .bg-red-100 
-                .text-red-700 
+        toggle 
+            .scale-125 
+            .text-md 
+            .font-bold 
+            .m-1 
+            .animate-pulse 
+            .bg-red-100 
+            .text-red-700 
         end
 
 </script>

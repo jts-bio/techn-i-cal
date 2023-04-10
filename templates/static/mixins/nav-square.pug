@@ -1,0 +1,14 @@
+mixin nav-square(icon, text)
+
+  div.text-center.my-2
+
+    a.flex.flex-col(
+      href="" 
+      class="group relative flex justify-center rounded px-2 py-1.5 bg-gray-100 hover:bg-blue-200")
+
+      i.fas.text-blue-600(
+        class="fa-"+icon)
+
+      span.text-2xs(
+        class="group relative flex justify-center rounded px-2 py-1.5 text-gray-500")
+        | #{text}

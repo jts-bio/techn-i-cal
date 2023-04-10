@@ -1,0 +1,19 @@
+behavior TemplateEmployeeBtn
+    
+    on click 
+        call event.stopImmediatePropagation() then
+        if @data-template != @data-employee 
+            set sft to @data-shift then 
+            log `${sft}/fill-template/` then
+            fetch `${sft}/fill-template/` then
+            call showToast(result, "success")
+            then wait 1s 
+            then call window.location.reload() 
+            end
+        if @data-template == @data-employee 
+            call alert('Template Employee ($slot.template) is already properly assigned.')
+            end
+        end
+    end
+
+

@@ -64,9 +64,10 @@
                         class="jbm hover:underline">
                         {{ employee }}
                     </a>
-                    {# ----- TRASH ICON ----- #}
+                    {# ----- EMPLOYEES SCHEDULE TRASH ICON ----- #}
                     <i 
                         class="fa-duotone fa-trash hover:text-rose-400 hover:scale-[115%]"
+                        hx-confirm="Are you sure you want to clear all assignments for {{ employee }} for this schedule?"
                         hx-get="{% url 'flow:sch__clear_empl' schedule.slug employee.slug %}"
                         hx-trigger="click"
                         hx-target="#empl-row-{{ employee.slug }}">
@@ -127,17 +128,20 @@
         
                 modalBackground.css('display', 'block');
                 modal.css('display', 'block');
+                modal.addClass('border');
+                modal.addClass('backdrop-blur-sm');
+
                 var data = $.getJSON(url, function(data) {
-                    var content = modal.find('.modalContent');
-                    var weeknumber = modal.find('#weeknumber');
-                    var emplname = modal.find('#emplname');
+                    var content     = modal.find('.modalContent');
+                    var weeknumber  = modal.find('#weeknumber');
+                    var emplname    = modal.find('#emplname');
                     content.empty();
                     $.each(data.slots, function(i,value) {
                         emplname.text(value.employee);
                         console.log(value);
                         var html = `<div class="p-3 text-center bg-zinc-300 rounded m-2 
                                         ring ring-indigo-500 ring-offset-2 border-indigo-400 
-                                        border-double border">
+                                        border-double border opacity-70 hover:opacity-100">
                                         <div class="shift font-bold text-blue-900">
                                             ${value.shift}
                                         </div>

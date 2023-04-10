@@ -104,13 +104,19 @@ class ApiViews :
             wk.save()
         ot_sum = 0
         for wk in sch.weeks.values('hours'):
-            print(wk)
             for emp,val in wk['hours'].items():
-                print('   ', emp, val)
                 if val > 40:
                     print('contains overtime')
                     ot_sum += val - 40 
         return JsonResponse(ot_sum, safe=False)
+    
+    def schedule__is_best_version (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        schedules = Schedule.objects.filter(start_date=sch.start_date)
+        max_percent = max(list(schedules.values_list('percent',flat=True)))
+        return HttpResponse(str(max_percent == sch.percent))
+
+    
     def employee__week_hours (request, empId, sch, wd):
         emp = Employee.objects.get (slug = empId )
         day = Workday.objects.get (schedule= sch, slug__contains= wd)
@@ -126,8 +132,8 @@ class ApiActionViews:
     API DRIVEN ACTION VIEWS
     ---
     ```
-    build_dict 
-    build_alt_dict 
+    build_schedule 
+    build_alternate_draft
     deleteSch 
     set__shift_img
     pto_req__delete
@@ -138,7 +144,7 @@ class ApiActionViews:
     """
     
     
-    def build_schedule (request, year, num, version):
+    def build_schedule (request, year, num, version, start_date):
         """Build Schedule
         ---
         ```
@@ -148,7 +154,6 @@ class ApiActionViews:
             3 version_char
         """
         #basic time data
-        start_date = Schedule.START_DATES[year][num]
         pd_nums = [num*2 + i for i in range(3)]
         wk_nums = [num*6 + i for i in range(6)]
         dates = [start_date + dt.timedelta(days=i) for i in range(42)]
@@ -220,7 +225,7 @@ class ApiActionViews:
         sch = Schedule.objects.get(slug=schId) 
         c = Schedule.objects.filter(year=sch.year, number=sch.number).count()
         version = 'ABCDEFGHIJ'[c]
-        return ApiActionViews.build_schedule(request, sch.year, sch.number, version)
+        return ApiActionViews.build_schedule(request, sch.year, sch.number, version, sch.start_date)
     
     def delete_schedule (request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -293,10 +298,18 @@ class ApiActionViews:
         return HttpResponse(f'Filled {empty_n_i - empty_n_f} slots')
 
     def ignore_mistemplated_flag (request, slotId):
-        slot = Slot.objects.get(slug=slotId)
-        slot.tags.add(Slot.IGNORE_MISTEMPLATE_FLAG)
+        
+        slot = Slot.objects.get(slug=slotId) # type :Slot
+        slot.tags.add(slot.Flags.IGNORE_MISTEMPLATE_FLAG)
         slot.save()
-        return HttpResponse(f'Ignoring Mistemplate Flag for {slot}')     
+        return HttpResponse(f'Ignoring Mistemplating flag for {slot}') 
+    
+    def flag_mistemplated (request, slotId):
+        
+        slot = Slot.objects.get(slug=slotId)
+        slot.tags.remove(slot.Flags.IGNORE_MISTEMPLATE_FLAG)   
+        slot.save()
+        return HttpResponse(f'Watching {slot} for mistemplating')
     
 class VizViews:
     

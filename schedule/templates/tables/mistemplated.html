@@ -1,3 +1,5 @@
+
+
 <div class="bg-zinc-400 text-zinc-900 text-xs px-2 rounded-full hover:bg-sky-600 cursor-pointer w-fc my-2"
     hx-post="actions/retemplate-all/"
     hx-trigger="click"
@@ -15,6 +17,7 @@
         <th>Actions</th>
         <th>Template</th>
     </tr>
+    {% if data|length > 0 %}
     {% for slot in data %}
     <tr>
         <td>
@@ -40,7 +43,7 @@
                 hx-get="/api/slot/{{ slot.slug }}/actions/ignore-mistemplate/"
                 _="on click hide the previous .swap-btn
                    then add .bg-amber-300 to previous .current-empl 
-                   then put '' into next <td/>">
+                   then put `` into next <td/> end">
                 <i class="fa-solid fa-bell-slash hover:text-orange-300" 
                    title="Ignore Mistemplated Flag"></i>
             </span>
@@ -48,8 +51,28 @@
         <td>{{ slot.template_employee }}</td>
     </tr>
     {% endfor %}
+    {% endif %}
 </table>
 
-<script>
+<h3 class="text-lg font-bold my-3">Ingnoring warning on:</h3>
+{% for slot in ignoring_mistemplate %}
+
+<div class="py-1 px-2 rounded bg-amber-900 mx-2 my-2 inline-block hover:bg-amber-500 ignore-flag">
+    {{ slot.employee }} {{ slot.workday.date.month }}/{{ slot.workday.date.day }}
+    <span _="on click 
+                fetch /api/slot/{{slot.slug}}/actions/flag-mistemplate/ 
+                then remove closest .ignore-flag
+                then send recheck to #mistmpl
+                then fetch /schedule/partials/{{slot.schedule.slug}}/mistemplated/ 
+                then put result into #swap-panel
+            end"
+          class="fa-solid fa-times text-xl hover:text-amber-600 pointer-cursor">
+    </span>
+</div>
+
+{% endfor %}
+
+
+<script type="text-pug">
     
 </script>

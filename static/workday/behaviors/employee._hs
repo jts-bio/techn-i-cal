@@ -1,0 +1,116 @@
+behavior Employee 
+    init 
+        if @data-next-day is 'AM'
+            set @data-prohibited to 'PM XN' end
+        if @data-prev-day is in ['PM','XN']
+            set @data-prohibited to 'AM' end
+        if @data-next-day is 'AM' and @data-prev-day is in ['PM','XN']
+            set @data-prohibited to 'AM PM XN' end
+        trigger checkFlags 
+        if @data-day-hours == null 
+            set @data-day-hours to 0
+        else set @data-day-hours to @data-day-hours as Int end
+        if @data-week-hours == null 
+            set @data-week-hours to 0
+        else set @data-week-hours to @data-week-hours as Int end
+        if @data-period-hours == null 
+            set @data-period-hours to 0
+        else set @data-period-hours to @data-period-hours as Int end
+        then trigger renderHoursDisplay
+        end
+    on renderHoursDisplay
+        set wkhr to @data-week-hours as Int + @data-day-hours as Int then
+        set pdhr to @data-period-hours as Int + @data-day-hours as Int then
+        put `${wkhr}/${pdhr} hrs` into .hours-display in me 
+    on click 
+        call event.stopPropagation()
+        if I do not match .active
+            transition .active*scale to 1 over 200ms
+            add .active 
+            then take .active from .employee 
+            then transition my *scale to 1.25 over 300ms
+            then send hideHint to .slot
+            then send showHint to .slot
+            then log JSON.stringify(me.dataset, null, 2)
+        else 
+            remove .active 
+            then transition my *scale to 1 over 300ms
+            then send hideHint to .slot
+            end
+        end
+    on dragstart 
+        call event.dataTransfer.setData("text",event.target.dataset.employeeId) then
+        take .active from .employee 
+        then if I do not match .active 
+            add .active to me 
+        then send hideHint to .slot
+        then send showHint to .slot
+        then log @data-available
+        end 
+    on dragend 
+        send hideHint to .slot then 
+        wait 500ms then remove .active
+        end
+    on showBooted 
+        repeat for i in [1,2,3,4]
+            add .bg-amber-700 
+            then wait 300ms
+            then remove .bg-amber-700 
+            then wait 300ms
+            end
+        end
+    on showAccepted
+        repeat for i in [1,2,3,4]
+            add .bg-emerald-700 
+            then wait 300ms
+            then remove .bg-emerald-700 
+            then wait 300ms
+            end
+        end
+    on checkFlags 
+        if @data-prev-day == "AM" add .text-yellow-400 .opacity-50 to .prev-arrow in me 
+            then remove .text-white from .prev-arrow in me end 
+        if @data-prev-day == "PM" add .text-sky-400 .opacity-50 to .prev-arrow in me 
+            then remove .text-white from .prev-arrow in me end
+        if @data-next-day == "AM" add .text-yellow-400 .opacity-50 to .next-arrow in me 
+            then remove .text-white from .next-arrow in me end
+        if @data-next-day == "PM" add .text-sky-400 .opacity-50 to .next-arrow in me 
+            then remove .text-white from .next-arrow in me end
+        if @data-in-daytime is in @data-prohibited
+            add .turnaround to me end
+        if @data-in-daytime is not in @data-prohibited
+            remove .turnaround from me end
+        if #pto-list.dataset.employees contains @data-employee-id
+            add @data-pto to me then 
+            set @data-pto to true then
+            make a <span.pto-flag /> then put 'PTO' into it then 
+            append it to the end of me 
+            end
+        if #tdo-list.dataset.employees contains @data-employee-id
+            add @data-tdo to me then 
+            set @data-tdo to true then 
+            make a <span.tdo-flag /> then put 'TDO' into it then 
+            append it to the end of me 
+            end
+        end
+    on unfocus 
+        remove .active 
+        then transition my *scale to 1 over 300ms
+        then send hideHint to .slot
+        end
+    on dblclick 
+        call event.stopPropagation() then
+        set resp to JSON.stringify(me.dataset, null, 2) then 
+        call alert(resp)
+        end
+    end
+
+
+
+-------------------
+-- Slot 
+-- goto:///workspaces/techn-i-cal/static/workday/behaviors/slot._hs
+
+-- Pug Template 
+-- goto:///workspaces/techn-i-cal/wday/templates/wday/wday-4.pug 
+

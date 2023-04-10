@@ -19,8 +19,11 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog
+from .tables import MistemplatedFlagIgnoreTable
 import json
-
+from django.db.models import Case, When, Sum, IntegerField
+from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 
 def schListView(request):
     """ 
@@ -50,6 +53,7 @@ def schListView(request):
         sch.versionColor = VERSION_COLORS[sch.version]
 
     if request.method == "POST":
+        
         sd = request.POST.get("start_date")
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
         idate = start_date
@@ -57,8 +61,10 @@ def schListView(request):
         i = Schedule.START_DATES[year].index(start_date) + 1
         s = Schedule.objects.filter(year=year,number=i).count()
         version = "ABCDEFGH"[s]
-        flow_views.ApiActionViews.build_schedule(request, year, i, version )
+        
+        flow_views.ApiActionViews.build_schedule (request, year, i, version, start_date)
         sch = Schedule.objects.get(year=year, number=i, version=version)
+        
         return HttpResponseRedirect(sch.url())
 
     context = {
@@ -72,16 +78,23 @@ def groupedScheduleListView(request):
     yn_pairs = []
     for sch in Schedule.objects.all():
         yn_pairs.append((sch.year, sch.number))
+        
     yn_dict = {}
     for pair in yn_pairs:
         yn_dict[f"{pair[0]}-{pair[1]}"] = []
     for sch in Schedule.objects.all():
         yn_dict[f"{sch.year}-{sch.number}"].append(sch)
+        
     return render (request, "sch-list-grouped.html", {"schedules": yn_dict} )
 
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
+    
+    if sch.status == 2:
+        redirect_sch = Schedule.objects.get(year=sch.year, number=sch.number, status=1)
+        messages.info (request, f"{sch.slug} is discarded; you were redirected to the published version {redirect_sch.version}")
+        return HttpResponseRedirect (redirect_sch.url())
     prct = sch.percent 
     alternates = Schedule.objects.filter(
             year=sch.year, number=sch.number).exclude(pk=sch.pk).order_by('version').annotate(
@@ -89,11 +102,12 @@ def schDetailView(request, schId):
             difference= F('percent') - prct 
         )
     sch.save()
-    return render(request, "sch-detail.pug", {
-        "schedule":    sch, 
-        "alternates":  alternates,
-        "nextUrl":     sch.next().url(),
-        "previousUrl": sch.previous().url(),
+    return render (request, "sch-detail.pug", {
+        "schedule":          sch, 
+        "alternates":        alternates,
+        "nextUrl":           sch.next().url() if sch.next() else None,
+        "previousUrl":       sch.previous().url() if sch.previous() else None,
+        "isBestVersionLink": reverse("flow:get_is_best_version", args=[schId])
         }
     )
 
@@ -148,33 +162,41 @@ class Sections:
                 icon="fa-exclamation-triangle",
             ),
         ]
+        
         statsHtml = ""
         for stat in statPartials:
             statsHtml += render_to_string("stats__figure.html", stat)
+            
         return render(
             request, "stats.html", {"schedule": sch, "statPartials": statsHtml}
         )
 
-    def schMistemplated(request, schId):
+    def sch_mistemplated(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        data = ApiViews.schedule__get_mistemplated_list(request, schId).content
-        data = json.loads(data)
-        return render(request, "tables/mistemplated.html", {"data": data})
+        mistemplated_slots = ApiViews.schedule__get_mistemplated_list(request, schId).content
+        mistemplated_slots = json.loads(mistemplated_slots)
+        
+        ignoring_mistemplate = sch.slots.filter(tags__name=Slot.Flags.IGNORE_MISTEMPLATE_FLAG)
+        
+        return render(request, "tables/mistemplated.html", {
+            "data": mistemplated_slots, 
+            "ignoring_mistemplate": ignoring_mistemplate
+            })
 
     def schUnfavorables(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        data = ApiViews.schedule__get_unfavorables_list(request, schId).content
-        data = json.loads(data)
-        return render(request, "tables/unfavorables.html", {"data": data})
+        unfavorable_slots = ApiViews.schedule__get_unfavorables_list(request, schId).content
+        unfavorable_slots = json.loads(unfavorable_slots)
+        return render(request, "tables/unfavorables.html", {"data": unfavorable_slots})
 
     def schPtoConflicts(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        ptoconflicts = sch.slots.conflictsWithPto().all()
-        pto = sch.pto_requests.all()
+        pto_conflicts = sch.slots.conflictsWithPto().all()
+        pto_requests = sch.pto_requests.all()
         return render(
             request,
             "tables/pto-conflicts.html",
-            {"pto": pto, "schedule": sch, "ptoconflicts": ptoconflicts},
+            {"pto_requests": pto_requests, "schedule": sch, "ptoconflicts": pto_conflicts},
         )
 
     def schPtoGrid (request, schId, emp):
@@ -187,8 +209,7 @@ class Sections:
         for day in days:
             day.is_pto = day.date in ptos
             day.is_shift = day in shifts
-
-        for day in days:
+            
             if day.is_pto or day.is_shift:
                 print(day.date, day.is_pto, day.is_shift)
         
@@ -272,7 +293,7 @@ class Sections:
     
     def schLogView(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        return render(request, "tables/routine-log.html", {"schedule": sch})
+        return render(request, "components/timeline.pug", {"schedule": sch})
     
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -291,7 +312,7 @@ class Actions:
     SCHEDULE :: ACTION PERFORMING VIEWS
     ====================================
     ```
-    UPDATERS
+    Updaters
         @ update_fills_with 
     @ clearUntrained
     @ clearUnfavorables
@@ -299,12 +320,12 @@ class Actions:
     @ retemplateAll
     """
 
-    def publishView (request, schId):
+    def publish_view (request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.publish(sch)
         return HttpResponseRedirect(sch.url())
         
-    def unpublishView (request, schId):
+    def unpublish_view (request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.unpublish(sch)
         return HttpResponse()
@@ -319,14 +340,14 @@ class Actions:
             )
             
 
-    def clearUntrained(request, schId):
+    def clear_untrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.slots.untrained().update(employee=None)
         return HttpResponse(
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>"
         )
 
-    def clearUnfavorables(request, schId):
+    def clear_unfavorables(request, schId):
         sch = Schedule.objects.get(slug=schId)
         n_init = sch.slots.unfavorables().count()
         sch.slots.unfavorables().update(employee=None)
@@ -336,7 +357,7 @@ class Actions:
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} Unfavorable slots cleared</div>'
         )
 
-    def setTemplates(request, schId):
+    def set_templates(request, schId):
         """
         BASE SET TEMPLATES FOR SCHEDULE
         -------------------------------
@@ -371,41 +392,39 @@ class Actions:
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{len(to_update)} Templates set</div>'
         )
 
-    def fillWithFavorables(request, schId):
+    def fill_with_favorables(request, schId):
         from django.db.models import FloatField, Case, When, IntegerField
 
-        tmpl_response = Actions.setTemplates(request, schId)
-        ptoclear_response = Actions.clearAllPtoConflicts(request, schId)
+        tmpl_response     = Actions.set_templates(request, schId)
+        ptoclear_response = Actions.clear_all_pto_conflicts(request, schId)
 
-        schedule = Schedule.objects.get(slug=schId)
         n = 0
-        timei = dt.datetime.now()
-        results = []
-        slots = schedule.slots.empty()
-
-        from django.db.models import Case, When, Sum, IntegerField
-        from django.contrib.postgres.aggregates import ArrayAgg
-        from django.contrib.postgres.fields import ArrayField
-        weeks = schedule.weeks.all()
+        schedule = Schedule.objects.get(slug=schId)
+        time_i   = dt.datetime.now()
+        results  = []
+        slots    = schedule.slots.empty()
+        weeks    = schedule.weeks.all()
+        
         slots_subquery = slots.filter(
-            employee=OuterRef('employee'), week=OuterRef('week'))
-        employees = Employee.objects.annotate(
-            weekHours_0=Subquery(slots.filter(week=weeks[0], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_1=Subquery(slots.filter(week=weeks[1], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_2=Subquery(slots.filter(week=weeks[2], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_3=Subquery(slots.filter(week=weeks[3], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_4=Subquery(slots.filter(week=weeks[4], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours')),
-            weekHours_5=Subquery(slots.filter(week=weeks[5], employee=OuterRef(
-                'pk')).annotate(hours=Sum('shift__hours')).values('hours'))
+            employee=OuterRef('employee'), week=OuterRef('week')
+            )
+        
+        employees = schedule.employees.objects.annotate(
+            weekHours_0=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours')),
+            weekHours_1=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours')),
+            weekHours_2=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours')),
+            weekHours_3=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours')),
+            weekHours_4=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours')),
+            weekHours_5=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+                hours=Sum('shift__hours')).values('hours'))
         )
-         
+
         for slot in slots:
-            print('Before FILTER:', [e.slug for e in slot.fills_with.all()])
             empls = slot.fills_with.all().annotate(
                 hours=Sum(slot.week.slots.filter(
                     employee=F("pk"),
@@ -415,19 +434,16 @@ class Actions:
             ).annotate(
                 hoursUnder=F('fte') * 40 - F('hours'),
             ).annotate(
-                matchingTimePref=Case(
-                    When(time_pref=slot.shift.group, then=1),
+                matchingTimePref=Case(When(time_pref=slot.shift.group, then=1),
                     default=0,
                 )
             ).annotate(
-                hasPtoReq=Case(
-                    When(pto_requests__workday=slot.workday.date, then=1),
+                hasPtoReq=Case(When(pto_requests__workday=slot.workday.date, then=1),
                     default=0,
                 )
             )
             
             es = empls.filter(matchingTimePref=1).exclude(pk__in=slot.day_coworkers().all())
-            print('After FILTER: ', [e.slug for e in es.all()])
 
             if es.exists():
                 emp = es.order_by("?").first()
@@ -438,17 +454,16 @@ class Actions:
                     employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
                 for sibslot in slot.siblings_day: 
                     sibslot.fills_with.remove(emp)
-                    print('removing sibslots')
                 results.append(slot)
                 n+=1
 
-        schedule.slots.bulk_update(results, fields=('employee',))
-        timef = dt.datetime.now()
+        schedule.slots.bulk_update(results, fields=('employee'))
+        time_f = dt.datetime.now()
         schedule.routine_log.events.create(
             event_type='fill_with_favorables',
             data={
                 'n': n,
-                'time': f'{(timef - timei).seconds} seconds',
+                'time': f'{(time_f - time_i).seconds} seconds',
                 
             }
         )
@@ -456,44 +471,49 @@ class Actions:
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled with favorables</div>'
         )
 
-    def wdRedirect(request, schId, wd):
+    def wd_redirect(request, schId, wd):
         sch = Schedule.objects.get(slug=schId)
         wday = sch.workdays.get(slug__contains=wd)
         return HttpResponseRedirect(wday.url())
 
     @csrf_exempt
-    def retemplateAll(request, schId):
+    def retemplate_all (request, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
         for slot in sch.slots.filter(template_employee__isnull=False):
-            emp = slot.template_employee
-            if slot.employee != emp:
-                n += 1
-                slot.workday.slots.filter(employee=emp).update(employee=None)
-                slot.employee = emp
-                slot.save()
+            if Slot.Flags.IGNORE_MISTEMPLATE_FLAG not in slot.tags.names():
+                emp = slot.template_employee
+                if slot.employee != emp:
+                    n += 1
+                    slot.workday.slots.filter(employee=emp).update(employee=None)
+                    slot.employee = emp
+                    slot.save()
         return HttpResponse(
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots retemplated</div>"
         )
 
     @csrf_exempt
-    def solveTca(request, schId):
+    def solve_with_tca(request, schId):
         sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
             sch.actions.sch_solve_with_lookbehind(sch)
             return render(
                 request,
                 "data-responses/clearAll.html",
-                {"result": "success", "message": "TCA solved"},
+                {
+                    "result": "success", 
+                    "message": "Solved with TCA method"},
             )
         return render(
             request,
             "data-responses/clearAll.html",
-            {"result": "error", "message": "Invalid request method"},
+            {
+                "result": "error", 
+                "message": "Invalid request method"},
         )
 
     @csrf_exempt
-    def clearAllPtoConflicts(request, schId):
+    def clear_all_pto_conflicts(request, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
         for s in sch.slots.conflictsWithPto().all():
@@ -505,7 +525,7 @@ class Actions:
         )
 
     @csrf_exempt
-    def clearAll(request, schId):
+    def clear_all(request, schId):
         sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
             sch.actions.clearSlots(sch)
@@ -522,7 +542,7 @@ class Actions:
         )
 
     @csrf_exempt
-    def clearSlot(request, schId, wd, sft):
+    def clear_slot(request, schId, wd, sft):
         sch = Schedule.objects.get(slug=schId)
         slot = Slot.objects.get(
             schedule=sch, workday__slug__contains=wd, shift__name=sft
@@ -538,7 +558,7 @@ class Actions:
         )
 
     @csrf_exempt
-    def overrideSlot(request, schId, wd, sft, empId):
+    def override_slot(request, schId, wd, sft, empId):
         sch = Schedule.objects.get(slug=schId)
         empl = Employee.objects.get(slug=empId)
         print(request.method)
@@ -558,7 +578,7 @@ class Actions:
         )
 
     @csrf_exempt
-    def updateSlot(request, schId, wd, sft, empl):
+    def update_slot(request, schId, wd, sft, empl):
         employee = Employee.objects.get(slug=empl)
         sch = Schedule.objects.get(slug=schId)
         if isinstance(schId, int):

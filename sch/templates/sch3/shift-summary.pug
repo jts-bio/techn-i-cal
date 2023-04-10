@@ -1,0 +1,23 @@
+
+
+h2 FTE Coverage 
+.rounded.p-2.border 
+    div
+        span 1 schedule consists of 
+        span.var #{sum_} 
+        span  hours
+
+    div.text-2xs.italic
+        - var ftes = sum_ / (40 * 6)
+        span (
+        span.var #{ftes} 
+        span  FTEs Total)
+    div
+        span.var #{fte} 
+        span  FTE Cumulative for Staff Pool
+
+
+
+block style 
+    style.
+        .var { color: #cc6677bb; font-family: 'JetBrains Mono'; background-color: #acacac33; padding: 3px 5px; border-radius: 7px; }

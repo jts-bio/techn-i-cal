@@ -7,9 +7,9 @@
 <div class="place-items-center">
     {% for schgroup, schlist in schedules.items %}
         <div class="border px-5 py-2 rounded drop-shadow m-2 w-3/5 center"
-            data-year="{{ schgroup|slice:':4' }}"
-            data-number="{{ schgroup|slice:'5:' }}"
-            data-length="{{ schlist|length }}"
+            data-year=   "{{ schgroup|slice:':4' }}"
+            data-number= "{{ schgroup|slice:'5:' }}"
+            data-length= "{{ schlist|length }}"
             _="on click 
                     log my.dataset 
                     end">
@@ -20,9 +20,15 @@
                 </div>
                 <div>
                     {% for sch in schlist %}
-                        <a href="{{ sch.url }}" 
-                           class="mx-3 font-bold text-2xs bg-zinc-300 h-3 w-3 px-1 rounded-full text-zinc-800 bg-opacity-40
-                                  hover:bg-opacity-70">
+                        <a href="{% if sch.status != 2 %}{{ sch.url }}{% endif %}" 
+                           class="mx-3 font-bold text-2xs 
+                                    {% if sch.status == 0 %} bg-zinc-500 {% endif %}
+                                    {% if sch.status == 1 %} bg-yellow-600 {% endif %}
+                                    {% if sch.status == 2 %} bg-black   {% endif %}
+                                    h-3 w-3 px-1 rounded-full 
+                                    text-zinc-800 
+                                    bg-opacity-40
+                                    hover:bg-opacity-70">
                             {{ sch.version }}
                             <span class="text-[7pt] jbm px-1">
                                 {{ sch.percent }}%

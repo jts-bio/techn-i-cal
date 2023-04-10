@@ -1,4 +1,5 @@
 from django import forms
+from .widgets import InputGroup
 from .models import *
 from django.forms import BaseFormSet, formset_factory, BaseInlineFormSet
 import datetime as dt
@@ -70,39 +71,53 @@ class EmployeeForm (forms.ModelForm) :
         }
         help_text = dict(
             std_wk_max="The maximum number of hours to scheduling within a week. This should remain at 40hrs for 1FTE employees"
-            )
+        )
         widgets = {
-            'name'   : forms.TextInput(attrs={'class': 'form-control'}),
-            'shifts_trained'   : forms.CheckboxSelectMultiple(),
-            'shifts_available' : forms.CheckboxSelectMultiple(),
-            'time_pref' : forms.Select(),
-            'cls'       : forms.RadioSelect(),
+            'name'             : forms.TextInput (attrs={'class': 'form-control'}),
+            'shifts_trained'   : forms.CheckboxSelectMultiple (),
+            'shifts_available' : forms.CheckboxSelectMultiple (),
+            'time_pref'        : forms.Select (),
+            'cls'              : forms.RadioSelect (),
+            'std_wk_max'       : InputGroup(
+                                    fieldId='std-wk-max',
+                                    label='Std/Wk Max',
+                                    icon='time')
         }
    
 class TechnicianForm (EmployeeForm) : 
     class Meta (EmployeeForm.Meta) :
         model = Employee
-        fields = ['name', 'fte_14_day', 'cls', 'time_pref']
+        fields = [
+            'name', 
+            'fte_14_day', 
+            'cls', 
+            'time_pref'
+            ]
         widgets = {
             'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
             'cls'       : forms.HiddenInput()
         }   
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['fte_14_day'].label = "Hours/14 days"
+        self.fields['fte_14_day'].label = "hours / 14 days"
         self.fields['cls'].initial = 'CPhT'
         
 class PharmacistForm (EmployeeForm) :
     class Meta (EmployeeForm.Meta) :
         model = Employee
-        fields = ['name', 'fte_14_day', 'cls', 'time_pref']
+        fields = [
+            'name', 
+            'fte_14_day', 
+            'cls', 
+            'time_pref'
+            ]
         widgets = {
             'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
             'cls': forms.HiddenInput()
         }   
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['fte_14_day'].label = "Hours/14 days"
+        self.fields['fte_14_day'].label = "hrs / 14 days"
         self.fields['cls'].initial = 'RPh'
 
 class EmployeeSelectForm (forms.Form):
@@ -232,7 +247,7 @@ class EmployeeTemplatedDaysOffForm (forms.ModelForm) :
     def clean(self):
         cleaned_data = super(EmployeeTemplatedDaysOffForm,self).clean()
         td = TemplatedDayOff.objects.filter(employee=cleaned_data['employee'], sd_id=cleaned_data['sd_id'])
-        if cleaned_data['is_templated_off']:    # create or pass
+        if cleaned_data['is_templated_off']:   # create or pass
             if td.exists():                    # pass
                 pass
             else:                              # create 

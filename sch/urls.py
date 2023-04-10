@@ -100,6 +100,7 @@ shift_patterns = [
     path('v2/shift/sst/<str:shiftId>/shift-sst/', viewsets.ShiftViews.sstFormView, name='shift-sst-form'),
     path('shift/<sft>/prefs/update/', views.SHIFT.shiftPrefUpdate, name='shift-prefs-update'),
     path('v2/shift/<cls>/<sft>/coverage/', viewsets.ShiftViews.coverageFormView, name='shift-coverage-form'),
+    path('shifts/all/partial/summary/',viewsets.ShiftViews.fteSummaryView,name="shifts-all-total-hours",),
 ]
 
 slot_patterns = [

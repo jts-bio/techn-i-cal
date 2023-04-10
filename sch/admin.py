@@ -2,7 +2,7 @@ from django.contrib import admin
 from .models import (
                 Shift, Employee, TemplatedDayOff, Workday, Slot, 
                 ShiftTemplate, PtoRequest, Week, Period, Schedule,
-                RoutineLog, LogEvent )
+                RoutineLog, LogEvent, WorkdayViewPreference )
 
 class MyAdminSite(admin.AdminSite):
     site_header = "Monty Python administration"
@@ -109,3 +109,8 @@ class RoutineLogAdmin (admin.ModelAdmin):
 class LogEventAdmin (admin.ModelAdmin):
     fields          = ('log', 'event_type', 'description')
     list_display    = ('log', 'event_type', 'description')
+    
+@admin.register(WorkdayViewPreference)
+class WorkdayViewPreferenceAdmin (admin.ModelAdmin):
+    fields          = ('user', 'view')
+    list_display    = ('user', 'view')

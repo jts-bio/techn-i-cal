@@ -491,6 +491,7 @@ class SchPartials:
         return render (request, html_template, context)
     
     def schComplexTablePartial (request, schId):
+        # goto://sch2/schedule/partials/complex-table-wrapper.html
         html_template = "sch2/schedule/partials/complex-table-wrapper.html"
         sch = Schedule.objects.get(slug=schId)
         for wd in sch.workdays.all():
@@ -765,6 +766,19 @@ class ShiftViews:
         }
         return render(request, html_template, context)
         
+    def fteSummaryView (request):
+        sum_ = 0
+        for shift in Shift.objects.all():
+            sum_ += shift.hours * len(shift.occur_days) * 6 # x hrs * n/week * 6wk/schedule 
+        fte = 0
+        for empl in Employee.objects.filter(active=True):
+            fte += empl.fte
+
+        return render(request, "sch3/shift-summary.pug", {'sum_': sum_, 'fte': fte})
+            
+            
+    
+        
 class EmpViews:
 
     def empShiftSort(request, empId):
@@ -790,149 +804,17 @@ class EmpViews:
 
         context = {
             "employee": emp,
-            "nTotal": range(1, emp.shifts_available.all().count() + 1),
-            "shifts" : emp.shifts_available.all().annotate(rank=Subquery(
+            "nTotal"  : range(1, emp.shifts_available.all().count() + 1),
+            "shifts"  : emp.shifts_available.all().annotate(rank=Subquery(
                 ShiftSortPreference.objects.filter(
-                    employee=emp,
-                    shift=OuterRef('pk')
-                ).order_by('rank').values('rank')[:1],
-                )),
+                    employee=emp,shift=OuterRef('pk')).values('rank')[:1]
+                        )).order_by('rank')
             }
         return render(request, 'sch3/empl-sort-shifts.pug', context)
     
     def empShiftTallies (request, empId, doRender=True):
         emp = Employee.objects.get (slug=empId)
-        # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
-        subquery = Subquery(
-                        Slot.objects.filter(
-                            employee=OuterRef('employee'),
-                            shift=OuterRef('shift')
-                        ).values('employee', 'shift').annotate(
-                            count=Count('*')
-                        ).values('count')[:1],
-                output_field=models.IntegerField()
-            ) 
-        
-        shift_prefs = emp.shift_prefs.all() 
-        shift_prefs.annotate(count=subquery)
-
-        score_subquery = Subquery(
-            Slot.objects.filter(
-                employee=OuterRef('employee'),
-                shift=OuterRef('shift'),
-            ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
-                count=Count('*')
-            ).values('count')[:1],
-            output_field=models.IntegerField()
-        )
-        shift_prefs_with_counts = shift_prefs.annotate(
-            pref_score=Subquery(
-                ShiftPreference.objects.filter(
-                    employee=OuterRef('employee'),
-                    shift=OuterRef('shift')
-                ).values('score')[:1]
-                    )
-                ).annotate(
-                    score_count=Coalesce(score_subquery, 0)
-                ).values(
-                    'score'
-                ).annotate(
-                    count=Sum('score_count')
-                ).order_by('score')
-        # annotate the queryset with the list of shifts that the employee has that score for 
-        # then annotate with 'Strongly Dislike' to 'Strongly Like' based on the -2 to 2 score 
-        shift_prefs_with_counts = shift_prefs_with_counts.annotate(
-            shifts=Subquery(
-                ShiftPreference.objects.filter(
-                    employee=OuterRef('employee'),
-                    score=OuterRef('score')
-                ).values('shift__name')
-            )
-        )
-        if doRender == False:
-            return shift_prefs_with_counts
-        
-        from django.db.models import Count, OuterRef, Subquery
-        import pandas as pd
-        import seaborn as sns
-        import matplotlib.pyplot as plt
-        import urllib
-        import base64
-        from io import BytesIO
-        import seaborn as sns
-        import matplotlib.pyplot as plt
-        from django.db.models import Sum
-        # define a subquery that counts the occurrences of each employee/shift combination in the Slot model
-        subquery = Subquery(
-            Slot.objects.filter(
-                employee=OuterRef('employee'),
-                shift=OuterRef('shift')
-            ).values('employee', 'shift').annotate(
-                count=Count('*')
-            ).values('count')[:1],
-            output_field=models.IntegerField()
-        )
-        # Count n of Slots, then if A ShiftPreference exists for that employee/shift combination
-        emp = Employee.objects.get(name=empId)
-        shift_prefs = emp.shift_prefs.annotate(count=subquery)
-
-        score_subquery = Subquery(
-            Slot.objects.filter(
-                employee=OuterRef('employee'),
-                shift=OuterRef('shift'),
-            ).values('employee', 'shift', 'employee__shift_prefs__priority').annotate(
-                count=Count('*')
-            ).values('count')[:1],
-            output_field=models.IntegerField()
-        )
-        sps = shift_prefs.annotate(
-            pref_score=Subquery(
-                ShiftPreference.objects.filter(
-                    employee=OuterRef('employee'),
-                    shift=OuterRef('shift')
-                ).values('score')[:1]
-            )
-        ).annotate(
-            score_count=Coalesce(score_subquery, 0)
-        ).values('score').annotate(
-            count=Sum('score_count')
-        ).order_by('score')
-
-        data = []
-        for emp in sps:
-            for n in range(emp['count']):
-                data.append(emp['score'])
-
-        sns.kdeplot(data=data, fill=True, bw_adjust=1.5,
-                    cut=4, label=f'{emp.name}')
-        sns.set_theme('paper', "dark")
-        plt.style.use('dark_background')
-        # change x label to "Dislike" at -3 and "Prefer" at 3
-        plt.xticks([-3, 0, 3], ['Dislike', 'Neutral', 'Prefer'])
-
-        emp = Employee.objects.get(name=empId)
-        # change x labels to be from Dislike to Prefer
-        plt.xticks([-2.5, 2.5], ['Dislike', 'Prefer'])
-        plt.title(f'{emp.name}\'s Shift Preference Distribution')
-        # save the figure to a buffer as SVG
-        plt.legend(loc='upper left')
-        buf = BytesIO()
-
-        plt.savefig(buf, format='svg')
-        plt.savefig(buf, format='svg')
-        # get the SVG contents as bytes and encode to base64
-        svg_bytes = buf.getvalue()
-        svg_base64 = base64.b64encode(svg_bytes).decode('utf-8')
-        # format the SVG string in an HTML <img> tag
-        svg_html = f'<img src="data:image/svg,{svg_base64}" />' 
-        buf.close()
-        plt.close()
-        return render(request, 'sch2/employee/shift-tally.pug', {
-                'emp':emp, 
-                'tallies': shift_prefs_with_counts,
-                'plot': svg_base64
-                }
-            )
+        vals = emp.shift_prefs.values('score')
      
 class IdealFill:
 

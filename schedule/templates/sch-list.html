@@ -33,7 +33,7 @@
 
   <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
     {% #toggle-section title="New Schedule Dialog" %}
-    <div class="border-2 border-slate-300 rounded">
+    <div class="border-2 border-slate-300 rounded mt-2">
       <div class="px-3 py-2 bg-zinc-900 rounded">
         <h2 class="text-lg">New Schedule Wizard</h2>
       </div>
@@ -61,7 +61,7 @@
 
 <div class="md:block list list-view overflow-y-scroll">
   <div class="column p-8 m-8">
-    <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow shadow-sm">Schedule List</h2>
+    <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow">Schedule List</h2>
     <a href="grouped/"
        class="text-yellow-300 hover:underline float-right text-xs">Switch to Grouped View</a>
     <table class="table my-7">
@@ -83,7 +83,7 @@
         <td>
           
           <a href="detail/{{sch.slug}}/"
-            class="bg-{{ sch.versionColor}}-600 rounded-sm shadow shadow-lg
+            class="bg-{{ sch.versionColor}}-600 rounded-sm shadow-lg
                    transform  hover:scale-105 hover:shadow-2xl
                    active:fa-beat"
             id="button-{{sch.slug}}">

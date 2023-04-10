@@ -1,24 +1,38 @@
 extends base.html
 
 block content
-    h1.text-indigo-300.font-bold Sorted Shift Preferences
-    h3= employee 
+    h1.text-indigo-300.font-bold.text-3xl Sorted Shift Preferences
+    h3.text-xl= employee 
+
+    p.
+        To modify shift preferences, drag and drop the shift name. 
+        Slot 1 indicates your most preferred shift.
 
     form(method="POST")
     
-        input(type='hidden', value='{{ csrf_token }}', name='csrfmiddlewaretoken')
-        - var n = 1
+        input(
+            type='hidden'
+            value='{{ csrf_token }}'
+            name='csrfmiddlewaretoken')
+
         div.flex.flex-row 
 
-            each shift in shifts
-
+            each shift,index in shifts
+                - var i = index + 1
                 div.rank(_="install Rank")
-                    span.rank= n
-                    - var n = n + 1
+                    span.rank= i
                     div.shift(draggable='true' _="install Shift")
                         span.name= shift.name
-                        input(type="hidden" name="shift" value=shift.id)
-        input(type="submit" value="Save Changes")
+                        input(
+                            type="hidden" 
+                            name="shift" 
+                            value=shift.id)
+
+        input(
+            type="submit" 
+            class='p-2 my-4 border border-yellow-500 rounded transition text-yellow-500 hover:scale-110 hover:bg-yellow-400 hover:text-black cursor-pointer'
+            value="Save Changes")
+
 block style
     style.
         .rank {
@@ -48,7 +62,13 @@ block style
 
 block pre
     script(type="text/hyperscript").
+
+        -- SHIFT BEHAVIOR ----------
+
         behavior Shift 
+            on touchstart 
+                call event.preventDefault()
+                end
             on dragstart 
                 add .dragging to me
                 then add .dragging-from to closest .rank
@@ -60,12 +80,30 @@ block pre
                 then trigger removeFade
             end 
     script(type="text/hyperscript").
+
+        -- RANK BEHAVIOR ----------
+
         behavior Rank 
-            on dragover 
-                call event.preventDefault()
-                then toggle .opaciy-30 on .shift in me until removeFade
+            on load 
+                add .transition-trasform .transition-size to .name in me
+                end
+            on dragenter 
+            or dragover
+                halt the event
+                then call event.stopImmediatePropagation()
+                then add 
+                    .opacity-30
+                to .name in me
+                end
+            on dragend 
+            or drop 
+            or dragleave
+                remove 
+                    .opacity-30
+                from .name in me
                 end
             on drop 
+                halt the event then 
                 set booting to .shift in me 
                 then set incoming to first .dragging 
                 then put incoming at the end of me 

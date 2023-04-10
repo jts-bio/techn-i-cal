@@ -1,5 +1,3 @@
-# 'wday/views.py'
-
 wdid_elem =     document.querySelector '#wdid'
 ptolist_elem =  document.querySelector '#pto-list'
 
@@ -35,7 +33,7 @@ addPtoBadges = ->
             
 addPtoBadges()
 
-behavior Employee
+export class Employee
   init: ->
     @trigger 'checkFlags'
     

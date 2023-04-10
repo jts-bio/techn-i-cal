@@ -1,9 +1,4 @@
-mixin navItem(icon, text)
-  div.text-center.my-2
-    a.flex.flex-col(href="" class="group relative flex justify-center rounded px-2 py-1.5 bg-gray-100")
-      i.fas.text-blue-600(class="fa-"+icon)
-      span.text-2xs(class="group relative flex justify-center rounded px-2 py-1.5 text-gray-500")
-        | #{text}
+include ../mixins/nav-square.pug
 
 div.flex.h-screen.w-16.flex-col.justify-between.border-r.bg-white
   div
@@ -13,6 +8,6 @@ div.flex.h-screen.w-16.flex-col.justify-between.border-r.bg-white
     div.border-t.border-gray-100
       nav(aria-label="Main Nav" class="flex flex-col p-2")
         div.py-3
-          +navItem("calendar", "Schedules")
-          +navItem("syringe", "Shifts")
-          +navItem("user-astronaut", "Employees")
+          +nav-square("calendar",       "Schedules")
+          +nav-square("syringe",        "Shifts")
+          +nav-square("user-astronaut", "Employees")

@@ -53,15 +53,14 @@ def schDetailView (request, schId):
     schedule = Schedule.objects.get(slug=schId)
 
     if request.method == "POST":
-        form = EmployeeSelectForm(request.POST)
+        form = EmployeeSelectForm (request.POST)
         if form.is_valid():
             employee = form.cleaned_data["employee"]
             return HttpResponseRedirect(
-                reverse("sch:v2-schedule-empl-pto",
-                        args=[schedule.pk, employee.pk])
-            )
+                reverse ("sch:v2-schedule-empl-pto",
+                        args=[schedule.pk, employee.pk]))
         else:
-            messages.warning(request, "Form is invalid")
+            messages.warning (request, "Form is invalid")
 
     context = {
         "schedule":        schedule,
@@ -351,25 +350,23 @@ class ScheduleMaker:
             - ``number``
         -------------------------------------------
         """
-        yeardates = []
-        for date in SCH_STARTDATE_SET:
-            if date.year == year:
-                yeardates.append(date)
-        yeardates.sort()
-        n = Schedule.objects.filter(year=year, number=number).count()
-        version = "ABCDEFGHIJKLMNOPQRST"[n - 1]
-        print(yeardates)
-        start_date = yeardates[number - 1]
+        yeardates  = Schedule.START_DATES [year]
+        n          = Schedule.objects.filter (year=year, number=number).count()
+        version    = "ABCDEFGHIJKLMNOPQRST" [n - 1]
+        start_date = yeardates [number - 1]
+        
         sch = Schedule.objects.create(
-            start_date=start_date, version=version, number=number, year=year
+            start_date= start_date, 
+            version= version, 
+            number= number, 
+            year= year
         )
         sch.save()
+        
         for slot in sch.slots.all():
             slot.save()
-        return (
-            sch,
-            f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] ",
-        )
+            
+        return (sch, f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] ")
 
 
 def mytest(request):

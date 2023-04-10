@@ -31,7 +31,7 @@
             <td>{{ slot.shift }}</td>
             <td class="empl-cell">{{ slot.employee }}</td>
             <td>
-                <div  hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
+                <div hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
                     hx-trigger="click"
                     hx-swap="innerHTML"
                     _="on click add .line-through to previous .empl-cell then

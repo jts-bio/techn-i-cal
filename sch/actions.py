@@ -24,33 +24,22 @@ class WorkdayActions:
         Shift-Slot-Templates.
 
         Checks:
-        1. No existing slot 
-        2. Template exists for the day
-        3. Employee Templated is not on PTO.
-        4. Dont fill an employee into a turnaround 
-        #TODO Dont fill if employee is working a different shift that day
+        1.  No existing slot 
+        2.  Template exists for the day
+        3.  Employee Templated is not on PTO.
+        4.  Dont fill an employee into a turnaround 
+        5.  Dont fill if employee is working a different shift that day
         """
         templs = ShiftTemplate.objects.filter(sd_id=workday.sd_id)
         slots  = workday.slots.all()
         for slot in slots:
             slot.set_sst()
-        # for slot in slots.empty():
-        #     if templs.filter(sd_id=slot.sd_id).exists():
-        #         # check if employee is on PTO? 
-        #         empl = templs.get(shift=slot.shift,sd_id=slot.sd_id).employee
-        #         if PtoRequest.objects.filter(employee=empl, date=workday.date).exists()==False:
-        #             slot.employee = empl
-        #             slot.save()
-
-                
-                        # insert employee + shift into slot
             
 
     def identifySwaps (workday) :
         """
         Identifies Trades that are tenable AND increase satisfaction for 1 or both employees,
         AND doesn't decrease satisfaction for either.
-        
         ONLY trades WITHIN a workday
         """
         

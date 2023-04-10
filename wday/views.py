@@ -94,9 +94,13 @@ def wdDetailView (request, slug:str):
     logger.info (f'     weekHours : {[(empl.slug, empl.weekHours(wd)) for empl in wd.on_deck().all()]}')
 
     dial = components.BasicSpeedDial()
-    dial.addOption(name="Show PTO Employees", url="include-pto/", icon="arrows-expand", color="sky")
-    
-    context = dict (
+    dial.addOption(
+        name="Show PTO Employees", 
+        url="include-pto/", 
+        icon="arrows-expand", 
+        color="indigo"
+        )
+    context = dict(
             workday =    wd, 
             slots =      wd.slots.all(),
             employees =  wd.schedule.employees.all().annotate(
@@ -105,11 +109,8 @@ def wdDetailView (request, slug:str):
                         weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__week=wd.week)), 
                         periodHours =   Sum('slots__shift__hours', filter=Q(slots__workday__period=wd.period))),
             )
-    viewPref_template = WorkdayViewPreference.objects.get(user=request.user).view
-
-    #   NOTE / THIS VIEW UTILIZES A USER PREFERENCE TO DETERMINE TEMPLATE USED
-    #   MAIN TEMPLATE / 'wday/wday-4.pug'
-    return render(request, WD_VIEW_PREF_CHOICES[int(viewPref_template)][1] , context)
+    
+    return render(request, 'wday/wday-4.pug' , context)
 
 class WdActions: 
     
