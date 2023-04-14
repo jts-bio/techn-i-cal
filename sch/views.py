@@ -1491,12 +1491,12 @@ class EMPLOYEE:
         -----------------------------------------------------------------------
             flowrate.herokuapp.com/sch/employees/`<employeeName>`/co-worker/`<otherEmployeeName>`/
         """
-        emp1 = Employee.objects.get(slug__icontains=nameA)
-        emp2 = Employee.objects.get(slug__icontains=nameB)
+        emp1   = Employee.objects.get(slug__icontains=nameA)
+        emp2   = Employee.objects.get(slug__icontains=nameB)
         
-        emp1slots = Slot.objects.filter(employee=emp1).values('workday')
-        emp1days  = Workday.objects.filter(pk__in=emp1slots)
-        emp2days  = Slot.objects.filter(employee=emp2).values('workday')
+        emp1slots = Slot.objects.filter (employee=emp1,schedule__status=1).values('workday')
+        emp1days  = Workday.objects.filter (pk__in=emp1slots)
+        emp2days  = Slot.objects.filter(employee=emp2,schedule__status=1).values('workday')
         
         days = emp1days.filter(pk__in=emp2days).annotate(
             sft1=Subquery(Slot.objects.filter(employee=emp1,workday=OuterRef('pk')).values('shift__name'))).annotate(

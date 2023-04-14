@@ -115,12 +115,19 @@ def schDetailShiftGridView (request, schId):
 
 
 def schDetailSingleEmployeeView (request, schId, empId):
-    schedule = Schedule.objects.get(slug=schId)
+    schedule = Schedule.objects.get(slug=schId) #type: Schedule
     employee = Employee.objects.get(slug__iexact=empId)
     empl_schedule = employee.schedule_data(schedule.slug)
 
     html_template = 'sch2/employee/empl-schedule-view.html'
-    return render(request, html_template, {'schedule': empl_schedule, 'employee': employee, 'sch': schedule})
+    return render(request, html_template, {
+                        'schedule': empl_schedule, 
+                        'employee': employee, 
+                        'sch':      schedule,
+                        "nextUrl":     schedule.next().url() if schedule.next() else None,
+                        "previousUrl": schedule.previous().url() if schedule.previous() else None,
+                    }
+                  )
 
 
 def schDetailPtoConflicts (request, schId):

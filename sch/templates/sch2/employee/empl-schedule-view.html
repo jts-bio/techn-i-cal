@@ -19,10 +19,10 @@
     View of {{ employee}}'s Schedule
 </h2> 
 
-<a href="{% url 'sch:empl-schedule-detail' employee.slug sch.previous.slug %}">
+<a href="{{previousUrl}}" {% if not previousUrl %} disabled {% endif %}>
     <i class="fa-duotone fa-arrow-circle-left"></i>
 </a>
-<a href="{% url 'sch:empl-schedule-detail' employee.slug sch.next.slug %}">
+<a href="{{nextUrl}}" {% if not nextUrl %} disabled {% endif %}>
     <i class="fa-duotone fa-arrow-circle-right"></i>
 </a>
 
@@ -71,7 +71,7 @@
                                         {% if st.employee == employee %} 
                                         <span class="text-xl font-light p-2
                                                     bg-sky-500   bg-opacity-30   rounded 
-                                                    shadow    shadow-lg    shadow-sky-100
+                                                    shadow    shadow-sky-100
                                                     {% if employee in workday.on_pto %} bg-red-500 {% endif %}">
                                             {{ st.shift }}
                                         </span>
@@ -81,15 +81,15 @@
                             
                                 {% if employee in workday.on_pto %}
                                 <span class="text-xs font-light 
-                                                bg-red-200   bg-opacity-30 bg-red-900   rounded-full
-                                                shadow  shadow-lg w-9 p-1  shadow-red-100">
+                                                bg-opacity-30 bg-red-900   rounded-full
+                                                shadow   w-9 p-1  shadow-red-100">
                                     PTO
                                 </span>
                                 {% endif %}
                                 {% if employee in workday.on_tdo %}
                                 <span class="text-xs  font-light 
-                                                bg-gray-200   bg-opacity-30 bg-indigo-900   rounded-full
-                                                shadow  shadow-lg  w-9 p-1 shadow-indigo-100">
+                                            bg-opacity-30 bg-indigo-900   rounded-full
+                                            shadow  w-9 p-1 shadow-indigo-100">
                                     TDO
                                 </span>
                                 {% endif %}

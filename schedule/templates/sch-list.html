@@ -31,6 +31,19 @@
 
 {% block content %}
 
+  <script>
+    document.querySelectorAll(".content").forEach((item) => {
+      item.classList.add("bg-zinc-900");
+      item.classList.add("bg-opacity-90");
+      item.classList.add("backdrop-blur-sm");
+    });
+     document.querySelectorAll("table").forEach((table) => {
+      table.classList.add("bg-zinc-800");
+      table.classList.add("bg-opacity-40");
+      table.classList.add("border");
+    });
+  </script>
+
   <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
     {% #toggle-section title="New Schedule Dialog" %}
     <div class="border-2 border-slate-300 rounded mt-2">

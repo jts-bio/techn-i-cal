@@ -4,42 +4,43 @@ mixin versionControls(schedule)
 
     i#is-best-indic.hidden.text-amber-500.fas.fa-star.text-amber-400.px-2.cursor-help
 
-    span.text-xs.text-zinc-100.font-light VERSION  
-    span#scheduleVersionId #{schedule.version}
-
-    span#versionEllipsis.jbm.mx-2(
-        class="hover:text-amber-500 hover:fa-ping" 
-        onclick="showContextMenu(event)")
-            i.fa-duotone.fa-circle-ellipsis
+    .flex.flex-col.center.justify-items
+        span.text-2xs.text-zinc-100.font-light.opacity-70 VERSION  
+        div
+            span#scheduleVersionId.text-lg.font-extrabold.jbm.pl-1 #{schedule.version}
+            span#versionEllipsis.jbm.mx-2.opacity-60(
+                class="hover:text-amber-500 hover:opacity-100 hover:text-amber-500"
+                onclick="showContextMenu(event)")
+                    i.fa-duotone.fa-circle-ellipsis
 
 mixin publishedChip()
     span.text-sm.bg-amber-500.text-black.rounded.px-4 PUBLISHED
-        i.fas-fa-x.text-amber-800(
-            _="on click call confirm('Verify You will Unpublish this schedule.') if result == true fetch actions/unpublish/ then call window.location.reload()")
+        i.fas-fa-x.text-amber-800(_="on click call confirm('Verify You will Unpublish this schedule.') if result == true fetch actions/unpublish/ then call window.location.reload()")
                 i.fas.fa-x.opacity-50.text-amber-800.mx-1.cursor-pointer(class="hover:opacity-100")
 
 
-.page.text.text-center.mt-2
+.bg-zinc-100.bg-opacity-25.backdrop-blur-2xl.text.text-center.mt-2.rounded.p-2
     //- HEADER BAR
-    div.flex.w-full.flex-col.reverse.gap-7(class="md:flex-row md:reverse-0")
+    div.flex.w-full.flex-col.reverse.gap-7(class="md:reverse-0")
         //- MAIN CONTROLS
-        div
+        div.flex.flex-row.basis-0
             //- PREV ARROW
             if previousUrl
-                a(  class="hover:scale-115 mx-1 text-lg" 
+                a.shrink(  class="hover:scale-115 mx-1 text-lg" 
                     href=schedule.previous().url())
                     i.fa-arrow-circle-left.fa-duotone.transition(class="hover:scale-115")
             else
-                i.fa-arrow-circle-left.fa-duotone.opacity-50
+                i.shrink.fa-arrow-circle-left.fa-duotone.opacity-50
+            //- TITLE
+            h2.text-3xl.text-zinc-400.font-extrabold.text-center.center.grow Schedule #{schedule.number} (#{schedule.year})
             //- NEXT ARROW
             if nextUrl
-                a(  class="hover:scale-115 mx-1 text-lg" 
+                a.shrink(  class="hover:scale-115 mx-1 text-lg" 
                     href=schedule.next().url())
                     i.fa-arrow-circle-right.fa-duotone.transition(class="hover:scale-115")
             else 
-                i.fa-arrow-circle-right.fa-duotone.opacity-50
-            //- TITLE
-            h1.text-3xl.text-zinc-400.font-bold Schedule #{schedule.number} (#{schedule.year})
+                i.shrink.fa-arrow-circle-right.fa-duotone.opacity-50
+        div.flex.flex-row.space-around.justify-center.center
             //- VERSION INFO
             //- IF DRAFT
             if schedule.status == 0

@@ -234,10 +234,13 @@ class ApiActionViews:
         version = 'ABCDEFGHIJ'[c]
         return ApiActionViews.build_schedule(request, sch.year, sch.number, version, sch.start_date)
     
+    @csrf_exempt
     def delete_schedule (request, schId):
-        sch = Schedule.objects.get(slug=schId)
-        sch.delete()
-        return HttpResponseRedirect(reverse('schd:list'))
+        if request.method == 'DELETE':
+            sch = Schedule.objects.get(slug=schId)
+            sch.delete()
+            return HttpResponseRedirect(reverse('schd:list'))
+        return HttpResponse(f"REQUEST ERROR")
     
     @csrf_exempt          
     def set__shift_img(request, shiftName):
@@ -309,7 +312,7 @@ class ApiActionViews:
         slot = Slot.objects.get(slug=slotId) # type :Slot
         slot.tags.add(slot.Flags.IGNORE_MISTEMPLATE_FLAG)
         slot.save()
-        return HttpResponse(f'Ignoring Mistemplating flag for {slot}') 
+        return HttpResponse(f'Muted') 
     
     def flag_mistemplated (request, slotId):
         

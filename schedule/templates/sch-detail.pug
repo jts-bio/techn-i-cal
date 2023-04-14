@@ -31,8 +31,12 @@ block content
                 }
             });
             
-        let bgImageUrl = '/static/img/scottish-fantasy-seamless.png';
+        let bgImageUrl = "#{BACKGROUND_PATH}";
         document.querySelector('.bg-main').style.backgroundImage = 'url(' + bgImageUrl + ')';
+        //set background to repeat
+        document.querySelector('.bg-main').style.backgroundRepeat = "repeat";
+        document.querySelector('.bg-main').style.backgroundPosition = 'center';
+        document.querySelector('.bg-main').style.backgroundSize = "40%";
         
         document.querySelector(".content").classList.add('bg-slate-900');
         document.querySelector(".content").classList.add('bg-opacity-70');

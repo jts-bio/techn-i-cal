@@ -2,6 +2,7 @@
 
 mixin button-option(icon, title, subtitle, fetchUrl, color)
     a.flex.flex-row.opacity-70.cursor-pointer.bg-opacity-20(
+        style="z-index:100"
         class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
         data-fetch-url=fetchUrl
         _="install ActionButton")
@@ -11,9 +12,9 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
                 span.text-2xs= subtitle
 
 mixin button-group(btn_title)
-    button.text-zinc-300.bg-black.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
+    button.text-zinc-300.bg-zinc-800.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
         i.fa-duotone.fa-bolt.mr-3 
-        span.text-zinc-200 #{btn_title}
+        span.text-zinc-200.text-xs.jbm #{btn_title}
         i.fa-duotone.fa-chevron-down.px-1 
 
 mixin button-clear()
@@ -47,8 +48,8 @@ script(type="text/hyperscript").
             on click 
                     call confirm ('Delete this schedule? This action cannot be undone.')
                     if result is true 
-                        then fetch `/delete/` with method:'DELETE' 
-                        then go to url `/schedule` 
+                        then fetch `delete/` with method:'DELETE' 
+                        then go to url `/schedule/` 
                         end
                     end
                 end
@@ -84,7 +85,7 @@ script(type="text/hyperscript").
 
 .button-group
     +button-group("Actions")
-    .dropdown-menu.bg-zinc-900
+    .dropdown-menu.bg-zinc-900(style="z-index:60" class="dropdown-menu")
         +button-option("fa-robot" "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
         +button-option("fa-bolt" "ALGORITHM B" "Solve via maximizing silimarity to manager generated schedules" "actions/solve-tca/" "sky")
         +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")

@@ -24,6 +24,8 @@ import json
 from django.db.models import Case, When, Sum, IntegerField
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
+import random
+from sch.data import Images
 
 def schListView(request):
     """ 
@@ -90,6 +92,7 @@ def groupedScheduleListView(request):
 
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
+    BACKGROUND_PATH = random.choice (Images.SEAMLESS_OPTIONS)
     
     if sch.status == 2:
         redirect_sch = Schedule.objects.get(year=sch.year, number=sch.number, status=1)
@@ -107,7 +110,8 @@ def schDetailView(request, schId):
         "alternates":        alternates,
         "nextUrl":           sch.next().url() if sch.next() else None,
         "previousUrl":       sch.previous().url() if sch.previous() else None,
-        "isBestVersionLink": reverse("flow:get_is_best_version", args=[schId])
+        "isBestVersionLink": reverse("flow:get_is_best_version", args=[schId]),
+        "BACKGROUND_PATH":   BACKGROUND_PATH,
         }
     )
 
@@ -346,12 +350,6 @@ class Actions:
     def publish_view (request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.publish(sch)
-        sch.routine_log.events.create(
-            event_type='PUBLISH',
-            data={
-                'user': request.user.username
-            }
-        )
         return HttpResponseRedirect(sch.url())
         
     def unpublish_view (request, schId):
@@ -639,8 +637,8 @@ class Actions:
             else:
                 empl_max_hours = empl.fte * 40
                 for week in sch.weeks.all():
-                    while week.slots.filter(employee=empl).values('shift__hours')['hours'] > empl_max_hours:
-                        slot = week.slots.filter(employee=empl).order_by('fiils_with__count').first()
+                    while sum(list(week.slots.filter(employee=empl).values_list('shift__hours',flat=True))) > empl_max_hours:
+                        slot = week.slots.filter(employee=empl).order_by('-fills_with__count').first()
                         slot.employee = None
                         hours_cleared += slot.shift.hours
                         slot.save()
@@ -781,4 +779,10 @@ class Actions:
         other_versions = Schedule.objects.filter(year=schedule.year, number=schedule.number).exclude(pk=schedule.pk)
         other_versions.update(published=False)
         schedule.status
+        schedule.routine_log.events.create(
+            event_type='PUBLISH',
+            data={
+                'user': request.user.username
+            }
+        )
         return HttpResponse(f"Schedule published")
