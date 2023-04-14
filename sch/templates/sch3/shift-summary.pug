@@ -1,23 +1,58 @@
+//- partial template
+//- SUMMARY TABLE | SHIFTS
 
+.rounded.p-2.border.w-fc
+    table 
+        thead
+            tr 
+                - var ftes = sum_ / (40 * 6) 
+                - var rosterHrs = sum_ * (fte / ftes)
+                - var percent = round (rosterHrs / sum_ * 100, 1)
+                th   
+                th
+                    span.pct #{percent} %
+                th FTE Coverage
+        tbody
+            tr
+                th Per schedule
+                td 
+                    
+                    span.var #{ftes} 
+                    span FTE
+                td
+                    span.var #{sum_} 
+                    span hrs.
+            tr 
+                th In Roster
+                td 
+                    
+                    span.var #{fte} 
+                    span FTE
+                td
+                    span.var #{rosterHrs}
+                    span hrs.
 
-h2 FTE Coverage 
-.rounded.p-2.border 
-    div
-        span 1 schedule consists of 
-        span.var #{sum_} 
-        span  hours
-
-    div.text-2xs.italic
-        - var ftes = sum_ / (40 * 6)
-        span (
-        span.var #{ftes} 
-        span  FTEs Total)
-    div
-        span.var #{fte} 
-        span  FTE Cumulative for Staff Pool
 
 
 
 block style 
     style.
-        .var { color: #cc6677bb; font-family: 'JetBrains Mono'; background-color: #acacac33; padding: 3px 5px; border-radius: 7px; }
+        .var { 
+            color: #cc6677bb; 
+            font-family: 'JetBrains Mono'; 
+            background-color: #acacac33; 
+            padding: 1px 3px; 
+            border-radius: 5px; 
+            border: 1px solid #acacac66;
+            margin-right: 5px;
+            }
+        .pct {
+            color: #66cc77bb; 
+            font-family: 'JetBrains Mono'; 
+            background-color: #acacac33; 
+            padding: 1px 3px; 
+            border-radius: 5px; 
+            border: 1px solid #acacac66;
+            margin-right: 5px;
+        }
+        

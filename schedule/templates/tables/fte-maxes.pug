@@ -1,0 +1,39 @@
+script(type="text/hyperscript").
+    behavior CountDown 
+        on click 
+            repeat forever 
+                put @data-value into me 
+                then decrement @data-value
+                if @data-value == "0"
+                    wait 1s
+                    remove me 
+                    end 
+                wait 1s 
+                end
+            end
+
+.text-2xl.bg-zinc-950.rounded.px-4.font-bold.text-yellow-500 PRN Employee Scheduling Limits
+
+.bg-zinc-900.bg-opacity-40.backdrop-blur-lg.pt-2.center
+    form(method="POST" action="set-sch-maxes/")
+        input(type="hidden" name="csrfmiddlewaretoken" value='{{ csrf_token }}'
+        )
+        table
+            thead
+                th Employee
+                th Hours
+            tbody
+                each emp, max_hours in maxes
+                    tr.h-12
+                        td #{emp}
+                        td 
+                            input(
+                                id=emp 
+                                name=emp
+                                value=max_hours
+                                class="pl-2 w-[50px] text-lg font-bold text-yellow-200 mr-1")
+                            span hrs
+
+        input(type='submit' id='over-fte-button' value="Submit" class="btn bg-yellow-500")
+
+    div.my-8.bg-yellow-600.text-black.center.text-center.rounded(_="install CountDown" data-value="10") Countdown [Click to activate...]

@@ -11,8 +11,8 @@
                       add .hidden to me then 
                       wait 1s then set swaptarget to closest .swap-tgt
                       then tell swaptarget 
-                        transition *height to 0px over 3s
-                        then tell swaptarget remove you
+                      transition *height to 0px over 3s
+                      then tell swaptarget remove you
                       end">
                 UNDO
             </span>
@@ -25,8 +25,12 @@
             aria-expanded="true" aria-haspopup="true"
             {% if slot.n_options == 0 %} disabled {% endif %}
             onclick="showDropdownOptions(event)"
-            _="on click go to previous .dd-button smoothly">
-      {{ slot.n_options }} Options
+            data-slot="{{slot}}"
+            data-n="{{slot.n_options}}"
+            _="on click go to previous .dd-button smoothly end 
+               on minusOne(slot)
+                 if slot == @data-slot set @data-n to @data-n - 1 then put `${[@data-n]} options` into me end">
+      {{ slot.n_options }} options
       <!-- Heroicon name: mini/chevron-down -->
       <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
         <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
@@ -41,7 +45,10 @@
           _="on signal send fsignal to .fetcher in me">
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
-            <div _="on click 
+            <div data-workday="{{slot.workday}}"
+                 data-slot="{{slot}}"
+                 data-employee="{{empl}}"
+                  _="on click 
                       fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/
                         then set emphours to result
                         then log emphours
@@ -78,8 +85,14 @@
                         then put newtd into closest .swap-tgt 
                         then remove .hidden from .undo-btn in newtd
                         then send recheck to #n-empty 
+                        then send removeEmployeeOnDay(empl:@data-employee,wd:@data-workday) to .employee-choice
+                        end
+                      on removeEmployeeOnDay(empl,wd) 
+                        if @data-employee == empl and @data-workday == wd
+                          remove me 
+                          then send minusOne(slot:@data-slot) to #dd-button
                         end"
-                  class="text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
+                  class="employee-choice text-gray-200 block px-4 py-2 text-sm hover:bg-sky-700" 
                   id="menu-item-0" >
 
                 {% if slot.template_employee == empl %} 

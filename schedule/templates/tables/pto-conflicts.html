@@ -2,7 +2,7 @@
 <h1 class="text-2xl">PTO Management</h1>
 
 <div class="bg-slate-300 text-slate-800 font-bold rounded border border-white h-7 w-[32em] px-3">
-    Total PTO Requests: {{ pto_request.count }}
+    Total PTO Requests: {{ pto_requests.count }}
 </div>
 
 {% if pto_conflicts %}
@@ -61,7 +61,7 @@
     
     <div class="flex flex-row flex-wrap">
         {% for employee in schedule.employees.all %}
-            <span class="empl-selector static bg-zinc-800 rounded p-1 hover:bg-orange-900 m-1"
+            <span class="empl-selector static text-xs md:text-sm bg-zinc-800 rounded p-1 hover:bg-orange-900 m-1"
                 hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
                 hx-trigger="click"
                 hx-target="#emp-pto"
@@ -88,8 +88,16 @@
     document.querySelectorAll('.pto-count').forEach(function(el) {
         if (el.dataset.count != "0") {
             el.innerHTML = el.dataset.count;
-            el.classList.add('bg-yellow-800', 'text-white', 'text-2xs', 'p-1', 'h-5', 'w-5', 'text-center','right-0','top-0','m-1');
-        }
-    });
+            el.classList.add('bg-yellow-800', 
+                             'text-white', 
+                             'text-2xs', 
+                             'p-1', 'h-5', 
+                             'w-5', 
+                             'text-center',
+                             'right-0',
+                             'top-0',
+                             'm-1');
+                            }
+                        });
 
 </script>

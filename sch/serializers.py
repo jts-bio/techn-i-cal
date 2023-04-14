@@ -62,6 +62,7 @@ class SlotSerializer(serializers.ModelSerializer):
     clear_url    = serializers.SerializerMethodField()
     workday_url  = serializers.SerializerMethodField()
     
+    
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.schedule.slug}/actions/clear-slot/{obj.workday.slug}/{obj.shift.name}/'
     

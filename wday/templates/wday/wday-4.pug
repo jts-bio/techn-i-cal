@@ -84,6 +84,7 @@ mixin Employee(empl, workday)
                 div.e-name.font-thin.text-xs.truncate.pb-1= empl.name.upper
                 div.e-hours.hours-display.truncate.pt-1
                 +empl-context-arrows(empl, workday)
+                span.e-btm.text-2xs
 
 mixin Slot(slot)
     div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
@@ -123,9 +124,8 @@ block style
         .dragged-over    {background-color: #ccffcc33!important;}
         .swap-in-btn > i {font-size: 20px; color: #003311ff; cursor: pointer;}
         .hours-display   {font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; text-overflow: ellipsis;}
-        .pto-flag::after {content: 'PTO'; font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ff0000; position: absolute; top: 0; right: 0;}
-        .ot-flag::after  {content: 'OT';  font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; color: #ee6655; position: absolute; top: 0; right: 0;}
-        .tdo-flag::after {content: 'TDO'; font-size: 10px; opacity: 0.5; color: #ddaa22; position: absolute; top: 0; right: 0;}
+        .pto-flag        {background-color: #ff006655!important; color: #dddddd!important}
+        .tdo-flag        {background-color: #dd447755!important; color: #dddddd!important}
         .badge-top-right {position: absolute; top: 0; right: 0;}
         .employee        {display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(4, 1fr); grid-column-gap: 0px;grid-row-gap: 0px; width: 170px!important;height:62px!important}
             .e-img          { grid-area: 1 / 1 / 4 / 4; } 
@@ -134,13 +134,13 @@ block style
             .e-left         { grid-area: 3 / 4 / 5 / 6; } 
             .e-ctr          { grid-area: 3 / 6 / 5 / 9; } 
             .e-right        { grid-area: 3 / 9 / 5 / 11; } 
+            .e-btm          { grid-area: 5 / 1 / 5 / 4; text-size: 8px; }
         .turnaround      {background-color: #99667766!important; drop-shadow: 0 0 10px #99225544;}
 //------------------ CONTENT ------------------//
 
 block content 
     script(type='text/coffeescript', src='/static/wday-pug.coffee') 
     script(type='text/coffeescript', src='/static/workday/employee.coffee')
-    
     script(type="text/coffeescript"  src='/static/base-cxt-menu.coffee')
 
     script(type='text/hyperscript',  src='/static/workday/behaviors/deck._hs')

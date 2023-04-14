@@ -1,100 +1,84 @@
 extends base.html
 
 
-block mixins
-
-    mixin versionControls(schedule)
-        i#is-best-indic.hidden.text-amber-500.fas.fa-star.text-amber-400.px-2(
-            _="install BestVersion")
-        span#best-message.hidden This has been determined to be the best available version of the schedule.
-        span.text-xs.text-zinc-100.font-light VERSION  
-        span#scheduleVersionId #{schedule.version}
-        span#versionEllipsis.jbm.mx-2(
-            class="hover:text-amber-500 hover:fa-ping" 
-            onclick="showContextMenu(event)")
-                i.fa-duotone.fa-circle-ellipsis
-
-    mixin publishedChip()
-        span.text-sm.bg-amber-500.text-black.rounded.px-4 PUBLISHED
-            i.fas-fa-x.text-amber-800(
-                _="on click call confirm('Verify You will Unpublish this schedule.') if result == true fetch actions/unpublish/ then call window.location.reload()")
-                    i.fas.fa-x.opacity-50.text-amber-800.mx-1.cursor-pointer(class="hover:opacity-100")
-
 block content
 
-    script(type="text/hyperscript").
-        behavior BestVersion
-            on load 
-                fetch #{isBestVersionLink} 
-                set best to result 
-                then log `best: $best` 
-                then if best is 'True'
-                    remove .hidden from me
-                end
-    //- PAGE 
-    .page.text.text-center.mt-2
-        //- HEADER BAR
-        div.flex.w-full.flex-row.gap-7
-            //- WEEK BARS 
-            include components/week-bars.pug
-            //- MAIN CONTROLS
-            div
-                //- PREV ARROW
-                if previousUrl
-                    a(
-                        class="hover:scale-115" 
-                        href=schedule.previous().url())
-                        i.fa-arrow-circle-left.fa-duotone.transition(class="hover:scale-115")
-                else
-                    i.fa-arrow-circle-left.fa-duotone.opacity-50
-                //- NEXT ARROW
-                if nextUrl
-                    a(
-                        class="hover:scale-115" 
-                        href=schedule.next().url())
-                        i.fa-arrow-circle-right.fa-duotone.transition(class="hover:scale-115")
-                else
-                    i.fa-arrow-circle-right.fa-duotone.opacity-50
-                //- TITLE
-                h1.text-3xl.text-zinc-400.font-bold Schedule #{schedule.number} (#{schedule.year})
-                //- VERSION INFO
-                //- IF DRAFT
-                if schedule.status == 0
-                    +versionControls(schedule)
-                //- IF PUBLISHED
-                if schedule.status == 1 
-                    +publishedChip()
-            div.flex.flex-row.align-items
-                //- ACTION BUTTON   'components/action-btn.pug'
-                include components/action-btn.pug
-        //- TAB BAR
-        section#TAB-BAR-MAIN
-            include sch2/schedule/partials/sch-tabBar.html
+    script(type="text/javascript").
+        fetch("/api/schedule/#{schedule.slug}/is-best-version/")
+            .then(response=>response.text())
+            .then(data=>{
+                console.log(data)
+                if(data == "True")
+            {
+            document.querySelector('#is-best-indic').classList.remove('hidden');
+
+            document.querySelector('#is-best-indic').addEventListener('mouseenter',function(event){
+                let element = event.target;
+                let left = element.getBoundingClientRect().left - (40-25);
+                let top =  element.getBoundingClientRect().bottom + (15+5-10);
+                document.querySelector('#best-message').classList.remove('hidden');
+                document.querySelector('#best-message').classList.add('text-2xs');
+                document.querySelector('#best-message').classList.add('opacity-70');
+                document.querySelector('#best-message').style.display = "absolute";
+                document.querySelector('#best-message').style.zIndex = 500;
+                document.querySelector('#best-message').style.size = "10px";
+                document.querySelector('#best-message').style.left = left+"px";
+                document.querySelector('#best-message').style.top = top+"px";})
+
+            document.querySelector('#is-best-indic').addEventListener('mouseleave',function(event){
+                document.querySelector('#best-message').classList.add('hidden');
+                    })
+                }
+            });
             
+        let bgImageUrl = '/static/img/scottish-fantasy-seamless.png';
+        document.querySelector('.bg-main').style.backgroundImage = 'url(' + bgImageUrl + ')';
+        
+        document.querySelector(".content").classList.add('bg-slate-900');
+        document.querySelector(".content").classList.add('bg-opacity-70');
+        document.querySelector(".content").classList.add('backdrop-blur-sm');
+
 
     div.page.flex(class="md:flex-row")
         div
             section#LOWER-BODY
                 div.flex.flex-col-reverse(class="md:flex-row md:flex-row mb-1 md:mb-3")
-                    include stats.html
+                    div.flex.flex-col
+
+                        include components/sch-header.pug
+
+                        include stats.html
+
+                        div.btn.bg-blue-300.opacity-40(
+                            class="hover:opacity-100"
+                            hx-get="set-sch-maxes/"
+                            hx-target="#swap-panel"
+                            ) Set Employee Scheduling Maximums
+
                     div.overflow-x-contain
-                        i#swap-panel-indic.fas.fa-spinner.fa-spin.text-xl.fa-beat.htmx-indicator.mx-5
-                        #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(class="md:px-4 md:m-4")
+
+                        #swap-panel-indic.htmx-indicator
+                            i.fas.fa-spinner.animate-spin.text-xl.fa-beat.mx-5
+                            span.text-md.opacity-80.animate-pulse Rendering...
+
+                        #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(
+                            class="md:px-4 md:m-4" )
+                            
                    
-    //- CONTEXT MENU
+    //- VERSION CONTROL CONTEXT MENU
     #contextMenu.rounded.bg-black.text-white.p-3(
         style="display:none;" 
-        class="z-10 absolute bg-opacity-[30%]"
+        class="z-20 absolute bg-opacity-[30%]"
         )
         //- Build Alternate Draft
         div
-            a(href="build-alt-draft/" class="hover:underline")
+            a(href="build-alt-draft/" class="hover:underline cursor-pointer")
                 i.fas.fa-hammer.opacity-80.pr-2 
                 span Build Alternate Draft Version
         //- Publish this Schedule
         div
             div(
-                class="hover:underline"
+                class="hover:underline cursor-pointer"
                 _="on click if #{schedule.is_best_version()} == #{True} fetch actions/publish/ then call window.location.reload() else call confirm('There is a better version available, publish anyway?') if result == true fetch actions/publish/ then call window.location.reload() end")
                     i.fas.fa-network-wired.opacity-80.pr-2.cursor-pointer
                     span Publish this Version (Version #{schedule.version})
@@ -105,7 +89,7 @@ block content
                     | ALTERNATE VERSIONS
                 each alt in alternates
                     div
-                        a.text-xs.opacity-70(class="hover:opacity-100" href=alt.url()) Version #{alt.version} 
+                        a.text-xs.opacity-70(class="hover:opacity-100 cursor-pointer" href=alt.url()) Version #{alt.version} 
                             |
                             if alt.difference > 0
                                 span.text-emerald-300 
@@ -118,33 +102,43 @@ block content
                                 span.text-zinc-300 
                                     | (Same level of completion)
 
-    #wait-indicator.center-indicator.click-through.fixed.inset-0.flex.flex-col.items-center.justify-center.z-50.hidden.absolute.fa-beat.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.opacity-90.rounded-lg.shadow-lg
-            div.text.text-center.text-black.text-3xl
-                i.fas.fa-user-robot.text-zinc-600.fa-shake.px-3.scale-125
-            div.text.text-black.text-center.text-2xs.jbm.opacity-70.pt-2 PLEASE WAIT...
+
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.bg-opacity-0.rounded-lg.shadow-lg
+        .w-40.bg-opacity-60.rounded.bg-black.py-5
+            .text.text-center.text-black.text-3xl
+                i.fas.fa-user-robot.text-slate-200.fa-shake.px-3.scale-125
+            .text.text-white.text-center.text-2xs.jbm.opacity-70.pt-2 
+                | PLEASE WAIT...
 
 
+    #best-message.hidden.fixed 
+        span This has been determined to be the 
+        br 
+        span best available version of the schedule.
 
 block outside
 
     script(type="text/javascript").
         /* 
-            Function name	          Description	  Relevant columns
-            showContextMenu(e)	      Displays a context menu when the user right-clicks on an element	Event object e, Context menu element
-            hideContextMenu(ev)	      Hides the context menu that was previously displayed	Event object ev, Context menu element
-            showWaitIndicator(ev)	  Displays a loading indicator to indicate that the page is busy or processing data	Event object ev, Wait indicator element
-            showVersionEllipsis()	  Displays an ellipsis icon to indicate that there is more content available for a particular item	Version ellipsis element
-            hideVersionEllipsis()	  Hides the ellipsis icon that was previously displayed	Version ellipsis element
-            showScheduleVersionId()	  Displays a version ID for a particular schedule	Schedule version ID element
-            hideScheduleVersionId()	  Hides the version ID that was previously displayed	Schedule version ID element
-            showSwapPanel()	          Displays a panel that allows the user to swap elements or items	Swap panel element
-            hideSwapPanel()	          Hides the swap panel that was previously displayed	Swap panel element
-            showSwapPanelIndic()	  Displays an indicator that there is a swap panel available for the user	Swap panel indicator element
-            hideSwapPanelIndic()	  Hides the swap panel indicator that was previously displayed	Swap panel indicator element        */
+            Function name	          Description	
+            --------------            ------------  
+            showContextMenu (e)	      Displays a context menu when the user right-clicks on an element	Event object e, Context menu element
+            hideContextMenu (ev)	  Hides the context menu that was previously displayed	Event object ev, Context menu element
+            showWaitIndicator (ev)	  Displays a loading indicator to indicate that the page is busy or processing data	Event object ev, Wait indicator element
+            showVersionEllipsis ()	  Displays an ellipsis icon to indicate that there is more content available for a particular item	Version ellipsis element
+            hideVersionEllipsis ()	  Hides the ellipsis icon that was previously displayed	Version ellipsis element
+            showScheduleVersionId ()  Displays a version ID for a particular schedule	Schedule version ID element
+            hideScheduleVersionId ()  Hides the version ID that was previously displayed	Schedule version ID element
+            showSwapPanel ()	      Displays a panel that allows the user to swap elements or items	Swap panel element
+            hideSwapPanel ()	      Hides the swap panel that was previously displayed	Swap panel element
+            showSwapPanelIndic ()	  Displays an indicator that there is a swap panel available for the user	Swap panel indicator element
+            hideSwapPanelIndic ()	  Hides the swap panel indicator that was previously displayed	Swap panel indicator element        
+        */
 
         function showContextMenu(e) {
-            console.log('CtxtMenu Called')
+            console.log('CtxtMenu Called');
             e.preventDefault();
+
             var contextMenu = document.getElementById("contextMenu");
             contextMenu.style.display = "block";
             contextMenu.style.left    = e.pageX + "px";
@@ -165,6 +159,7 @@ block outside
 
         function showWaitIndicator(ev) {
             console.log('SHOWING indicator');
+
             var indicator = document.getElementById("wait-indicator");
             indicator.style.left = document.body.scrollLeft;
             indicator.style.top = document.body.scrollTop;

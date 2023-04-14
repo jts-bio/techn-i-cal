@@ -87,17 +87,18 @@ class ShiftListTable (tables.Table) :
     """
     name  = tables.columns.LinkColumn    ("sch:shift-detail", args=[A("cls"),A("name")])
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
+    percent_templated = tables.columns.Column (verbose_name="% Templated", attrs={"td": {"class": "small text-xs text-center"}})
     occur_days = tables.columns.Column   (verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
-    group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
+    group = tables.columns.Column        (verbose_name="Time-of-Day", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
     prefs = tables.columns.Column        (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
     sort_prefs = tables.columns.Column   (verbose_name="Avg Sorted Preference", attrs={"td": {"class": "text-center"}})
     
     class Meta:
         model           = Shift
         orderable       = True
-        fields          = ['name','hours','occur_days','group','prefs','sort_prefs']
+        fields          = ['name','hours','occur_days','group','prefs','sort_prefs', 'percent_templated']
         attrs           = { 
-                "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[60px]"
+                "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[50px]"
                 }
     
     def render_occur_days(self, value):
@@ -113,14 +114,19 @@ class ShiftListTable (tables.Table) :
     def render_sort_prefs (self, value):
         return round((value.avg_score()), 2)
     
-    
-    
+    def render_percent_templated (self, value):
+        return f'{value}%'
             
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY
     display ALL SHIFTS for a given day
     """
-    del_slot = tables.columns.LinkColumn("slot-delete", args=[A("date"),A("pk")], verbose_name="Delete", attrs={"td": {"class": "small"}})
+    del_slot = tables.columns.LinkColumn(
+                    "slot-delete", 
+                    args=         [A("date"), A("pk")], 
+                    verbose_name= "Delete", 
+                    attrs=        {"td": {"class": "small"}} )
+    
     class Meta:
         model           = Shift
         fields          = ['name','start','employee','del_slot']
@@ -215,7 +221,6 @@ class WeekListTable (tables.Table):
     def render_perc_filled (self,record):
         return f"{int(record['perc_filled']/104*100)}%"
 
-    
 class PtoListTable (tables.Table):
 
     req = tables.columns.LinkColumn("pto-request-detail", args=[A("pk")])
@@ -224,7 +229,6 @@ class PtoListTable (tables.Table):
         fields          = ['req', 'workday', 'status', 'stands_respected' ]
         template_name   = 'django_tables2/bootstrap-responsive.html'
         
-
 class WeeklyHoursTable (tables.Table):
 
     name  = tables.columns.LinkColumn("employee-detail", args=[A("name")])

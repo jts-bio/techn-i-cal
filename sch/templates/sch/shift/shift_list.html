@@ -18,10 +18,12 @@
       Day Templating
     </a>
 
+    <div hx-trigger="load" hx-get="partial/summary/"></div>
+
     <h1 class="text-center" style="font-size: 32px">MANAGE SHIFTS</h1>
 
     <div class="lg:hstack center sm:vstack">
-      <div class="bg-zinc-900 border-2 border-sky-200 rounded p-3 mb-3">
+      <div class="bg-zinc-900 border-2 border-sky-200 rounded p-3 pr-6 mb-3 w-full">
         <a
           href="/sch/shifts/new/"
           class="bg-blue-900 border px-4 m-2 hover:bg-blue-700 border-blue-300 rounded hidden md:block md:float-right"
@@ -32,7 +34,7 @@
           </div>
         </a>
 
-        <div class="hidden md:block md:panel">
+        <div class="hidden md:block">
           <div>{% render_table shiftTable %}</div>
         </div>
 
@@ -55,7 +57,7 @@
           </a>
           {% endfor %}
         </div>
-        <div hx-trigger="load" hx-get="partial/summary/"></div>
+        
       </div>
       
     </div>

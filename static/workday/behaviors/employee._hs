@@ -83,16 +83,16 @@ behavior Employee
         if #pto-list.dataset.employees contains @data-employee-id
             add @data-pto to me then 
             set @data-pto to true then
-            make a <span.pto-flag /> then put 'PTO' into it then 
-            append it to the end of me 
+            add .pto-flag to me then 
+            tell .e-btm in me 
+                put 'PTO' into you end
             end
         if #tdo-list.dataset.employees contains @data-employee-id
             add @data-tdo to me then 
             set @data-tdo to true then 
-            make a <span.tdo-flag /> then put 'TDO' into it then 
-            append it to the end of me 
+            tell .e-btm in me 
+                put 'TDO' into you end
             end
-        end
     on unfocus 
         remove .active 
         then transition my *scale to 1 over 300ms

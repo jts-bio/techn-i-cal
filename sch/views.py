@@ -662,8 +662,14 @@ class SHIFT :
         context = {}
         shift   = Shift.objects.get(name=shift)
         context ['shift'] = shift 
-        days    = Workday.objects.filter(date__gte=dt.date.today(),date__lt=dt.date.today()+dt.timedelta(days=28))
-        context ['days'] = days.annotate(employee=Subquery(Slot.objects.filter(shift=shift,workday=OuterRef('pk')).values('employee__name')))
+        schedule = Schedule.objects.filter(workdays__date=dt.date.today(), is_best=True).first()
+        days    = Workday.objects.filter(
+                                    date__gte=dt.date.today(),
+                                    date__lt=dt.date.today()+dt.timedelta(days=28),
+                                )
+        context ['days'] = days.annotate(employee=Subquery(
+                        Slot.objects.filter(shift=shift,workday=OuterRef('pk')
+                    ).values('employee__name')))
         
         return render(request,'sch/shift/upcoming.html',context=context)
         
@@ -1005,27 +1011,33 @@ class EMPLOYEE:
         
         def post (self, request, empId):
             form = EmployeeEditForm(request.POST)
-            print (form.errors)
-            print (form.data)
-        
-            print (request, request.POST)
-            if form.is_valid():
-                
-                e = Employee.objects.get(pk=empId)
-                e.name          = form.cleaned_data['name']
-                e.cls           = form.cleaned_data['cls']
-                e.streak_pref   = form.cleaned_data['streak_pref']
-                e.fte_14_day    = form.cleaned_data['fte_14_day']
-                e.time_pref     = form.cleaned_data['time_pref']
-                e.shifts_trained.set(form.cleaned_data['shifts_trained'])
-                e.shifts_available.set(form.cleaned_data['shifts_available'])
-                e.save()
+            print ("ERRORS: ", form.errors)
+            
+            e = Employee.objects.get(pk=empId)
+            
+            print (request.POST)
+            
+            e.name          = form.cleaned_data['name']
+            e.cls           = form.cleaned_data['cls']
+            e.streak_pref   = form.cleaned_data['streak_pref']
+            e.fte           = form.cleaned_data['fte']
+            e.fte_14_day    = int(e.fte * 80)
+            e.time_pref     = form.cleaned_data['time_pref']
+            e.shifts_trained.set(form.cleaned_data['shifts_trained'])
+            e.shifts_available.set(form.cleaned_data['shifts_available'])
+            e.std_wk_max    = form.cleaned_data['std_wk_max']
+            e.image_url     = form.cleaned_data['image_url']
+            
+            e.save()
+            messages.success(request, "Employee Details Updated")
+            
             return HttpResponseRedirect(e.url())
     
     @csrf_exempt          
     def setEmployeeImage(request, empId):
         # get HX-PROMPT from header
         url = request.session['HX-PROMPT'] = request.headers['HX-PROMPT']
+        
         empl = Employee.objects.get(pk=empId)
         empl.image_url = url
         empl.save()
@@ -1042,14 +1054,13 @@ class EMPLOYEE:
         def form_valid(self, form):
             schedule = form.cleaned_data['schedule']
             employee = form.cleaned_data['employee']
-            return HttpResponseRedirect(reverse('sch:empl', 
-                                                args=[employee.slug, schedule.slug]))
+            return HttpResponseRedirect(reverse('sch:empl', args=[employee.slug, schedule.slug]))
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
             employee = Employee.objects.get(name=self.kwargs['name'])
             schedule = Schedule.objects.get(workdays__date=dt.date.today())
-            context['form'] = EmployeeScheduleForm(initial={'employee': employee,'schedule': schedule})
+            context['form']     = EmployeeScheduleForm(initial={'employee': employee,'schedule': schedule})
             context['employee'] = employee
             return context
 
@@ -1162,11 +1173,12 @@ class EMPLOYEE:
         context['emplPrefs'] = ShiftPreference.objects.filter(employee=employee)
         
         return render(request, 'sch/employee/shift_preferences_form.html', context)
+    
     ### TPL-DAY-OFF-BREAKDOWN 
     def tdoBreakdownView (request):
         """TDO BREAKDOWN VIEW
         ===========================
-        ``flowrate.herokuapp.com/sch/day-off-breakdown/``
+        `flowrate.herokuapp.com/sch/day-off-breakdown/`
         
         Breakdown Template Days Off
         ----------------------------
@@ -1196,6 +1208,7 @@ class EMPLOYEE:
                 i += 1
                 ssp.save()
         return render(request,'sch/employee/sortable-shift-pref.html', context)
+    
     ### SFT-SLOT-TMPL
     class EmployeeSstsView (FormView):
         """

@@ -126,18 +126,16 @@ class EmployeeSelectForm (forms.Form):
 class EmployeeEditForm (forms.ModelForm) :
     
     shifts_trained = forms.ModelMultipleChoiceField(
-        widget   =forms.CheckboxSelectMultiple,
-        queryset = Shift.objects.all(),
-        required = False,
-    )
+                widget   =forms.CheckboxSelectMultiple,
+                queryset = Shift.objects.all(),
+                required = False,
+            )
     shifts_available = forms.ModelMultipleChoiceField(
-        widget   = forms.CheckboxSelectMultiple,
-        queryset = Shift.objects.all(),
-        required = False,
-    )
-    time_pref = forms.RadioSelect(
-        choices=(('AM', 'Morning'), ('PM', 'Evening'), ('XN', 'Overnight'))
-    )
+                widget   = forms.CheckboxSelectMultiple,
+                queryset = Shift.objects.all(),
+                required = False,
+            )
+    time_pref = forms.Select(choices= (('AM', 'Morning'), ('PM', 'Evening'), ('XN', 'Overnight')))
     
     def __init__(self, *args, **kwargs):
         super(EmployeeEditForm, self).__init__(*args, **kwargs)
@@ -148,25 +146,35 @@ class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
         fields = [
-            'name',             'fte_14_day',   
+            'name',             'fte',   
             'streak_pref',      'shifts_trained',   
             'shifts_available', 'cls', 
             'time_pref',        'hire_date',
-            'std_wk_max'
+            'std_wk_max',       'image_url'
             ] 
         labels = {
-            'fte_14_day'    : 'FTE (hours/ 14 Days)',
+            'fte'           : 'FTE',
             'cls'           : 'Employee Class',
             'time_pref'     : "Time Preference",
             'std_wk_max'    : 'Standard Weekly Max Hours',
+            'image_url'     : 'Profile Image',
         }
+        
+        IMAGE_LOOKUP_HYPERSCRIPT = """
+            on mutation of @value 
+                set link to @value 
+                then fetch link then put result into #image_preview
+        """
+        
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple (attrs={'class':'form-control'}), 
-            'fte_14_day'      : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
+            'fte'             : forms.NumberInput            (attrs={'class': 'w-28 form-control'}),
             'shifts_available': forms.CheckboxSelectMultiple (attrs={'class':'grid-cols-3'}),
             'streak_pref'     : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
-            'cls'             : forms.Select (attrs={'class': 'form-control h-10'}),
-            'time_pref'       : forms.RadioSelect (attrs={'class': 'text-2xs'}),
+            'cls'             : forms.Select      (attrs={'class': 'form-control h-10'}),
+            'time_pref'       : forms.Select      (attrs={'class': 'form-control h-10'}),
+            'std_wk_max'      : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
+            'image_url'       : forms.TextInput   (attrs={'script': IMAGE_LOOKUP_HYPERSCRIPT})
         }
 
 class SstEmployeeForm (forms.Form) :
@@ -302,8 +310,6 @@ class SlotForm (forms.ModelForm) :
         slot = Slot.objects.filter(shift=shift, workday=workday, schedule=workday.schedule)
         self.fields['employee'].queryset = Slot.objects.get(workday=workday,shift=shift)._fillableBy()
         
-        
-        
 class SlotForm_OtOveride (forms.ModelForm):
     
     employee    = forms.ModelChoiceField(queryset=Employee.objects.all(), label='Employee', widget=forms.Select(attrs={'class': 'form-control'}))
@@ -320,6 +326,7 @@ class SlotForm_OtOveride (forms.ModelForm):
         workday = Workday.objects.get(slug=self.initial['workday'])
         self.fields['employee'].queryset = Slot.objects.get(workday=workday,shift=shift).fillableBy()
         self.fields['employee'].label = shift.name
+
 class ClearWeekSlotsForm (forms.Form) :
     
     confirm = forms.BooleanField(label='Confirm', required=True)
@@ -328,7 +335,6 @@ class ClearWeekSlotsForm (forms.Form) :
         fields = ['confirm']
         widgets = {'confirm': forms.CheckboxInput(attrs={'class': 'form-control'})}
     
-
 class SstForm (forms.Form):
     shift    = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
     sd_id   = forms.IntegerField(widget=forms.HiddenInput())
@@ -472,9 +478,8 @@ PREF_SCORES = (
 class EmployeeShiftPreferencesForm (forms.ModelForm):
     
     class Meta:
-        model = ShiftPreference
-        fields = [
-            'employee','shift','priority']
+        model   = ShiftPreference
+        fields  = ['employee','shift','priority']
         widgets = {
             'employee' : forms.HiddenInput(),
             'shift'    : forms.HiddenInput(),
@@ -482,7 +487,8 @@ class EmployeeShiftPreferencesForm (forms.ModelForm):
         }
 
         labels = {
-            'priority' : 'Preference',}
+            'priority' : 'Preference'
+            }
                 
         def clean(self):
             cleaned_data = super(EmployeeShiftPreferencesForm, self).clean()

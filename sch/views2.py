@@ -363,9 +363,13 @@ class ScheduleMaker:
         )
         sch.save()
         
-        for slot in sch.slots.all():
+        slots = sch.slots.all() #type = ModelManager 
+        for slot in slots:
+            shift_template = ShiftTemplate.objects.filter(shift=slot.shift,wd_id=slot.workday.sd_id)
+            slot.fills_with.set(slot.shift.available.all())
+            if shift_template.exists():
+                slot.template_employee = shift_template.first().employee 
             slot.save()
-            
         return (sch, f"Successful Creation of schedule {sch.slug}. Completed at [{dt.datetime.now()}] ")
 
 

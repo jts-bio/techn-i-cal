@@ -5,13 +5,13 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
         class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
         data-fetch-url=fetchUrl
         _="install ActionButton")
-            i(class="fas text-sm #{icon} w-3 mx-3")
+            i(class="fas text-sm #{icon} w-3 mx-3 fa-fw")
             .flex.flex-col.pr-3
                 span.jbm= title
                 span.text-2xs= subtitle
 
 mixin button-group(btn_title)
-    button.text-zinc-300.bg-zinc-900.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
+    button.text-zinc-300.bg-black.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
         i.fa-duotone.fa-bolt.mr-3 
         span.text-zinc-200 #{btn_title}
         i.fa-duotone.fa-chevron-down.px-1 
@@ -20,10 +20,19 @@ mixin button-clear()
     a.flex.flex-row.opacity-70.cursor-pointer(
         class="hover:opacity-100 hover:bg-red-500 hover:bg-opacity-20"
         _="install ClearButton")
-            i(class="fas text-sm fa-eraser w-3 mx-3")
+            i(class="fas text-sm fa-eraser w-3 mx-3 fa-fw")
             .flex.flex-col.pr-3
                 span.jbm CLEAR & RESET
                 span.text-2xs Clear All Slots within this schedule, while persisting the schedule instance.
+
+mixin button-delete()
+    a.flex.flex-row.opacity-70.cursor-pointer(
+        class="hover:opacity-100 hover:bg-red-500 hover:bg-opacity-20"
+        _="install DeleteButton")
+            i(class="fas text-sm fa-trash w-3 mx-3 fa-fw")
+            .flex.flex-col.pr-3
+                span.jbm DELETE
+
     
 
 style. 
@@ -34,6 +43,16 @@ style.
     }
 
 script(type="text/hyperscript").
+        behavior DeleteButton 
+            on click 
+                    call confirm ('Delete this schedule? This action cannot be undone.')
+                    if result is true 
+                        then fetch `/delete/` with method:'DELETE' 
+                        then go to url `/schedule` 
+                        end
+                    end
+                end
+
         behavior ActionButton 
             on click
                     add .active to me 
@@ -70,5 +89,6 @@ script(type="text/hyperscript").
         +button-option("fa-bolt" "ALGORITHM B" "Solve via maximizing silimarity to manager generated schedules" "actions/solve-tca/" "sky")
         +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")
         +button-clear
+        +button-delete
 
             

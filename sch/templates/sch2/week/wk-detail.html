@@ -113,25 +113,6 @@
                 <div class="text-2xs badge px-5">{{ workday.percent }}% Filled</div>
         </div>
     </a>
-        <div class="text-sm mx-4">
-            {% for ptor in workday.pto %} 
-                {% if pto.stands_respected %}
-                    <span class="text-sky-500"
-                        _="on mouseenter toggle .hidden  on the next .tooltips until mouseleave 
-                            end ">
-                     ◉ 
-                    </span>
-                {% else %} 
-                    <span class="text-rose-500"
-                    _="on mouseenter
-                            toggle .hidden 
-                            on the next .tooltips
-                        until mouseleave 
-                        end "> ◉ </span>
-            {% endif %}
-                <div class="tooltips hidden -translate-y-4">{{ptor.employee}}</div>
-            {% endfor %}
-        </div>
     </div>    
     {% endfor %}
     

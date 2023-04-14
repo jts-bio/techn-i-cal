@@ -26,12 +26,13 @@ urlpatterns = [
     path('partials/<schId>/log/', Sections.schLogView, name="log"),
     path('detail/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
+    path('detail/<schId>/set-sch-maxes/', Sections.sch_prn_empl_maxes, name="maxes"),
     
     #~~ ACTIONS ~~#
     path('detail/<schId>/actions/set-templates/', Actions.set_templates, name="set-templates"),
     path('detail/<schId>/actions/clear-all/', Actions.clear_all, name="clear-all"),
     path('detail/<schId>/actions/clear-all-pto-conflicts/', Actions.clear_all_pto_conflicts, name="clear-all-ptoc"),
-    path('detail/<schId>/actions/clear-all-unfavorables/', Actions.clear_unfavorables, name="clear-all-mistemplated"),
+    path('detail/<schId>/actions/clear-all-unfavorables/', Actions.clear_unfavorables, name="clear-all-unfavorables"),
     path('detail/<schId>/actions/solve-tca/', Actions.solve_with_tca, name="solve-tca"),
     path('detail/<schId>/actions/clear-slot/<wd>/<sft>/', Actions.clear_slot, name="clear-slot"),
     path('detail/<schId>/actions/override-slot/<wd>/<sft>/<empId>/', Actions.override_slot, name="override-slot"),
@@ -45,6 +46,7 @@ urlpatterns = [
     path('detail/<schId>/delete/', ApiActionViews.delete_schedule, name='sch__delete'),
     path('detail/<schId>/actions/clear-prn-slots/', Actions.clearPrnEmployeeSlots, name="clear-prn-slots"),
     path('detail/<schId>/actions/clear-ot-slots/', Actions.clearOvertimeSlotsByRefillability, name="clear-ot-slots"),
+    path('detail/<schId>/actions/clear-over-fte-maxes/', Actions.sch_clear_over_empl_maxes, name="clear-overFte"),
     path('detail/<schId>/actions/publish/', Actions.publish_view, name="publish"),
     path('detail/<schId>/actions/unpublish/', Actions.unpublish_view, name="unpublish"),
     

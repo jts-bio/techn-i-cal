@@ -118,6 +118,7 @@ class Components:
         pass
 
 
+
 class Sections:
     """
         contains fx:
@@ -131,6 +132,7 @@ class Sections:
         SCH EMUSR
         SCH EMPTYLIST 
         SCH EMUSRPAGE
+        SCH OVER_FTE_FORM
         ```
     """
     
@@ -196,7 +198,7 @@ class Sections:
         return render(
             request,
             "tables/pto-conflicts.html",
-            {"pto_requests": pto_requests, "schedule": sch, "ptoconflicts": pto_conflicts},
+            {"pto_requests": pto_requests, "schedule": sch, "pto_conflicts": pto_conflicts},
         )
 
     def schPtoGrid (request, schId, emp):
@@ -307,6 +309,27 @@ class Sections:
         wk = sch.weeks.all()[0] #type: Week
         wk.overtime_hours()
 
+    def sch_prn_empl_maxes(request,schId):
+        template="tables/fte-maxes.pug"
+        schedule = Schedule.objects.get(slug=schId)
+        
+        if request.method == "POST":
+            print(request.POST)
+            for emp in request.POST:
+                if schedule.employees.filter(slug=emp).exists():
+                    schedule.data['maxes'][emp] = request.POST[emp]
+                    print(f">>> UPDATED {emp}: {request.POST[emp]}")
+            schedule.save()
+            messages.info(request, "Maxes Updated")
+            return HttpResponseRedirect(schedule.url())
+        
+        return render(request, template, {
+            "schedule": schedule,
+            "maxes": schedule.data['maxes'].items()
+            })
+    
+
+
 class Actions:
     """
     SCHEDULE :: ACTION PERFORMING VIEWS
@@ -323,11 +346,23 @@ class Actions:
     def publish_view (request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.publish(sch)
+        sch.routine_log.events.create(
+            event_type='PUBLISH',
+            data={
+                'user': request.user.username
+            }
+        )
         return HttpResponseRedirect(sch.url())
         
     def unpublish_view (request, schId):
         sch = Schedule.objects.get(slug=schId)
-        sch.actions.unpublish(sch)
+        sch.actions.unpublish(sch)        
+        sch.routine_log.events.create(
+            event_type='UNPUBLISH',
+            data={
+                'user': request.user.username
+            }
+        )
         return HttpResponse()
 
     class Updaters:
@@ -342,7 +377,16 @@ class Actions:
 
     def clear_untrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
+        
+        n = sch.slots.untrained().count()
         sch.slots.untrained().update(employee=None)
+        sch.routine_log.events.create(
+            event_type='RESOLVE-TRAINING',
+            data={
+                'n': n,
+                'user': request.user.username
+            }
+        )
         return HttpResponse(
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Untrained slots cleared</div>"
         )
@@ -353,6 +397,13 @@ class Actions:
         sch.slots.unfavorables().update(employee=None)
         n_final = sch.slots.unfavorables().count()
         n = n_init - n_final
+        sch.routine_log.events.create(
+            event_type='RESOLVE-UNFAVORABLES',
+            data={
+                'n': n,
+                'user': request.user.username
+            }
+        )
         return HttpResponse(
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} Unfavorable slots cleared</div>'
         )
@@ -382,10 +433,11 @@ class Actions:
         sch.slots.bulk_update(to_clear, fields=('employee',))
         sch.slots.bulk_update(to_update, fields=('employee',))
         sch.routine_log.events.create(
-            event_type='set_templates',
+            event_type='SET-TEMPLATES',
             data={
                 'n_cleared': len(to_clear),
-                'n'        : len(to_update)
+                'n'        : len(to_update),
+                'user'     : request.user.username,
             }
         )
         return HttpResponse(
@@ -409,66 +461,70 @@ class Actions:
             employee=OuterRef('employee'), week=OuterRef('week')
             )
         
-        employees = schedule.employees.objects.annotate(
-            weekHours_0=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+        employees = schedule.employees.annotate(
+            weekHours_0=Subquery(weeks[0].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours')),
-            weekHours_1=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+            weekHours_1=Subquery(weeks[1].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours')),
-            weekHours_2=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+            weekHours_2=Subquery(weeks[2].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours')),
-            weekHours_3=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+            weekHours_3=Subquery(weeks[3].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours')),
-            weekHours_4=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+            weekHours_4=Subquery(weeks[4].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours')),
-            weekHours_5=Subquery(weeks.slots.filter(employee=OuterRef('pk')).annotate(
+            weekHours_5=Subquery(weeks[5].slots.filter(employee=OuterRef('pk')).annotate(
                 hours=Sum('shift__hours')).values('hours'))
         )
 
         for slot in slots:
             empls = slot.fills_with.all().annotate(
-                hours=Sum(slot.week.slots.filter(
-                    employee=F("pk"),
-                ).aggregate(
-                    week_hours=Sum('shift__hours')
-                )['week_hours'], output_field=FloatField())
-            ).annotate(
-                hoursUnder=F('fte') * 40 - F('hours'),
-            ).annotate(
-                matchingTimePref=Case(When(time_pref=slot.shift.group, then=1),
-                    default=0,
+                hours=Sum(slot.week.slots.filter(employee=F("pk")).aggregate(
+                    week_hours=Sum(F('shift__hours'))
+                        )['week_hours'], output_field=FloatField())
+                        ).annotate(
+                    hoursUnder=F('fte') * 40 - F('hours'),
+                        ).annotate(
+                    matchingTimePref=Case( When(time_pref=slot.shift.group, then=1),
+                        default=0,
+                    )
+                        ).annotate(
+                    hasPtoReq=Case( When(pto_requests__workday=slot.workday.date, then=1),
+                        default=0,
+                    )
                 )
-            ).annotate(
-                hasPtoReq=Case(When(pto_requests__workday=slot.workday.date, then=1),
-                    default=0,
-                )
-            )
+            ptoEmployees = slot.workday.on_pto()
+            es = empls.filter(matchingTimePref=1).exclude(pk__in=slot.day_coworkers().all()).exclude(pk__in=ptoEmployees.all())
+            print(es.values_list('name','hasPtoReq','hours','matchingTimePref'))
             
-            es = empls.filter(matchingTimePref=1).exclude(pk__in=slot.day_coworkers().all())
-
             if es.exists():
-                emp = es.order_by("?").first()
-
+                emp = es.order_by('?').first()
+                results.append(slot)
                 slot.employee = emp
                 week = slot.week
-                week.hours[emp.slug] = slot.week.slots.filter(
-                    employee=emp).aggregate(hours=Sum('shift__hours'))['hours']
+                week.hours[emp.slug] = sum(list(slot.week.slots.filter(
+                    employee=emp).values_list('shift__hours', flat=True)))
                 for sibslot in slot.siblings_day: 
                     sibslot.fills_with.remove(emp)
-                results.append(slot)
+                if week.hours[emp.slug] > emp.fte * 40 - 5:
+                    for s in slot.week.slots.filter(fills_with=emp):
+                        s.fills_with.remove(emp)
                 n+=1
 
-        schedule.slots.bulk_update(results, fields=('employee'))
+        schedule.slots.bulk_update(results,fields=['employee']) 
+        
+        clear_maxes = Actions.sch_clear_over_empl_maxes(request, schId)
+        
         time_f = dt.datetime.now()
         schedule.routine_log.events.create(
-            event_type='fill_with_favorables',
+            event_type='SOLVE-ALGORITHM-A',
             data={
                 'n': n,
                 'time': f'{(time_f - time_i).seconds} seconds',
-                
+                'user': request.user.username
             }
         )
         return HttpResponse(
-            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled with favorables</div>'
+            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled by favorability-maximizing strategy.</div>'
         )
 
     def wd_redirect(request, schId, wd):
@@ -479,17 +535,23 @@ class Actions:
     @csrf_exempt
     def retemplate_all (request, schId):
         sch = Schedule.objects.get(slug=schId)
-        n = 0
-        for slot in sch.slots.filter(template_employee__isnull=False):
-            if Slot.Flags.IGNORE_MISTEMPLATE_FLAG not in slot.tags.names():
-                emp = slot.template_employee
-                if slot.employee != emp:
-                    n += 1
-                    slot.workday.slots.filter(employee=emp).update(employee=None)
-                    slot.employee = emp
-                    slot.save()
+        slots = sch.slots.mistemplated()
+        n = slots.count()
+        for slot in slots:
+            template_empl = slot.template_employee
+            slot.siblings_day.filter(employee=template_empl).update(employee = None)
+            slot.employee = template_empl
+            slot.save()
+        
+        sch.routine_log.events.create(
+            event_type='RETEMPLATE-ALL',
+            data={
+                'n': n,
+                'user': request.user.username
+            }
+        )
         return HttpResponse(
-            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots retemplated</div>"
+            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {slots.count()} slots retemplated</div>"
         )
 
     @csrf_exempt
@@ -516,30 +578,40 @@ class Actions:
     def clear_all_pto_conflicts(request, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
+        
+        time_i = dt.datetime.now()
         for s in sch.slots.conflictsWithPto().all():
             s.employee = None
             s.save()
             n += 1
-        return HttpResponse(
-            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {n} slots cleared</div>"
+        time_f = dt.datetime.now()
+            
+        sch.routine_log.events.create(
+            event_type='CLEAR-PTO-CONFLICTS',
+            data={
+                'n': n,
+                'duration': f'{(time_f - time_i).seconds} s',
+                'user' : request.user.username
+            }
         )
+        return HttpResponse(f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i>{n} slots cleared</div>")
 
     @csrf_exempt
     def clear_all(request, schId):
         sch = Schedule.objects.get(slug=schId)
+        
         if request.method == "POST":
+            n = sch.slots.filled().count()
             sch.actions.clearSlots(sch)
-            messages.success(request, "All slots cleared")
-            return render(
-                request,
-                "data-responses/clearAll.html",
-                {"result": "success", "message": "All slots cleared"},
-            )
-        return render(
-            request,
-            "data-responses/clearAll.html",
-            {"result": "error", "message": "Invalid request method"},
-        )
+    
+            messages.success(request, "All slots cleared.")
+            sch.routine_log.events.create(event_type='CLEAR-ALL',data={'n':n, 'user': request.user.username})
+            
+            context = {"result": "success", "message": "All slots cleared"}
+            return render(request, "data-responses/clearAll.html",context)
+            
+        context = {"result": "error", "message": "Invalid request method"}
+        return render(request, "data-responses/clearAll.html", context)
 
     @csrf_exempt
     def clear_slot(request, schId, wd, sft):
@@ -556,6 +628,26 @@ class Actions:
         return HttpResponse(
             "<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>"
         )
+
+    @csrf_exempt
+    def sch_clear_over_empl_maxes(request, schId): 
+        sch = Schedule.objects.get(slug=schId)
+        hours_cleared = 0
+        for empl in sch.employees.all():
+            if empl.slug in sch.data['maxes']:
+                empl_max_hours = sch.data['maxes'][empl.slug]
+            else:
+                empl_max_hours = empl.fte * 40
+                for week in sch.weeks.all():
+                    while week.slots.filter(employee=empl).values('shift__hours')['hours'] > empl_max_hours:
+                        slot = week.slots.filter(employee=empl).order_by('fiils_with__count').first()
+                        slot.employee = None
+                        hours_cleared += slot.shift.hours
+                        slot.save()
+                        
+        messages.success(request, f'{hours_cleared}hrs cleared')
+        return HttpResponseRedirect(sch.url())
+
 
     @csrf_exempt
     def override_slot(request, schId, wd, sft, empId):
@@ -612,8 +704,9 @@ class Actions:
 
     class EmusrBalancer:
         def select_max_min_employees(request, schId):
-            emusr_data = flow_views.ApiViews.schedule__get_emusr_list(
-                request, schId)
+            
+            emusr_data = flow_views.ApiViews.schedule__get_emusr_list(request, schId)
+            
             data = json.loads(emusr_data.content)
             max_val = max(data.values())
             max_empl = [k for k, v in data.items() if v == max_val][0]

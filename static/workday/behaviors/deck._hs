@@ -24,7 +24,7 @@ behavior Deck
         end
 
     on drop 
-        call event.stopPropagation()
+        call event.stopImmediatePropagation()
         call event.dataTransfer.getData("text")
         then set employeeId to result
         then trigger checkAndTake
@@ -38,6 +38,10 @@ behavior Deck
                 then set incomingEmployee@data-in-slot to 'None' 
                 then remove .active from (.employee in me)
                 then fetch `${sft}/clear/` 
-                then add .bg-green-300 .bg-opacity-50 then wait 1s then remove .bg-green-300 .bg-opacity-50 
+                then add .bg-green-300 
+                        .bg-opacity-50 
+                then wait 1s 
+                then remove .bg-green-300 
+                        .bg-opacity-50 
             end
     end

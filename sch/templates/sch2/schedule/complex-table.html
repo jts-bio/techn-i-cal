@@ -11,7 +11,7 @@
             </i>
 </a>
     {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
-    <table class="flex basis-1 shrink bg-zinc-900 m-3 rounded bg-transparent rounded border border-3 border-zinc-400 drop-shadow">
+    <table class="flex basis-1 shrink bg-zinc-900 m-3 bg-opacity-40 backdrop-blur-xl rounded border border-3 border-zinc-400 drop-shadow">
     {% for period in schedule.periods.all %}
         <tr>
             <th rowspan="6">

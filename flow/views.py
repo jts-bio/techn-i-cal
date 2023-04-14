@@ -144,14 +144,14 @@ class ApiActionViews:
     """
     
     
-    def build_schedule (request, year, num, version, start_date):
+    def build_schedule (request, year, num, version, start_date, testing=False):
         """Build Schedule
         ---
         ```
         params:
-            1 year 
-            2 num_of_sch
-            3 version_char
+            1  year 
+            2  num_of_sch
+            3  version_char
         """
         #basic time data
         pd_nums = [num*2 + i for i in range(3)]
@@ -217,7 +217,14 @@ class ApiActionViews:
         for slot in slots:
             slot.fills_with.set(Employee.objects.filter(shifts_available=slot.shift).exclude(
                 pk__in=slot.workday.on_pto()).exclude(pk__in=slot.workday.on_tdo()))
-        slots.update()
+            template = ShiftTemplate.objects.filter(shift=slot.shift, sd_id=slot.workday.sd_id)
+            if template.exists():
+                slot.template_employee = template.first().employee
+        slots.bulk_update(slots,["slug","template_employee"])
+        
+        if testing: 
+            return schedule
+        
         return HttpResponseRedirect(schedule.url())
     
     def build_alternate_draft (request, schId):

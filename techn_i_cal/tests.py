@@ -6,7 +6,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from django.urls import reverse 
 from django.http  import HttpRequest
-from .views import loginView
+from .urls import loginView
 from .forms import LoginForm
 
 

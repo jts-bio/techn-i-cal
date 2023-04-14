@@ -17,6 +17,13 @@
             then put result into #swap-panel
             end
         end
+    behavior ClearOverFte
+        on click
+            add .fa-beat then fetch actions/clear-over-fte-maxes/ 
+            then call showToast('FTE Levels Normalized.')
+            then fetch /sch/schedule-partials/{{schedule.slug}}/week-breakdown/ 
+            then put result into #swap-panel
+            end
 </script>
 
 
@@ -37,7 +44,13 @@
                 title="CLEAR OVERTIME SLOTS ASSIGNMENTS"
                 _="install ClearOT">
             </i>
-            <div class="bg-zinc-700 text-orange-200 jbm text-2xs rounded h-5 w-[150px]"></div>
+            {# ----- OVERTIME ICON / CLEAR ----- #}
+            <i 
+                class="relative fa-regular fa-circles-overlap hover:text-orange-800" 
+                title="CLEAR FTE OVERAGES"
+                _="install ClearOverFte">
+            </i>
+            
     </div>
 
     <h2 class="text-2xl">Weekly Breakdown</h2>
@@ -101,6 +114,7 @@
 </div>
 
 <script>
+    
     $(document).ready(function() {
         $('.hours').each(function() {
             var value = $(this).data('value');
