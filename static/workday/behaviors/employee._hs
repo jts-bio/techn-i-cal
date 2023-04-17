@@ -25,6 +25,13 @@ behavior Employee
     on click 
         call event.stopPropagation()
         if I do not match .active
+            if I match .pto-flag 
+                call confirm ('Clear this employee from assignment to honor PTO?')
+                    if result is true 
+                        fetch `${[@data-in-slot]}/clear/`
+                        then call window.location.reload()
+                        end 
+                end
             transition .active*scale to 1 over 200ms
             add .active 
             then take .active from .employee 
@@ -83,10 +90,11 @@ behavior Employee
         if #pto-list.dataset.employees contains @data-employee-id
             add @data-pto to me then 
             set @data-pto to true then
+            make a <div/> set div to result then 
             add .pto-flag to me then 
-            tell .e-btm in me 
-                put 'PTO' into you end
-            end
+            put 'PTO' into div 
+            then add .badge-red to div
+            then put div at the end of me end
         if #tdo-list.dataset.employees contains @data-employee-id
             add @data-tdo to me then 
             set @data-tdo to true then 

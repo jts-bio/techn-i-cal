@@ -42,31 +42,22 @@ block content
         document.querySelector(".content").classList.add('bg-opacity-70');
         document.querySelector(".content").classList.add('backdrop-blur-sm');
 
+    .flex.flex-row.h-screen
+        .column(class="w-1/4")
+            include components/sch-header.pug
 
-    div.page.flex(class="md:flex-row")
-        div
-            section#LOWER-BODY
-                div.flex.flex-col-reverse(class="md:flex-row md:flex-row mb-1 md:mb-3")
-                    div.flex.flex-col
+            include stats.html
 
-                        include components/sch-header.pug
+            include components/data-entry-btns.pug
 
-                        include stats.html
+        .overflow-y-clip
 
-                        div.btn.bg-blue-300.opacity-40(
-                            class="hover:opacity-100"
-                            hx-get="set-sch-maxes/"
-                            hx-target="#swap-panel"
-                            ) Set Employee Scheduling Maximums
+            #swap-panel-indic.htmx-indicator
+                i.fas.fa-spinner.animate-spin.text-xl.fa-beat.mx-5
+                span.text-md.opacity-80.animate-pulse Rendering...
 
-                    div.overflow-x-contain
-
-                        #swap-panel-indic.htmx-indicator
-                            i.fas.fa-spinner.animate-spin.text-xl.fa-beat.mx-5
-                            span.text-md.opacity-80.animate-pulse Rendering...
-
-                        #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(
-                            class="md:px-4 md:m-4" )
+            #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(
+                class="md:px-4 md:m-4" )
                             
                    
     //- VERSION CONTROL CONTEXT MENU
@@ -89,8 +80,11 @@ block content
         //- Alternates
         if alternates
             div
-                div.text-2xs.opacity-2xs.bg-zinc-300.text-black.font-bold.mt-5.px-3
-                    | ALTERNATE VERSIONS
+                div.text-2xs.opacity-80.bg-zinc-300.text-black.font-bold.mt-5.px-3.rounded.cursor-pointer(
+                    class="hover:opacity-100"
+                    _="on click fetch version-compare/ then put result into #swap-panel then tell #contextMenu set *display to 'none'"
+                    ) ALTERNATE VERSIONS
+
                 each alt in alternates
                     div
                         a.text-xs.opacity-70(class="hover:opacity-100 cursor-pointer" href=alt.url()) Version #{alt.version} 

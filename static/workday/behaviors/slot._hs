@@ -1,5 +1,5 @@
 
-behavior Slot
+behavior Slot 
     on dragover 
         call event.preventDefault() then
         set incomingEmployee to first .active then
@@ -26,8 +26,12 @@ behavior Slot
     on showHint
         if first .active@data-available includes @data-shift
         and first .active@data-prohibited does not contain @data-time-of-day
-            remove .hidden from .swap-in-btn in me then 
-            add .text-emerald-300 .font-extrabold to .shift-name in me
+            if first .active@data-employee-id != @data-employee
+                remove .hidden from .swap-in-btn in me then 
+                add .text-emerald-300 .font-extrabold to .shift-name in me
+            else 
+                transition my *opacity to 100% over 500ms
+                end
         else 
             transition my *opacity to 20% over 500ms
         end

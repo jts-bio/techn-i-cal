@@ -3,7 +3,7 @@
 <div class="overflow-x-scroll">
     <div class="grid grid-cols-7 gap-3">
         {% for day in sch.workdays.all %}
-            <div class="bg-zinc-700 rounded p-2 m-1 w-[100px]">
+            <div class="rounded p-2 m-1 w-[100px]">
                 <div>{{ day.date.month }}/{{ day.date.day }}</div>
                     {% if empl.slug in day.pto_list %}
                         <div class="text-black bg-amber-300 px-2 hover:bg-opacity-30 border text-2xs rounded hover:bg-orange-700 w-fc"

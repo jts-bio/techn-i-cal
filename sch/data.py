@@ -27,6 +27,12 @@ class Images:
         HOSPITAL            = '/static/img/hospital-illu-tile.png',
         HOSPITAL_2          = '/static/img/hospital-photography-tile.png',
         GEO_OBSIDIAN        = '/static/img/obsidian-geometry.svg',
+        AGAR_BIO            = '/static/img/agar-bio-tile.png',
+        AMETHYST            = '/static/img/amethyst-tile.png',
+        JADE_1              = '/static/img/jade-forest-tile.png',
+        JADE_2              = '/static/img/jade-forest-tile-2.png',
+        PINK_SCIENCE        = '/static/img/science-beakers-pink-tile.png',
+        AQUAMARINE_YELLOW   = '/static/img/aquamarine-yellow-tile.png',
     )
     
     SEAMLESS_OPTIONS = list(SEAMLESS.values())

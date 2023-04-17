@@ -1,0 +1,23 @@
+
+
+h1 Schedules 
+
+table 
+    thead 
+        tr 
+            th Version 
+            th Updated At 
+            th Percent Complete
+            th Best Score 
+            th Avg Employee Slot Preference 
+
+    tbody
+        each instance in schedules
+            tr
+                td #{instance.version} 
+                td #{instance.updated_ago}
+                td #{instance.percent}%
+                td #{instance.best_score}
+                td #{instance.avg_pref_score}
+                      
+            

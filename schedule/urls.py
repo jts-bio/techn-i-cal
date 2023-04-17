@@ -27,6 +27,9 @@ urlpatterns = [
     path('detail/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
     path('detail/<schId>/set-sch-maxes/', Sections.sch_prn_empl_maxes, name="maxes"),
+    path('detail/<schId>/version-compare/', Sections.version_compare, name="version-compare"),
+    path('detail/<schId>/pto-requests/', Sections.schPtoRequests, name="pto-requests"),
+
     
     #~~ ACTIONS ~~#
     path('detail/<schId>/actions/set-templates/', Actions.set_templates, name="set-templates"),

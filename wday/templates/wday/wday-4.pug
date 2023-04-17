@@ -46,13 +46,14 @@ block mixins
 
     mixin template-empl-btn(slot)
         if slot.template_employee != slot.employee
-            i.template-btn.fa-solid.fa-street-view.opacity-30(
-                _="install TemplateEmployeeBtn", 
-                class="hover:text-amber-400 hover:opacity-50",
-                data-employee=slot.employee,
-                data-shift=slot.shift.name,
-                data-template=slot.template_employee
-                )
+            if slot.template_employee_on_pto == "False"
+                i.template-btn.fa-solid.fa-street-view.opacity-30(
+                    _="install TemplateEmployeeBtn", 
+                    class="hover:text-amber-400 hover:opacity-50",
+                    data-employee=slot.employee,
+                    data-shift=slot.shift.name,
+                    data-template=slot.template_employee
+                    )
 
     mixin empl-context-arrows(empl, workday)
         span.absolute.bottom-0.right-0.mr-2.mb-3
@@ -87,9 +88,10 @@ mixin Employee(empl, workday)
                 span.e-btm.text-2xs
 
 mixin Slot(slot)
-    div.slot.h-42.w-52.bg-zinc-900.bg-opacity-50.bg-blur.rounded.border.p-3(
+    div.slot.h-42.w-52.bg-zinc-900.bg-opacity-60.backdrop-blur.rounded.p-3(
         data-shift= slot.shift.name
         data-template= slot.template_employee
+        data-template-pto = slot.template_employee_on_pto
         data-employee= slot.employee
         data-time-of-day= slot.shift.group
         data-hours= slot.shift.hours
@@ -124,9 +126,9 @@ block style
         .dragged-over    {background-color: #ccffcc33!important;}
         .swap-in-btn > i {font-size: 20px; color: #003311ff; cursor: pointer;}
         .hours-display   {font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; text-overflow: ellipsis;}
-        .pto-flag        {background-color: #ff006655!important; color: #dddddd!important}
+        .pto-flag        {background-color: #ff006655!important; color: #dddddd!important;}
         .tdo-flag        {background-color: #dd447755!important; color: #dddddd!important}
-        .badge-top-right {position: absolute; top: 0; right: 0;}
+        .badge-red       {width:32px; height:32px; position: absolute; bottom: -7px; left: -7px; border: 2px solid white; border-radius: 100%;font-size: 11px; background-color: #ff1100aa; color: white; padding-top: 6px; alignment: center;padding-left: 3px;}
         .employee        {display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(4, 1fr); grid-column-gap: 0px;grid-row-gap: 0px; width: 170px!important;height:62px!important}
             .e-img          { grid-area: 1 / 1 / 4 / 4; } 
             .e-name         { grid-area: 1 / 4 / 2 / 11; padding-left: 3px; padding-top: 3px; } 
@@ -174,8 +176,9 @@ block content
             for empl in workday.on_deck.all
                 +Employee(empl, workday)
 
-        div(hx-get= "partial/speed-dial/"
-            hx-trigger= "load")
+        div(hx-get="partial/speed-dial/"
+            hx-trigger="load"
+            )
 
         
     +hiddenPtoList( workday )

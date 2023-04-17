@@ -1,4 +1,4 @@
-<div class="max-w-md p-4 bg-zinc-900 border-right-1 rounded-lg shadow sm:p-8 bg-opacity-60 backdrop-blur-md ">
+<div class="max-w-md p-2 bg-zinc-900 border-right-1 rounded-lg shadow sm:p-8 bg-opacity-60 backdrop-blur-md ">
     <div class="flex flex-col center">
         <div class="flex flex-row gap-1">
             {% include 'components/week-bars.pug' %}
@@ -7,7 +7,10 @@
         {% include 'components/sidebar-view-choice.pug' %}
     </div>
     <div class="flex items-center justify-between mb-4">
-        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white">Stats Summary</h5>
+        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white cursor-pointer"
+            _="on click call alert(`{{schedule.data}}`) end">
+            Stats Summary
+        </h5>
         <span hx-get="{% url 'schd:log' schedule.slug %}" 
             hx-target="#swap-panel"
             hx-trigger="click" 

@@ -4,11 +4,9 @@ from .models import (
                 ShiftTemplate, PtoRequest, Week, Period, Schedule,
                 RoutineLog, LogEvent, WorkdayViewPreference )
 
-class MyAdminSite(admin.AdminSite):
-    site_header = "Monty Python administration"
 
 
-admin_site = MyAdminSite(name="myadmin")
+
 
 @admin.register(Shift)
 class ShiftAdmin(admin.ModelAdmin):

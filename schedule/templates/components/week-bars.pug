@@ -1,23 +1,30 @@
+mixin weekBar(percent)
+  div.flex.flex-col.flex-nowrap.justify-end.w-4.h-32.rounded-full.overflow-hidden.bg-gray-700.shadow-lg.shadow.shadow-blue-100
+    if percent != 100 
+      div.bg-blue-500.overflow-hidden(
+        role="progressbar"
+        style="height: #{percent}%"
+        aria-valuenow="#{percent}"
+        aria-valuemin="0"
+        aria-valuemax="100")
+          span.text-2xs(class="pl-[2px]")= percent 
+    else
+      div.bg-emerald-500.overflow-hidden(
+        role="progressbar"
+        style="height: #{percent}%"
+        aria-valuenow="#{percent}"
+        aria-valuemin="0"
+        aria-valuemax="100")
+          i.text-2xs.fas.fa-check(class="pl-[2px]")
 
 //- WEEK DISPLAY BARS PANEL
 div.bg-black.bg-opacity-20.p-3.rounded.border-gray-300.center-self.mb-3
 
   h3.text-center.text-white.text-sm COMPLETION BY WEEK
 
-  .flex.flex-row.gap-3
+  .flex.flex-row(class="gap-[11px]")
 
     each week in schedule.weeks.all
       //- SINGLE BAR FOR 1 WEEK
-      div.flex.flex-col.flex-nowrap.justify-end.w-4.h-32.rounded-full.overflow-hidden.bg-gray-700.shadow-lg.shadow.shadow-blue-100
-        //- COLORED PORTION
-        div.bg-blue-500.overflow-hidden(
-          role="progressbar"
-          style="height: #{week.percent()}%"
-          aria-valuenow="#{week.percent()}"
-          aria-valuemin="0"
-          aria-valuemax="100")
-
-            if week.percent != 100 
-              span.text-2xs= week.percent 
-            else 
-              i.text-2xs.fas.fa-check
+      +weekBar(week.percent)
+      

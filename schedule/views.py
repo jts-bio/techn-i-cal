@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRed
 from django.views.generic.base import TemplateView, RedirectView, View
 from sch.models import generate_schedule
 import datetime as dt
+from django.utils import timezone as tz
 from django.urls import reverse
 from sch.forms import GenerateNewScheduleForm
 from django.db.models import ( OuterRef, Subquery, Count,
@@ -13,6 +14,7 @@ from django.db.models.functions import Coalesce, Concat
 from flow.views import ApiViews
 from django.views.decorators.csrf import csrf_exempt
 from flow import views as flow_views
+from django.db.models import ExpressionWrapper, F, DurationField
 
 from django.db import models
 from django.contrib import messages
@@ -205,6 +207,10 @@ class Sections:
             {"pto_requests": pto_requests, "schedule": sch, "pto_conflicts": pto_conflicts},
         )
 
+    def schPtoRequests(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        return render(request, "tables/pto-requests.html", {"schedule": sch})
+    
     def schPtoGrid (request, schId, emp):
         sch = Schedule.objects.get(slug=schId)
         emp = Employee.objects.get(slug=emp)
@@ -299,7 +305,17 @@ class Sections:
     
     def schLogView(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        return render(request, "components/timeline.pug", {"schedule": sch})
+        now = tz.now()
+        logs = sch.routine_log.events.all()
+        for log in logs:
+            log.updated_ago = (tz.now() - log.created_at).total_seconds()/(60*60)
+            if log.updated_ago < 1:
+                log.updated_ago = f"{round(log.updated_ago*60)} minutes ago"
+            elif log.updated_ago < 24:
+                log.updated_ago = f"{round(log.updated_ago)} hours ago"
+            else:
+                log.updated_ago = f"{round(log.updated_ago/24)} days ago"
+        return render(request, "components/timeline.pug", {"schedule": sch })
     
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -332,19 +348,30 @@ class Sections:
             "maxes": schedule.data['maxes'].items()
             })
     
-
+    def version_compare (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        schs = Schedule.objects.filter(year=sch.year, number=sch.number)
+        for s in schs:
+            s.updated_ago = (tz.now() - s.last_update).total_seconds()/(60*60) 
+            if s.updated_ago < 1:
+                s.updated_ago = f"{round(s.updated_ago*60)} minutes ago"
+            elif s.updated_ago < 24:
+                s.updated_ago = f"{round(s.updated_ago)} hours ago"
+            else:
+                s.updated_ago = f"{round(s.updated_ago/24)} days ago"
+        return render(request, "tables/version-compare.pug", {'schedules': schs, "now": tz.now()})
 
 class Actions:
     """
-    SCHEDULE :: ACTION PERFORMING VIEWS
+    SCHEDULE : ACTION PERFORMING VIEWS
     ====================================
-    ```
-    Updaters
-        @ update_fills_with 
-    @ clearUntrained
-    @ clearUnfavorables
-    @ setTemplates 
-    @ retemplateAll
+        ```
+        Updaters
+            @ update_fills_with 
+        @ clearUntrained
+        @ clearUnfavorables
+        @ setTemplates 
+        @ retemplateAll
     """
 
     def publish_view (request, schId):
@@ -372,7 +399,6 @@ class Actions:
                 "<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> Slot Availability Data Updated</div>"
             )
             
-
     def clear_untrained(request, schId):
         sch = Schedule.objects.get(slug=schId)
         
@@ -489,7 +515,11 @@ class Actions:
                     hasPtoReq=Case( When(pto_requests__workday=slot.workday.date, then=1),
                         default=0,
                     )
-                )
+                        ).annotate(
+                    hasTdo=Case( When(tdos__sd_id=slot.workday.sd_id, then=1),
+                        default=0,
+                        )
+                    )
             ptoEmployees = slot.workday.on_pto()
             es = empls.filter(matchingTimePref=1).exclude(pk__in=slot.day_coworkers().all()).exclude(pk__in=ptoEmployees.all())
             print(es.values_list('name','hasPtoReq','hours','matchingTimePref'))
@@ -628,30 +658,37 @@ class Actions:
         )
 
     @csrf_exempt
-    def sch_clear_over_empl_maxes(request, schId): 
+    def sch_clear_over_empl_maxes (request, schId): 
         sch = Schedule.objects.get(slug=schId)
         hours_cleared = 0
+        
         for empl in sch.employees.all():
+            
             if empl.slug in sch.data['maxes']:
-                empl_max_hours = sch.data['maxes'][empl.slug]
+                empl_max_hours      = sch.data['maxes'][empl.slug]
+            elif empl.std_wk_max :
+                empl_max_hours      = empl.std_wk_max
             else:
-                empl_max_hours = empl.fte * 40
-                for week in sch.weeks.all():
-                    while sum(list(week.slots.filter(employee=empl).values_list('shift__hours',flat=True))) > empl_max_hours:
-                        slot = week.slots.filter(employee=empl).order_by('-fills_with__count').first()
-                        slot.employee = None
-                        hours_cleared += slot.shift.hours
-                        slot.save()
+                empl_max_hours      = empl.fte * 40
+                
+            for week in sch.weeks.all():
+                while sum(
+                        list(week.slots.filter(employee=empl).values_list('shift__hours',flat=True))
+                         ) > int(empl_max_hours) :
+                    slot            = week.slots.filter(employee=empl).order_by('-fills_with__count').first()
+                    slot.employee   = None
+                    hours_cleared  += slot.shift.hours
+                    
+                    slot.save()
                         
         messages.success(request, f'{hours_cleared}hrs cleared')
+        
         return HttpResponseRedirect(sch.url())
-
 
     @csrf_exempt
     def override_slot(request, schId, wd, sft, empId):
         sch = Schedule.objects.get(slug=schId)
         empl = Employee.objects.get(slug=empId)
-        print(request.method)
         if request.method == "POST":
             sch.slots.filter(workday__slug__contains=wd, employee=empl).update(
                 employee=None
@@ -756,7 +793,7 @@ class Actions:
         return HttpResponse(f"{n} Overtime slots cleared")
 
     @csrf_exempt
-    def clearPrnEmployeeSlots(request, schId):
+    def clearPrnEmployeeSlots(request, schId) -> HttpResponse:
         sch = Schedule.objects.get(slug=schId)  # type:Schedule
         prn_employees = sch.employees.prn_employees()
         prn_slots = sch.slots.filter(employee__in=prn_employees)
@@ -770,10 +807,11 @@ class Actions:
                 'slots_cleared': f'{n}',
                 'schedule %': sch.percent,
                 })
+            
         return HttpResponse(f"PRN employees cleared from {n} slots")
 
     @csrf_exempt
-    def publish_schedule(request, pk):
+    def publish_schedule (request, pk) -> HttpResponse:
         schedule = Schedule.objects.get(pk=pk)
         schedule.actions.publish(schedule)
         other_versions = Schedule.objects.filter(year=schedule.year, number=schedule.number).exclude(pk=schedule.pk)

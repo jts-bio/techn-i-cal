@@ -39,15 +39,15 @@ Models:
     - ShiftPreference
 """
 
-DAYCHOICES                     =   (
-                (0, 'Sunday'),
-                (1, 'Monday'),
-                (2, 'Tuesday'),
-                (3, 'Wednesday'),
-                (4, 'Thursday'),
-                (5, 'Friday'),
-                (6, 'Saturday')
-            )
+DAYCHOICES = (
+        (0, 'Sun'),
+        (1, 'Mon'),
+        (2, 'Tue'),
+        (3, 'Wed'),
+        (4, 'Thu'),
+        (5, 'Fri'),
+        (6, 'Sat')
+    )
 WEEKABCHOICES                  =   (
                         (0, 'A'),
                         (1, 'B')
@@ -1536,8 +1536,8 @@ class Schedule (models.Model, ScheduleBaseActions):
         List of Slots ---> Employee has Pto on this day"""
         conflicts = []
         for pto in self.pto_requests.all():
-            if self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).exists():
-                conflicts += [self.slots.filter(employee=pto.employee, workday__sd_id=pto.sd_id).first()]
+            if self.slots.filter(employee=pto.employee, workday__date=pto.workday).exists():
+                conflicts += [self.slots.filter(employee=pto.employee, workday__date=pto.workday).first()]
         return self.slots.filter(pk__in=[c.pk for c in conflicts])
     def is_best_version (self) -> bool: 
         if self != Schedule.objects.filter(year=self.year,number=self.number).order_by('percent').first():
@@ -1597,7 +1597,7 @@ class LogEvent (models.Model):
     log = models.ForeignKey(RoutineLog, on_delete=models.CASCADE, related_name='events')
     event_type = models.CharField(max_length=100)
     description = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True,)
     data = models.JSONField()
     
     class Meta:

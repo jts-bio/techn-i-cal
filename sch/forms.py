@@ -30,10 +30,11 @@ class ShiftForm (forms.ModelForm) :
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'start': forms.TimeInput(attrs={'class': 'form-control'}),
             'duration': forms.TimeInput(attrs={'class': 'form-control'}),
-            'occur_days': forms.CheckboxSelectMultiple(),
-            'cls': forms.Select(),
+            'occur_days': forms.CheckboxSelectMultiple(attrs={"class":"grid-cols-3"}),
+            'cls': forms.Select(attrs={"class":"form-control"}),
             'group': forms.Select(attrs={"class":"form-control"})
         }
+    
 
 class SSTForm (forms.ModelForm) :
     """Form for a single ShiftSlotTemplate, connecting an 

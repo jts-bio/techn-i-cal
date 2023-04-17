@@ -814,7 +814,9 @@ class EmpViews:
     
     def empShiftTallies (request, empId, doRender=True):
         emp = Employee.objects.get (slug=empId)
-        vals = emp.shift_prefs.values('score')
+        vals = emp.shift_prefs.values_list('score',flat=True)
+        value_dict = {v:list(emp.shift_prefs.values('shift').filter(score=v)) for v in list(vals)}
+        return render(request,'sch2/employee/shift-tally.pug', {'emp':emp, 'vals':vals})
      
 class IdealFill:
 
