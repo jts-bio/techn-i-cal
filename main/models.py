@@ -17,20 +17,19 @@ from django.urls import reverse
 from django_group_by import GroupByMixin
 from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
-from .fields import AutoSlugField
+from .fields import slugify
         
-        
-class BaseClasses:
     
-    pass
 
 class Organization (models.Model):
     name = models.CharField(max_length=300)
-    slug = AutoSlugField (populate_from='name')
+    slug = models.SlugField ()
+    
+    __str__ = lambda self: f"{self.name}"
     
 class Department (models.Model):
     name = models.CharField(max_length=300)
-    slug = AutoSlugField (populate_from='name')
+    slug = models.SlugField ()
     organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='departments', null=True, blank=True)
     schedule_week_count = models.IntegerField(default=6)
     schedule_period_count = models.IntegerField(default=3)
@@ -38,41 +37,48 @@ class Department (models.Model):
     
     __str__ = lambda self: f"{self.name}"
     
+    
 class Shift (models.Model):
     WEEKDAY_CHOICES = (("S", "Sunday"),("M", "Monday"),("T", "Tuesday"),("W", "Wednesday"),("R", "Thursday"),("F", "Friday"),("A", "Saturday"))
     
     name = models.CharField(max_length=300)
-    slug = AutoSlugField (populate_from='name')
+    slug = models.SlugField ()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='shifts', null=True, blank=True)
-    weekdays = MultiSelectField(max_length=100, choices=WEEKDAY_CHOICES, default="MTWRF")
+    weekdays = MultiSelectField(max_length=100, choices=WEEKDAY_CHOICES, default="S M T W R F A".split(" "))
     hours = models.SmallIntegerField()
     
     __str__ = lambda self: f"{self.name}"
     
+   
+    
 class Employee (models.Model):
     name = models.CharField(max_length=300)
     initials = models.CharField(max_length=4,unique=True)
-    slug = AutoSlugField (populate_from='name')
+    slug = models.SlugField ()
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='employees', null=True, blank=True)
     hire_date = models.DateField(default=dt.date(2020, 5, 1))
     active = models.BooleanField()
     
     __str__ = lambda self: f"{self.name}"
-    
+
+        
 class Schedule (models.Model):
     start_date = models.DateField()
     year = models.SmallIntegerField()
     number = models.SmallIntegerField()
-    slug = AutoSlugField (populate_from=['year', 'number'])
+    slug = models.SlugField()
     published = models.BooleanField(default=False)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='shifts', null=True, blank=True)
-    published_version = models.OneToOneField('Version', on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='schedules', null=True, blank=True)
+    published_version = models.OneToOneField('Version', on_delete=models.SET_NULL, null=True, blank=True, related_name='published_version')
     
+    __str__ = lambda self: f"{self.year}:{self.number}"
     
 class Version (models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='versions')
     name = models.CharField(max_length=1)
     percent = models.SmallIntegerField()
+    
+    __str__ = lambda self: f"{self.schedule.year}{self.schedule.number}:{self.name}"
     
     
     

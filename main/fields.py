@@ -13,4 +13,6 @@ class AutoSlugField (models.SlugField):
         kwargs['max_length']    = kwargs.get ('max_length', 150)
         kwargs['blank']         = kwargs.get ('blank', True)
         kwargs['allow_unicode'] = kwargs.get ('allow_unicode', True)
+        
         super ().__init__ (*args, **kwargs)
+        
