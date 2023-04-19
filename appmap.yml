@@ -1,8 +1,0 @@
-name: techn-i-cal
-packages:
-- path: techn_i_cal
-- path: sch
-- path: flow
-- path: pds
-- path: schedule
-- path: wday
