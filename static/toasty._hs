@@ -1,7 +1,10 @@
+
 behavior Toast
     init 
         set timeRemaining to 30
-        then transition *opacity to 1 over 1s
+        then transition *opacity 
+            to 1 
+            over 1s
         repeat forever 
             decrement timeRemaining
             wait 1s
@@ -10,10 +13,23 @@ behavior Toast
                 end
             end
         end
-    on mouseover set timeRemaining to 4
+
+    on mouseover 
+        set timeRemaining to 4
         end
+
     on destroy 
-        remove me 
+        -- translate up 30px 
+        set newY to *y - 30
+        then transition *y 
+            to newY
+            over 500ms
+        transition *opacity
+            to 0
+            over 500ms
+        then wait 500ms 
+        then remove me 
         end
+
     end
     

@@ -92,9 +92,9 @@ def groupedScheduleListView(request):
     return render (request, "sch-list-grouped.html", {"schedules": yn_dict} )
 
 
-def schDetailView(request, schId):
+def schDetailView (request, schId) :
     sch = Schedule.objects.get(slug=schId)
-    BACKGROUND_PATH = random.choice (Images.SEAMLESS_OPTIONS)
+    BACKGROUND_PATH = Images.randomSeamlessChoice()
     
     if sch.status == 2:
         redirect_sch = Schedule.objects.get(year=sch.year, number=sch.number, status=1)
@@ -107,6 +107,9 @@ def schDetailView(request, schId):
             difference= F('percent') - prct 
         )
     sch.save()
+    
+    carouselItems = [dict(img=Images.randomSeamlessChoice(), caption="Test", description="TestingTestingTesting.") for i in range(3)]
+    
     return render (request, "sch-detail.pug", {
         "schedule":          sch, 
         "alternates":        alternates,
@@ -119,9 +122,16 @@ def schDetailView(request, schId):
 
 
 class Components: 
+            
     
-    def action_button(request):
-        pass
+    def carousel (request, carouselItems):
+        """
+        CarouselItem:
+            - image
+            - caption
+            - description
+        """
+        return render_to_string (request, "components/carousel.pug", {"items": carouselItems})
 
 
 
@@ -245,13 +255,15 @@ class Sections:
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
         for d in data:
-            d["n_options"] = len(d["fills_with"])
-            d["workday"] = d["workday"][0:10]
-            d["workday_url"] = reverse("wday:detail", args=[f"{d['workday']}{version}"])
+            d["n_options"]   = len( d["fills_with"] )
+            d["workday"]     = d["workday"][0:10]
+            wd_slug          = f"{ d['workday'] }{ version }"
+            d["workday_url"] = reverse("wday:detail", args=[wd_slug] )
 
         # Add pagination
-        page = request.GET.get('page', 1)
+        page      = request.GET.get('page', 1)
         paginator = Paginator(data, 20)  # Show 20 data per page
+        
         try:
             for slot in paginator.page(page):
                 Slot.objects.get(id=slot['id']).update_fills_with()
@@ -263,8 +275,8 @@ class Sections:
             
         
             
-        return render (request, "tables/emptys.pug", 
-                            {"empty_slots": data_paginated, 
+        return render (request, "tables/emptys.pug", {
+                            "empty_slots": data_paginated, 
                             'paginator': paginator, 
                             'page': int(page), 
                             'pageNext':int(page)+1,
@@ -304,18 +316,20 @@ class Sections:
         return render(request, "tables/untrained.html", {"data": data})
     
     def schLogView(request, schId):
-        sch = Schedule.objects.get(slug=schId)
-        now = tz.now()
+        sch  = Schedule.objects.get(slug=schId)
+        now  = tz.now()
         logs = sch.routine_log.events.all()
+        
         for log in logs:
-            log.updated_ago = (tz.now() - log.created_at).total_seconds()/(60*60)
+            log.updated_ago = (tz.now() - log.created_at).total_seconds() / (60 * 60)
             if log.updated_ago < 1:
-                log.updated_ago = f"{round(log.updated_ago*60)} minutes ago"
+                log.updated_ago = f"{round(log.updated_ago * 60)} minutes ago"
             elif log.updated_ago < 24:
                 log.updated_ago = f"{round(log.updated_ago)} hours ago"
             else:
-                log.updated_ago = f"{round(log.updated_ago/24)} days ago"
-        return render(request, "components/timeline.pug", {"schedule": sch })
+                log.updated_ago = f"{round(log.updated_ago / 24)} days ago"
+                
+        return render(request, "components/timeline.pug", {"schedule": sch, "logs": logs, "now": now})
     
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -540,7 +554,15 @@ class Actions:
 
         schedule.slots.bulk_update(results,fields=['employee']) 
         
-        clear_maxes = Actions.sch_clear_over_empl_maxes(request, schId)
+        b = 0
+        for slot in schedule.slots.empty():
+            res = slot.actions.solve_most_needed_hours(slot)
+            if res:
+                b += 1
+            
+        Actions.sch_clear_over_empl_maxes(request, schId)
+        
+        
         
         time_f = dt.datetime.now()
         schedule.routine_log.events.create(
@@ -548,7 +570,8 @@ class Actions:
             data={
                 'n': n,
                 'time': f'{(time_f - time_i).seconds} seconds',
-                'user': request.user.username
+                'user': request.user.username,
+                'b': b
             }
         )
         return HttpResponse(
@@ -601,6 +624,15 @@ class Actions:
                 "result": "error", 
                 "message": "Invalid request method"},
         )
+
+    def solve_by_updating_most_needed_hours (request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        n = 0
+        for slot in sch.slots.empty(): 
+            r = slot.actions.solve_most_needed_hours(slot)
+            if r:
+                n += 1
+        return n
 
     @csrf_exempt
     def clear_all_pto_conflicts(request, schId):
@@ -673,13 +705,17 @@ class Actions:
                 
             for week in sch.weeks.all():
                 while sum(
-                        list(week.slots.filter(employee=empl).values_list('shift__hours',flat=True))
-                         ) > int(empl_max_hours) :
+                        list(week.slots.filter(
+                            employee=empl).exclude(
+                                template_employee=empl).values_list('shift__hours',flat=True)
+                            )
+                        ) > int(empl_max_hours) :
                     slot            = week.slots.filter(employee=empl).order_by('-fills_with__count').first()
                     slot.employee   = None
                     hours_cleared  += slot.shift.hours
                     
                     slot.save()
+                print(f"{empl} OK for {week}")
                         
         messages.success(request, f'{hours_cleared}hrs cleared')
         

@@ -1,41 +1,14 @@
 from datetime import time
 from pprint import pprint
+import os, pathlib
+import random
 
 class Images:
     
-    SEAMLESS = dict(
-        SILK                = '/static/img/Silk_seamless_01.png',
-        RUBE_GOLDBERG       = '/static/img/RubeGoldberg_seamless_01.png',
-        CERTIFICATE         = '/static/img/Certificate_seamless_1.png',
-        ZION_ROCKS          = '/static/img/ZionRocks_seamless_1.webp',
-        SCOTTISH_FANTASY    = '/static/img/scottish-fantasy-seamless.png',
-        ISOMETRIC_CHEMIST   = '/static/img/isometric-chemist.png',
-        MICROBIOLOGY_1      = '/static/img/biology-agar-slime-seamless.png',
-        GEODE_1             = '/static/img/geode-olive-seamless.png',
-        WINTER_BRANCHES     = '/static/img/winter-seamless.png',
-        DARK_FLOWCHART      = '/static/img/dark-flowchart-seamless.png',
-        ISO_FACTORY         = '/static/img/isometric-industrial-factory.png',
-        ISO_FACTORY_2       = '/static/img/isometric-industrial-factory-2.png',
-        SCIENCE_COOL        = '/static/img/science-cool-tile.png',
-        SCIENCE_WARM        = '/static/img/science-warm-tile.png',
-        GLOSS_WOODLANDS     = '/static/img/gloss-woodlands-tile.png',
-        RMNP_1              = '/static/img/rocky-mountain-illustration-tile-1.png',
-        RMNP_2              = '/static/img/rocky-mountain-illustration-tile-2.png',
-        RMNP_3              = '/static/img/rocky-mountain-tile-1.png',
-        RMNP_4              = '/static/img/rocky-mountain-tile-2.png',
-        COMIC_MECH          = '/static/img/comic-mech-tile.png',
-        HOSPITAL            = '/static/img/hospital-illu-tile.png',
-        HOSPITAL_2          = '/static/img/hospital-photography-tile.png',
-        GEO_OBSIDIAN        = '/static/img/obsidian-geometry.svg',
-        AGAR_BIO            = '/static/img/agar-bio-tile.png',
-        AMETHYST            = '/static/img/amethyst-tile.png',
-        JADE_1              = '/static/img/jade-forest-tile.png',
-        JADE_2              = '/static/img/jade-forest-tile-2.png',
-        PINK_SCIENCE        = '/static/img/science-beakers-pink-tile.png',
-        AQUAMARINE_YELLOW   = '/static/img/aquamarine-yellow-tile.png',
-    )
+    SEAMLESS_OPTIONS = ["/static/img/" + x for x in os.listdir('static/img/') if 'tile' in x.lower() ]
     
-    SEAMLESS_OPTIONS = list(SEAMLESS.values())
+    def randomSeamlessChoice () -> str:
+        return random.choice(Images.SEAMLESS_OPTIONS)
 
     class Profile:
         CUTE_ROBOT_1    = '/static/img/CuteRobot-01.png'

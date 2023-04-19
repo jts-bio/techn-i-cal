@@ -4,12 +4,14 @@ extends base.html
 block content
 
     script(type="text/javascript").
+        // Analyze whether current version is best:
         fetch("/api/schedule/#{schedule.slug}/is-best-version/")
             .then(response=>response.text())
             .then(data=>{
                 console.log(data)
                 if(data == "True")
             {
+            // If yes, display star indicator:
             document.querySelector('#is-best-indic').classList.remove('hidden');
 
             document.querySelector('#is-best-indic').addEventListener('mouseenter',function(event){
@@ -30,10 +32,11 @@ block content
                     })
                 }
             });
-            
+
+        // Shuffle background image  
         let bgImageUrl = "#{BACKGROUND_PATH}";
         document.querySelector('.bg-main').style.backgroundImage = 'url(' + bgImageUrl + ')';
-        //set background to repeat
+        // set background to repeat
         document.querySelector('.bg-main').style.backgroundRepeat = "repeat";
         document.querySelector('.bg-main').style.backgroundPosition = 'center';
         document.querySelector('.bg-main').style.backgroundSize = "40%";
@@ -42,22 +45,23 @@ block content
         document.querySelector(".content").classList.add('bg-opacity-70');
         document.querySelector(".content").classList.add('backdrop-blur-sm');
 
-    .flex.flex-row.h-screen
+    .flex.flex-col.h-screen(class="md:flex-row")
         .column(class="w-1/4")
-            include components/sch-header.pug
+                    include components/sch-header.pug
 
-            include stats.html
+                    include stats.html
 
-            include components/data-entry-btns.pug
+                    include components/data-entry-btns.pug
 
-        .overflow-y-clip
+            section(class="w-full h-full overflow-y-auto flex-1 p-6")
 
-            #swap-panel-indic.htmx-indicator
-                i.fas.fa-spinner.animate-spin.text-xl.fa-beat.mx-5
-                span.text-md.opacity-80.animate-pulse Rendering...
+                    #swap-panel-indic.htmx-indicator.fixed.w-full.h-full.center-items.justify-center.click-through
+                        .backdrop-blur-lg.rounded.w-40.h-40.animate-beat.justify-center.center-items.text-center.py-7
+                            i.fas.fa-spinner.animate-spin.text-3xl.fa-beat.mx-2
+                            .text-md.opacity-80.animate-pulse Rendering...
 
-            #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(
-                class="md:px-4 md:m-4" )
+                    #swap-panel.container.h-full.overflow-x-scroll.overscroll-x-auto.px-1.rounded.shadow(
+                        class="md:px-4 md:m-4" )
                             
                    
     //- VERSION CONTROL CONTEXT MENU
@@ -99,7 +103,6 @@ block content
                             if alt.difference == 0
                                 span.text-zinc-300 
                                     | (Same level of completion)
-
 
     #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.bg-opacity-0.rounded-lg.shadow-lg
         .w-40.bg-opacity-60.rounded.bg-black.py-5

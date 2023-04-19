@@ -42,9 +42,9 @@ class PeriodSerializer(serializers.ModelSerializer):
         
 class ScheduleSerializer(TaggitSerializer, serializers.ModelSerializer):
     
-    slots       = serializers.StringRelatedField(many=True)
-    clear_url   = serializers.SerializerMethodField()
-    tags        = TagListSerializerField()
+    slots            = serializers.StringRelatedField(many=True)
+    clear_url        = serializers.SerializerMethodField()
+    tags             = TagListSerializerField()
     
     def get_clear_url(self, obj):
         return f'/schedule/detail/{obj.slug}/actions/clear-all/'

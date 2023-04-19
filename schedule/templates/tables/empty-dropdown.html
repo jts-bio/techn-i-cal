@@ -25,11 +25,17 @@
             aria-expanded="true" aria-haspopup="true"
             {% if slot.n_options == 0 %} disabled {% endif %}
             onclick="showDropdownOptions(event)"
-            data-slot="{{slot}}"
+            data-slot="{{slot.workday}}-{{slot.shift}}"
+            data-header-tile="header-tile-{{slot.workday}}-{{slot.shift}}"
             data-n="{{slot.n_options}}"
-            _="on click go to previous .dd-button smoothly end 
+            _="on click 
+                go to previous .dd-button smoothly 
+                end 
                on minusOne(slot)
-                 if slot == @data-slot set @data-n to @data-n - 1 then put `${[@data-n]} options` into me end">
+                 if slot == @data-slot 
+                  set @data-n to @data-n - 1 
+                  then put `${[@data-n]} options` into me 
+                  end">
       {{ slot.n_options }} options
       <!-- Heroicon name: mini/chevron-down -->
       <svg class="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -46,7 +52,7 @@
       <div class="py-1" role="none">
         {% for empl in slot.fills_with %}
             <div data-workday="{{slot.workday}}"
-                 data-slot="{{slot}}"
+                 data-slot="{{slot.workday}}-{{slot.shift}}"
                  data-employee="{{empl}}"
                   _="on click 
                       fetch /api/employee/{{empl}}/week-hours/{{slot.schedule}}/{{slot.workday}}/

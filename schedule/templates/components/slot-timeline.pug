@@ -15,29 +15,33 @@ mixin timeline(slots)
     
     each slot in slots
         if slot == mainSlot
-            .Slot.bg-zinc-400.rounded.bg-opacity-30.px-2(_="init if @wkd == 6 add .week-break end")
-                .Badge
-                    +icon('calendar')
-                h3.h3= slot.shift 
-                a(href='#{slot.workday.url()}') 
-                    .text-2xs= slot.workday.weekday 
-                    .text-sm= slot.workday
+            .Slot
+                .bg-zinc-400.rounded.bg-opacity-30.p-2.m-3(_="init if @wkd == 6 add .week-break end")
+                    .Badge
+                        +icon('calendar')
+                    h3.h3= slot.shift 
+                    a(href='#{slot.workday.url()}') 
+                        .text-2xs= slot.workday.weekday 
+                        .text-sm= slot.workday
         else
             .Slot(_="init if @wkd == 6 add .week-break end")
-                .Badge
-                    +icon('calendar')
-                h3.h3= slot.shift 
-                a(href='#{slot.workday.url()}') 
-                    .text-2xs= slot.workday.weekday 
-                    .text-sm= slot.workday
+                .p-2.m-3
+                    .Badge
+                        +icon('calendar')
+                    h3.h3.opacity-60= slot.shift 
+                    a.opacity-60(href='#{slot.workday.url()}') 
+                        .text-2xs= slot.workday.weekday 
+                        .text-sm= slot.workday
                 
 
 
 block content 
 
     h2.text-3xl.text-center #{streak.count}-day Streak
-    h3.text-xl.text-center Assigned to #{streak.0.employee}
+    div.text-center
+        span.text-xl Assigned to 
+        span.text-xl.bg-zinc-700.rounded.p-1.bg-opacity-70.text-sky-400 #{streak.0.employee}
 
-    .FlexRow.bg-zinc-900.rounded.border.py-4
+    .FlexRow.bg-zinc-900.rounded.border.py-4.overflow-x-scroll
         +timeline(streak)
         

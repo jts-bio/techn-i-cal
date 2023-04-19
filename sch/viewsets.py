@@ -774,10 +774,7 @@ class ShiftViews:
         for empl in Employee.objects.filter(active=True):
             fte += empl.fte
 
-        return render(request, "sch3/shift-summary.pug", {'sum_': sum_, 'fte': fte})
-            
-            
-    
+        return render(request, "sch3/shift-summary.pug", {'sum_': sum_, 'fte': fte})  
         
 class EmpViews:
 

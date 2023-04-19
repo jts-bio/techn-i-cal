@@ -19,14 +19,16 @@ block content
 
             each shift,index in shifts
                 - var i = index + 1
-                div.rank(_="install Rank")
-                    span.rank= i
-                    div.shift(draggable='true' _="install Shift")
-                        span.name= shift.name
-                        input(
-                            type="hidden" 
-                            name="shift" 
-                            value=shift.id)
+                div.rank(
+                    _="install Rank" 
+                    data-rank=i)
+                        span.rank= i
+                        div.shift(draggable='true' _="install Shift")
+                            span.name= shift.name
+                            input(
+                                type="hidden" 
+                                name="shift" 
+                                value=shift.id)
 
         input(
             type="submit" 
@@ -111,4 +113,5 @@ block pre
                 then trigger removeFade
                 end
             end
+            
   

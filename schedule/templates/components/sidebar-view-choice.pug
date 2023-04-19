@@ -9,14 +9,17 @@ mixin viewOption(icon, partialPath)
             i.fa-duotone.fa-fw(class="#{icon} text-white opacity-80")
 
 
-div
+#view-chooser
+
     div.flex.items-center.justify-between.mb-4
         h5.text-xl.font-bold.leading-none.text-gray-100 Views 
-    div
+
+    div(_="on click go to #swap-panel end")
         div.flex.flex-row.space-between.gap-10.mb-1
             +viewOption("fa-poll-people"   "empl-grid" )
             +viewOption("fa-grid-dividers" "shift-grid" )
             +viewOption("fa-chart-bullet"  "fte-ratios" )
             +viewOption("fa-ball-pile"     "week-breakdown" )
             +viewOption("fa-planet-moon"   "complex-table" )
+
     hr.mb-2

@@ -38,20 +38,23 @@
           <div>{% render_table shiftTable %}</div>
         </div>
 
-        <div class="grid grid-cols-3 gap-5 bg-zinc-900 p-2 rounded md:hidden">
+        <div class="grid grid-cols-3 gap-3 bg-zinc-900 p-2 rounded md:hidden">
           {% for shift in shifts %}
           <a
             href="{{shift.url}}"
-            class="bg-zinc-900 border border-zinc-200 rounded py-2 w-24 center text-center hover:scale-105 hover:bg-zinc-800"
+            class="bg-zinc-800 rounded py-2 w-24 center text-center hover:bg-zinc-700"
           >
-            <div
-              class="text-xl font-bold {% if shift.group == 'AM' %} text-amber-400 {% elif shift.group == 'PM' %} text-sky-700 {% else %} text-indigo-600 {% endif %}"
+            <div class="text-2xl font-light 
+                    {% if shift.group == 'AM' %} text-amber-400 
+                    {% elif shift.group == 'PM' %} text-sky-700 
+                    {% else %} text-indigo-600 
+                    {% endif %}"
             >
               {{ shift.name }} {% if shift.group == 'AM' %}
-              <i class="fas text-amber-400 fa-sun opacity-40"></i> 
+              <i class="fas text-amber-400 fa-sun opacity-40 text-sm"></i> 
               {% elif shift.group == 'PM' %}
-              <i class="fas text-sky-700 fa-moon opacity-40"></i> {% else %}
-              <i class="fas text-indigo-600 fa-tombstone opacity-40"></i> 
+              <i class="fas text-sky-700 fa-moon opacity-40 text-sm"></i> {% else %}
+              <i class="fas text-indigo-600 fa-tombstone opacity-40 text-sm"></i> 
               {% endif %}
             </div>
           </a>
