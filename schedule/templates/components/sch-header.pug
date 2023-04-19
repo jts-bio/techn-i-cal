@@ -19,6 +19,13 @@ mixin publishedChip()
                 i.fas.fa-x.opacity-50.text-amber-800.mx-1.cursor-pointer(class="hover:opacity-100")
 
 
+mixin middleRightIndicator (icon)
+    span(class="bg-amber-200 text-xs font-medium text-blue-800 text-center p-0.5 leading-none rounded-full px-2 bg-amber-900 absolute -translate-y-1/2 translate-x-1/2 left-auto right-0 top-2/4"
+        )
+        i.fas.text-xl(class="fa-#{icon}")
+    
+
+
 .bg-zinc-100.bg-opacity-25.backdrop-blur-2xl.text.text-center.mt-2.rounded.p-2
     //- HEADER BAR
     div.flex.w-full.flex-col.reverse.gap-7(class="md:reverse-0")
@@ -48,3 +55,5 @@ mixin publishedChip()
             //- IF PUBLISHED
             if schedule.status == 1 
                 +publishedChip()
+
+    +middleRightIndicator('bars')

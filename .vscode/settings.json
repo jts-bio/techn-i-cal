@@ -56,4 +56,5 @@
         }
     ],
     "sqltools.useNodeRuntime": true,
+    "svn.ignoreMissingSvnWarning": true,
 }

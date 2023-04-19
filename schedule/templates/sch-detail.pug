@@ -1,6 +1,7 @@
 extends base.html
 
 
+
 block content
 
     script(type="text/javascript").
@@ -45,8 +46,10 @@ block content
         document.querySelector(".content").classList.add('bg-opacity-70');
         document.querySelector(".content").classList.add('backdrop-blur-sm');
 
-    .flex.flex-col.h-screen(class="md:flex-row")
-        .column(class="w-1/4")
+  
+
+    .flex.flex-col(class="md:flex-row md:h-screen justify-between")
+        .column(class="w-4/4 md:w-1/4")
                     include components/sch-header.pug
 
                     include stats.html

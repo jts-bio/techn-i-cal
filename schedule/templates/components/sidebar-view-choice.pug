@@ -5,7 +5,8 @@ mixin viewOption(icon, partialPath)
         hx-get="/sch/schedule-partials/#{schedule.slug}/#{partialPath}/"
         hx-target="#swap-panel"
         hx-trigger="click"
-        hx-indicator="#swap-panel-indic")
+        hx-indicator="#swap-panel-indic"
+        _="on click go to #swap-panel end")
             i.fa-duotone.fa-fw(class="#{icon} text-white opacity-80")
 
 
