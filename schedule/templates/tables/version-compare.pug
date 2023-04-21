@@ -1,23 +1,9 @@
+{% load render_table from django_tables2 %}
 
+h1 Schedule Version Comparison
+h3.text-amber-600 #{sch.year} ##{sch.number}
 
-h1 Schedules 
-
-table 
-    thead 
-        tr 
-            th Version 
-            th Updated At 
-            th Percent Complete
-            th Best Score 
-            th Avg Employee Slot Preference 
-
-    tbody
-        each instance in schedules
-            tr
-                td #{instance.version} 
-                td #{instance.updated_ago}
-                td #{instance.percent}%
-                td #{instance.best_score}
-                td #{instance.avg_pref_score}
                       
-            
+.bg-zinc-900.bg-opacity-60.p-4.rounded.shadow-lg.overflow-x-scroll(class="w-max-[1100px]")
+
+    {% render_table sch_table %}        

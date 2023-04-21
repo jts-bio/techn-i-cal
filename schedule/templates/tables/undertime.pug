@@ -1,0 +1,11 @@
+- var i = 1
+
+each prd in periods
+   h2.text-xl Period #{i}
+   - var i = i + 1
+   div.grid.grid-cols-3.bg-white.bg-opacity-25.rounded.p-3.gap-3
+      each empl in prd
+         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.p-5(class="w-[300px] h-[200px]")
+            .text-2xl.font-light= empl.employee 
+            .span.text-xs.bg-amber-400.text-amber-900.rounded-sm.ring.ring-amber-600.px-1.w-fc.float-right -#{empl.under_hours} hrs.
+            .text-sm= empl.potentials

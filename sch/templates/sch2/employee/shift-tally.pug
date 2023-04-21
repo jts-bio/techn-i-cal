@@ -18,11 +18,13 @@ block content
                     th.font-bold Scored At
                     th.font-bold Shifts
                     th.font-bold Count
-                each tally in vals
+                each score, tally in vals.items
                     tr.h-12
-                        td.text-lg #{tally.score}
-                        td.text-md #{emp.shift_prefs}
-                        td.text-lg #{tally.count}
+                        td= score 
+                        td
+                            each s in tally.shifts
+                                span.px-1= s.shift__name
+                        td= tally.count
         div
             div
                 img(src="data:image/svg+xml;base64,#{plot}" class="w-4/5")

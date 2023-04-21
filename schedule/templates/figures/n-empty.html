@@ -3,7 +3,7 @@
 <div class="flex items-center space-x-4 cursor-pointer"
     id= "n-empty-handler" data-schid="{{schedule.slug}}"
     hx-get="/schedule/partials/{{schedule.slug}}/empty-list/"
-    hx-trigger='click' hx-indicator="#swap-panel-indic"
+    hx-trigger='click' hx-indicator="#wait-indicator"
     hx-target="#swap-panel"
     _="on click trigger recheck on #n-empty-check end">
     <div class="flex-shrink-0">

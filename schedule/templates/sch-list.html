@@ -3,7 +3,7 @@
 {% block style %}
 <style>
   body {
-    background-image: url("/static/img/ScienceExperiments_seamless_1.png");
+    background-image: url("/static/img/jade-forest-tile-2.png");
     background-repeat: repeat;
     background-size: 40%;
   }
@@ -15,15 +15,6 @@
     border-top-color: #3498db;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
   }
 </style>
 
@@ -72,7 +63,7 @@
 
   </div>
 
-<div class="md:block list list-view overflow-y-scroll">
+<div class="hidden md:block list list-view overflow-y-scroll">
   <div class="column p-8 m-8">
     <h2 class="text-2xl mt-3 mx-4 font-semibold text-slate-300 shadow">Schedule List</h2>
     <a href="grouped/"
@@ -97,14 +88,13 @@
           
           <a href="detail/{{sch.slug}}/"
             class="bg-{{ sch.color }}-600 rounded-sm shadow-lg
-                   transform  hover:scale-105 hover:shadow-2xl
-                   active:fa-beat"
+                   transform border-black border text-lg hover:border-white hover:scale-110"
             id="button-{{sch.slug}}">
             Schedule {{sch.slug}}
           </a>
         </td>
         <td>
-          <span class="text-{{sch.versionColor}}-600 text-2xs mx-3">
+          <span class="text-{{sch.versionColor}}-600 mx-3">
             {{sch.version}}
           </span>
           {% if sch.is_best_version %}

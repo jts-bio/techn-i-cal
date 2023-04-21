@@ -146,6 +146,18 @@ class Actions:
                 slot.save()
             return HttpResponse(f"{n} slots cleared for {empl}")
 
+        def tidyEmployeeSlots(request, schId, empId, wkmax):
+            sch  = Schedule.objects.get(slug=schId)
+            empl = Employee.objects.get(slug=empId)
+            n = 0
+            for week in sch.weeks.all():
+                while week.slots.filter(employee=empl).aggregate(Sum(F('shift__hours')))['shift__hours__sum'] > int(wkmax):
+                    slot = week.slots.filter(employee=empl).exclude(template_employee=empl).order_by("?").first()
+                    slot.employee = None
+                    slot.save() 
+                    n += 1
+            return HttpResponse(f'{n} slots cleared for {empl}')
+
             
 
 #######--- END OF ACTIONS SECTION ---########
@@ -556,13 +568,40 @@ class SchPartials:
         }
         return render(request, html_template, context)
     
-    def schWeeklyBreakdownPartial (request,schId):
+    def schWeeklyBreakdownPartial (request, schId):
+        """
+        WEEKLY EMPL-HOURS BREAKDOWN
+        ===========================
+        >>> schWeeklyBreakdownPartial"""
+        
         html_template = "sch2/schedule/partials/sch-employee-week-breakdown.html"
-        sch = Schedule.objects.get(slug=schId)
+        
+        sch         = Schedule.objects.get( slug= schId )
+        employees   = sch.employees.all()
+
+        for e in employees:
+
+            if sch.data['maxes'].get(e.slug):
+                e.wkmax = sch.data['maxes'].get(e.slug)
+            else:
+                e.wkmax = e.std_wk_max
+
+            if e.fte == 0:
+                e.wkmin = {}
+                for wk in sch.weeks.all():
+                    e.wkmin[wk.number] = 0
+            else:
+                e.wkmin = {}
+                for wk in sch.weeks.all():
+                    ptohrs = wk.pto_requests().filter(employee=e).count() * 10
+                    e.wkmin[wk.number] = (e.fte * 40) - ptohrs
+
+
         context = {
-            'schedule' : sch,
-            'employees' : Employee.objects.all(),
+            'schedule'  : sch,
+            'employees' : employees
         }
+        
         return render(request, html_template, context)
     
     def schMistemplatedPartial (request, schId):
@@ -693,6 +732,7 @@ class ShiftViews:
             day = {}
             day["sd_id"] = (i,)
             day["shift_on_sd_id"] = str(i % 7) in shift.occur_days
+            
             excludeEmployees = (
                 ShiftTemplate.objects.filter(sd_id=i)
                 .exclude(shift=shift)
@@ -812,8 +852,50 @@ class EmpViews:
     def empShiftTallies (request, empId, doRender=True):
         emp = Employee.objects.get (slug=empId)
         vals = emp.shift_prefs.values_list('score',flat=True)
-        value_dict = {v:list(emp.shift_prefs.values('shift').filter(score=v)) for v in list(vals)}
-        return render(request,'sch2/employee/shift-tally.pug', {'emp':emp, 'vals':vals})
+        value_dict = {
+            "Strongly Dislike": dict(
+                shifts=emp.shift_prefs.filter(score=-2).values('shift__name'),
+                count=Slot.objects.filter(shift__in=emp.shift_prefs.filter(score=-2).values('shift'), employee=emp).count()),
+            "Dislike": dict(
+                shifts=emp.shift_prefs.filter(score=-1).values('shift__name'),
+                count=Slot.objects.filter(shift__in=emp.shift_prefs.filter(score=-1).values('shift'), employee=emp).count()),
+            "Neutral": dict(
+                shifts=emp.shift_prefs.filter(score=0).values('shift__name'),
+                count=Slot.objects.filter(shift__in=emp.shift_prefs.filter(score=0).values('shift'), employee=emp).count()),
+            "Like": dict(
+                shifts=emp.shift_prefs.filter(score=1).values('shift__name'),
+                count=Slot.objects.filter(shift__in=emp.shift_prefs.filter(score=1).values('shift'), employee=emp).count()),
+            "Strongly Like": dict(
+                shifts=emp.shift_prefs.filter(score=2).values('shift__name'),
+                count=Slot.objects.filter(shift__in=emp.shift_prefs.filter(score=2).values('shift'), employee=emp).count()),
+        }
+        print(value_dict)
+        return render(request,'sch2/employee/shift-tally.pug', {'emp':emp, 'vals':value_dict})
+
+    def empTemplateFormView (request, empId):
+        emp             = Employee.objects.get(pk=empId)
+        tdo_days        = list(emp.tdos.values_list('sd_id', flat=True))
+        st_days         = list(emp.shift_templates.values_list('sd_id', flat=True))
+        data            = ["available"] * 42
+        shift_choices   = []
+        useable_data    = []
+
+        for i in range(42):
+            shift_choices.append([emp.shifts_available.filter(
+                occur_days__contains=i%7).exclude(shift_templates__sd_id=i).values_list('name',flat=True)])
+         
+            useable_data.append({
+                'index'         : i,
+                'initial'       : "T" if i in tdo_days else "S" if i in st_days else "A",
+                'choices'       : emp.shifts_available.exclude(shift_templates__sd_id=i).values_list('name',flat=True),
+                'initial_choice': emp.shift_templates.get(sd_id=i).shift.name if i in st_days else None,
+                })
+        
+        return render(request, 'sch3/empl-template-form.pug', {
+                'employee':emp,
+                'template_days': useable_data,
+                'wd_shift_choices': shift_choices
+            })
      
 class IdealFill:
 

@@ -5,7 +5,7 @@ mixin viewOption(icon, partialPath)
         hx-get="/sch/schedule-partials/#{schedule.slug}/#{partialPath}/"
         hx-target="#swap-panel"
         hx-trigger="click"
-        hx-indicator="#swap-panel-indic"
+        hx-indicator="#wait-indicator"
         _="on click go to #swap-panel end")
             i.fa-duotone.fa-fw(class="#{icon} text-white opacity-80")
 
@@ -15,7 +15,7 @@ mixin viewOption(icon, partialPath)
     div.flex.items-center.justify-between.mb-4
         h5.text-xl.font-bold.leading-none.text-gray-100 Views 
 
-    div(_="on click go to #swap-panel end")
+    div(_="on click call showWaitIndicator(event) then go to #swap-panel end")
         div.flex.flex-row.space-between.gap-10.mb-1
             +viewOption("fa-poll-people"   "empl-grid" )
             +viewOption("fa-grid-dividers" "shift-grid" )

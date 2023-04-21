@@ -13,6 +13,7 @@ schedule_urls = [
     path('<schId>/emusr-stdev/', SchViews.Calc.uf_distr, name='sch__get_emusr_stdev'),
     path('<schId>/percent/', ApiViews.schedule__get_percent, name='sch__get_percent'),
     path('<schId>/n-pto-conflicts/', ApiViews.schedule__get_n_pto_conflicts, name='sch__get_n_pto_conflicts'), 
+    path('<schId>/n-tdo-conflicts/', ApiViews.schedule__get_n_tdo_conflicts, name='sch__get_n_tdo_conflicts'),
     path('<schId>/n-mistemplated/', ApiViews.schedule__get_n_mistemplated, name='sch__get_n_mistemplated'),
     path('<schId>/mistemplated-list/', ApiViews.schedule__get_mistemplated_list, name='mistemplated'),
     path('<schId>/n-unfavorables/', ApiViews.schedule__get_n_unfavorables, name='sch__get_n_unfavorables'),
@@ -20,9 +21,12 @@ schedule_urls = [
     path('<schId>/untrained-list/', ApiViews.schedule__get_untrained_list, name='sch__get_untrained_list'),
     path('<schId>/n-turnarounds/', ApiViews.schedule__get_n_turnarounds, name='sch__get_n_turnarounds'),
     path('<schId>/ot-hours/', ApiViews.schedule__get_overtime_hours, name='sch__get_ot_hours'), 
+    path('<schId>/ut-hours/', ApiViews.schedule__get_undertime_hours_sum, name='sch__get_ut_hours'),
+    path('<schId>/ut-hours-list/', ApiViews.schedule__get_undertime_hours, name='sch__get_ut_hours_list'),
     path('<schId>/fill-by-period/', ApiActionViews.payPeriodFiller, name='sch__fill_by_period'),
     path('<schId>/week-excess/<empId>/<wk>/', ApiViews.schedule__employee_excess_week_hours, name='sch__get_week_excess'),
     path('<schId>/clear-empl-slots/<empId>/', Actions.ScheduleActions.clearEmployeeSlots, name="sch__clear_empl"),
+    path('<schId>/tidy-empl-slots/<empId>/<wkmax>/',  Actions.ScheduleActions.tidyEmployeeSlots, name="sch__tidy_empl"),
     path('<schId>/is-best-version/', ApiViews.schedule__is_best_version, name='get_is_best_version')
 ]
 

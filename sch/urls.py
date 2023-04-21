@@ -146,6 +146,7 @@ employee_patterns = [
     path('v2/employee/choose-schedule/<empId>/<schId>/',  views2.schDetailSingleEmployeeView, name="empl-schedule-detail"),
     path('empl/shift-sort/<str:empId>/',  viewsets.EmpViews.empShiftSort, name="emp-shift-sort"),
     path('empl/shift-tallies/<empId>/',  viewsets.EmpViews.empShiftTallies, name="emp-shift-tallies"),
+    path('employee/<empId>/templating/',  viewsets.EmpViews.empTemplateFormView, name="emp-templating"),
     
     #*__________EMPLOYEE API PATHS__________*
     path("api/match-tdo/<empPk>/preview/",  viewsets.EmpPartials.tdoPreview, name="emp-tdo-match-preview"),

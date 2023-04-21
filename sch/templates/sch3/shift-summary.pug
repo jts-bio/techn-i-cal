@@ -5,9 +5,10 @@
     table 
         thead
             tr 
-                - var ftes = sum_ / (40 * 6) 
+                - var ftes      = sum_ / (40 * 6) 
                 - var rosterHrs = sum_ * (fte / ftes)
-                - var percent = round (rosterHrs / sum_ * 100, 1)
+                - var percent   = round (rosterHrs / sum_ * 100, 1)
+                
                 th   
                 th
                     span.pct #{percent} %

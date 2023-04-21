@@ -1,0 +1,38 @@
+<script type="text/hyperscript">
+   behavior UtChecker 
+       on load or recheck 
+           fetch /api/schedule/{{schedule.slug}}/ut-hours/
+           then set @n to result 
+           then put it into #ut-hours 
+       end 
+       on mutation of @n 
+           if @n == 0
+               add .bg-green-300 to #utBadge 
+           else if @n > 30 
+               add .bg-red-300 to #utBadge
+           end
+       end
+</script>
+
+
+
+<div class="flex items-center space-x-4 cursor-pointer" 
+   hx-get="{% url 'schd:undertime-view' schedule.slug %}"
+   hx-target="#swap-panel"
+   hx-indicator="wait-indicator">
+   <div class="flex-shrink-0">
+       <div id="utBadge" class="h-7 w-7 pl-[2.7px] pt-[.6px] rounded-full border border-white bg-amber-300"><i class="fas fa-diagram-venn text-black"></i></div>
+   </div>
+   <div id="identifier" class="flex-1 min-w-0">
+       <p class="text-sm font-medium text-gray-900 truncate dark:text-white">Underrtime Hours</p>
+       <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">Goal: n = 0</p>
+   </div>
+   <div class="inline-flex items-center text-base font-semibold text-gray-100" 
+        id="pto-check"
+        _="install UtChecker">
+       <span id="ut-hours"></span>
+       <span class="opacity-70 text-2xs font-light italic pl-2"> hrs.</span>
+   </div>
+</div>
+
+

@@ -18,7 +18,8 @@
 
 <div class="flex items-center space-x-4 cursor-pointer" 
     hx-get="{% url 'sch:sch-week-brkd' schedule.slug %}"
-    hx-target="#swap-panel">
+    hx-target="#swap-panel"
+    hx-indicator="wait-indicator">
     <div class="flex-shrink-0">
         <div id="otBadge" class="h-7 w-7 pl-[2.7px] pt-[.6px] rounded-full border border-white bg-amber-300"><i class="fa-duotone fa-diagram-venn text-black"></i></div>
     </div>

@@ -12,10 +12,10 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
                 span.text-2xs= subtitle
 
 mixin button-group(btn_title)
-    button.text-zinc-300.bg-zinc-800.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
+    button.text-zinc-300.bg-zinc-950.ml-2.px-3.py-2.jbm.rounded.mt-3(class="hover:bg-zinc-700" type='button' data-bs-toggle='dropdown')
         i.fa-duotone.fa-bolt.mr-3 
         span.text-zinc-200.text-xs.jbm #{btn_title}
-        i.fa-duotone.fa-chevron-down.px-1 
+        i.fa-duotone.fa-chevron-down.px-1.text-2xs.ml-2
 
 mixin button-clear()
     a.flex.flex-row.opacity-70.cursor-pointer(

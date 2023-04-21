@@ -29,6 +29,7 @@ urlpatterns = [
     path('detail/<schId>/set-sch-maxes/', Sections.sch_prn_empl_maxes, name="maxes"),
     path('detail/<schId>/version-compare/', Sections.version_compare, name="version-compare"),
     path('detail/<schId>/pto-requests/', Sections.schPtoRequests, name="pto-requests"),
+    path('detail/<schId>/undertime-view/', Sections.schUndertimeList, name="undertime-view"),
 
     
     #~~ ACTIONS ~~#

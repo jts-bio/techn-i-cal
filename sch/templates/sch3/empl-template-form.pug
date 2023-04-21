@@ -1,0 +1,56 @@
+extends 'base.html'
+
+
+
+block content
+
+   mixin vertical-choices(choice)
+      .flex.flex-col
+         if choice == 'A'
+            .rounded.bg-emerald-400 Available 
+         else 
+            .rounded.opacity-50 Available
+         if choice == 'T'
+            .rounded.bg-blue-900 Off 
+         else
+            .rounded.opacity-50 Off
+         if choice == 'S'
+            .rounded.bg-emerald-400 Set  
+         else
+            .rounded.opacity-50 Set
+
+
+   mixin daywrapper(dayOpts)
+      - var initial = dayOpts['initial']
+      .flex.flex-row.bg-zinc-500.rounded(
+         data-choice=initial )
+            .day= dayOpts.index 
+
+            +vertical-choices(dayOpts.initial)
+            if initial == 'S'
+               select.h-12.w-18
+                  option(value) 
+                  each sft in dayOpts.choices
+                     if dayOpts.initial_choice == sft
+                        option(value=sft selected) #{sft}
+                     else
+                        option(value=sft) #{sft}
+            else
+               select.h-12.w-18.hidden
+                  option(value) 
+                  each sft in dayOpts.choices
+                     if dayOpts.initial_choice == sft
+                        option(value=sft selected) #{sft}
+                     else
+                        option(value=sft) #{sft}
+
+            if initial == 'T'
+               div.h-16.w-16.bg-zinc-900.border.border-blue-600.ring.ring-sky-200.rounded-full.text-center.flex
+                  div.self-center.justify-self-center.text-center TDO
+            
+
+
+   
+   .grid.grid-cols-7.gap-3
+      each day in template_days
+         +daywrapper(day)

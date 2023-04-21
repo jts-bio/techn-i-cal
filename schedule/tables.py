@@ -5,7 +5,7 @@ from django_tables2 import tables
 from django_tables2.utils import A
 from django.utils.html import format_html
 
-from sch.models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday, PtoRequest
+from sch.models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday, PtoRequest, Schedule
 
 
 
@@ -21,10 +21,14 @@ class MistemplatedFlagIgnoreTable (tables.Table):
     class Meta:
         model = Slot
         template_name = "django_tables2/bootstrap4.html"
-        
-        fields = ["slot", "employee", "shift"]
-
         empty_text = "No entries found. Check the admin table for more details."
+
+        fields = [
+            "slot", 
+            "employee", 
+            "shift"
+            ]
+
     
     def render_slot(self, value, record):
         return "{msg} {slot}".format(msg=(
@@ -36,3 +40,25 @@ class MistemplatedFlagIgnoreTable (tables.Table):
     
     def render_shift(self, value, record):
         return record.shift
+    
+
+
+class ScheduleComparisonTable (tables.Table):
+
+    pto_requests  = tables.columns.Column(accessor='pto_requests__all__count', orderable=False, verbose_name='# PTO Requests')
+    pto_conflicts = tables.columns.Column(accessor='pto_conflicts__count', orderable=False, verbose_name='# PTO Conflicts')
+    tdo_conflicts = tables.columns.Column(accessor='tdo_conflicts__count', orderable=False, verbose_name='# TDO Conflicts')
+
+    class Meta:
+        model = Schedule
+        template_name = "django_tables2/bootstrap4.html"
+
+        
+        fields = [
+            "slug", 
+            "start_date", 
+            "status",  
+            "percent",
+            ]
+
+        empty_text = "No entries found. Check the admin table for more details."
