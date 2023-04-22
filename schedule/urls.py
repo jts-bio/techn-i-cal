@@ -4,6 +4,15 @@ from sch.views2 import schDetailAllEmptySlots
 from flow.views import ApiViews, ApiActionViews
 from sch.viewsets import EmpViews
 
+
+"""
+URLS.PY - SCHEDULE APP
+======================
+"""
+
+__author__ = "Josh Steinbecker"
+
+
 app_name = 'schd'
 
 urlpatterns = [
@@ -30,6 +39,7 @@ urlpatterns = [
     path('detail/<schId>/version-compare/', Sections.version_compare, name="version-compare"),
     path('detail/<schId>/pto-requests/', Sections.schPtoRequests, name="pto-requests"),
     path('detail/<schId>/undertime-view/', Sections.schUndertimeList, name="undertime-view"),
+    path('detail/<schId>/manual-input/', Sections.sch_manual_data_entry, name="manual-input"),
 
     
     #~~ ACTIONS ~~#

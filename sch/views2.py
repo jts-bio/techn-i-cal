@@ -259,10 +259,17 @@ def shiftDetailView(request, cls, name):
     _ = [int(sft) for sft in shift.occur_days]
     days = ",".join(["SMTWRFS"[d] for d in _])
 
+    upcoming = shift.slots.filter(
+            schedule__status=1, workday__date__gte=dt.date.today()).order_by("workday__date")
+    if upcoming.exists():
+        upcoming = upcoming[0:14]
+    else:
+        upcoming = None
+
     context = {
         "shift": shift,
         "days": days,
-        "upcoming": shift.slots.filter(workday__date__gte=dt.date.today()).order_by("workday__date")[:28],
+        "upcoming": upcoming,
     }
     return render(request, html_template, context)
 

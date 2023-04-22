@@ -178,10 +178,11 @@ class ApiViews:
                 if pd_hours < empl.fte * 80:
                     total = empl.fte * 80 - pd_hours - pto_hours 
                     if total > 0:
-                        pots = pd.slots.empty().filter(fills_with=empl)
+                        pots = pd.slots.empty().filter(fills_with=empl).exclude(workday__slots__employee=empl)
                         for pot in pots:
                             if pot:
-                                potential_fill_list += [pot.shift.name] 
+                                if not pot.actions.check_turnaround_risk(pot, empl):
+                                    potential_fill_list += [(pot.shift.name,pot.workday.slug)] 
                         ut['employee']= empl.slug 
                         ut['under_hours']= total
                         ut['potentials'] = potential_fill_list

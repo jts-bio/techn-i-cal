@@ -1,11 +1,103 @@
+
+
+script(type="text/hyperscript").
+
+   behavior employeeAssignerButton 
+   
+
+      on click 
+         set wday  to @data-wd 
+         set empl  to @data-empl 
+         set slot  to @data-slot 
+         set shift to @data-shift 
+         set prd   to @data-prd
+         trigger hideBySlot(s:slot) on .potential
+         then 
+         trigger hideByEmpAndWday(e:empl, wd:wday) on .potential
+         then
+         set badge to my.parentNode.parentNode.querySelector('.empl-hours-badge')
+         then
+         trigger subtract on badge
+      end 
+
+      on hideBySlot(s) 
+         set slot to @data-slot 
+         if slot == s 
+            add .hidden to me
+         end
+
+      on hideByEmpAndWday(e,wd) 
+         set empl to @data-empl 
+         set wday to @data-wd 
+         if empl == e 
+            if wday == wd 
+               add .hidden to me
+            end
+         end
+   end
+
+script(type="text/hyperscript").
+
+   behavior employeeHoursBadge
+
+      on load or check 
+         if @data-value <= 7 
+            add .hidden to my.parentNode.parentNode.parentNode
+         end
+
+      on subtract 
+         decrement @data-value by 10 
+         then put `${[@data-value]} hrs.` into me
+         then trigger check
+      end
+
+   end
+
+
 - var i = 1
 
 each prd in periods
+
    h2.text-xl Period #{i}
-   - var i = i + 1
-   div.grid.grid-cols-3.bg-white.bg-opacity-25.rounded.p-3.gap-3
+
+   
+
+   div.grid.grid-cols-2.bg-white.bg-opacity-25.rounded.p-2.gap-3(class="md:grid-cols-2 lg:grid-cols-3")
+
       each empl in prd
-         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.p-5(class="w-[300px] h-[200px]")
-            .text-2xl.font-light= empl.employee 
-            .span.text-xs.bg-amber-400.text-amber-900.rounded-sm.ring.ring-amber-600.px-1.w-fc.float-right -#{empl.under_hours} hrs.
-            .text-sm= empl.potentials
+
+         - var employee   = empl['employee']
+         - var underHours = empl['under_hours']
+         - var imgUrl     = empl['img_url']
+
+         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.shadow(
+            class="w-[200px] lg:w-[300px] h-[160px] lg:px-5")
+
+            .flex.flex-row
+               img(src="#{imgUrl}" class="w-16 h-16 rounded-full mr-2 border")
+               .flex.flex-col
+                  .text-lg.font-light.italic.p-1= employee
+
+                  span.text-xs.bg-amber-400.text-zinc-800.rounded-sm.ring.ring-amber-600.w-fc(
+                     _="install employeeHoursBadge"
+                     class="empl-hours-badge"
+                     data-empl="#{employee}"
+                     data-prd="#{i}"
+                     data-value="#{underHours}")
+                     | #{underHours} hrs. short
+
+            .grid.grid-cols-4.p-2
+
+               each shift, wd in empl.potentials
+
+                  span.potential.cursor-pointer.text.text-xs.pt-1.text-center.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
+                     data-wd="#{wd}"
+                     data-empl="#{employee}"
+                     data-slot="#{wd}-#{shift}"
+                     data-shift="#{shift}"
+                     hx-post="actions/update/#{wd}/#{shift}/#{employee}/"
+                     _="install employeeAssignerButton"
+                     ) #{shift}
+
+   - var i = i + 1
+

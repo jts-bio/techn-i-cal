@@ -2,6 +2,13 @@
 
     <div class="flex flex-row gap-12">
 
+        {% if upcoming|length == 0 %} 
+            <div class="text-center text-2xl text-gray-300 px-4">
+                <i class="fa-duotone fa-warning text-amber-300"></i>
+                No schedule data is published for this date range currently...
+            </div> 
+        {% endif %}
+
         {% for instance in upcoming %}
         <div class="flex flex-col align-center">
             <a class="calendar-page bg-zinc-900 shadow shadow-lg" href="{{ instance.url }}">

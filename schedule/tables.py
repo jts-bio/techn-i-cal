@@ -1,11 +1,17 @@
-from django.db.models import (Avg, Case, CharField, Count, F, FloatField,
-                              IntegerField, Max, Min, OuterRef, Q, Sum, Value,
-                              When)
+from django.db.models import (
+        Avg, Case, CharField, Count, F, FloatField,
+        IntegerField, Max, Min, OuterRef, 
+        Q, Sum, Value, When 
+    )
 from django_tables2 import tables
 from django_tables2.utils import A
 from django.utils.html import format_html
 
-from sch.models import Employee, PtoRequest, Shift, ShiftTemplate, Slot, Workday, PtoRequest, Schedule
+from sch.models import (
+        Employee, PtoRequest, Shift, 
+        ShiftTemplate, Slot, Workday, 
+        PtoRequest, Schedule
+    )
 
 
 

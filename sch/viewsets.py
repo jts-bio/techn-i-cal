@@ -572,7 +572,11 @@ class SchPartials:
         """
         WEEKLY EMPL-HOURS BREAKDOWN
         ===========================
-        >>> schWeeklyBreakdownPartial"""
+        Example of annotated employee queryset:
+        >>> Josh :
+                wkmax = 30 
+                wkmin = 20
+        """
         
         html_template = "sch2/schedule/partials/sch-employee-week-breakdown.html"
         

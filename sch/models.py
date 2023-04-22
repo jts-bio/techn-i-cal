@@ -1819,10 +1819,38 @@ class Slot (models.Model) :
                 instance.save()
                 return instance
             return None
-
+        def check_turnaround_risk (self, instance, empl):
+            if type(empl) == str:
+                empl = Employee.objects.get(pk=empl)
+            incompatibles = instance.incompatible_slots()
+            if incompatibles.filter(employee=empl).exists():
+                return True
+            return False
+            
     actions = Actions()
     def url__clear (self):
         return reverse('schd:clear-slot', args=[self.schedule.pk, self.workday.pk, self.shift.pk])
+
+    def incompatible_slots (self):
+        if self.shift.start <= dt.time(10,0,0):
+            if self.workday.sd_id != 0:
+                dayBefore = self.workday.prevWD()
+                incompat_shifts = dayBefore.shifts().filter(start__gte=dt.time(10,0,0))
+                incompat_slots = dayBefore.slots.filter(shift__in=incompat_shifts)
+                return incompat_slots
+        elif self.shift.start >= dt.time(20,0,0):
+            if self.workday.sd_id != 41:
+                dayAfter = self.workday.nextWD()
+                incompat_shifts = dayAfter.shifts().filter(start__lt=dt.time(20,0,0))
+                incompat_slots = dayAfter.slots.filter(shift__in=incompat_shifts)
+                return incompat_slots
+        elif self.shift.start >= dt.time(10,0,0):
+            if self.workday.sd_id != 41:
+                dayAfter = self.workday.nextWD()
+                incompat_shifts = dayAfter.shifts().filter(start__lt=dt.time(10,0,0))
+                incompat_slots = dayAfter.slots.filter(shift__in=incompat_shifts)
+                return incompat_slots
+        return Slot.objects.none()
 
     def day_coworkers (self):
         return Employee.objects.filter(slots__workday=self.workday)
@@ -2159,6 +2187,7 @@ class Slot (models.Model) :
 
     def url (self):
         return reverse('sch:v2-slot-detail',args=[self.workday.slug,self.shift.name])
+    
     def _save_empl_sentiment (self):
         if self.employee == None:
             self.empl_sentiment = None
@@ -2177,6 +2206,7 @@ class Slot (models.Model) :
             self.empl_sentiment -= 20
         if self.shouldBeTdo:
             self.empl_sentiment = 0
+
     def shift_sentiment (self):
         if not self.employee:
             return None
@@ -2185,6 +2215,7 @@ class Slot (models.Model) :
             return pref.first().score
         else:
             return None
+        
     def createOptionsMap (self):
         empls = Employee.objects.filter(cls=self.shift.cls)
         not_trained = empls.exclude(shifts_trained=self.shift)
@@ -2231,6 +2262,7 @@ class Slot (models.Model) :
             'weekOvertime':no_wk_hrs_left,
             'turnarounds':in_conflicting
             }
+    
     def prevSameShift (self):
         if self.workday.prevWD():
             if self.workday.prevWD().slots.filter(shift=self.shift).exists() == True:

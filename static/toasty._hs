@@ -1,25 +1,25 @@
 
 behavior Toast
-    init 
-        set timeRemaining to 30
-        then transition *opacity 
-            to 1 
+    on startTrigger
+        add @data-time-remaining to me then 
+        set @data-time-remaining to 5
+        transition *opacity 
+            to 1
             over 1s
-        repeat forever 
-            decrement timeRemaining
+        repeat while I match .toast 
+            decrement @data-time-remaining
             wait 1s
-            if timeRemaining == 0 then
+            if @data-time-remaining == 0 then
                 trigger destroy 
                 end
             end
         end
 
     on mouseover 
-        set timeRemaining to 4
+        set @data-time-remaining to 3
         end
 
     on destroy 
-        -- translate up 30px 
         set newY to *y - 30
         then transition *y 
             to newY

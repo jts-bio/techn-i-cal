@@ -400,13 +400,33 @@ class Sections:
     def schUndertimeList(request, schId):
         data = ApiViews.schedule__get_undertime_hours(request, schId).content
         periods = json.loads(data)
-        employees = []
-
-        
-        return render(request, "tables/undertime.pug", {"periods": periods, "employees": employees})
+        for period in periods:
+            for empl in period:
+                empl["img_url"] = Employee.objects.get(slug=empl["employee"]).image_url
+        return render(request, "tables/undertime.pug", {"periods": periods, "sch": schId})
 
     def sch_prn_empl_maxes(request, schId):
         template = "tables/fte-maxes.pug"
+        schedule = Schedule.objects.get(slug=schId)
+
+        if request.method == "POST":
+            print(request.POST)
+            for emp in request.POST:
+                if schedule.employees.filter(slug=emp).exists():
+                    schedule.data["maxes"][emp] = request.POST[emp]
+                    print(f"  >>> UPDATED {emp}: {request.POST[emp]}")
+            schedule.save()
+            messages.info(request, "Maxes Updated")
+            return HttpResponseRedirect(schedule.url())
+
+        return render(
+            request,
+            template,
+            {"schedule": schedule, "maxes": schedule.data["maxes"].items()},
+        )
+    
+    def sch_manual_data_entry (request, schId):
+        template = "tables/manual-sch-input.pug"
         schedule = Schedule.objects.get(slug=schId)
 
         if request.method == "POST":

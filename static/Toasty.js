@@ -78,7 +78,7 @@ function showToast(message, type) {
             toast.appendChild(toastspan);
             // set the toast message
             toastspan.innerHTML = message;
-            toast.style.opacity = 0;
+            toast.style.opacity = 0.5;
             // add the toast to the wrapper
             var wrapper = document.getElementById("toast-wrapper");
             wrapper.appendChild(toast);
@@ -92,30 +92,11 @@ function showToast(message, type) {
                 toast.style.transition = "opacity 500ms linear";
                 toast.style.opacity = 1;
             }   
-            // animate the toast out after 2 seconds
-            setTimeout(() => {
-                toast.style.transition = "opacity 1000ms linear";
-                toast.style.opacity = 0;
-                toast.ontransitionend = () => {
-                    wrapper.removeChild(toast);
-                }   
-            }, 2000);
-
-                toast.setAttribute("_", "install Toast");
-            
-                //mouseenter remove ev listener 
-                toast.addEventListener("mouseenter", () => {
-                    toast.removeEventListener("", ()=>{}, true);
-                });
-                //mouseleave reintall listener
-                toast.addEventListener("mouseleave", () => {
-                    setTimeout(() => {
-                        toast.setAttribute("_", "install Toast");
-                    }
-                , 3000);
+            toast.setAttribute("_", "install Toast");
+            // trigger "startTrigger" event on it  
+            toast.dispatchEvent(new Event("startTrigger"));
             }
-            );
-}
+        
 
 
 
