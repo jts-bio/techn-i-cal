@@ -36,7 +36,9 @@
                         <a href="{{ slot.workday.url }}">{{ slot.workday }}</a>
                     </td>
                     <td id="actions-{{ slot.slug }}">
-                        <span hx-post="actions/clear-slot/{{ slot.workday.slug }}/{{ slot.shift.name }}/"
+                        
+                        <span 
+                            hx-post="actions/clear-slot/{{ slot.workday.slug }}/{{ slot.shift.name }}/"
                             hx-trigger="click"
                             hx-swap="innerHTML"
                             hx-target="#actions-{{ slot.slug }}"

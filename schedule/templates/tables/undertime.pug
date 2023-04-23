@@ -23,6 +23,7 @@ script(type="text/hyperscript").
       on hideBySlot(s) 
          set slot to @data-slot 
          if slot == s 
+            add .scale-0 to me then wait 100ms then 
             add .hidden to me
          end
 
@@ -42,7 +43,10 @@ script(type="text/hyperscript").
 
       on load or check 
          if @data-value <= 7 
-            add .hidden to my.parentNode.parentNode.parentNode
+            set card to my.parentNode.parentNode.parentNode
+            then add .scale-0 to card then wait 500ms 
+            then add .opacity-0 to card then wait 200ms
+            then add .hidden to card
          end
 
       on subtract 
@@ -52,6 +56,8 @@ script(type="text/hyperscript").
       end
 
    end
+
+
 
 
 - var i = 1
@@ -70,7 +76,7 @@ each prd in periods
          - var underHours = empl['under_hours']
          - var imgUrl     = empl['img_url']
 
-         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.shadow(
+         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.transform-gpu.transition-all.duration-500(
             class="w-[200px] lg:w-[300px] h-[160px] lg:px-5")
 
             .flex.flex-row
@@ -86,18 +92,21 @@ each prd in periods
                      data-value="#{underHours}")
                      | #{underHours} hrs. short
 
-            .grid.grid-cols-4.p-2
+            .grid.grid-cols-4.p-2.gap-1(class="md:grid-cols-5 lg:grid-cols-7")
 
                each shift, wd in empl.potentials
 
-                  span.potential.cursor-pointer.text.text-xs.pt-1.text-center.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
+                  span.relative.potential.cursor-pointer.text.text-xs.pt-1.transform-gpu.transition-all.duration-500.text-center.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
                      data-wd="#{wd}"
                      data-empl="#{employee}"
                      data-slot="#{wd}-#{shift}"
                      data-shift="#{shift}"
                      hx-post="actions/update/#{wd}/#{shift}/#{employee}/"
-                     _="install employeeAssignerButton"
+                     _="install employeeAssignerButton on mouseenter toggle .hidden on .absolute in me until mouseleave end"
                      ) #{shift}
+
+                        div.absolute.hidden.transition-all(class="top-[32px] w-[80px]")
+                           .bg-zinc-900.bg-opacity-80.rounded.p-1.text-yellow-200 #{wd}
 
    - var i = i + 1
 

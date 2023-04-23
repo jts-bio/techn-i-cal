@@ -199,7 +199,8 @@ class ApiViews:
             for empl in sch.employees.filter(fte__gt=0):
                 pd_hours = pd.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
                 pto_hours = PtoRequest.objects.filter(employee=empl,workday__in=pd.workdays.values('date')).count() * 10
-                if pd_hours < empl.fte * 80:
+                print(f"{empl} : {(pd_hours + pto_hours) - (empl.fte * 80)}")
+                if pd_hours + pto_hours < empl.fte * 80:
                     total = empl.fte * 80 - pd_hours 
                     ut[empl.slug] = total - pto_hours if total - pto_hours > 0 else 0
 
@@ -251,7 +252,8 @@ class ApiActionViews:
         # basic time data
         pd_nums = [num * 2 + i for i in range(3)]
         wk_nums = [num * 6 + i for i in range(6)]
-        dates = [start_date + dt.timedelta(days=i) for i in range(42)]
+        dates   = [start_date + dt.timedelta(days=i) for i in range(42)]
+
         # object creation
         schedule = Schedule.objects.create(
             year=year,
@@ -261,9 +263,10 @@ class ApiActionViews:
             slug=f"{year}-S{num}{version}",
         )
         schedule.save()
+
         pd_start_dates = [dates[i] for i in [0, 14, 28]]
-        pd_nums = [num * 2 + i for i in range(3)]
-        pds = []
+        pd_nums        = [num * 2 + i for i in range(3)]
+        pds            = []
 
         for i in range(3):
             pd = Period.objects.create(
@@ -274,9 +277,11 @@ class ApiActionViews:
             )
             pd.save()
             pds.append(pd)
-        wk_start_dates = [dates[i] for i in [0, 7, 14, 21, 28, 35]]
-        wk_nums = [num * 6 + i for i in range(6)]
-        wks = []
+
+        wk_start_dates  = [dates[i] for i in [0, 7, 14, 21, 28, 35]]
+        wk_nums         = [num * 6 + i for i in range(6)]
+        wks             = []
+
         for i in range(6):
             wk = Week.objects.create(
                 year=year,
@@ -287,6 +292,7 @@ class ApiActionViews:
             )
             wk.save()
             wks.append(wk)
+
         wdlist = []
 
         for i in range(42):
@@ -343,9 +349,13 @@ class ApiActionViews:
                         employee=employee,
                     )
                 ]
+
             Slot.objects.bulk_create(slotlist)
-            print(f"slots made for wd {wd}")
+
+            print (f"slots made for wd {wd}")
+
         slots = Slot.objects.filter(schedule=schedule)
+
         for slot in slots:
             slot.fills_with.set(
                 Employee.objects.filter(shifts_available=slot.shift)
@@ -364,8 +374,9 @@ class ApiActionViews:
 
         return HttpResponseRedirect(schedule.url())
 
+
     def build_alternate_draft(request, schId):
-        # ``
+        
         sch = Schedule.objects.get(slug=schId)
         c = Schedule.objects.filter(year=sch.year, number=sch.number).count()
         version = "ABCDEFGHIJ"[c]
@@ -375,6 +386,7 @@ class ApiActionViews:
 
     @csrf_exempt
     def delete_schedule(request, schId):
+
         if request.method == "DELETE":
             sch = Schedule.objects.get(slug=schId)
             sch.delete()
@@ -393,6 +405,7 @@ class ApiActionViews:
 
     @csrf_exempt
     def ptoreq__delete(request, day, emp):
+
         day = dt.date(*[int(i) for i in day.split("-")])
         ptos = PtoRequest.objects.filter(workday=day, employee__slug=emp)
         if ptos:
@@ -402,6 +415,7 @@ class ApiActionViews:
 
     @csrf_exempt
     def ptoreq__create(request, day, emp):
+
         emp = Employee.objects.get(slug=emp)
         day = dt.date(*[int(i) for i in day.split("-")])
         workdays = Workday.objects.filter(date=day, schedule__employees=emp)
@@ -412,11 +426,13 @@ class ApiActionViews:
         return HttpResponse(f"Request for {pto.employee.name} created")
 
     def clear_fte_overages(request, schId):
+
         sch = Schedule.objects.get(slug=schId)
         sch.clear_fte_overages()
         return HttpResponseRedirect(sch.url())
 
     def payPeriodFiller(request, schId):
+        
         sch = Schedule.objects.get(slug=schId)
         for pd in sch.periods.all():
             empties = pd.slots.empty().all()

@@ -41,8 +41,8 @@
     <div class="vstack">
       <div
         style="
-          font-size: 70px;
-          font-family: 'JetBrains Mono', monospace;
+          font-size: 50px;
+          font-family: 'Helvetica Neue', monospace;
           letter-spacing: 0px;
           color: #fffa;
           line-height: 120%;"
@@ -66,7 +66,7 @@
   >
     <a href="{% url 'schd:list' %}">
       <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <img class="object-cover w-full h-48 rounded brightness-50" src="/static/img/sch-card-bkgd.svg" alt="Schedules"/>
+        <div class="object-cover w-full h-48 rounded brightness-50" hx-get="/static/img/sch-card-bkgd.svg" hx-trigger="load" alt="Schedules"></div>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Schedules</h4>
         </div>
@@ -78,7 +78,7 @@
 
     <a href="/sch/shifts/all/">
       <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <img class="object-cover w-full h-48 rounded brightness-75" src="/static/img/shift-card-bkgd.svg" alt="Shifts"/>
+        <div class="object-cover w-full h-48 rounded brightness-75" hx-get="/static/img/shift-card-bkgd.svg" hx-trigger="load" alt="Shifts"></div>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Shifts</h4>
         </div>      
@@ -88,7 +88,7 @@
 
     <a href="/sch/employees/all/">
       <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <img class="object-cover w-full h-48 backdrop-contrast-200 rounded brightness-75" src="/static/img/empl-card-bkgd.svg" alt="Employees"/>
+        <div class="object-cover w-full h-48 backdrop-contrast-200 rounded brightness-75" hx-get="/static/img/empl-card-bkgd.svg" hx-trigger="load" alt="Employees"></div>
         <div class="absolute top-0 left-0 px-6 py-4">
           <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Employees</h4>
         </div>      
