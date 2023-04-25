@@ -1,7 +1,69 @@
-from datetime import time
+import datetime as dt
 from pprint import pprint
 import os, pathlib
 import random
+
+
+DAYCHOICES = (
+        (0, 'Sun'),
+        (1, 'Mon'),
+        (2, 'Tue'),
+        (3, 'Wed'),
+        (4, 'Thu'),
+        (5, 'Fri'),
+        (6, 'Sat')
+    )
+
+WEEKABCHOICES  =   ((0, 'A'),(1, 'B'))
+
+TODAY                   = dt.date.today ()
+TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
+
+SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
+
+PRIORITIES  = (
+                ('L', 'Low'),
+                ('M', 'Medium'),
+                ('H', 'High'),
+                ('U', 'Urgent'),
+            )
+
+PREF_SCORES  = (
+                ('SP', 'Strongly Prefer'),
+                ('P', 'Prefer'),
+                ('N', 'Neutral'),
+                ('D', 'Dislike'),
+                ('SD', 'Strongly Dislike'),
+            )
+
+PTO_STATUS_CHOICES  = (
+                    ('Pending',  'Pending'),
+                    ('Approved', 'Approved'),
+                    ('Denide',   'Denied'),
+                )
+
+
+def group_dates_by_year(dates):
+    """
+    Groups a list of dates by the year into a dictionary.
+
+    Parameters:
+        dates (list): A list of date strings in the format '%Y-%m-%d'.
+
+    Returns:
+        dict: A dictionary with the year as the key and a list of dates as the value.
+    """
+    grouped_dates = {}
+    for date in dates:
+        year = date.year
+        if year in grouped_dates:
+            grouped_dates[year].append(date)
+        else:
+            grouped_dates[year] = [date]
+    return grouped_dates
+
+
+
 
 class Images:
     

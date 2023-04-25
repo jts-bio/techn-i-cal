@@ -5,6 +5,7 @@ from django.urls import reverse
 from sch.forms import EmployeeSelectForm
 from sch.models import Employee, Schedule
 from sch.views2 import schDetailView
+import pytest
 # Create your tests here.
 
 class TestSlots (TestCase):

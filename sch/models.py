@@ -6,10 +6,11 @@ from django.http import JsonResponse
 
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
-from django.db.models import Deferrable
-from django.db.models import (Avg, Count, DurationField, ExpressionWrapper, F,
+
+from django.db.models import (Avg, Count, Deferrable, DurationField, ExpressionWrapper, F,
                               FloatField, Max, Min, OuterRef, Q, QuerySet,
                               StdDev, Subquery, Sum, Variance)
+
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from taggit.managers import TaggableManager
@@ -19,6 +20,11 @@ import json
 import yaml
 from django.http import HttpResponse
 from django_group_by import GroupByMixin
+
+from .data import (TEMPLATESCH_STARTDATE, TODAY,
+                   DAYCHOICES, WEEKABCHOICES, SCH_STARTDATE_SET,
+                   PRIORITIES, PREF_SCORES, PTO_STATUS_CHOICES,
+                   group_dates_by_year) 
 
 
 
@@ -38,62 +44,6 @@ Models:
     - PtoRequest
     - ShiftPreference
 """
-
-DAYCHOICES = (
-        (0, 'Sun'),
-        (1, 'Mon'),
-        (2, 'Tue'),
-        (3, 'Wed'),
-        (4, 'Thu'),
-        (5, 'Fri'),
-        (6, 'Sat')
-    )
-WEEKABCHOICES                  =   (
-                        (0, 'A'),
-                        (1, 'B')
-                    )
-TODAY                   = dt.date.today ()
-TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
-SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
-PRIORITIES              = (
-                ('L', 'Low'),
-                ('M', 'Medium'),
-                ('H', 'High'),
-                ('U', 'Urgent'),
-            )
-PREF_SCORES             = (
-                    ('SP', 'Strongly Prefer'),
-                    ('P', 'Prefer'),
-                    ('N', 'Neutral'),
-                    ('D', 'Dislike'),
-                    ('SD', 'Strongly Dislike'),
-                )
-PTO_STATUS_CHOICES      = (
-                    ('Pending', 'Pending'),
-                    ('Approved', 'Approved'),
-                    ('Denide', 'Denied'),
-                )
-
-
-def group_dates_by_year(dates):
-    """
-    Groups a list of dates by the year into a dictionary.
-
-    Parameters:
-        dates (list): A list of date strings in the format '%Y-%m-%d'.
-
-    Returns:
-        dict: A dictionary with the year as the key and a list of dates as the value.
-    """
-    grouped_dates = {}
-    for date in dates:
-        year = date.year
-        if year in grouped_dates:
-            grouped_dates[year].append(date)
-        else:
-            grouped_dates[year] = [date]
-    return grouped_dates
-
 
 
 #*--------------------------------*#
@@ -121,10 +71,13 @@ class ShiftManager (models.QuerySet):
 class SlotManager (models.QuerySet):
     def empty           (self):
         return self.filter(employee=None)
+    
     def filled          (self):
         return self.exclude(employee=None)
+    
     def on_workday      (self, workday):
         return self.filter(workday=workday)
+    
     def ShiftDetail     (self, workday, shift):
         if self.filter(workday=workday, shift=shift).exists():
             return self.filter(
@@ -133,28 +86,34 @@ class SlotManager (models.QuerySet):
                                 employee= F('employee__name'),
                                 workday= F('workday__date')
                             )
-    def random_order    (self):
+        
+    def random_order (self):
         return self.order_by('?')
+    
     def empls_weekly_hours (self, year, week, employee):
         return self.filter(
             workday__iweek= week,
             workday__date__year= year,
             employee= employee
             ).aggregate(hours=Sum('shift__hours'))
+    
     def turnarounds     (self):
         turnarounds = []
         for i in self.all():
             if i.is_turnaround:
                 turnarounds.append(i.pk)
         return self.filter(pk__in=turnarounds)
+    
     def preturnarounds  (self):
         preturnarounds = []
         for i in self.all():
             if i.is_preturnaround:
                 preturnarounds.append(i.pk)
         return self.filter(pk__in=preturnarounds)
+    
     def unfavorables    (self):
         return self.exclude(employee__time_pref=F('shift__group')).exclude(employee=None)
+    
     def incompatible_slots (self, workday, shift):
         if shift.start <= dt.time(10,0,0):
             dayBefore = workday.prevWD()
@@ -171,6 +130,7 @@ class SlotManager (models.QuerySet):
             incompat_shifts = dayAfter.shifts().filter(start__lt=dt.time(10,0,0))
             incompat_slots = self.filter(workday=dayAfter,shift__in=incompat_shifts)
             return incompat_slots
+        
     def belowAvg_sftPrefScore (self):
         query = self.annotate(
             score = ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
@@ -188,7 +148,6 @@ class SlotManager (models.QuerySet):
         query = query.annotate(
             change = score
             )
-
         # 4 -- return only slots whose shift pref score is less than 0
         return query.filter(change__lte=0)
     
@@ -290,7 +249,10 @@ class EmployeeManager (models.QuerySet):
     
     def weekly_hours (self, year, week):
         return Employee.objects.annotate(
-                hours=Sum(Subquery(Slot.objects.filter(workday__date__year=year,workday__iweek=week, employee=F('pk')).aggregate(hours=Sum(F('shift__hours')))))
+            hours= Sum(Subquery( 
+                Slot.objects
+                    .filter (workday__date__year=year,workday__iweek=week, employee=F('pk'))
+                    .aggregate (hours=Sum(F('shift__hours')))))
             )
         
     def evening_employees (self):
@@ -323,13 +285,15 @@ class EmployeeManager (models.QuerySet):
         
     def emusr_employees (self):
         """
-        EMUSR employees are those that have the properties to be required
+        EMUSR Employee QS Filter
+        ------------------------
+        >>> EMUSR employees are those that have the properties to be required
         to fill a certain amount of Unpreferable Shifts per schedule.
 
         They will have these properties:
-            - not Evening Employees
-            - Less than 80% of their shifts in a schedule are not templated in advance
-            - They are not PRN employees
+            *  Not Evening/ Overnight Employees
+            *  Less than 80% of their shifts in a schedule are not templated in advance
+            *  They are not PRN employees
         """
         return self.template_ratio().exclude(template_ratio=1).exclude(time_pref='PM')
     
@@ -357,18 +321,21 @@ class EmployeeManager (models.QuerySet):
 
         for empl in weeklyHours:
             if weeklyHours[empl]['hours'] is None:
-                weeklyHours[empl]['hours'] = 0
-                weeklyHours[empl]['weeklyPercent'] = 0
+                weeklyHours[empl]['hours']          = 0
+                weeklyHours[empl]['weeklyPercent']  = 0
             if empl.fte == 0:
-                weeklyHours[empl]['weeklyPercent'] = 1
+                weeklyHours[empl]['weeklyPercent']  = 1
             else:
-                weeklyHours[empl]['weeklyPercent'] = weeklyHours[empl]['hours']/( empl.fte  * 40)
+                weeklyHours[empl]['weeklyPercent']  = weeklyHours[empl]['hours']/( empl.fte  * 40)
         # find min value for weeklyPercent
         if weeklyHours:
             minPercent = min(weeklyHours.values(), key=lambda x: x['weeklyPercent'])
         else:
             minPercent = 0
-        return Employee.objects.filter(pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40])
+
+        return Employee.objects.filter(
+                pk__in=[empl.pk for empl in weeklyHours if weeklyHours[empl]['hours'] + shift_len <= 40]
+            )
     
     def can_fill_shift_on_day_ot_overide (self, shift, workday, method="available"):
         week = workday.iweek
@@ -379,9 +346,11 @@ class EmployeeManager (models.QuerySet):
             employees = Employee.objects.filter(shifts_available=shift)
         elif method == "trained":
             employees = Employee.objects.filter(shifts_trained=shift)
-        in_other = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
-        has_pto_req = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
-        employees = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
+            
+        in_other      = Employee.objects.in_other_slot(shift, workday) # empls in other slots (should be exculded)
+        has_pto_req   = PtoRequest.objects.filter(workday=workday.date, status__in=['A','P']).values('employee')
+        employees     = employees.exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
+
         return employees.filter(shifts_trained=shift).exclude(pk__in=in_other).exclude(pk__in=has_pto_req)
     
     def who_worked_evening_day_before (self, workday):

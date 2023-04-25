@@ -61,40 +61,54 @@
 
   <div class="flex flex-row align-center"></div>
 
-  <div
-    class="flex flex-col md:flex-row justify-center center align-content"
-  >
-    <a href="{% url 'schd:list' %}">
-      <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <div class="object-cover w-full h-48 rounded brightness-50" hx-get="/static/img/sch-card-bkgd.svg" hx-trigger="load" alt="Schedules"></div>
-        <div class="absolute top-0 left-0 px-6 py-4">
-          <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Schedules</h4>
+  <div class="flex flex-col md:flex-row justify-center center align-content">
+    <div>
+      <a href="{% url 'schd:list' %}">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover w-full h-48 rounded brightness-50 transition-all transform-gpu hover:scale-110 hover:brightness-90" 
+              src="/static/img/sch-card-bkgd.svg" 
+              alt="Schedules" />
+          </div>
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Schedules</h4>
+          </div>
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-zinc-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage your schedule versions/drafts & publishing status.
+          </p>
         </div>
-        <p class="leading-normal mt-0 -translate-top-5 jbm text-zinc-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
-          Manage your schedule versions/drafts & publishing status.</p>
-      </div>
-      
-    </a>
-
-    <a href="/sch/shifts/all/">
-      <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <div class="object-cover w-full h-48 rounded brightness-75" hx-get="/static/img/shift-card-bkgd.svg" hx-trigger="load" alt="Shifts"></div>
-        <div class="absolute top-0 left-0 px-6 py-4">
-          <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Shifts</h4>
-        </div>      
-        <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">Manage information about shifts and when they are scheduled.</p>
-      </div>
-    </a>
-
-    <a href="/sch/employees/all/">
-      <div class="relative w-11/12 h-11/12 border-orange-300 border max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-[115%] hover:-translate-y-2">
-        <div class="object-cover w-full h-48 backdrop-contrast-200 rounded brightness-75" hx-get="/static/img/empl-card-bkgd.svg" hx-trigger="load" alt="Employees"></div>
-        <div class="absolute top-0 left-0 px-6 py-4">
-          <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Employees</h4>
-        </div>      
-        <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">Manage employee information, preferences, constraints, and more.</p>
-      </div>
-    </a>
+        
+      </a>
+    </div>
+    <div>
+      <a href="/sch/shifts/all/">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover h-48 rounded brightness-90 transition-all transform-gpu hover:scale-110 hover:brightness-125" 
+              src="/static/img/isometric-drug-vial-1.png" 
+              alt="Shifts" />
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Shifts</h4>
+          </div>      
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage information about shifts and when they are scheduled.
+          </p>
+        </div>
+      </a>
+    </div>
+    <div>
+      <a href="/sch/employees/all/">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover h-48 transition-all transform-gpu rounded brightness-90 hover:scale-110 hover:brightness-125" 
+              src="/static/img/employees.png"
+              alt="Employees"/>
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Employees</h4>
+          </div>      
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage employee information, preferences, constraints, and more.
+          </p>
+        </div>
+      </a>
+    </div>
   </div>
 </div>
 </div>

@@ -41,7 +41,7 @@ def index(request):
         'shifts'        : shifts,
         'scheduleImg'   : Images.SCHEDULE_IMG_1,
     }
-    return render ( request, 'index.html', context )
+    return render ( request, 'index.pug', context )
 
 def day_changer (request, date):
     workday         = Workday.objects.get(slug=date)

@@ -76,37 +76,43 @@ each prd in periods
          - var underHours = empl['under_hours']
          - var imgUrl     = empl['img_url']
 
+         //- card 
          div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.transform-gpu.transition-all.duration-500(
             class="w-[200px] lg:w-[300px] h-[160px] lg:px-5")
 
+            //- header
             .flex.flex-row
                img(src="#{imgUrl}" class="w-16 h-16 rounded-full mr-2 border")
                .flex.flex-col
                   .text-lg.font-light.italic.p-1= employee
 
+                  //- badge
                   span.text-xs.bg-amber-400.text-zinc-800.rounded-sm.ring.ring-amber-600.w-fc(
                      _="install employeeHoursBadge"
                      class="empl-hours-badge"
-                     data-empl="#{employee}"
-                     data-prd="#{i}"
-                     data-value="#{underHours}")
+                     data-empl= employee
+                     data-prd= i
+                     data-value= underHours )
                      | #{underHours} hrs. short
 
-            .grid.grid-cols-4.p-2.gap-1(class="md:grid-cols-5 lg:grid-cols-7")
+            
+            .grid.grid-cols-4.p-2.gap-3(class="md:grid-cols-5 lg:grid-cols-6")
 
                each shift, wd in empl.potentials
 
-                  span.relative.potential.cursor-pointer.text.text-xs.pt-1.transform-gpu.transition-all.duration-500.text-center.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
+                  span.relative.potential.cursor-pointer.text.text-xs.pt-1.transform-gpu.transition-all.duration-500.text-center.-z-1.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
                      data-wd="#{wd}"
                      data-empl="#{employee}"
                      data-slot="#{wd}-#{shift}"
                      data-shift="#{shift}"
                      hx-post="actions/update/#{wd}/#{shift}/#{employee}/"
-                     _="install employeeAssignerButton on mouseenter toggle .hidden on .absolute in me until mouseleave end"
+                     class="z-10"
+                     _="install employeeAssignerButton on mouseenter toggle .hidden on next .absolute until mouseleave end"
                      ) #{shift}
 
-                        div.absolute.hidden.transition-all(class="top-[32px] w-[80px]")
-                           .bg-zinc-900.bg-opacity-80.rounded.p-1.text-yellow-200 #{wd}
+                  div.absolute.hidden.transition-all(class="top-[32px] w-[120px]" style="z-index: 9999!important;")
+                     .bg-zinc-900.bg-opacity-80.rounded.p-1.text-yellow-200 #{wd}
 
    - var i = i + 1
 
+,

@@ -22,17 +22,17 @@
 
     <div class="vstack">
         <div class="hstack align-content-start">
-            <a href="/sch/employees/all/" class="rounded-md px-3 py-1 hover:bg-amber-900  {{allActive}}" >All</a>
-            <a href="/sch/employees/cpht/" class="rounded-md px-3 py-1 hover:bg-amber-900 {{cphtActive}}" >Technicians</a>
-            <a href="/sch/employees/rph/" class="rounded-md px-3 py-1 hover:bg-amber-900  {{rphActive}}" >Pharmacists</a>
+            <a href="/sch/employees/all/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{allActive}}">All</a>
+            <a href="/sch/employees/cpht/" class="rounded-md px-3 py-1 hover:bg-amber-900 {{cphtActive}}">Technicians</a>
+            <a href="/sch/employees/rph/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{rphActive}}">Pharmacists</a>
         </div>
 
 
-        <div class="panel w-fc">
+        <div class="panel w-full">
             <div class="hstack" 
                 style="justify-content:space-between;">
 
-                {% if rphActive %} <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
+                {% if rphActive %}    <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
                 {% elif cphtActive %} <a href="{% url 'sch:create-cpht' %}"> {% newEmployee %} </a>
                 {% endif %}
                 

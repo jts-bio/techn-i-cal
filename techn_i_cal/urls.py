@@ -35,7 +35,7 @@ __author__ = "JOSH STEINBECKER"
 
 @public
 def index(request):
-    template = loader.get_template('index.html')
+    template = loader.get_template('index.pug')
 
     if request.method == "POST":
         print("post")
