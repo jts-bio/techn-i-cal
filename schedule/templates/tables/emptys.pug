@@ -34,11 +34,11 @@ if page == 1
     table.bg-main.rounded-lg
         tr
             th.rounded-tl-lg Slot
-            th Tenable Options
-            th.rounded-tr-lg Details
+            th Options
+            th.rounded-tr-lg Notes
         tbody.tbody 
             each slot in empty_slots
-                tr.swap-tgt
+                tr.swap-tgt.duration-500.basis-1
                     td
                         div.flex.flex-row
                             div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9.header-tile= slot.shift

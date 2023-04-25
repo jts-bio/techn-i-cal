@@ -41,12 +41,15 @@ ALLOWED_HOSTS = [
 INSTALLED_APPS = [
     "schedule.apps.ScheduleConfig",
     "prd.apps.PrdConfig",
+    "empl.apps.EmplConfig",
     "flow.apps.FlowConfig",
     "wday.apps.WdayConfig",
     "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
+
     "sch.templatetags.tags",
     "wday.templatetags.wtags",
+    
     "debug_toolbar",
     "slippers",
     "computedfields",

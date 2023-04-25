@@ -18,6 +18,14 @@
 		<meta http-equiv="X-UA-Compatible" content="ie=edge">
 
 		<title> FlowRate {% block title %}{% endblock %} </title>
+
+		{# -- favicon -- #}
+		
+		<link rel="shortcut icon" 
+			  href="{% static 'favicon.ico' %}" 
+			  type="image/x-icon" />
+
+		{# -- CSS -- #}
 		
 		{% compress css %}
 		{# --- FONTS --- #}
@@ -83,12 +91,10 @@
 
 	</head>
 
-	<body class="bg-main">
+	<body class="bg-main overflow-x-clip md:overflow-x-auto">
 
-			{# HEADER #}	
-			{% include 'header.html' %}
-			{# BANNER #}
-			{% include 'nav-banner.pug' %}
+			{# HEADER #}	{% include 'header.html' %}
+			{# BANNER #}	{% include 'nav-banner.pug' %}
 
 
 			{% include 'mixins/popover.pug' %}
@@ -126,7 +132,7 @@
 			
 
 				
-				{# TAILWINDCSS #}<script src="https://cdn.tailwindcss.com"></script>
+				{# TAILWINDCSS #} <script src="https://cdn.tailwindcss.com"></script>
 				{# FLOWBITE #} <script src="https://unpkg.com/flowbite@1.5.3/dist/flowbite.js"></script>
 				{# HTMX #} <script src="https://unpkg.com/htmx.org"></script>
 				{# HYPERSCRIPT #} <script src="https://unpkg.com/hyperscript.org"></script>
@@ -140,8 +146,7 @@
 			{% block body %}
 			{% endblock %}
 
-			{# FOOTER #}
-			{% include 'footer.html' %}
+			{# FOOTER #}   {% include 'footer.html' %}
 
 			<div class="user-context-menu hidden absolute bg-zinc-300 bg-opacity-50 rounded px-2 py-1 w-fc z-25">
 				<div><a href="{% url 'logout-view' %}" class="item"> Logout </a></div>

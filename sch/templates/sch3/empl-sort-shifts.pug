@@ -15,11 +15,12 @@ block content
             value='{{ csrf_token }}'
             name='csrfmiddlewaretoken')
 
-        div.flex.flex-row 
+        div.flex.flex-row
 
             each shift,index in shifts
                 - var i = index + 1
-                div.rank(
+                div.basis-1.rank(
+                    class="basis-1 w-[40px] md:w-[55px]"
                     _="install Rank" 
                     data-rank=i)
                         span.rank= i
@@ -39,10 +40,9 @@ block style
     style.
         .rank {
             text-align: center;
-            font-size: 0.8em;
+            font-size: 0.6em;
             background-color: var(--timberwolf);
             color: #00000066;
-            width: 55px;
             height: 90px;
             border-radius: 5px;
             padding: 5px;

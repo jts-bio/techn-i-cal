@@ -558,7 +558,6 @@ class EmployeeChooseSchedule(View):
         employee = Employee.objects.get(pk=empId)
         context = {
             "employee": employee,
-            "schedules": Schedule.objects.all().annotate(
-                num_slots=Count('slots'))
+            "schedules": employee.schedules.exclude(status=2).order_by('-start_date')
         }
         return render(request, self.template_name, context)

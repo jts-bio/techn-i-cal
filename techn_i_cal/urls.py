@@ -88,6 +88,7 @@ urlpatterns = [
     path('grappelli/',  include('grappelli.urls')),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
     path('admin/',      admin.site.urls,          name='admin'),
+    path('empl/',       include('empl.urls'),     name='empl'),
     path('sch/',        include('sch.urls'),      name='sch'),
     path('schedule/',   include('schedule.urls'), name='schedule'),
     path('wday/',       include('wday.urls'),     name='wday'),

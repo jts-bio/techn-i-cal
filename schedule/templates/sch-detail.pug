@@ -41,6 +41,11 @@ block content
     document.querySelector('.bg-main').style.backgroundRepeat = "repeat";
     document.querySelector('.bg-main').style.backgroundPosition = 'center';
     document.querySelector('.bg-main').style.backgroundSize = "40%";
+    // scale backgroundSize to 90% if the screen is less than 1000px wide
+    let width = window.innerWidth;
+    if(width < 1000)
+      {document.querySelector('.bg-main').style.backgroundSize = "90%";}
+
 
     document.querySelector(".content").classList.add('bg-slate-900');
     document.querySelector(".content").classList.add('bg-opacity-70');
@@ -56,7 +61,7 @@ block content
       include components/data-entry-btns.pug
 
     //- DASHBOARD BODY
-    section(class="w-full flex-1 p-6")
+    section(class="w-full flex-1 p-1 md:p-6")
 
       #swap-panel.h-full.px-1.rounded(
         _="on mutation of anything call hideWaitIndicator(event) end"

@@ -1,0 +1,23 @@
+extends 'base.html'
+
+//- VIEW:   empl_shift_swaps
+
+block content
+
+   h1 #{employee}'s Swap Preferences
+
+   .grid.grid-cols-1(class="md:grid-cols-3 lg:grid-cols-4")
+
+      each sft in shifts
+         .bg-zinc-900.rounded.p-1 
+            .font-bold #{sft}
+
+            .grid.grid-cols-3
+
+               each s in shifts
+                  if s != sft
+                     .basis-1
+                        - var shiftPairName = "#{sft}-#{s}"
+                        
+                        label(for=shiftPairName) #{s}
+                        input(type="checkbox", name=shiftPairName)

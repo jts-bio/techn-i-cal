@@ -68,7 +68,7 @@ each prd in periods
 
    
 
-   div.grid.grid-cols-2.bg-white.bg-opacity-25.rounded.p-2.gap-3(class="md:grid-cols-2 lg:grid-cols-3")
+   div.grid.grid-cols-1.bg-white.bg-opacity-25.rounded.p-2.gap-3(class="md:grid-cols-2 lg:grid-cols-3")
 
       each empl in prd
 
@@ -78,7 +78,7 @@ each prd in periods
 
          //- card 
          div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.transform-gpu.transition-all.duration-500(
-            class="w-[200px] lg:w-[300px] h-[160px] lg:px-5")
+            class="w-full")
 
             //- header
             .flex.flex-row
@@ -94,6 +94,9 @@ each prd in periods
                      data-prd= i
                      data-value= underHours )
                      | #{underHours} hrs. short
+                  
+                  span.text-xs= week1Hours
+                  span.text-xs= week2Hours 
 
             
             .grid.grid-cols-4.p-2.gap-3(class="md:grid-cols-5 lg:grid-cols-6")

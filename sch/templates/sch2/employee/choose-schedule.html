@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load tags %}
 
+<!--VIEW:  EmployeeChooseSchedule -->
 
 {% block style %}
 
@@ -18,7 +19,7 @@
     
     <div class="panel">
         <div class="grid grid-cols-2 lg:grid-cols-3">
-            {% for schedule in employee.schedules.all %}
+            {% for schedule in schedules %}
                 <a href="{% url 'sch:empl-schedule-detail' employee.slug schedule.slug  %}"
                     class="relative bg-slate-300 m-10 w-40 h-12   
                         text-slate-800 font-light 
