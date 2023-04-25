@@ -162,6 +162,14 @@ class ApiViews:
         return JsonResponse(ot_sum, safe=False)
 
     def schedule__get_undertime_hours(request, schId):
+        """
+        example output:
+        >>> {
+            "employee":     "Brianna-A", 
+            "under_hours":  10.0, 
+            "potentials":   [["EP", "2023-05-10C"]]
+        }
+        """
         sch = Schedule.objects.get(slug=schId)
 
         uts = []
@@ -175,18 +183,25 @@ class ApiViews:
                 pd_hours = pd.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
                 pto_hours = PtoRequest.objects.filter(employee=empl,workday__in=pd.workdays.values('date')).count() * 10
 
-                if pd_hours < empl.fte * 80:
-                    total = empl.fte * 80 - pd_hours - pto_hours 
-                    if total > 0:
-                        pots = pd.slots.empty().filter(fills_with=empl).exclude(workday__slots__employee=empl)
+                wk_totals = []
+                if pd_hours < empl.fte * 80 - 5:
+                    for wk in pd.weeks.all():
+                        wk_total = wk.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
+                        wk_pto = PtoRequest.objects.filter(employee=empl,workday__in=wk.workdays.values('date')).count() * 10
+                        total = wk_total + wk_pto
+
+                        pots = wk.slots.empty().filter(fills_with=empl).exclude(workday__slots__employee=empl)
                         for pot in pots:
                             if pot:
                                 if not pot.actions.check_turnaround_risk(pot, empl):
                                     potential_fill_list += [(pot.shift.name,pot.workday.slug)] 
-                        ut['employee']= empl.slug 
-                        ut['under_hours']= total
-                        ut['potentials'] = potential_fill_list
-                        pd_ut += [ut]
+
+                            ut['employee']    = empl.slug 
+                            ut['under_hours'] = [wk_totals] 
+                            ut['potentials']  = potential_fill_list
+                        
+
+                            pd_ut += [ut]
             uts += [pd_ut]
 
         return JsonResponse(uts, safe=False)

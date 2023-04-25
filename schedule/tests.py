@@ -7,7 +7,7 @@ import requests
 # Create your tests here.
 
 
-class ScheduleSlotSlugTests(TestCase):
+class ScheduleSlotSlugTests (TestCase):
     """ Tests the functionality of setting of the slug field for a schedule slot """
 
     def test_slug_creation(self):
@@ -17,5 +17,5 @@ class ScheduleSlotSlugTests(TestCase):
             version='A',
             start_date=Schedule.START_DATES[2023][0],
             testing=True
-        )
+            )
         print (build.slots.values('slug'))

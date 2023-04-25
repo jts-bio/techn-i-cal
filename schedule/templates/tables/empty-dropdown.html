@@ -11,18 +11,20 @@
                       add .hidden to me then 
                       wait 1s then set swaptarget to closest .swap-tgt
                       then tell swaptarget 
-                      transition *height to 0px over 3s
-                      then tell swaptarget remove you
+                        add .scale-0
+                      then tell swaptarget 
+                        remove you
                       end">
                 UNDO
             </span>
     <button type="button" class="dd-button inline-flex w-full justify-center rounded-md border border-gray-300 
                                   {% if slot.n_options == 0 %} bg-gray-400 opacity-90 {% else %} bg-white {% endif %}
                                   px-4 py-1 my-1 text-sm font-medium text-gray-700 shadow-sm hover:ring-2
-                                  w-[12.5rem]
+                                  w-[6.5rem] md:w-[12rem]
                                   focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 
                                   focus:ring-offset-gray-100" 
-            aria-expanded="true" aria-haspopup="true"
+            aria-expanded="true" 
+            aria-haspopup="true"
             {% if slot.n_options == 0 %} disabled {% endif %}
             onclick="showDropdownOptions(event)"
             data-slot="{{slot.workday}}-{{slot.shift}}"

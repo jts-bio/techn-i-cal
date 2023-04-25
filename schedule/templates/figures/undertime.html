@@ -19,7 +19,8 @@
 <div class="flex items-center space-x-4 cursor-pointer" 
    hx-get="{% url 'schd:undertime-view' schedule.slug %}"
    hx-target="#swap-panel"
-   hx-indicator="#wait-indicator">
+   hx-indicator="#wait-indicator"
+   _="on click trigger recheck on #ut-hours">
    <div class="flex-shrink-0">
        <div id="utBadge" class="h-7 w-7 pl-[2.7px] pt-[.6px] rounded-full border border-white bg-amber-300"><i class="fas fa-diagram-venn text-black"></i></div>
    </div>

@@ -16,11 +16,8 @@
     "yaml.schemas": {
         "https://gitpod.io/schemas/gitpod-schema.json": "file:///workspace/techn-i-cal/.devcontainer/.gitpod.yml"
     },
-    "python.testing.pytestArgs": [
-        "."
-    ],
     "python.testing.unittestEnabled": true,
-    "python.testing.pytestEnabled": false,
+    "python.testing.pytestEnabled": true,
     "cSpell.words": [
         "cpht",
         "Empl",
@@ -44,6 +41,13 @@
         "./sch",
         "-p",
         "test*.py"
+    ],
+    "python.testing.pytestArgs": [
+        "-v",
+        "-s",
+        "./sch",
+        "-p",
+        "tests.py"
     ],
     "compile-hero.disable-compile-files-on-did-save-code": true,
     "search.useIgnoreFiles": false,

@@ -649,9 +649,7 @@ class Actions:
                     .exclude(pk__in=slot.day_coworkers().all())
                     .exclude(pk__in=ptoEmployees.all())
             )
-            
-            print(es.values_list('name','hasPtoReq','hours','matchingTimePref'))
-            
+                        
             if es.exists():
                 emp = es.order_by("?").first()
                 
@@ -683,6 +681,13 @@ class Actions:
                 b += 1
 
         Actions.sch_clear_over_empl_maxes(request, schId)
+        
+        for slot in schedule.slots.empty():
+            res = slot.actions.solve_most_needed_hours(slot)
+            if res:
+                b += 1
+
+        Actions.clearOvertimeSlotsByRefillability(request, schId)
 
         time_f = dt.datetime.now()
         schedule.routine_log.events.create(
@@ -810,11 +815,14 @@ class Actions:
         return HttpResponse(
             "<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>"
         )
+    
 
     @csrf_exempt
     def sch_clear_over_empl_maxes(request, schId):
         sch = Schedule.objects.get(slug=schId)
         hours_cleared = 0
+
+        slots = []
 
         for empl in sch.employees.all():
             if empl.slug in sch.data["maxes"]:
@@ -837,11 +845,12 @@ class Actions:
                         .order_by("-fills_with__count")
                         .first()
                     )
+                    slots.append(slot)
                     slot.employee = None
                     hours_cleared += slot.shift.hours
 
-                    slot.save()
-                print(f"{empl} OK for {week}")
+        Slot.objects.bulk_update(slots, ["employee"])
+                
 
         messages.success(request, f"{hours_cleared}hrs cleared")
 

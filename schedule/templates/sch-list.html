@@ -36,6 +36,7 @@
   </script>
 
   <div class="w-fc sticky t-2 -r-0 mt-3 mr-3">
+    
     {% #toggle-section title="New Schedule Dialog" %}
     <div class="border-2 border-slate-300 rounded mt-2">
       <div class="px-3 py-2 bg-zinc-900 rounded">
@@ -127,21 +128,27 @@
 </div>
 
 <div class="block md:hidden">
-  <div class="flex flex-row flex-wrap gap-7 m-7">
+  <div class="grid grid-cols-2 gap-7 m-7">
+    
     {% for sch in schedules %}
-    <a
-      href="detail/{{sch.slug}}/"
+
+    <a href="detail/{{sch.slug}}/"
       class="panel grow hover:bg-slate-500 hover:ring-{% scoreColor sch.percent %}-400 hover:ring"
-      id="myButton"
-    >
-      <h3 class="text-indigo-400 font-extrabold text-shadow">
+      id="myButton">
+
+      <h3 class="text-{% scoreColor sch.percent %}-600 font-extrabold text-shadow">
         Schedule {{sch.slug}}
       </h3>
+
       <div
-        class="h-8 w-8 text-xs pt-2 m-2 ring ring-{% scoreColor sch.percent %}-500 bg-{% scoreColor sch.percent %}-100 ring-offset-2 text-slate-600 font-light text-center align-text rounded-full"
-      >
+        class="h-8 w-8 text-xs pt-2 m-2 ring 
+                ring-{% scoreColor sch.percent %}-500 
+                bg-{% scoreColor sch.percent %}-100 
+              ring-offset-2 text-slate-600 font-light 
+              text-center align-text rounded-full">
         {{ sch.percent }}%
       </div>
+      
       <div class="text-xs">{{ sch.start_date }}</div>
       <div>{% if sch.status == 0 %} DRAFT {% endif %}</div>
     </a>

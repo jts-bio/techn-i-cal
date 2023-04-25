@@ -824,11 +824,16 @@ class EmpViews:
 
     def empShiftSort(request, empId):
         emp = Employee.objects.get(pk=empId)
+
         if request.method == "POST":
+
             print(request.POST)
+
             ShiftSortPreference.objects.filter(employee=emp).delete()
             shift_sorted = request.POST.getlist("shift")
+
             print(shift_sorted)
+            
             i = 0
             for s in shift_sorted:
                 shift = Shift.objects.get(pk=s)
@@ -837,10 +842,11 @@ class EmpViews:
                     shift=shift, 
                     score=i, 
                     rank=i-1
-                )
+                    )
                 i += 1
                 pref.save()
                 print(pref, pref.score, pref.shift)
+
             return HttpResponseRedirect(emp.url())
 
         context = {

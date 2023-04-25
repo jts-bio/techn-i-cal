@@ -2,8 +2,6 @@ import datetime as dt
 import statistics
 from re import sub
 import random
-from django.http import JsonResponse
-
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
 
@@ -12,13 +10,13 @@ from django.db.models import (Avg, Count, Deferrable, DurationField, ExpressionW
                               StdDev, Subquery, Sum, Variance)
 
 from django.db.models.functions import Coalesce
+
 from django.urls import reverse
 from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
 from django.contrib.auth.models import User
-import json
+
 import yaml
-from django.http import HttpResponse
 from django_group_by import GroupByMixin
 
 from .data import (TEMPLATESCH_STARTDATE, TODAY,
@@ -225,6 +223,32 @@ class SlotManager (models.QuerySet):
         """Filter for slots where its employee is templated off."""
         
         return self.filter(employee__tdos__sd_id=F('workday__sd_id'))
+   
+    def one_offs(self):
+        """Filters for slots where its employee doesn't work on the workday before or workday after"""
+        # Filter out slots with sd_id 0 and 42
+        valid_slots = self.exclude(Q(workday__sd_id=0) | Q(workday__sd_id=42)).exclude (employee=None)
+
+        # Subqueries for previous and next workday slots
+        prev_wd_slots = self.model.objects.filter(
+            workday__sd_id=OuterRef('workday__sd_id') - 1, 
+            employee=OuterRef('employee'),
+            schedule=OuterRef('schedule'),
+            )
+        next_wd_slots = self.model.objects.filter(
+            workday__sd_id=OuterRef('workday__sd_id') + 1, 
+            employee=OuterRef('employee'),
+            schedule=OuterRef('schedule'),
+            )
+
+        # Filter out slots where the employee works on the previous or next workday
+        one_off_slots = valid_slots.annotate(
+            has_prev_wd_slot=Subquery(prev_wd_slots.values('pk')[:1]),
+            has_next_wd_slot=Subquery(next_wd_slots.values('pk')[:1])
+        ).filter(has_prev_wd_slot__isnull=True, has_next_wd_slot__isnull=True)
+
+        return one_off_slots
+
 
 
 class TurnaroundManager (models.QuerySet):
@@ -506,11 +530,6 @@ class Employee (models.Model) :
     """
     model EMPLOYEE
     ==============
-    fields:
-    - name
-    - shifts_trained (this is a many-to-many field)
-    - shifts_available (this is a many-to-many field)
-
     """
     name            = models.CharField (max_length=100)
     fte_14_day      = models.FloatField(default=80)
@@ -529,10 +548,7 @@ class Employee (models.Model) :
 
     class Meta:
         ordering    = ['cls', 'name']
-    def url__tallies (self):
-        return reverse("sch:employee-shift-tallies", kwargs={"empId":self.pk})
-    def url__update (self):
-        return reverse("sch:employee-update", kwargs={"name":self.name})
+
     @property
     def yrs_experience (self):
         return round((TODAY - self.hire_date).days / 365, 2)
@@ -1823,6 +1839,19 @@ class Slot (models.Model) :
 
     def day_coworkers (self):
         return Employee.objects.filter(slots__workday=self.workday)
+    
+    def can_pivot (self):
+        conflicting = self._get_conflicting_slots().values('employee')
+        if self.employee == None:
+            other_side_empls = (self.workday.slots.filled()
+                                .filter(employee__shifts_available=self.shift)
+                                .exclude(shift__group=self.shift.group)
+                                .exclude(employee__in=conflicting)
+                            .values('employee'))
+            if other_side_empls.exists():
+                return other_side_empls
+        return False
+
     def show_surrounds (self):
         if self.employee == None:
             return None
