@@ -163,48 +163,89 @@ class ApiViews:
 
     def schedule__get_undertime_hours(request, schId):
         """
-        example output:
-        >>> {
-            "employee":     "Brianna-A", 
-            "under_hours":  10.0, 
-            "potentials":   [["EP", "2023-05-10C"]]
-        }
+        output example:
+        >>> {'Cheryl':
+                   {'weeks':   [40.0, 10.0, 20.0, 40.0, 40.0, 30.0],
+                    'periods': [50.0,       60.0,       70.0],
+                    'fte': 1.0,
+                    'needed-week-1': 30.0,
+                        'week-1-empty': ['2023-06-22B-EP'],
+                        'week-1-steal': ['2023-06-20B-7C'],
+                    'needed-week-2': 20.0,
+                        'week-2-empty': ['2023-06-26B-EP'],
+                        'week-2-steal': ['2023-06-26B-MI'],
+                    'needed-week-5': 10.0,
+                        'week-5-empty': ['2023-07-18B-EI'],
+                        'week-5-steal': ['2023-07-16B-EI',
+                                         '2023-07-17B-MI',
+                                         '2023-07-17B-7C'
+            }
         """
-        sch = Schedule.objects.get(slug=schId)
+        sch          = Schedule.objects.get(slug='2023-S4B')
+        
+        empl_dict    = {empl.slug:{
+                            'weeks':[],
+                            'periods':[],
+                            'fte':empl.fte,
+                            'img_url':empl.image_url
+                        } for empl in sch.employees.filter(fte__gt=0)}
+        
+        wk_empl_dict = {empl.slug:[] for empl in sch.employees.all()}
 
-        uts = []
         for pd in sch.periods.all():
-            pd_ut = []
-            pd.save()
-            for empl in sch.employees.filter(fte__gt=0):
-                ut = {}
-                potential_fill_list = []
+            for week in pd.weeks.all():
+                for empl in sch.employees.all():
+                    if week.slots.filter(employee=empl).count() > 0:
+                        slot_sum = sum(list(week.slots.filter(employee=empl).values_list('shift__hours',flat=True)))
+                        pto_sum  = week.pto_requests().filter(employee=empl).count() * 10
+                        wk_empl_dict[empl.slug] += [slot_sum + pto_sum]
+                    else:
+                        wk_empl_dict[empl.slug] += [0]
 
-                pd_hours = pd.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
-                pto_hours = PtoRequest.objects.filter(employee=empl,workday__in=pd.workdays.values('date')).count() * 10
+        pd_empl_dict = {empl.slug:[] for empl in sch.employees.all()}
+        for empl in wk_empl_dict:
+            pd_empl_dict[empl] += [wk_empl_dict[empl][0] + wk_empl_dict[empl][1]]
+            pd_empl_dict[empl] += [wk_empl_dict[empl][2] + wk_empl_dict[empl][3]]
+            pd_empl_dict[empl] += [wk_empl_dict[empl][4] + wk_empl_dict[empl][5]]
 
-                wk_totals = []
-                if pd_hours < empl.fte * 80 - 5:
-                    for wk in pd.weeks.all():
-                        wk_total = wk.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
-                        wk_pto = PtoRequest.objects.filter(employee=empl,workday__in=wk.workdays.values('date')).count() * 10
-                        total = wk_total + wk_pto
+        for emp in empl_dict:
+            empl_dict[emp]['weeks'] = wk_empl_dict[emp]
+            empl_dict[emp]['periods'] = pd_empl_dict[emp]
+            
+            i = 0 # week counter
+            for wk in empl_dict[emp]['weeks']:
 
-                        pots = wk.slots.empty().filter(fills_with=empl).exclude(workday__slots__employee=empl)
-                        for pot in pots:
-                            if pot:
-                                if not pot.actions.check_turnaround_risk(pot, empl):
-                                    potential_fill_list += [(pot.shift.name,pot.workday.slug)] 
+                if wk < empl_dict[emp]['fte'] * 40:
 
-                            ut['employee']    = empl.slug 
-                            ut['under_hours'] = [wk_totals] 
-                            ut['potentials']  = potential_fill_list
+                    # i // 2 = period number
+                    if empl_dict[emp]['periods'][i//2] < empl_dict[emp]['fte'] * 80:
+                    
+                        empl_dict[emp][f"needed-week-{i}"] = empl_dict[emp]['fte'] * 40 - empl_dict[emp]['weeks'][i]
+
+                        empl_dict[emp][f"week-{i}-empty"]  = list(sch.weeks.all()[i].slots.filter(
+                                                                employee__isnull= True, 
+                                                                fills_with__slug= emp)
+                                                                .values_list('slug',flat=True))
                         
+                        empl_dict[emp][f"week-{i}-empty"]  = [j for j in empl_dict[emp][f"week-{i}-empty"] if j is not None]
 
-                            pd_ut += [ut]
-            uts += [pd_ut]
+                        empl_dict[emp][f"week-{i}-steal"]  = list(sch.weeks.all()[i].slots.filter(
+                                                                employee__fte= 0,
+                                                                fills_with__slug= emp)
+                                                                .values_list('slug',flat= True))
+                        
+                        empl_dict[emp][f"week-{i}-steal"]  = [j for j in empl_dict[emp][f"week-{i}-steal"] if j is not None]
 
-        return JsonResponse(uts, safe=False)
+                    else:
+                        empl_dict[emp][f"needed-week-{i}"] = 0
+                        empl_dict[emp][f"week-{i}-empty"]  = []
+                        empl_dict[emp][f"week-{i}-steal"]  = []
+                else:
+                    empl_dict[emp][f"needed-week-{i}"] = 0
+                    empl_dict[emp][f"week-{i}-empty"]  = []
+                    empl_dict[emp][f"week-{i}-steal"]  = []
+                i += 1
+        return JsonResponse(empl_dict, safe=False) # type: Dict[str, Dict[str, Any]]
 
     def schedule__get_undertime_hours_sum(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -212,9 +253,11 @@ class ApiViews:
         for pd in sch.periods.all():
             pd.save()
             for empl in sch.employees.filter(fte__gt=0):
-                pd_hours = pd.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
+                pd_hours  = pd.slots.filter(employee=empl).aggregate(Sum("shift__hours"))['shift__hours__sum'] or 0
                 pto_hours = PtoRequest.objects.filter(employee=empl,workday__in=pd.workdays.values('date')).count() * 10
+
                 print(f"{empl} : {(pd_hours + pto_hours) - (empl.fte * 80)}")
+
                 if pd_hours + pto_hours < empl.fte * 80:
                     total = empl.fte * 80 - pd_hours 
                     ut[empl.slug] = total - pto_hours if total - pto_hours > 0 else 0

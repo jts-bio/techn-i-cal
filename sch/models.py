@@ -977,7 +977,7 @@ class Week (models.Model) :
         return self.slots.filter(empl_sentiment__lt=50)
 
     def pto_requests (self):
-        return PtoRequest.objects.filter(workday__in=self.workdays.all())
+        return PtoRequest.objects.filter(workday__in=self.workdays.all().values('date'))
 
     def empl_needed_hrs (self,empl):
         slots = self.slots.filter(employee=empl)
@@ -1424,16 +1424,131 @@ class ScheduleBaseActions:
                         sameSum += 1
                     totalSum += 1
             return int(sameSum/totalSum * 100)
-        def build_schedule (self, instance):
-            deltas = [0,14,28]
-            n_initial = calculate_period(instance.number)
+        def build_schedule(self, instance):
+            year = instance.year
+            num = instance.number
+            version = instance.version
+            start_date = instance.start_date
+
+            # basic time data
+            pd_nums = [num * 2 + i for i in range(3)]
+            wk_nums = [num * 6 + i for i in range(6)]
+            dates   = [start_date + dt.timedelta(days=i) for i in range(42)]
+
+            # object creation
+            schedule = Schedule.objects.get_or_create(
+                year=year,
+                number=num,
+                version=version,
+                start_date=start_date,
+                slug=f"{year}-S{num}{version}",
+            )
+            schedule[0].save()
+            schedule = schedule[0]
+
+            pd_start_dates = [dates[i] for i in [0, 14, 28]]
+            pd_nums        = [num * 2 + i for i in range(3)]
+            pds            = []
+
             for i in range(3):
-                Period.objects.create(
-                    schedule=instance,
-                    year=instance.year,
-                    number=n_initial+i,
-                    start_date=instance.start_date+dt.timedelta(days=deltas[i])
+                pd = Period.objects.create(
+                    year=year,
+                    start_date=pd_start_dates[i],
+                    schedule=schedule,
+                    number=pd_nums[i],
                 )
+                pd.save()
+                pds.append(pd)
+
+            wk_start_dates  = [dates[i] for i in [0, 7, 14, 21, 28, 35]]
+            wk_nums         = [num * 6 + i for i in range(6)]
+            wks             = []
+
+            for i in range(6):
+                wk = Week.objects.create(
+                    year=year,
+                    start_date=wk_start_dates[i],
+                    schedule=schedule,
+                    number=wk_nums[i],
+                    period=pds[0] if i < 2 else pds[1] if i < 4 else pds[2],
+                )
+                wk.save()
+                wks.append(wk)
+
+            wdlist = []
+
+            for i in range(42):
+                slug = f"{dates[i].strftime('%Y-%m-%d')}{version}"
+                date = dates[i]
+                period = Period.objects.get(
+                    schedule=schedule,
+                    number=pd_nums[0] if i < 14 else pd_nums[1] if i < 28 else pd_nums[2],
+                )
+                week = Week.objects.get(
+                    schedule=schedule,
+                    number=wk_nums[0]
+                    if i < 7
+                    else wk_nums[1]
+                    if i < 14
+                    else wk_nums[2]
+                    if i < 21
+                    else wk_nums[3]
+                    if i < 28
+                    else wk_nums[4]
+                    if i < 35
+                    else wk_nums[5],
+                )
+                iweekday = i % 7
+                sd_id = i
+                wdlist += [
+                    Workday(
+                        schedule=schedule,
+                        slug=slug,
+                        date=date,
+                        period=period,
+                        week=week,
+                        iweekday=iweekday,
+                        sd_id=sd_id,
+                    )
+                ]
+
+            for wd in wdlist:
+                wd.save()
+                slotlist = []
+                for sft in Shift.objects.filter(occur_days__contains=wd.iweekday):
+                    period = wd.period
+                    week = wd.week
+                    shift = sft
+                    workday = wd
+                    employee = None
+                    slotlist += [
+                        Slot(
+                            schedule=schedule,
+                            period=period,
+                            week=week,
+                            shift=shift,
+                            workday=workday,
+                            employee=employee,
+                        )
+                    ]
+                Slot.objects.bulk_create(slotlist)
+                
+            slots = Slot.objects.filter(schedule=schedule)
+
+            for slot in slots:
+                slot.fills_with.set(
+                    Employee.objects.filter(shifts_available=slot.shift)
+                    .exclude(pk__in=slot.workday.on_pto())
+                    .exclude(pk__in=slot.workday.on_tdo())
+                )
+                template = ShiftTemplate.objects.filter(
+                    shift=slot.shift, sd_id=slot.workday.sd_id
+                )
+                if template.exists():
+                    slot.template_employee = template.first().employee
+            slots.bulk_update(slots, ["slug", "template_employee"])
+
+            return schedule
 
     def update_unfavorable_ratio (self):
         self.unfavorable_ratio = self.slots.unfavorables().count() / self.slots.all().count()
@@ -1792,18 +1907,16 @@ class Slot (models.Model) :
                     print(f'{employee} assigned to {instance}')
             else:
                 print(f'NO ACTION TAKEN: {instance} ALREADY FILLED')
+
         def solve_most_needed_hours (self, instance):
-            instance.save()
             potential_employees = instance.fills_with.annotate(
                 currentHours = Sum(instance.week.slots.filter(employee=OuterRef('pk')).values('shift__hours'))).annotate(
                 diff =  F('std_wk_max') - F('currentHours')
                 ).order_by('-diff')
             if potential_employees.exists():
-                print(potential_employees.first())
                 instance.employee = potential_employees.first()
-                instance.save()
-                return instance
-            return None
+            return 
+        
         def check_turnaround_risk (self, instance, empl):
             if type(empl) == str:
                 empl = Employee.objects.get(pk=empl)

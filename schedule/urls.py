@@ -40,6 +40,7 @@ urlpatterns = [
     path('detail/<schId>/pto-requests/', Sections.schPtoRequests, name="pto-requests"),
     path('detail/<schId>/undertime-view/', Sections.schUndertimeList, name="undertime-view"),
     path('detail/<schId>/manual-input/', Sections.sch_manual_data_entry, name="manual-input"),
+    path('detail/<schId>/undertime-partial/<empl>/<prd>/', Sections.emplScheduleUndertimeList, name="undertime-partial"),
 
     
     #~~ ACTIONS ~~#

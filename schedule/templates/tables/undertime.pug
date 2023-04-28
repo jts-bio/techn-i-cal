@@ -1,121 +1,59 @@
+//- view: schUndertimeList
 
 
-script(type="text/hyperscript").
+script(type='text/hyperscript').
+   {% include 'hs/empl-assigner-button._hs' %}
 
-   behavior employeeAssignerButton 
-   
-
-      on click 
-         set wday  to @data-wd 
-         set empl  to @data-empl 
-         set slot  to @data-slot 
-         set shift to @data-shift 
-         set prd   to @data-prd
-         trigger hideBySlot(s:slot) on .potential
-         then 
-         trigger hideByEmpAndWday(e:empl, wd:wday) on .potential
-         then
-         set badge to my.parentNode.parentNode.querySelector('.empl-hours-badge')
-         then
-         trigger subtract on badge
-      end 
-
-      on hideBySlot(s) 
-         set slot to @data-slot 
-         if slot == s 
-            add .scale-0 to me then wait 100ms then 
-            add .hidden to me
-         end
-
-      on hideByEmpAndWday(e,wd) 
-         set empl to @data-empl 
-         set wday to @data-wd 
-         if empl == e 
-            if wday == wd 
-               add .hidden to me
-            end
-         end
-   end
-
-script(type="text/hyperscript").
-
-   behavior employeeHoursBadge
-
-      on load or check 
-         if @data-value <= 7 
-            set card to my.parentNode.parentNode.parentNode
-            then add .scale-0 to card then wait 500ms 
-            then add .opacity-0 to card then wait 200ms
-            then add .hidden to card
-         end
-
-      on subtract 
-         decrement @data-value by 10 
-         then put `${[@data-value]} hrs.` into me
-         then trigger check
-      end
-
-   end
+script(type='text/hyperscript').
+   {% include 'hs/empl-hours-badge._hs' %}
 
 
 
+- var weeknums = ["0","1","2","3","4","5"]
 
-- var i = 1
+div.container.overflow-x-auto
 
-each prd in periods
+   .px-2.mx-3.flex.flex-row.overflow-auto.bg-zinc-900.bg-opacity-75.rounded.p-3(class="w-[600px] lg:w-[950px]")
 
-   h2.text-xl Period #{i}
+      each empl in employees
 
-   
+         .bg-zinc-100.bg-opacity-40.rounded.p-2.mx-3
 
-   div.grid.grid-cols-1.bg-white.bg-opacity-25.rounded.p-2.gap-3(class="md:grid-cols-2 lg:grid-cols-3")
+            - var e          = employees[empl]
+            - var profileImg = e['img_url']
+            - var weeks      = employees[empl]['weeks']
+            - var fte        = employees[empl]['fte']
+            - var prds       = employees[empl]['periods']
 
-      each empl in prd
-
-         - var employee   = empl['employee']
-         - var underHours = empl['under_hours']
-         - var imgUrl     = empl['img_url']
-
-         //- card 
-         div.bg-zinc-900.bg-opacity-50.backdrop-blur-xl.rounded.px-2.transform-gpu.transition-all.duration-500(
-            class="w-full")
-
-            //- header
             .flex.flex-row
-               img(src="#{imgUrl}" class="w-16 h-16 rounded-full mr-2 border")
-               .flex.flex-col
-                  .text-lg.font-light.italic.p-1= employee
-
-                  //- badge
-                  span.text-xs.bg-amber-400.text-zinc-800.rounded-sm.ring.ring-amber-600.w-fc(
-                     _="install employeeHoursBadge"
-                     class="empl-hours-badge"
-                     data-empl= employee
-                     data-prd= i
-                     data-value= underHours )
-                     | #{underHours} hrs. short
-                  
-                  span.text-xs= week1Hours
-                  span.text-xs= week2Hours 
-
             
-            .grid.grid-cols-4.p-2.gap-3(class="md:grid-cols-5 lg:grid-cols-6")
+               img.w-16.h-16.border.rounded-lg(src=profileImg)
 
-               each shift, wd in empl.potentials
+               .flex.flex-col.w-40
 
-                  span.relative.potential.cursor-pointer.text.text-xs.pt-1.transform-gpu.transition-all.duration-500.text-center.-z-1.h-7.w-7.ring.ring-yellow-800.rounded-full.bg-zinc-900.text-orange-700(
-                     data-wd="#{wd}"
-                     data-empl="#{employee}"
-                     data-slot="#{wd}-#{shift}"
-                     data-shift="#{shift}"
-                     hx-post="actions/update/#{wd}/#{shift}/#{employee}/"
-                     class="z-10"
-                     _="install employeeAssignerButton on mouseenter toggle .hidden on next .absolute until mouseleave end"
-                     ) #{shift}
+                  div.font-thin.text-lg.px-2= empl
+                  div.flex.flex-row
+                  
+                     - var pd_idx = 0
 
-                  div.absolute.hidden.transition-all(class="top-[32px] w-[120px]" style="z-index: 9999!important;")
-                     .bg-zinc-900.bg-opacity-80.rounded.p-1.text-yellow-200 #{wd}
+                     each pd in prds
 
-   - var i = i + 1
+                        - var pd_fte = fte * 80
 
-,
+                        if pd < pd_fte
+                           .cursor-pointer.bg-red-300.text-xs.pt-1.text-red-900.font-bold.rounded-full.h-7.w-7.ring.ring-red-700.border(
+                              id= "undertime-badge-#{empl}-#{pd_idx}"
+                              hx-get= "undertime-partial/#{empl}/#{pd_idx}/"
+                              hx-target= "#under-hours-swap-area"
+                           )= pd 
+
+                        else
+                           .bg-zinc-300.text-xs.pt-1.text-zinc-900.text-center.font-bold.rounded-full.h-7.w-7.ring.ring-zinc-700.border.border-green-500
+                              i.fas.fa-check.text-green-800
+
+                        - var pd_idx = pd_idx + 1
+      
+div(id="under-hours-swap-area")    
+
+   
+

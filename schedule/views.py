@@ -398,12 +398,16 @@ class Sections:
         wk.overtime_hours()
 
     def schUndertimeList(request, schId):
+        from django.db.models import JSONField
+        from django.db.models.functions import Cast
+
         data = ApiViews.schedule__get_undertime_hours(request, schId).content
-        periods = json.loads(data)
-        for period in periods:
-            for empl in period:
-                empl["img_url"] = Employee.objects.get(slug=empl["employee"]).image_url
-        return render(request, "tables/undertime.pug", {"periods": periods, "sch": schId})
+        employees = json.loads(data)
+
+        qs = Employee.objects.annotate(listData=Cast([20,30,40,50,60], JSONField()))
+
+
+        return render(request, "tables/undertime.pug", {"employees": employees, "sch": schId, "qs":qs})
 
     def sch_prn_empl_maxes(request, schId):
         template = "tables/fte-maxes.pug"
@@ -465,6 +469,94 @@ class Sections:
                         "sch_table": schtable,
                         "sch"      : sch
                     })
+
+    def emplScheduleUndertimeList(request,schId,empl, prd):
+        sch  = Schedule.objects.get(slug=schId)
+        empl = Employee.objects.get(slug=empl)
+        prd  = int(prd)
+        period = sch.periods.all()[prd]
+        fte  = empl.fte
+        prd_fte = fte * 80
+
+        w1_total = sum(list(period.weeks.first().slots.filter(employee=empl).values_list('shift__hours',flat=True)))
+        w2_total = sum(list(period.weeks.last().slots.filter(employee=empl).values_list('shift__hours',flat=True)))
+        pd_total = w1_total + w2_total
+        
+        if empl.fte == 0:
+            return HttpResponse("Not Available")
+        
+        else:
+            context = {
+                'schedule':sch,
+                'employee':empl,
+                'period':prd,
+                'week1Hours':w1_total,
+                'week2Hours':w2_total,
+                'periodHours':pd_total,
+                'neededHours':prd_fte - pd_total,
+            }
+            if w1_total < fte * 40 - 5:
+                context['week1EmptyPossibilities'] = period.weeks.first().slots.filter(employee__isnull=True,
+                                                    fills_with=empl).exclude(employee=empl).all()
+                
+                context['week1Takeables']= period.weeks.first().slots.filter(employee__fte=0).all()
+            else:
+                context['week1EmptyPossibilities'] = None
+                context['week1Takeables'] = None
+
+            if w2_total < fte * 40 - 5:
+                context['week2EmptyPossibilities'] = period.weeks.last().slots.filter(employee__isnull=True,
+                                                    fills_with=empl).exclude(employee=empl).all()
+                
+                context['week2Takeables']: period.weeks.last().slots.filter(employee__fte=0).all()
+            else:
+                context['week2EmptyPossibilities'] = None
+                context['week2Takeables'] = None
+        
+        i = 1
+        for week in sch.periods.all()[prd].weeks.all():
+            week_data_struct = []
+            for wd in week.workdays.all():
+                if wd.slots.filter(employee=empl) == empl:
+                    week_data_struct.append(
+                        ("SLOT", 
+                         wd.slots.filter(employee=empl).first())
+                        )
+                elif wd.pto_requests.filter(employee=empl).exists():
+                    week_data_struct.append(
+                        ("PTO", 
+                         wd.pto_requests.filter(employee=empl).first()),
+                    )
+                else:
+                    week_data_struct.append(
+                        ("EMPTY", 
+                         wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl),
+                         wd.slots.filled().filter(employee__fte=0, fills_with=empl).exclude(employee=empl))
+                    )
+            context[f"week{i}"] = week_data_struct
+            i += 1
+        
+        context["weekA"] = period.weeks.first().workdays.all()
+        for wd in context["weekA"]:
+            wd.isEmployee = wd.slots.filter(employee=empl).exists()
+            if wd.isEmployee:
+                wd.emplSlot = wd.slots.filter(employee=empl).first()
+            wd.emplFillsOptions = wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl)
+            wd.emplTakeOptions = wd.slots.filter(employee__fte=0, fills_with=empl).exclude(employee=empl)
+            wd.isPto = wd.pto_requests.filter(employee=empl).exists()
+            
+        context["weekB"] = period.weeks.last().workdays.all()
+        for wd in context["weekB"]:
+            wd.isEmployee = wd.slots.filter(employee=empl).exists()
+            if wd.isEmployee:
+                wd.emplSlot = wd.slots.filter(employee=empl).first()
+            wd.emplFillsOptions = wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl)
+            wd.emplTakeOptions = wd.slots.filter(employee__fte=0, fills_with=empl).exclude(employee=empl)
+            wd.isPto = wd.pto_requests.filter(employee=empl).exists()
+                    
+
+        return render(request, "tables/undertime-empl.pug", context)
+            
 
 
 class Actions:
@@ -673,6 +765,7 @@ class Actions:
                 n += 1
 
         schedule.slots.bulk_update(results, fields=["employee"])
+        print('updated initial')
 
         b = 0
         for slot in schedule.slots.empty():
@@ -681,13 +774,15 @@ class Actions:
                 b += 1
 
         Actions.sch_clear_over_empl_maxes(request, schId)
+        print('done clearing overages x1')
         
         for slot in schedule.slots.empty():
             res = slot.actions.solve_most_needed_hours(slot)
             if res:
                 b += 1
 
-        Actions.clearOvertimeSlotsByRefillability(request, schId)
+        Actions.sch_clear_over_empl_maxes(request, schId)
+        print('done clearing overages x2')
 
         time_f = dt.datetime.now()
         schedule.routine_log.events.create(
@@ -697,10 +792,14 @@ class Actions:
                 "time": f"{(time_f - time_i).seconds} seconds",
                 "user": request.user.username,
                 "b": b,
-            },
+            }
         )
+
         return HttpResponse(
-            f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{n} slots filled by favorability-maximizing strategy.</div>'
+            f"""<div class="text-lg text-emerald-400">
+                    <i class="fas fa-check"></i>
+                    {n} slots filled by favorability-maximizing strategy.
+                </div>"""
         )
 
     def wd_redirect (request, schId, wd):
@@ -722,8 +821,14 @@ class Actions:
         sch.routine_log.events.create(
             event_type="RETEMPLATE-ALL", data={"n": n, "user": request.user.username}
         )
+
+        icon = "<i class='fas fa-check'></i>"
+
         return HttpResponse(
-            f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i> {slots.count()} slots retemplated</div>"
+            f"""<div class='text-lg text-emerald-400'>
+                    {icon}
+                    {slots.count()} slots retemplated.
+                </div>"""
         )
 
     @csrf_exempt

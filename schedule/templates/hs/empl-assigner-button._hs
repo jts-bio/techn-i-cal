@@ -1,0 +1,34 @@
+behavior employeeAssignerButton 
+   
+
+   on click 
+      set wday  to @data-wd 
+      set empl  to @data-empl 
+      set slot  to @data-slot 
+      set shift to @data-shift 
+      set prd   to @data-prd
+      trigger hideBySlot(s:slot) on .potential
+      then 
+      trigger hideByEmpAndWday(e:empl, wd:wday) on .potential
+      then
+      set badge to my.parentNode.parentNode.querySelector('.empl-hours-badge')
+      then
+      trigger subtract on badge
+   end 
+
+   on hideBySlot(s) 
+      set slot to @data-slot 
+      if slot == s 
+         add .scale-0 to me then wait 100ms then 
+         add .hidden to me
+      end
+
+   on hideByEmpAndWday(e,wd) 
+      set empl to @data-empl 
+      set wday to @data-wd 
+      if empl == e 
+         if wday == wd 
+            add .hidden to me
+         end
+      end
+end

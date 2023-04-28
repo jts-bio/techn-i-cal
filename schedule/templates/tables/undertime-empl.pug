@@ -1,0 +1,63 @@
+.bg-zinc-900.bg-opacity-50.rounded.p-3
+
+   - var n = period + 1
+
+   h2.text-xl #{employee} Under FTE Schedule Hours
+   h3.text-lg Pay Period #{n}
+
+
+   table
+      tr
+         th Sums
+         td Sunday
+         td Monday
+         td Tuesday
+         td Wednesday
+         td Thursday
+         td Friday
+         td Saturday
+         
+      tr(_="on load set sumValue to 0 for day in <.wd/> set adding to .wd@data-hours then set sumValue to sumValue + adding as Int then put sumValue into #week-a-sum")
+
+         td#week-a-sum.border
+
+         each wd in weekA
+            td
+               div.rounded.mr-2.text.text-center
+                  if wd.isEmployee
+                     div.wd.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
+                  if wd.isPto
+                     div.text-blue-400.italic.text-xl PTO
+                  if not wd.isEmployee and not wd.isPto
+                     if wd.emplFillsOptions
+                        select.text-lg
+                           option.text-large(value="") +
+                           each shift in wd.emplFillsOptions
+                              option(value=shift.shift.name)= shift.shift.name
+                           each shift in wd.emplTakeOptions
+                              option(value=shift.shift.name)= shift.shift.name
+                     else
+                        div.italic.text-xs.opacity-75 None <br/> Available
+
+      tr(_="on load set sumValue to 0 for day in <.wd/> set adding to .wd@data-hours then set sumValue to sumValue + adding as Int then put sumValue into #week-b-sum")
+
+         td#week-b-sum.border
+
+         each wd in weekB
+            td
+               div.rounded.mr-2.text.text-center
+                  if wd.isEmployee
+                     div.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
+                  if wd.isPto
+                        div.text-blue-400.italic.text-xl PTO
+                  if not wd.isEmployee and not wd.isPto
+                     if wd.emplFillsOptions
+                        select.text-lg
+                           option.text-lg(value="") +
+                           each shift in wd.emplFillsOptions
+                              option(value=shift.shift.name)= shift.shift.name
+                           each shift in wd.emplTakeOptions
+                              option(value=shift.shift.name)= shift.shift.name
+                     else
+                        div.italic.text-xs.opacity-75 None <br/> Available
+                     

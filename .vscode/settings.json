@@ -38,16 +38,14 @@
     "python.testing.unittestArgs": [
         "-v",
         "-s",
-        "./sch",
+        "/**/",
         "-p",
         "test*.py"
     ],
     "python.testing.pytestArgs": [
         "-v",
         "-s",
-        "./sch",
-        "-p",
-        "tests.py"
+        "-p"
     ],
     "compile-hero.disable-compile-files-on-did-save-code": true,
     "search.useIgnoreFiles": false,
