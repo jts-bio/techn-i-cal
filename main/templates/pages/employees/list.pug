@@ -1,0 +1,22 @@
+extends base.html
+
+//- TEMPLATE
+//- EMPLOYEES LIST
+
+//- DISPLAY OF ALL EMPLS IN USERS ORG (CROSS-DEPT)
+
+
+block content
+
+   h2 Employees List 
+
+   each dept in depts
+      h3= dept.name
+
+      .flex.flex-row.flex-wrap.gap-4
+         each empl in dept.employees.all
+            a.rounded.bg-zinc-100.bg-opacity-30.p-2(
+               href=empl.url
+               )
+               .text-md.font-bold.uppercase= empl.initials
+               .text-sm= empl.name

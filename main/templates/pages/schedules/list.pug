@@ -1,0 +1,57 @@
+extends base.html
+
+
+block content
+   
+   h1.text-2xl #{organization} Schedules
+   
+   each department in organization.departments.all
+
+      
+
+      .bg-zinc-100.bg-opacity-10.rounded.p-3
+
+         .flex.flex-row.space-between.gap-8
+
+            h2.text-xl.font-light= department
+
+            .fas.fa-chevron-down.duration-500.transition.transform-gpu.w-8.h-8.rounded-full.pt-2.text.text-center(class="hover:bg-amber-300 hover:bg-opacity-10 cursor-pointer"
+               _="on click toggle .rotate-180 toggle .hidden on next .sch-form end")  
+
+         form.sch-form.hidden.bg-zinc-900.bg-opacity-10.shadow-lg(method="POST")
+            | {% csrf_token %}
+
+            - var dpt = department.name.upper()
+            h2.text-sm.font-extrabold.border-t.border-b CREATE NEW #{dpt} SCHEDULE
+            
+            input(type="hidden" name="department" value="#{department.pk}")
+
+            label
+               | Start Date
+               select(name="start_date")
+                  each sd in department.unused_schedule_start_dates
+                     option(value="#{sd}") #{sd}
+            
+            input(type="submit" value="Create Schedule")
+
+      if department.schedules.count == 0
+         p No schedules have been created for this department.
+
+      else
+         div
+            each yr in years
+               .bg-indigo-600.h-12.w-20.rounded.shadow-2xl
+                  .text-4xl.font-extrabold.float-right.transform.translate-x-4.text-indigo-200.shadow.translate-y-4= yr.year
+
+               each sch in department.schedules.all
+                  if sch.year == yr.year
+                     a.flex.flex-row.gap-3(href="#{sch.url}")
+
+                        div.font-bold Schedule #{sch.number} #{sch.year}
+
+                        - var delta = (sch.start_date - today).days
+
+                        if delta > 0
+                           div.font-thin.opacity-75 starts #{sch.start_date}
+                        else
+                           div.font-thin.opacity-75 started #{sch.start_date} (#{delta} days ago)

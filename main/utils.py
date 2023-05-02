@@ -13,4 +13,15 @@ def build_new_schedule_version (schId):
     
 
     
-    
+def annotate_week_hours (ver):
+    version = Version.objects.get(slug=ver)
+    employees = version.schedule.employees.all()
+    wkvals = version.workdays.values('wkid')
+    pdvals = version.workdays.values('pdid')
+    for empl in employees :
+        for wk in wkvals:
+            empl.week_hours = Slot.objects.filter(employee=empl, workday__version=version, workday__wkid=wk['wkid']).aggregate(Sum('shift__hours'))['shift__hours__sum']
+        for pd in pdvals:
+            empl.pd_hours = Slot.objects.filter(employee=empl, workday__version=version, workday__pdid=pd['pdid']).aggregate(Sum('shift__hours'))['shift__hours__sum']
+
+    return employees.values('name','week_hours','pd_hours').order_by('-week_hours')

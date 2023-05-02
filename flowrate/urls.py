@@ -15,7 +15,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from django.urls.conf import include
+from django.shortcuts import render
+from django.http import HttpResponseRedirect
+
+
+def index(request):
+    if request.user.is_authenticated:
+        return HttpResponseRedirect('/main')
 
 urlpatterns = [
+    path("", index, name="index"),
     path("admin/", admin.site.urls),
+    path("main/", include("main.urls")),
 ]

@@ -1,0 +1,12 @@
+div.rounded-lg.p-4.bg-zinc-200.bg-opacity-30
+
+   .flex-col.flex 
+      .flex.text.text-center #{month}
+      each week in weeks
+         .flex.flex-row.justify-between
+            each day in days
+               if day.has_pto_req
+                  div.bg-sky-700.text-white.border.rounded.full #{day.date.day}
+               else
+                  div.border.rounded-full #{day.date.day}
+         

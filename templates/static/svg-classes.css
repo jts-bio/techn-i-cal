@@ -1,5 +1,3 @@
-{% load tags %}
-{% load static %}
 
 .icon-trash::before {
     content : url("/static/img/trash.svg");
