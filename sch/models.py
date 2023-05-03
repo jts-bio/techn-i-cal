@@ -19,9 +19,14 @@ from django.contrib.auth.models import User
 import yaml
 from django_group_by import GroupByMixin
 
-from .data import (TEMPLATESCH_STARTDATE, TODAY,
-                   DAYCHOICES, WEEKABCHOICES, SCH_STARTDATE_SET,
-                   PRIORITIES, PREF_SCORES, PTO_STATUS_CHOICES,
+from .data import (TEMPLATESCH_STARTDATE, 
+                   TODAY,
+                   DAYCHOICES, 
+                   WEEKABCHOICES, 
+                   SCH_STARTDATE_SET,
+                   PRIORITIES, 
+                   PREF_SCORES, 
+                   PTO_STATUS_CHOICES,
                    group_dates_by_year) 
 
 
@@ -65,6 +70,7 @@ class ShiftManager (models.QuerySet):
     def empl_is_trained (self, employee):
         empl = Employee.objects.get(name=employee)
         return self.filter(name__in=empl.shifts_trained.all())
+
 
 class SlotManager (models.QuerySet):
     def empty           (self):
@@ -250,15 +256,16 @@ class SlotManager (models.QuerySet):
         return one_off_slots
 
 
-
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
         sch = Schedule.objects.get(year=year,number=number)
         return Slot.objects.filter(workday__schedule=sch)
 
+
 class ScheduleManager (models.QuerySet, GroupByMixin):
     def best (self):
         return self.order_by('-percent').first()
+
 
 class EmployeeManager (models.QuerySet):
     
@@ -408,17 +415,20 @@ class EmployeeManager (models.QuerySet):
         if slot.shift.start.hour < 10:
             return self.workEveningBefore(slot.workday)
 
+
 class ShiftPreferenceManager (models.QuerySet):
     def avg_score (self):
         if self.count() == 0:
             return 0
         return self.aggregate(avg=Avg('score'))['avg']
 
+
 class ShiftSortPreferenceManager (models.QuerySet):
     def avg_score(self):
         if self.count() == 0:
             return 0
         return self.aggregate(avg=Avg('scaled'))['avg']
+
 
 class WorkdayManager (models.QuerySet):
     def in_week(self, year, iweek):
@@ -429,9 +439,11 @@ class WorkdayManager (models.QuerySet):
         year = workday.date.year
         return self.filter(iweek=week, date__year=year)
 
+
 class EmployeeClass (models.Model):
     id          = models.CharField(max_length=5, primary_key=True)
     class_name  = models.CharField(max_length=40)
+
 
 class PtoRequestManager (models.QuerySet):
     """ Model Manager for :model:`sch.PtoRequest` """
@@ -444,9 +456,14 @@ class PtoRequestManager (models.QuerySet):
     def conflicted (self):
         return self.filter(stands_respected=False)
 
+
+
 #************************************#
 #* --- ---      MODELS      --- --- *#
 #************************************#
+
+
+
 
 class Shift (models.Model) :
     """
@@ -463,6 +480,7 @@ class Shift (models.Model) :
     duration        = models.DurationField (default=dt.timedelta(hours=10, minutes=30))
     hours           = models.FloatField (default=10)
     group           = models.CharField (max_length=10, choices=(('AM','Morning'),('MD','Midday'),('PM','Evening'),('XN','Overnight')), null=True)
+    phase           = models.SmallIntegerField(default=-1, choices=((1,'AM'),(2,'MD'),(3,'PM'),(4,"EV"),(5,"XN")))
     occur_days      = MultiSelectField (choices=DAYCHOICES, max_choices=7, max_length=14, default=[0,1,2,3,4,5,6])
     is_iv           = models.BooleanField (default=False)
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
@@ -525,6 +543,7 @@ class Shift (models.Model) :
             return sum(sp)/len(sp)
 
     objects = ShiftManager.as_manager()
+
 
 class Employee (models.Model) :
     """
@@ -746,6 +765,7 @@ class Employee (models.Model) :
 
     objects = EmployeeManager.as_manager()
 
+
 class Workday (models.Model) :
     # fields: date, shifts
     date            = models.DateField()
@@ -920,6 +940,7 @@ class Workday (models.Model) :
 
     objects = WorkdayManager.as_manager()
 
+
 WD_VIEW_PREF_CHOICES = (
         (0,'wday/wd-detail-2.html'),
         (1,'wday/wd-detail.html'),
@@ -933,6 +954,7 @@ class WorkdayViewPreference (models.Model):
     view = models.CharField(max_length=10, choices=WD_VIEW_PREF_CHOICES, default=0)
     def __str__ (self):
         return f'{self.user.username} Pref:{WD_VIEW_PREF_CHOICES[self.view]}'
+
 
 class Week (models.Model) :
     __all__ = [
@@ -1086,6 +1108,7 @@ class Week (models.Model) :
                     instance.hours.update( {employee.slug : sum(list(instance.slots.filter(employee=employee).values_list('shift__hours',flat=True))) } )
     actions = Actions()
 
+
 class Period (models.Model):
     year       = models.IntegerField()
     number     = models.IntegerField()
@@ -1200,6 +1223,7 @@ class Period (models.Model):
     def save (self, *args, **kwargs):
         self.actions.update_hours(self)
         super().save(*args, **kwargs)
+
 
 class ScheduleBaseActions:
 
@@ -1615,6 +1639,7 @@ class ScheduleBaseActions:
             all_schedules[shift] = shift_schedule
         return all_schedules
 
+
 class Schedule (models.Model, ScheduleBaseActions):
 
     START_DATES = group_dates_by_year(
@@ -1776,6 +1801,7 @@ class Schedule (models.Model, ScheduleBaseActions):
 
     objects = ScheduleManager.as_manager()
 
+
 class RoutineLog (models.Model):
     schedule = models.OneToOneField("Schedule", on_delete=models.CASCADE, related_name='routine_log')
 
@@ -1799,6 +1825,7 @@ class RoutineLog (models.Model):
         if self.events.count() == 0:
             self.add("CREATE", "Schedule Created", data={})
 
+
 class LogEvent (models.Model):
     log = models.ForeignKey(RoutineLog, on_delete=models.CASCADE, related_name='events')
     event_type = models.CharField(max_length=100)
@@ -1819,6 +1846,7 @@ class LogEvent (models.Model):
             return f"{delta / 24} days"
         else:
             return f"{delta} hours"
+
 
 class Slot (models.Model) :
     # fields:
@@ -1854,6 +1882,61 @@ class Slot (models.Model) :
         ]
 
     class Actions:
+        def conflicting_slots(self,instance): 
+            if instance.shift.phase < 2:
+                if instance.workday.sd_id != 0:
+                    return instance.workday.prevWD().slots.filter(shift__phase__gt=instance.shift.phase)
+            elif instance.shift.phase >= 2:
+                if instance.workday.sd_id != 41:
+                    return instance.workday.nextWD().slots.filter(shift__phase__lt=instance.shift.phase)
+            return Slot.objects.none()
+        
+        def get_conflicting(self,instance):
+
+            if instance.actions.conflicting_slots(instance):
+                return set(instance.actions.conflicting_slots(instance).values_list('employee__pk', flat=True)).difference({None})
+            else:
+                return Employee.objects.none()
+
+        def fills_with(self, instance):
+
+            others_on_wd = list(set(instance.workday.slots.exclude(
+                pk=instance.pk).values_list('employee__pk', flat=True)
+                ).difference({None}))
+            
+            in_conflict_slot = list(instance.actions.get_conflicting(instance))
+
+            if in_conflict_slot:
+                excluding = Employee.objects.filter(pk__in=others_on_wd+in_conflict_slot)
+            else:
+                excluding = Employee.objects.none()
+
+            sch = instance.workday.schedule
+            sdid = instance.workday.sd_id
+            wkid = sdid // 7 
+            pdid = sdid // 14
+
+            weekhours = Slot.objects.filter(
+                workday__schedule=sch, 
+                workday__week=instance.workday.week, 
+                employee=OuterRef('pk')
+            ).values('employee').annotate(
+                weekhours=Sum('shift__hours')
+            ).values('weekhours')[:1]
+            
+            pdhours = Slot.objects.filter(
+                workday__schedule=sch,
+                workday__week__period=instance.workday.week.period,
+                employee=OuterRef('pk')
+            ).values('employee').annotate(
+                pdhours=Sum('shift__hours')
+            ).values('pdhours')[:1]
+            
+            return instance.shift.available.exclude(pk__in=excluding).annotate(
+                weekhours=Coalesce(weekhours,0.0),
+                pdhours=Coalesce(pdhours,0.0),
+            ).filter(weekhours__lt=F('std_wk_max')).order_by('-weekhours', 'pdhours')
+
         def set_template_employee (self, instance, force=True):
             if instance.template_employee:
                 if instance.template_employee.pk in list(instance.siblings_day.values_list('employee__pk', flat=True)):
@@ -2452,6 +2535,7 @@ class Slot (models.Model) :
     objects      = SlotManager.as_manager()
     turnarounds  = TurnaroundManager.as_manager()
 
+
 class ShiftTemplate (models.Model) :
     """
     SHIFT TEMPLATE OBJECT
@@ -2476,6 +2560,7 @@ class ShiftTemplate (models.Model) :
 
     class Meta:
         unique_together = ['shift', 'sd_id']
+
 
 class TemplatedDayOff (models.Model) :
     """
@@ -2502,6 +2587,7 @@ class TemplatedDayOff (models.Model) :
 
     class Meta:
         unique_together = ['employee','sd_id']
+
 
 class PtoRequest (ComputedFieldsModel):
     employee         = models.ForeignKey (Employee, on_delete=models.CASCADE, related_name='pto_requests')
@@ -2542,6 +2628,7 @@ class PtoRequest (ComputedFieldsModel):
 
     objects = PtoRequestManager.as_manager()
 
+
 class SlotPriority (models.Model):
     iweekday = models.IntegerField()
     shift    = models.ForeignKey(Shift, on_delete=models.CASCADE)
@@ -2549,6 +2636,7 @@ class SlotPriority (models.Model):
 
     class Meta:
         unique_together = ['iweekday', 'shift']
+
 
 class ShiftPreference (ComputedFieldsModel):
     """ SHIFT PREFERENCE [model]
@@ -2592,6 +2680,7 @@ class ShiftPreference (ComputedFieldsModel):
 
     objects = ShiftPreferenceManager.as_manager()
 
+
 class ShiftSortPreference (models.Model):
     employee = models.ForeignKey   (Employee, on_delete=models.CASCADE, related_name='shift_sort_prefs')
     shift    = models.ForeignKey   (Shift,    on_delete=models.CASCADE, related_name="sort_prefs")
@@ -2616,10 +2705,12 @@ class ShiftSortPreference (models.Model):
         super().save(*args,**kwargs)
     objects = ShiftSortPreferenceManager.as_manager()
 
+
 class Turnaround (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="turnarounds")
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name="turnarounds")
     slots    = models.ManyToManyField(Slot, related_name="turnarounds")
+
 
 class ScheduleEmusr (models.Model):
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name="emusr")

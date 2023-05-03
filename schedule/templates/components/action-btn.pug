@@ -86,8 +86,8 @@ script(type="text/hyperscript").
 .button-group
     +button-group("Actions")
     .dropdown-menu.bg-zinc-900(style="z-index:60" class="dropdown-menu")
-        +button-option("fa-robot" "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
-        +button-option("fa-bolt" "ALGORITHM B" "Solve via maximizing silimarity to manager generated schedules" "actions/solve-tca/" "sky")
+        +button-option("fa-robot"  "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
+        +button-option("fa-bolt"   "ALGORITHM B" "Solve using signal optimization coordinating the order to assign slots." "actions/solve-signal-opti/" "sky")
         +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")
         +button-clear
         +button-delete

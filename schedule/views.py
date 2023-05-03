@@ -656,7 +656,16 @@ class Actions:
             f'<div class="text-lg text-emerald-400"><i class="fas fa-check"></i>{len(to_update)} Templates set</div>'
         )
 
-
+    def solve_with_signal_optimization(request, schId):
+        schedule = Schedule.objects.get(slug=schId)
+        n = 0
+        for slot in Slot.objects.filter(schedule=schedule, employee__isnull=True).order_by('?'):
+            if slot.actions.fills_with(slot).count() > 0:
+                slot.employee = slot.actions.fills_with(slot).first()
+                slot.save()
+                n += 1
+      
+        return HttpResponse(f"Filled {n} slots")
 
     def fill_with_favorables(request, schId):
         from django.db.models import FloatField, Case, When, IntegerField
