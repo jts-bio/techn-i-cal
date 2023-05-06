@@ -74,10 +74,10 @@ export class Employee
     .delay(500).queue(-> @.removeClass('active'); @.dequeue())
 
   onShowBooted: ->
-    for i in [1..4]
+    for i in [1..12]
       @.addClass('bg-amber-700')
-      .delay(300).queue(-> @.removeClass('bg-amber-700'); @.dequeue())
-      .delay(300)
+      .delay(75).queue(-> @.removeClass('bg-amber-700'); @.dequeue())
+      .delay(75)
 
   onShowAccepted: ->
     for i in [1..4]

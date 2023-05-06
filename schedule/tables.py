@@ -48,6 +48,32 @@ class MistemplatedFlagIgnoreTable (tables.Table):
         return record.shift
     
 
+class TdoConflictsTable (tables.Table):
+    
+    shift =     tables.columns.Column(accessor='shift', orderable=False, verbose_name='Shift')
+    workday =   tables.columns.Column(accessor='workday', orderable=False, verbose_name='Workday')
+    employee =  tables.columns.Column(accessor=A('employee__name'))
+    actions =   tables.columns.Column(accessor='employee__name', orderable=False, verbose_name='Actions')
+    
+    class Meta:
+        model = Slot
+        fields = [
+        
+            "employee",
+            "actions"
+        ]
+        
+    def render_actions (self, value, record):
+        view_btn = format_html(
+            '<a class="btn btn-sm bg-amber-400" href="{}">View</a>', 
+            record.url())
+        
+        del_btn = format_html(
+            '<div class="btn btn-sm bg-red-600" hx-post="{}">Delete</a>', 
+            f"actions/clear-slot/{record.workday.slug}/{record.shift.name}/")
+        
+        return format_html("{} {}", view_btn, del_btn)
+
 
 class ScheduleComparisonTable (tables.Table):
 

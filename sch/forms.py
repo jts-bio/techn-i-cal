@@ -546,3 +546,15 @@ class GenerateNewScheduleForm (forms.Form):
                             choices=START_DATE_SET, 
                             label="Start Date"
                             )
+    
+class ShiftAvailableEmployeesForm(forms.Form):
+    
+    shift = forms.ModelChoiceField(queryset=Shift.objects.all(), widget=forms.HiddenInput())
+    employees = forms.ModelMultipleChoiceField(queryset=Employee.objects.all(), widget=forms.CheckboxSelectMultiple())
+    
+    def __init__ (self, *args, **kwargs) :
+        super(ShiftAvailableEmployeesForm, self).__init__(*args, **kwargs)
+        self.fields['shift'].label = ''
+        self.fields['employees'].label = ''
+        
+    

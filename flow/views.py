@@ -248,6 +248,10 @@ class ApiViews:
         return JsonResponse(empl_dict, safe=False) # type: Dict[str, Dict[str, Any]]
 
     def schedule__get_undertime_hours_sum(request, schId):
+        from schedule.utils import get_sum_sch_undertime
+        
+        return JsonResponse(get_sum_sch_undertime(schId), safe=False)
+        
         sch = Schedule.objects.get(slug=schId)
         ut = {}
         for pd in sch.periods.all():

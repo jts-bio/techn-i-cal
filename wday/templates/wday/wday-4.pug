@@ -82,7 +82,7 @@ mixin Employee(empl, workday)
         data-in-slot= empl.check_slot(workday.slug)
         _='install Employee')
                 img.e-img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
-                div.e-name.font-thin.text-xs.truncate.pb-1= empl.name.upper
+                div.e-name.font-thin.text-md.truncate.pb-1= empl.name.upper
                 div.e-hours.hours-display.truncate.pt-1
                 +empl-context-arrows(empl, workday)
                 span.e-btm.text-2xs
@@ -131,7 +131,7 @@ block style
         .badge-red       {width:32px; height:32px; position: absolute; bottom: -7px; left: -7px; border: 2px solid white; border-radius: 100%;font-size: 11px; background-color: #ff1100aa; color: white; padding-top: 6px; alignment: center;padding-left: 3px;}
         .employee        {display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(4, 1fr); grid-column-gap: 0px;grid-row-gap: 0px; width: 170px!important;height:62px!important}
             .e-img          { grid-area: 1 / 1 / 4 / 4; } 
-            .e-name         { grid-area: 1 / 4 / 2 / 11; padding-left: 3px; padding-top: 3px; } 
+            .e-name         { grid-area: 1 / 4 / 3 / 11; padding-left: 1px; padding-top: 1px; } 
             .e-hours        { grid-area: 2 / 4 / 3 / 11; padding-left: 3px; } 
             .e-left         { grid-area: 3 / 4 / 5 / 6; } 
             .e-ctr          { grid-area: 3 / 6 / 5 / 9; } 

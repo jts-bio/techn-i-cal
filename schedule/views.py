@@ -31,8 +31,8 @@ from django.db import models
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog
-from .tables import MistemplatedFlagIgnoreTable
+from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog, Turnaround
+from .tables import MistemplatedFlagIgnoreTable, TdoConflictsTable
 import json
 from django.db.models import Case, When, Sum, IntegerField
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -384,13 +384,16 @@ class Sections:
 
     def schTurnarounds(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        for turnaround in sch.turnarounds().all():
-            turnaround.schedule = sch
-            turnaround.save()
-        turnarounds = sch.slots.turnarounds().preturnarounds().all()
+        turnarounds = Turnaround.objects.filter(schedule=sch)
         return render(
             request, "tables/turnarounds.pug", {"turnarounds": turnarounds, "sch": sch}
         )
+
+    def schTdoConflicts(request, schId):
+        sch = Schedule.objects.get(slug=schId)
+        conflicts = sch.slots.tdo_violations().all()
+        table = TdoConflictsTable(conflicts)
+        return render(request, "tables/tdo-conflicts.pug", {"table": table})
 
     def schOvertimeList(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -400,14 +403,15 @@ class Sections:
     def schUndertimeList(request, schId):
         from django.db.models import JSONField
         from django.db.models.functions import Cast
+        from .utils import get_all_undertime_triplets
+        tplts = get_all_undertime_triplets(schId)
+        
 
         data = ApiViews.schedule__get_undertime_hours(request, schId).content
         employees = json.loads(data)
 
-        qs = Employee.objects.annotate(listData=Cast([20,30,40,50,60], JSONField()))
 
-
-        return render(request, "tables/undertime.pug", {"employees": employees, "sch": schId, "qs":qs})
+        return render(request, "tables/undertime.pug", {"employees": employees, "sch": schId, "triplets":tplts})
 
     def sch_prn_empl_maxes(request, schId):
         template = "tables/fte-maxes.pug"
@@ -470,94 +474,48 @@ class Sections:
                         "sch"      : sch
                     })
 
-    def emplScheduleUndertimeList(request,schId,empl, prd):
-        sch  = Schedule.objects.get(slug=schId)
-        empl = Employee.objects.get(slug=empl)
-        prd  = int(prd)
-        period = sch.periods.all()[prd]
-        fte  = empl.fte
-        prd_fte = fte * 80
-
-        w1_total = sum(list(period.weeks.first().slots.filter(employee=empl).values_list('shift__hours',flat=True)))
-        w2_total = sum(list(period.weeks.last().slots.filter(employee=empl).values_list('shift__hours',flat=True)))
-        pd_total = w1_total + w2_total
+    def sch_undertime_list (request, schId):
+        from .utils import get_all_undertime_triplets
+        tplts = get_all_undertime_triplets(schId)
+        return HttpResponse(tplts)
+      
+    def empl_prd_undertime_table (request, schId, prd, empl):
         
-        if empl.fte == 0:
-            return HttpResponse("Not Available")
+        schedule = Schedule.objects.get(slug=schId)
         
-        else:
-            context = {
-                'schedule':sch,
-                'employee':empl,
-                'period':prd,
-                'week1Hours':w1_total,
-                'week2Hours':w2_total,
-                'periodHours':pd_total,
-                'neededHours':prd_fte - pd_total,
-            }
-            if w1_total < fte * 40 - 5:
-                context['week1EmptyPossibilities'] = period.weeks.first().slots.filter(employee__isnull=True,
-                                                    fills_with=empl).exclude(employee=empl).all()
-                
-                context['week1Takeables']= period.weeks.first().slots.filter(employee__fte=0).all()
+        employee = Employee.objects.get(slug=empl)
+        
+        period = schedule.periods.all()[int(prd)]
+        
+        prd_list = []
+        
+        workdays = period.workdays.all()
+        
+        for workday in workdays:
+            if workday.slots.filter(employee=employee).exists():
+                workday.slots.get(employee=employee).save()
+                workday.employee_status = 'slot'
+                workday.employee_slot = workday.slots.filter(employee=employee).first().shift.name
+                workday.employee_hours = workday.slots.filter(employee=employee).first().shift.hours
+            elif PtoRequest.objects.filter(employee=employee, workday=workday.date).exists():
+                workday.employee_status = 'pto'
+                workday.employee_hours = employee.pto_hrs
             else:
-                context['week1EmptyPossibilities'] = None
-                context['week1Takeables'] = None
-
-            if w2_total < fte * 40 - 5:
-                context['week2EmptyPossibilities'] = period.weeks.last().slots.filter(employee__isnull=True,
-                                                    fills_with=empl).exclude(employee=empl).all()
-                
-                context['week2Takeables']: period.weeks.last().slots.filter(employee__fte=0).all()
-            else:
-                context['week2EmptyPossibilities'] = None
-                context['week2Takeables'] = None
-        
-        i = 1
-        for week in sch.periods.all()[prd].weeks.all():
-            week_data_struct = []
-            for wd in week.workdays.all():
-                if wd.slots.filter(employee=empl) == empl:
-                    week_data_struct.append(
-                        ("SLOT", 
-                         wd.slots.filter(employee=empl).first())
-                        )
-                elif wd.pto_requests.filter(employee=empl).exists():
-                    week_data_struct.append(
-                        ("PTO", 
-                         wd.pto_requests.filter(employee=empl).first()),
-                    )
-                else:
-                    week_data_struct.append(
-                        ("EMPTY", 
-                         wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl),
-                         wd.slots.filled().filter(employee__fte=0, fills_with=empl).exclude(employee=empl))
-                    )
-            context[f"week{i}"] = week_data_struct
-            i += 1
-        
-        context["weekA"] = period.weeks.first().workdays.all()
-        for wd in context["weekA"]:
-            wd.isEmployee = wd.slots.filter(employee=empl).exists()
-            if wd.isEmployee:
-                wd.emplSlot = wd.slots.filter(employee=empl).first()
-            wd.emplFillsOptions = wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl)
-            wd.emplTakeOptions = wd.slots.filter(employee__fte=0, fills_with=empl).exclude(employee=empl)
-            wd.isPto = wd.pto_requests.filter(employee=empl).exists()
+                prd_list.append(('options', workday.slots.filter(fills_with=employee).exclude(employee=employee).all()))
+                workday.employee_status = 'options'
+                workday.employee_can_fill = workday.slots.filter(fills_with=employee).filter(Q(employee__fte=0)|Q(employee__isnull=True))
+                workday.employee_hours = 0
             
-        context["weekB"] = period.weeks.last().workdays.all()
-        for wd in context["weekB"]:
-            wd.isEmployee = wd.slots.filter(employee=empl).exists()
-            if wd.isEmployee:
-                wd.emplSlot = wd.slots.filter(employee=empl).first()
-            wd.emplFillsOptions = wd.slots.filter(employee__isnull=True, fills_with=empl).exclude(employee=empl)
-            wd.emplTakeOptions = wd.slots.filter(employee__fte=0, fills_with=empl).exclude(employee=empl)
-            wd.isPto = wd.pto_requests.filter(employee=empl).exists()
-                    
-
-        return render(request, "tables/undertime-empl.pug", context)
-            
-
+        context = {
+            'schedule':schedule,
+            'employee':employee,
+            'period':prd,
+            'prd_list':prd_list,
+            'workdays':workdays,
+            'weekA':period.weeks.first().number,
+            'weekB':period.weeks.last().number,
+        }
+        return render(request, "tables/empl-undertime.pug", context)
 
 class Actions:
     """
@@ -657,13 +615,29 @@ class Actions:
         )
 
     def solve_with_signal_optimization(request, schId):
+        t_init = tz.now()
         schedule = Schedule.objects.get(slug=schId)
         n = 0
-        for slot in Slot.objects.filter(schedule=schedule, employee__isnull=True).order_by('?'):
-            if slot.actions.fills_with(slot).count() > 0:
-                slot.employee = slot.actions.fills_with(slot).first()
+        for slot in schedule.slots.empty():
+            if slot.template_employee:
+                slot.actions.set_template_employee(slot,force=False)
+                
+        
+        empties = schedule.slots.empty().order_by('?')
+        for slot in empties:
+            slot.fills_with.set(slot.actions.fills_with(slot))
+            
+            if slot.fills_with.exists():
+                slot.employee = slot.fills_with.order_by('?').first()
                 slot.save()
-                n += 1
+        
+        t_final = tz.now()
+        schedule.routine_log.add("SIGNAL-OPTIMIZATION","Solving function", 
+                                 data={
+                                     "t":(t_final-t_init).total_seconds(), 
+                                     "n":n, 
+                                     "user":request.user.username
+                                    })
       
         return HttpResponse(f"Filled {n} slots")
 

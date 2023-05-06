@@ -38,9 +38,10 @@ urlpatterns = [
     path('detail/<schId>/set-sch-maxes/', Sections.sch_prn_empl_maxes, name="maxes"),
     path('detail/<schId>/version-compare/', Sections.version_compare, name="version-compare"),
     path('detail/<schId>/pto-requests/', Sections.schPtoRequests, name="pto-requests"),
+    path('detail/<schId>/tdo-conflicts/', Sections.schTdoConflicts, name="tdo-conflicts"),
     path('detail/<schId>/undertime-view/', Sections.schUndertimeList, name="undertime-view"),
     path('detail/<schId>/manual-input/', Sections.sch_manual_data_entry, name="manual-input"),
-    path('detail/<schId>/undertime-partial/<empl>/<prd>/', Sections.emplScheduleUndertimeList, name="undertime-partial"),
+    path('detail/<schId>/get-ut-data/<empl>/<prd>/', Sections.empl_prd_undertime_table, name="undertime-partial"),
 
     
     #~~ ACTIONS ~~#

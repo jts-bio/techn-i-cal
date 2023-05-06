@@ -25,7 +25,8 @@
             td
                div.rounded.mr-2.text.text-center
                   if wd.isEmployee
-                     div.wd.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
+                     div.wd.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(
+                        data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
                   if wd.isPto
                      div.text-blue-400.italic.text-xl PTO
                   if not wd.isEmployee and not wd.isPto
@@ -47,7 +48,8 @@
             td
                div.rounded.mr-2.text.text-center
                   if wd.isEmployee
-                     div.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
+                     div.wd.bg-zinc-100.text-zinc-800.w-fc.rounded.px-3.text-xl.font-bold(
+                        data-hours=wd.emplSlot.shift.hours)= wd.emplSlot.shift
                   if wd.isPto
                         div.text-blue-400.italic.text-xl PTO
                   if not wd.isEmployee and not wd.isPto

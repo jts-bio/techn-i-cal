@@ -1,0 +1,63 @@
+div.weekA
+div.weekB
+
+.grid.grid-cols-7.gap-3
+   each wd in workdays
+      div.bg-zinc-300.bg-opacity-75.rounded.w-32
+         div.border.rounded.m-2.x-2= wd.date
+         if wd.employee_status == 'options'
+            div.border.w-full.rounded.bg-zinc-900.bg-opacity-20.backdrop-blur.px-3.mx-1(id="wd-#{wd.slug}")
+               div(
+                  data-week=wd.week.number 
+                  data-n=wd.employee_can_fill.count()
+                  _="on load if my@data-n == 0 add .opacity-25 to me.parentNode")
+
+               div(_="on click toggle .hidden on next .options toggle .rotate-180 on .fas in me")
+                  span #{wd.employee_can_fill.count} options
+                  i.fas.fa-chevron-down.transition.transform-gpu
+
+               div.hidden.options(id="wd-options-#{wd.slug}")
+                  each opt in wd.employee_can_fill
+                     if opt.employee != None
+                        div(class="hover:underline cursor-pointer"
+                           hx-get="actions/update/#{wd.slug}/#{opt.shift}/#{employee}/"
+                           hx-target="#wd-#{wd.slug}") 
+                           span #{opt.shift} 
+                           span.text-2xs (from #{opt.employee})
+                     else
+                        div(class="hover:underline cursor-pointer"
+                           hx-get="actions/update/#{wd.slug}/#{opt.shift}/#{employee}/") #{opt.shift}
+                     
+         if wd.employee_status == 'slot'
+            div.border.bg-zinc-900.m-2.text-zinc-300.font-bold.h-13.w-13.text.text-center.text-xl.rounded(
+               data-week=wd.week.number
+               data-hours=wd.employee_hours
+            )= wd.employee_slot
+            
+         if wd.employee_status == 'pto'
+            div.border.bg-sky-900.text-sky-300.font-bold.h-7.w-7.text.text-center.text-2xs.pt-1.rounded(
+               data-week=wd.week.number
+               data-hours=wd.employee_hours
+            ) PTO
+
+
+
+
+script.
+   // get all <div[data-week="#{weekA}"] and sum their data-hours
+   var weekA = document.querySelectorAll('div[data-week="#{weekA}"]');
+   var weekA_hours = 0;
+   for (var i = 0; i < weekA.length; i++) {
+      weekA_hours += parseInt(weekA[i].dataset.hours);
+   }
+   // get all <div[data-week="#{weekB}"] and sum their data-hours
+   var weekB = document.querySelectorAll('div[data-week="#{weekB}"]');
+   var weekB_hours = 0;
+   for (var i = 0; i < weekB.length; i++) {
+      weekB_hours += parseInt(weekB[i].dataset.hours);
+   }
+   var weekA_display = document.querySelector('div.weekA');
+   var weekB_display = document.querySelector('div.weekB');
+
+   weekA_display.innerHTML = weekA_hours;
+   weekB_display.innerHTML = weekB_hours;

@@ -11,48 +11,44 @@ script(type='text/hyperscript').
 
 - var weeknums = ["0","1","2","3","4","5"]
 
+
 div.container.overflow-x-auto
 
-   .px-2.mx-3.flex.flex-row.overflow-auto.bg-zinc-900.bg-opacity-75.rounded.p-3(class="w-[600px] lg:w-[950px]")
+   .px-6.flex.flex-row.overflow-auto.bg-zinc-900.bg-opacity-75.rounded.p-3(class="w-[600px] lg:w-[950px]")
 
-      each empl in employees
+      each empl in triplets
 
-         .bg-zinc-100.bg-opacity-40.rounded.p-2.mx-3
+            .employee.bg-zinc-100.bg-opacity-40.rounded.p-2.mx-3
 
-            - var e          = employees[empl]
-            - var profileImg = e['img_url']
-            - var weeks      = employees[empl]['weeks']
-            - var fte        = employees[empl]['fte']
-            - var prds       = employees[empl]['periods']
 
-            .flex.flex-row
-            
-               img.w-16.h-16.border.rounded-lg(src=profileImg)
+               img(src=empl.image_url, class="w-12 h-12 rounded-full mx-auto")
+               h2.text-xl.text-center.font-bold= empl 
 
-               .flex.flex-col.w-40
+               - var triplet = triplets[empl]
 
-                  div.font-thin.text-lg.px-2= empl
-                  div.flex.flex-row
-                  
-                     - var pd_idx = 0
+               - var tripletsum = triplet[0] + triplet[1] + triplet[2]
+               if tripletsum == 0
+                  div(_='on load tell closest .employee remove you end')
 
-                     each pd in prds
+               - var i = 0
 
-                        - var pd_fte = fte * 80
+               each t in triplet
+                  if t == 0
+                     .flex.flex-col.items-center
+                        .text-center.text-sm.text-gray-500.rounded-full.px-2.py-1
+                           i.fas.fa-check
+                  else
+                     .flex.flex-col.items-center
+                        .text-center.text-sm.bg-red-200.rounded-full.px-2.py-1
+                           span.text-red-900(
+                              class="hover:underline cursor-pointer"
+                              hx-get="get-ut-data/#{empl.slug}/#{i}/"
+                              hx-trigger="click"
+                              hx-target="#under-hours-swap-area"
+                              ) #{t} hr.
 
-                        if pd < pd_fte
-                           .cursor-pointer.bg-red-300.text-xs.pt-1.text-red-900.font-bold.rounded-full.h-7.w-7.ring.ring-red-700.border(
-                              id= "undertime-badge-#{empl}-#{pd_idx}"
-                              hx-get= "undertime-partial/#{empl}/#{pd_idx}/"
-                              hx-target= "#under-hours-swap-area"
-                           )= pd 
-
-                        else
-                           .bg-zinc-300.text-xs.pt-1.text-zinc-900.text-center.font-bold.rounded-full.h-7.w-7.ring.ring-zinc-700.border.border-green-500
-                              i.fas.fa-check.text-green-800
-
-                        - var pd_idx = pd_idx + 1
-      
+                  - var i = i + 1
+         
 div(id="under-hours-swap-area")    
 
    

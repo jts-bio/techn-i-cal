@@ -82,6 +82,11 @@ class SlotManager (models.QuerySet):
     def on_workday      (self, workday):
         return self.filter(workday=workday)
     
+    def day_siblings    (self):
+        slots = self.values('pk')
+        workdays = self.values('workday').distinct()
+        return workdays.slots.exclude(pk__in=slots)
+    
     def ShiftDetail     (self, workday, shift):
         if self.filter(workday=workday, shift=shift).exists():
             return self.filter(
@@ -194,6 +199,9 @@ class SlotManager (models.QuerySet):
     def weekends (self):
         return self.filter(workday__date__week_day__gte=5)
     
+    def weekdays (self):
+        return self.filter(workday__date__week_day__lt=5)
+    
     def disliked (self):
         return self.annotate(score=
                         Subquery(ShiftPreference.objects.filter(employee=OuterRef('employee'), shift=OuterRef('shift')).values('score'))
@@ -255,6 +263,18 @@ class SlotManager (models.QuerySet):
 
         return one_off_slots
 
+    def in_overtime (self):
+        takeables = []
+        for slot in self.filled():
+            week = slot.week
+            hours = week.slots.filter(employee=slot.employee).aggregate(Sum('shift__hours'))['shift__hours__sum']
+            if hours > 40:
+                takeables += [slot.pk]
+        return self.filter(pk__in=takeables)
+    
+    def filled_by_prn (self):
+        return self.filter(employee__fte=0)
+                
 
 class TurnaroundManager (models.QuerySet):
     def schedule (self, year, number):
@@ -462,7 +482,18 @@ class PtoRequestManager (models.QuerySet):
 #* --- ---      MODELS      --- --- *#
 #************************************#
 
+class Organization (models.Model):
+    name = models.CharField (max_length=100)
+    slug = models.SlugField (max_length=100, unique=True, primary_key=True)
+    
+    def __str__ (self): return self.name
 
+class Department (models.Model):
+    name = models.CharField (max_length=100)
+    slug = models.SlugField (max_length=100, unique=True, primary_key=True)
+    org  = models.ForeignKey (Organization, on_delete=models.CASCADE, related_name='departments')
+    
+    def __str__ (self): return self.name
 
 
 class Shift (models.Model) :
@@ -476,6 +507,7 @@ class Shift (models.Model) :
     # fields: name, start, duration
     name            = models.CharField (max_length=100)
     cls             = models.CharField (max_length=20, choices=(('CPhT','CPhT'),('RPh','RPh')), null=True)
+    department      = models.ForeignKey (Department, on_delete=models.CASCADE, null=True)
     start           = models.TimeField (default=dt.time(7))
     duration        = models.DurationField (default=dt.timedelta(hours=10, minutes=30))
     hours           = models.FloatField (default=10)
@@ -558,25 +590,23 @@ class Employee (models.Model) :
     streak_pref     = models.IntegerField (default=3)
     trade_one_offs  = models.BooleanField (default=True)
     cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=20)
+    department      = models.ForeignKey (Department, on_delete=models.CASCADE, null=True)
     time_pref       = models.CharField(max_length=10, choices=(('AM','Morning'),('PM','Evening'),('XN','Overnight')))
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
     image_url       = models.CharField (max_length=300, default='/static/img/CuteRobot-01.png')
     active          = models.BooleanField (default=True )
     std_wk_max      = models.IntegerField (default=40)
+    pto_hrs         = models.IntegerField (default=10 )
 
     class Meta:
         ordering    = ['cls', 'name']
 
     @property
-    def yrs_experience (self):
-        return round((TODAY - self.hire_date).days / 365, 2)
-    def __str__(self) :
-        return self.name
-    def _set_fte (self):
-        return self.fte_14_day / 80
-    def url(self):
-        return reverse("sch:empl", kwargs={"empId": self.pk})
+    def yrs_experience (self):  return round((TODAY - self.hire_date).days / 365, 2)
+    def __str__(self) :         return self.name
+    def _set_fte (self):        return self.fte_14_day / 80
+    def url(self):              return reverse("sch:empl", kwargs={"empId": self.pk})
     def details_on_day(self, wd):
         day_hours = self.dayHours(wd) if self.dayHours(wd) else 0
         wk_hours  = self.weekHours(wd) if self.weekHours(wd) else 0
@@ -968,7 +998,7 @@ class Week (models.Model) :
     period      = models.ForeignKey   ("Period",   on_delete=models.CASCADE, null=True, related_name='weeks')
     schedule    = models.ForeignKey   ("Schedule", on_delete=models.CASCADE, null=True, related_name='weeks')
     start_date  = models.DateField    (blank=True, null=True)
-    hours       = models.JSONField    (null=True, blank=True,default=dict)
+    hours       = models.JSONField    (null=True, blank=True)
 
     class Meta:
         ordering = ['year','number','schedule__version']
@@ -1114,7 +1144,7 @@ class Period (models.Model):
     number     = models.IntegerField()
     start_date = models.DateField()
     schedule   = models.ForeignKey('Schedule', on_delete=models.CASCADE,related_name='periods')
-    hours      = models.JSONField(null=True,blank=True,default=dict)
+    hours      = models.JSONField(null=True,blank=True)
 
     @property
     def week_start_dates (self):
@@ -1215,8 +1245,6 @@ class Period (models.Model):
                 i += 1
             if i == len(empl_list):
                 return "ERROR: NO EMPLOYEES CAN FILL THIS SLOT"
-
-
 
     actions = Actions()
 
@@ -1666,15 +1694,10 @@ class Schedule (models.Model, ScheduleBaseActions):
     action_log          = models.TextField (default="")
     last_update         = models.DateTimeField (auto_now=True)
     n_empty             = models.IntegerField (default=0)
-    data                = models.JSONField (default=dict(
-                                                n_empty= 0,
-                                                percent= 0,
-                                                pto_conflicts= 0,
-                                                unfavorables= 0,
-                                                mistemplated= 0,
-                                                emusr= 0
-                                            ))
-    weekly_hours        = models.JSONField (default=dict(all=0))
+    data                = models.JSONField (blank=True, null=True)
+    weekly_hours        = models.JSONField (blank=True, null=True)
+    department          = models.ForeignKey ('department', on_delete=models.CASCADE, null=True, default=None)
+
 
     class Meta :
         ordering = [ 'year', 'number', 'version' ]
@@ -2089,22 +2112,6 @@ class Slot (models.Model) :
             return None
     def _typeATrades (self):
         return self.workday.slots.filter(shift__cls=self.shift.cls,shift__group=self.shift.group).exclude(employee=self.employee).filter(employee__shifts_available=self.shift)
-    def _set_is_turnaround (self) :
-        if self.employee == None:
-            self.is_turnaround = False
-        if self.is_preturnaround():
-            self.is_turnaround = True
-        if self.is_postturnaround():
-            self.is_turnaround = True
-        else:
-            self.is_turnaround = False
-        if self.is_turnaround:
-            ta = Turnaround.objects.get_or_create(slots__workday=self.workday, employee=self.employee)
-            ta.slots.clear()
-            ta.schedule = self.schedule
-            ta.slots.add(self)
-            ta.slots.add(self.turnaround_pair())
-            ta.save()
     def is_preturnaround  (self) :
         if not self.employee:
             return False
@@ -2360,7 +2367,6 @@ class Slot (models.Model) :
         else:
             if Slot.Flags.IGNORE_MISTEMPLATE_FLAG in self.tags.all():
                 self.tags.remove(Slot.IGNORE_MISTEMPLATE_FLAG)
-        self._set_is_turnaround()
         if self.is_preturnaround() == False:
             if self.is_postturnaround() == False:
                 self.is_turnaround = False
@@ -2710,6 +2716,8 @@ class Turnaround (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="turnarounds")
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name="turnarounds")
     slots    = models.ManyToManyField(Slot, related_name="turnarounds")
+    
+    def __str__ (self): return f"<{self.employee} Turnaround>"
 
 
 class ScheduleEmusr (models.Model):

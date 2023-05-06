@@ -6,20 +6,16 @@ mixin trashIcon(turnaround)
 
 
 
-h3.text-xl Turnarounds 
+each turnaround in turnarounds
 
-table.table.table-hover(class="w-[330px]")
-  thead
-    tr
-      th Employee 
-      th Slot
-      th Actions
-  tbody
-    each turnaround in turnarounds
-      tr.bg-zinc-800.tr-hover(_="on mouseover toggle .text-zinc-700 on .fa-trash in me until mouseleave end")
-        td= turnaround.employee
-        td
-          a(href=turnaround.workday.url())= turnaround
-        td
-          +trashIcon(turnaround)
+  div.bg-zinc-300.bg-opacity-25.rounded.backdrop-blur.p-3
+    div.text-lg TURNAROUND 
+    each slot in turnaround.slots.all
+      if slot.shift.phase < 2
+        div.bg-zinc-900.rounded-full.border.border-amber-400.text-amber-100.w-8.h-8= slot.shift
+      else
+        div.bg-zinc-900.rounded-full.ring.ring-2.w-8.h-8= slot.shift
+      span.text-2xs= slot.workday
+
+
         
