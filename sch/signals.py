@@ -1,5 +1,5 @@
 from .models import *
-from django.db.models.signals import post_save, pre_save, m2m_changed
+from django.db.models.signals import post_save, pre_save, m2m_changed, post_init
 from django.dispatch import receiver, Signal
 from django.db.models import Sum
 
@@ -32,4 +32,3 @@ def remove_fills_with_on_overtime(sender, instance, **kwargs):
       print('overtime-week-kill-switch signal fired')
       for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
          s.fills_with.remove(instance.employee)
-      

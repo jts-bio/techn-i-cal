@@ -34,6 +34,7 @@ urlpatterns = [
     path('partials/<schId>/turnarounds/', Sections.schTurnarounds, name="turnarounds"),
     path('partials/<schId>/log/', Sections.schLogView, name="log"),
     path('detail/<schId>/emusr-page/', Sections.schEmusrPage, name="emusr-page"),
+    path('detail/<schId>/employees/', Sections.sch_employee_summary, name="employees"),
     path('detail/<schId>/emusr-page/<emp>/', Sections.schEmployeeEmusrSlots, name="emusr-empl"),
     path('detail/<schId>/set-sch-maxes/', Sections.sch_prn_empl_maxes, name="maxes"),
     path('detail/<schId>/version-compare/', Sections.version_compare, name="version-compare"),
@@ -66,6 +67,9 @@ urlpatterns = [
     path('detail/<schId>/actions/clear-over-fte-maxes/', Actions.sch_clear_over_empl_maxes, name="clear-overFte"),
     path('detail/<schId>/actions/publish/', Actions.publish_view, name="publish"),
     path('detail/<schId>/actions/unpublish/', Actions.unpublish_view, name="unpublish"),
+    path('detail/<schId>/actions/remove-employee/<empId>/', Actions.remove_prn_employee, name="remove-employee"),
+    path('detail/<schId>/actions/resolve-all-tdo/', Actions.resolve_all_tdo_conflicts, name="resolve-tdo-conflicts"),
+    path('detail/<schId>/actions/attempt-underhours-solve/', Actions.fill_undertime_slots, name="attempt-underhours-solve"),
     
 
     

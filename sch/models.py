@@ -1004,6 +1004,8 @@ class Week (models.Model) :
         ordering = ['year','number','schedule__version']
 
     def save(self, *args, **kwargs):
+        if not self.hours:
+            self.hours = dict()
         self.actions.update_hours(self)
         super().save(*args, **kwargs)
 
@@ -1249,6 +1251,8 @@ class Period (models.Model):
     actions = Actions()
 
     def save (self, *args, **kwargs):
+        if not self.hours:
+            self.hours = dict()
         self.actions.update_hours(self)
         super().save(*args, **kwargs)
 
@@ -1712,6 +1716,10 @@ class Schedule (models.Model, ScheduleBaseActions):
         return Schedule.objects.filter(start_date__gt=self.start_date).order_by("start_date","-percent").first()
 
     def save (self, *args, **kwargs) :
+        if not self.weekly_hours:
+            self.weekly_hours = dict()
+        if not self.data:
+            self.data = dict()
         if not self.year:
             self.year = self.start_date.year
         if not self.number:

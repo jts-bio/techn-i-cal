@@ -1,8 +1,13 @@
 extends base.html
+{% load static %}
 
 
 
 block content
+
+  style
+    {% include 'sch/css/loader-a.css' %}
+    {% include 'sch/css/loader-b.css' %}
 
   script(type="text/javascript").
     // Analyze whether current version is best:
@@ -109,12 +114,28 @@ block content
                 span.text-zinc-300 
                   | (Same level of completion)
 
-  #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
-    .w-40.bg-opacity-60.rounded.bg-black.py-5.bg-opacity-75
-      .text.text-center.text-black.text-3xl
-        i.fas.fa-user-robot.text-slate-200.fa-shake.px-3.scale-125
-      .text.text-white.text-center.text-2xs.jbm.opacity-70.pt-2 
-        | PLEASE WAIT...
+  if random_wait_indicator == 1
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      .w-40.bg-opacity-60.rounded.bg-black.py-5.bg-opacity-75
+        
+          .text.text-center.text-black.text-3xl
+            i.fas.fa-user-robot.text-slate-200.fa-shake.px-3.scale-125
+          .text.text-white.text-center.text-2xs.jbm.opacity-70.pt-2 
+            | PLEASE WAIT...
+  if random_wait_indicator == 2
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-a.text-white
+  if random_wait_indicator == 3
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-b.text-white
+  if random_wait_indicator == 4
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-c.text-white
+  if random_wait_indicator == 5
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-d.text-white
+
+
 
   #best-message.hidden.fixed.click-through.bg-black.rounded.p-2.text-lg
     span This has been determined to be the <br/> 

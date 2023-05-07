@@ -140,6 +140,7 @@ def schDetailView(request, schId):
             "previousUrl": sch.previous().url() if sch.previous() else None,
             "isBestVersionLink": reverse("flow:get_is_best_version", args=[schId]),
             "BACKGROUND_PATH": BACKGROUND_PATH,
+            "random_wait_indicator":  random.randint(1,3)
         },
     )
 
@@ -210,6 +211,10 @@ class Sections:
         return render(
             request, "stats.html", {"schedule": sch, "statPartials": statsHtml}
         )
+
+    def sch_employee_summary(request,schId):
+        sch = Schedule.objects.get(slug=schId)
+        return render(request, "tables/employee-summary.pug", {"schedule": sch, "employees": sch.employees.all()})
 
     def sch_mistemplated(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -404,14 +409,12 @@ class Sections:
         from django.db.models import JSONField
         from django.db.models.functions import Cast
         from .utils import get_all_undertime_triplets
-        tplts = get_all_undertime_triplets(schId)
         
+        sch = Schedule.objects.get(slug=schId)
+        tplts = get_all_undertime_triplets(sch)
 
-        data = ApiViews.schedule__get_undertime_hours(request, schId).content
-        employees = json.loads(data)
 
-
-        return render(request, "tables/undertime.pug", {"employees": employees, "sch": schId, "triplets":tplts})
+        return render(request, "tables/undertime.pug", {"sch": schId, "triplets":tplts})
 
     def sch_prn_empl_maxes(request, schId):
         template = "tables/fte-maxes.pug"
@@ -516,6 +519,7 @@ class Sections:
             'weekB':period.weeks.last().number,
         }
         return render(request, "tables/empl-undertime.pug", context)
+
 
 class Actions:
     """
@@ -1085,3 +1089,83 @@ class Actions:
             event_type="PUBLISH", data={"user": request.user.username}
         )
         return HttpResponse(f"Schedule published")
+
+    @csrf_exempt
+    def remove_prn_employee(request, schId, empId) -> HttpResponse:
+        if request.method == "POST":
+            sch = Schedule.objects.get(slug=schId)
+            emp = Employee.objects.get(slug=empId)
+            sch.employees.remove(emp)
+            sch.slots.filter(employee=emp).update(employee=None)
+            for slot in sch.slots.filter(fills_with=emp):
+                slot.fills_with.remove(emp)
+            sch.save()
+            
+            sch.routine_log.events.create(
+                event_type="ROSTER CHANGE",
+                description="REMOVAL of PRN Employee from schedule roster",
+                data={
+                    "user": request.user.username,
+                    "action": "REMOVE PRN EMPLOYEE",
+                    "employee": emp.name
+                }
+            )
+            return HttpResponse(f"{emp} removed from {sch}")
+        return HttpResponse("ERROR: Request Method")
+    
+    @csrf_exempt
+    def resolve_all_tdo_conflicts (request, schId):
+        """
+        TDO conflicts are shift assignments where the employee is 'regularly' scheduled off.
+        
+        This fx resolves all TDO conflicts for a schedule via slot emptying.
+        If employee was marked as able to fill, that option is removed.
+        """
+        if request.method == "POST":
+            sch = Schedule.objects.get(slug=schId)
+            tdo_conflicts = sch.slots.tdo_violations()
+            n = tdo_conflicts.count()
+            for slot in tdo_conflicts:
+                empl = slot.employee
+                slot.employee = None
+                slot.fills_with.remove(empl)
+                slot.save()
+                
+            return HttpResponse(f"Resolved {n} TDO Conflicts for {sch}")
+        
+        return HttpResponse("ERROR: Request Method")
+    
+    def fill_undertime_slots(request, schId):
+        """
+        Fills slots with employees who are able to fill them.
+        """
+        sch = Schedule.objects.get(slug=schId)
+        from .utils import get_all_undertime_triplets
+        triplets = get_all_undertime_triplets(schId)
+        n = 0
+        for employee in triplets:
+            i = 0
+            for period_needed_hours in triplets[employee]:
+                if period_needed_hours != 0:
+                    period_slots = sch.periods.all()[i].slots.empty().filter(fills_with=employee)
+                    if period_slots.count() > 0:
+                        for slot in period_slots:
+                            if period_needed_hours > 0:
+                                if period_needed_hours >= slot.shift.hours:
+                                    slot.employee = employee
+                                    slot.save()
+                                    n += 1
+                                    period_needed_hours -= slot.shift.hours
+                    if period_needed_hours > 0:
+                        period_slots = sch.periods.all()[i].slots.filled_by_prn().filter(fills_with=employee)
+                        if period_slots.count() > 0:
+                            for slot in period_slots:
+                                if period_needed_hours > 0:
+                                    if period_needed_hours >= slot.shift.hours:
+                                        slot.employee = employee
+                                        slot.save()
+                                        n += 1
+                                        period_needed_hours -= slot.shift.hours
+                i += 1
+        return HttpResponse(f"Filled {n} slots")
+                

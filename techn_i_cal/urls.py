@@ -66,7 +66,8 @@ def loginView (request):
             else:
                 return HttpResponseRedirect(reverse('login'))
 
-    form = LoginForm()
+    # make Login form with attr: autocapitalize="none" autocomplete="off"
+    form = LoginForm(auto_id=False)
     context = {
         'form': form
     }

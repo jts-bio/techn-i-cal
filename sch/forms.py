@@ -35,7 +35,6 @@ class ShiftForm (forms.ModelForm) :
             'group': forms.Select(attrs={"class":"form-control"})
         }
     
-
 class SSTForm (forms.ModelForm) :
     """Form for a single ShiftSlotTemplate, connecting an 
     employee to a shift on a given day"""
