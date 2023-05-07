@@ -12,6 +12,8 @@ pids
 *.seed
 *.pid.lock
 
+*.pyc
+
 # Dependency directories
 node_modules/
 
@@ -29,6 +31,7 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
 
 # Misc
 .DS_Store

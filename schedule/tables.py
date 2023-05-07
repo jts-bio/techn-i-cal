@@ -35,7 +35,6 @@ class MistemplatedFlagIgnoreTable (tables.Table):
             "shift"
             ]
 
-    
     def render_slot(self, value, record):
         return "{msg} {slot}".format(msg=(
             '<span class="%s">(FLAGGED)</span>' % ('badge badge-danger') if record.flag else ""
@@ -46,6 +45,7 @@ class MistemplatedFlagIgnoreTable (tables.Table):
     
     def render_shift(self, value, record):
         return record.shift
+    
     
 
 class TdoConflictsTable (tables.Table):
@@ -73,6 +73,7 @@ class TdoConflictsTable (tables.Table):
             f"actions/clear-slot/{record.workday.slug}/{record.shift.name}/")
         
         return format_html("{} {}", view_btn, del_btn)
+
 
 
 class ScheduleComparisonTable (tables.Table):

@@ -1,12 +1,12 @@
 behavior PtoSwitch
     init
         if @data-has-pto == "True"
-            add .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 to me
+            add .border-amber-200 .shadow .shadow-blue-100 .bg-yellow-600 .bg-opacity-90 .text-zinc-800 to me
             then remove .hidden from (.fa-circle-check in me)
             then add .text-blue-400 .font-bold to (.text-md in me)
         end
     on click
-        toggle .border-blue-200 .shadow .shadow-blue-100 .bg-blue-400 .bg-opacity-10 on me
+        toggle .border-amber-200 .shadow .shadow-blue-100 .bg-yellow-600 .bg-opacity-90 .text-zinc-800 on me
         then toggle .hidden on (.fa-circle-check in me)
         then toggle .text-blue-400 .font-bold on (.text-md in me)
         then send recheck to #pto-check 
@@ -26,10 +26,10 @@ behavior PtoSwitch
     end
     on mouseenter 
         if [@data-has-shift] == "False"
-            toggle .bg-sky-900 .ring .ring-sky-700 
+            toggle .bg-indigo-900 .ring .ring-sky-700 
             until mouseleave 
         else if [@data-has-shift] == "True"
-            toggle .bg-amber-900 .ring .ring-amber-700 
+            toggle .bg-orange-900 .ring .ring-amber-700 
             until mouseleave
         end
     end
