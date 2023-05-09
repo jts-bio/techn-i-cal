@@ -1,20 +1,51 @@
 from .models import *
 from django.urls import path
 from django.shortcuts import render
-import datetime as dt
+
 from .views import *
+from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib.auth import authenticate, login
+from django.views import View
+
+import datetime as dt
+
+
+
 
 
 
 def index(request):
+      if not request.user.is_authenticated:
+            return HttpResponseRedirect('/login/')
       profile        = Profile.objects.get(user=request.user)
       organization   = profile.organization
       return render(request, 'pages/index.pug', {'organization': organization})
 
 
+class LoginView(View):
+      
+      template_name = 'pages/login.pug'
+      
+      def get (self, request):
+            return render(request, 'pages/login.html')
+      
+      def post (self, request):
+            username = request.POST.get('username')
+            password = request.POST.get('password')
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                  if user.is_active:
+                        login(request, user)
+                        return HttpResponseRedirect('/schedules/')
+            else:
+                  return render(request, 'pages/login.html', {'error': 'Invalid username or password'})
+
+
 urlpatterns = [
 
       path('', index, name='index'),
+      path('login/', LoginView.as_view(), name='login'),
+       
       path('schedules/', ScheduleViews.dept_schedules_list, name='sch-list'),
       path('schedules/<dept>/<yr>/<n>/', ScheduleViews.sch_detail, name='sch-detail'),
       path('schedules/<dept>/<yr>/<n>/v<v>/', VersionViews.ver_detail, name='ver-detail'),
