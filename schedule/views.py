@@ -39,6 +39,12 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 import random
 from sch.data import Images
+from django.views.decorators.cache import cache_control
+
+from django.views.decorators.vary import vary_on_headers
+
+
+
 
 
 def schListView(request):
@@ -105,6 +111,7 @@ def groupedScheduleListView(request):
     return render(request, "sch-list-grouped.html", {"schedules": yn_dict})
 
 
+@vary_on_headers("Cookie")
 def schDetailView(request, schId):
     sch = Schedule.objects.get(slug=schId)
     BACKGROUND_PATH = Images.randomSeamlessChoice()

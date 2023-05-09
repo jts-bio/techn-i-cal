@@ -23,6 +23,8 @@ from django.db.models import (
 from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.views.decorators.vary import vary_on_headers
+
 
 
 class ApiViews:
@@ -133,6 +135,7 @@ class ApiViews:
             SlotSerializer(sch.slots.unfavorables(), many=True).data, safe=False
         )
 
+    @vary_on_headers("X-Requested-With")
     def schedule__get_empty_list(request, schId):
         sch = Schedule.objects.get(slug=schId)
         return JsonResponse(

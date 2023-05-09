@@ -118,7 +118,7 @@ WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 #     }
 # }
 DATABASES = {
-    'default': {
+    'bitio': {
         'ENGINE':   'django.db.backends.postgresql',
         'NAME':     'jsteinbecker/flowrate-dev',
         'USER':     'jsteinbecker',
@@ -126,7 +126,7 @@ DATABASES = {
         'HOST':     'db.bit.io',
         'PORT':     '5432',
     },
-    'sqlite3': {
+    'default': {
         "ENGINE": "django.db.backends.sqlite3",
         "NAME": BASE_DIR / "db.sqlite3",
     },
@@ -164,7 +164,7 @@ class CacheRouter:
     def db_for_read(self, model, **hints):
         "All cache read operations go to the replica"
         if model._meta.app_label == "django_cache":
-            return "sqlite3"
+            return "default"
         return None
 
     def db_for_write(self, model, **hints):
