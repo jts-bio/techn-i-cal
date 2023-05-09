@@ -11,6 +11,8 @@ from django.db.models import (Avg, Count, Deferrable, DurationField, ExpressionW
 
 from django.db.models.functions import Coalesce
 
+from django.dispatch import Signal
+
 from django.urls import reverse
 from taggit.managers import TaggableManager
 from multiselectfield import MultiSelectField
@@ -62,14 +64,6 @@ class ShiftManager (models.QuerySet):
 
     def on_workday (self, workday):
         return self.filter(occur_days__contains=workday.iweekday)
-
-    def to_fill (self,workday):
-        slot_exits = Slot.objects.filter(workday=workday).values('shift')
-        return self.all().exclude(pk__in=slot_exits)
-
-    def empl_is_trained (self, employee):
-        empl = Employee.objects.get(name=employee)
-        return self.filter(name__in=empl.shifts_trained.all())
 
 
 class SlotManager (models.QuerySet):
@@ -232,11 +226,6 @@ class SlotManager (models.QuerySet):
             employee__shifts_trained=F('shift__pk')).exclude(
                 employee=None
         )
-            
-    def tdo_violations (self):
-        """Filter for slots where its employee is templated off."""
-        
-        return self.filter(employee__tdos__sd_id=F('workday__sd_id'))
    
     def one_offs(self):
         """Filters for slots where its employee doesn't work on the workday before or workday after"""
@@ -487,6 +476,8 @@ class Organization (models.Model):
     slug = models.SlugField (max_length=100, unique=True, primary_key=True)
     
     def __str__ (self): return self.name
+    
+    
 
 class Department (models.Model):
     name = models.CharField (max_length=100)
@@ -583,6 +574,7 @@ class Employee (models.Model) :
     ==============
     """
     name            = models.CharField (max_length=100)
+    initials        = models.CharField (max_length=4, null=True)
     fte_14_day      = models.FloatField(default=80)
     fte             = models.FloatField(default=-1)
     shifts_trained  = models.ManyToManyField (Shift, related_name='trained')
@@ -598,9 +590,11 @@ class Employee (models.Model) :
     active          = models.BooleanField (default=True )
     std_wk_max      = models.IntegerField (default=40)
     pto_hrs         = models.IntegerField (default=10 )
+    user            = models.OneToOneField (User, on_delete=models.CASCADE, null=True, related_name='employee')
 
     class Meta:
-        ordering    = ['cls', 'name']
+        ordering        = ['cls', 'name']
+        unique_together = ('initials', 'department')
 
     @property
     def yrs_experience (self):  return round((TODAY - self.hire_date).days / 365, 2)
@@ -980,7 +974,7 @@ WD_VIEW_PREF_CHOICES = (
         (5,'wday/wday-4.pug'),
     )
 class WorkdayViewPreference (models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wd_view_pref')
     view = models.CharField(max_length=10, choices=WD_VIEW_PREF_CHOICES, default=0)
     def __str__ (self):
         return f'{self.user.username} Pref:{WD_VIEW_PREF_CHOICES[self.view]}'
@@ -1002,7 +996,7 @@ class Week (models.Model) :
 
     class Meta:
         ordering = ['year','number','schedule__version']
-
+        
     def save(self, *args, **kwargs):
         if not self.hours:
             self.hours = dict()
@@ -1897,7 +1891,8 @@ class Slot (models.Model) :
     fills_with        = models.ManyToManyField     ('Employee', related_name='fills_slots', blank=True)
     last_update       = models.DateTimeField       (auto_now=True )
 
-    html_template           = 'sch2/schedule/sch-detail.html'
+    html_template     = 'sch2/schedule/sch-detail.html'
+    
     class Flags:
         IGNORE_MISTEMPLATE_FLAG = "IGNORE_MISTEMPLATE_FLAG"
 
@@ -2038,6 +2033,9 @@ class Slot (models.Model) :
             if incompatibles.filter(employee=empl).exists():
                 return True
             return False
+    
+                    
+    
             
     actions = Actions()
     def url__clear (self):
@@ -2527,6 +2525,7 @@ class Slot (models.Model) :
             if empl in self._get_conflicting_slots().values_list('employee__slug',flat=True):
                 turnaround += [ f"{empl.slug}-turnaround" ]
         return " ".join(turnaround)
+    
     def fill_via_swap (self,other):
 
         selfEmployee = self.employee
@@ -2717,15 +2716,21 @@ class ShiftSortPreference (models.Model):
         else:
             self.scaled = 0
         super().save(*args,**kwargs)
+        
     objects = ShiftSortPreferenceManager.as_manager()
 
 
 class Turnaround (models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name="turnarounds")
     schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name="turnarounds")
-    slots    = models.ManyToManyField(Slot, related_name="turnarounds")
+    early_slot = models.ForeignKey(Slot, on_delete=models.CASCADE, related_name="early_turnarounds",null=True)
+    late_slot  = models.ForeignKey(Slot, on_delete=models.CASCADE, related_name="late_turnarounds",null=True)
     
-    def __str__ (self): return f"<{self.employee} Turnaround>"
+    def __str__ (self): return f"<{self.employee} Turnaround {self.early_slot.workday.date.strftime('%m/%d')}>"
+    
+    class Meta:
+        
+        unique_together = ['employee', 'early_slot', 'late_slot']
 
 
 class ScheduleEmusr (models.Model):

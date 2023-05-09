@@ -28,7 +28,21 @@ def remove_employee_from_assignments_on_same_workday(sender, instance, **kwargs)
          
 @receiver(post_save, sender=Slot)
 def remove_fills_with_on_overtime(sender, instance, **kwargs):
-   if instance.week.slots.filter(employee=instance.employee).aggregate(Sum('shift__hours'))['shift__hours__sum'] >= 40:
-      print('overtime-week-kill-switch signal fired')
+   if instance.week.slots.filter(
+                  employee=instance.employee) \
+                  .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= 40:
+                     
       for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
          s.fills_with.remove(instance.employee)
+
+@receiver(pre_save, sender=Workday)
+def set_i_values(sender, instance, **kwargs):
+   if instance.iweek == -1:
+      instance.iweek = int(instance.date.strftime('%U'))
+   if instance.iperiod == -1:
+      instance.iperiod = int(instance.date.strftime('%U')) // 2
+   if instance.ppd_id == -1:
+      instance.ppd_id = (instance.schedule.start_date - instance.date).days + 1 % 14
+   if instance.sd_id == -1:
+      instance.sd_id = (instance.schedule.end_date - instance.date).days + 1
+   

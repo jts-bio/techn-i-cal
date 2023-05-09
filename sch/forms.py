@@ -89,6 +89,7 @@ class TechnicianForm (EmployeeForm) :
         model = Employee
         fields = [
             'name', 
+            'initials',
             'fte_14_day', 
             'cls', 
             'time_pref'
@@ -135,7 +136,10 @@ class EmployeeEditForm (forms.ModelForm) :
                 queryset = Shift.objects.all(),
                 required = False,
             )
-    time_pref = forms.Select(choices= (('AM', 'Morning'), ('PM', 'Evening'), ('XN', 'Overnight')))
+    
+    time_pref = forms.Select(
+                choices= (('AM', 'Morning'), ('PM', 'Evening'), ('XN', 'Overnight'))
+            )
     
     def __init__(self, *args, **kwargs):
         super(EmployeeEditForm, self).__init__(*args, **kwargs)
@@ -146,7 +150,9 @@ class EmployeeEditForm (forms.ModelForm) :
     class Meta:
         model = Employee
         fields = [
-            'name',             'fte',   
+            'name',
+            'initials',
+            'fte',   
             'streak_pref',      'shifts_trained',   
             'shifts_available', 'cls', 
             'time_pref',        'hire_date',
@@ -164,7 +170,7 @@ class EmployeeEditForm (forms.ModelForm) :
             on mutation of @value 
                 set link to @value 
                 then fetch link then put result into #image_preview
-        """
+            """
         
         widgets = {
             'shifts_trained'  : forms.CheckboxSelectMultiple (attrs={'class':'form-control'}), 
@@ -174,7 +180,10 @@ class EmployeeEditForm (forms.ModelForm) :
             'cls'             : forms.Select      (attrs={'class': 'form-control h-10'}),
             'time_pref'       : forms.Select      (attrs={'class': 'form-control h-10'}),
             'std_wk_max'      : forms.NumberInput (attrs={'class': 'w-28 form-control'}),
-            'image_url'       : forms.TextInput   (attrs={'script': IMAGE_LOOKUP_HYPERSCRIPT})
+            'image_url'       : forms.TextInput   (attrs={
+                                                        'script': IMAGE_LOOKUP_HYPERSCRIPT,
+                                                        'class': 'text-xs w-48 text-indigo-300 jbm'
+                                                        })
         }
 
 class SstEmployeeForm (forms.Form) :
@@ -542,9 +551,12 @@ START_DATE_SET = [(Schedule.START_DATES[2023][i], Schedule.START_DATES[2023][i])
 class GenerateNewScheduleForm (forms.Form):
     
     start_date = forms.ChoiceField(
-                            choices=START_DATE_SET, 
-                            label="Start Date"
+                                choices=START_DATE_SET, 
+                                label="Start Date"
                             )
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), widget=forms.Select())
+    
+    
     
 class ShiftAvailableEmployeesForm(forms.Form):
     

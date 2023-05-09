@@ -6,6 +6,7 @@ from django.db.models import (
 from django_tables2 import tables
 from django_tables2.utils import A
 from django.utils.html import format_html
+from django.utils import timezone as tz
 
 from sch.models import (
         Employee, PtoRequest, Shift, 
@@ -64,13 +65,13 @@ class TdoConflictsTable (tables.Table):
         ]
         
     def render_actions (self, value, record):
+        view_icon = '<i class="fas fa-magnifying-glass"></i>'
         view_btn = format_html(
-            '<a class="btn btn-sm bg-amber-400" href="{}">View</a>', 
-            record.url())
+            f'<a class="rounded-sm px-2 py-1 m-1 bg-amber-400 hover:bg-amber-500" href="{record.url()}">{view_icon}View</a>')
         
-        del_btn = format_html(
-            '<div class="btn btn-sm bg-red-600" hx-post="{}">Delete</a>', 
-            f"actions/clear-slot/{record.workday.slug}/{record.shift.name}/")
+        del_icon = '<i class="fas fa-trash"></i>'
+        hx_post_path = f"actions/clear-slot/{record.workday.slug}/{record.shift.name}/"
+        del_btn = format_html('<div class="btn btn-sm bg-red-600" hx-post="{}">{}Delete</a>', hx_post_path, del_icon)
         
         return format_html("{} {}", view_btn, del_btn)
 
@@ -86,12 +87,30 @@ class ScheduleComparisonTable (tables.Table):
         model = Schedule
         template_name = "django_tables2/bootstrap4.html"
 
+        attrs = {
+            "class": "table table-striped sm:text-md sm:font-extrabold"
+        }
         
         fields = [
             "slug", 
-            "start_date", 
             "status",  
             "percent",
             ]
 
         empty_text = "No entries found. Check the admin table for more details."
+    
+    def render_percent (self, value, record):
+        return "{percent}%" \
+                    .format(percent=record.percent)
+    
+    def render_is_best (self, value, record):
+        if record.is_best_version():
+            return '<i class="fas fa-star"></i>'
+
+    
+
+
+    
+    
+
+    

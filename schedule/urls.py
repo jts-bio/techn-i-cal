@@ -52,6 +52,7 @@ urlpatterns = [
     path('detail/<schId>/actions/clear-all-unfavorables/', Actions.clear_unfavorables, name="clear-all-unfavorables"),
     path('detail/<schId>/actions/solve-tca/', Actions.solve_with_tca, name="solve-tca"),
     path('detail/<schId>/actions/solve-signal-opti/', Actions.solve_with_signal_optimization, name="solve-signal-opti"),
+    path('detail/<schId>/actions/solve-beta/', Actions.beta_solving_model, name="solve-beta"),
     path('detail/<schId>/actions/clear-slot/<wd>/<sft>/', Actions.clear_slot, name="clear-slot"),
     path('detail/<schId>/actions/override-slot/<wd>/<sft>/<empId>/', Actions.override_slot, name="override-slot"),
     path('detail/<schId>/actions/update/<wd>/<sft>/<empl>/', Actions.update_slot, name="update-slot"),

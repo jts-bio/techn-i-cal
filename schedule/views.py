@@ -31,7 +31,7 @@ from django.db import models
 from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
-from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog, Turnaround
+from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog, Turnaround, TemplatedDayOff
 from .tables import MistemplatedFlagIgnoreTable, TdoConflictsTable
 import json
 from django.db.models import Case, When, Sum, IntegerField
@@ -503,6 +503,9 @@ class Sections:
             elif PtoRequest.objects.filter(employee=employee, workday=workday.date).exists():
                 workday.employee_status = 'pto'
                 workday.employee_hours = employee.pto_hrs
+            elif TemplatedDayOff.objects.filter(sd_id=workday.sd_id,employee=employee).exists():
+                workday.employee_status = 'tdo'
+                workday.employee_hours = 0
             else:
                 prd_list.append(('options', workday.slots.filter(fills_with=employee).exclude(employee=employee).all()))
                 workday.employee_status = 'options'
@@ -1148,6 +1151,8 @@ class Actions:
             for period_needed_hours in triplets[employee]:
                 if period_needed_hours != 0:
                     period_slots = sch.periods.all()[i].slots.empty().filter(fills_with=employee)
+                    for slot in period_slots:
+                        slot.actions.fills_with(slot)
                     if period_slots.count() > 0:
                         for slot in period_slots:
                             if period_needed_hours > 0:
@@ -1168,4 +1173,8 @@ class Actions:
                                         period_needed_hours -= slot.shift.hours
                 i += 1
         return HttpResponse(f"Filled {n} slots")
-                
+    
+    def beta_solving_model (request, schId):
+        from .solvers import solve_schedule
+        solve_schedule(schId)
+        return HttpResponseRedirect(Schedule.objects.get(slug=schId).url())

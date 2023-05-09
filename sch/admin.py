@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import User
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from .models import (
                 Organization, Department,
@@ -56,6 +58,24 @@ class OrganizationDepartments(admin.TabularInline):
     ordering = ['name']
 
 
+# Unregister the provided model admin
+admin.site.unregister(User)
+
+# Register out own model admin, based on the default UserAdmin
+@admin.register(User)
+class CustomUserAdmin(UserAdmin):
+    fieldsets = [
+        ("Personal info", {'fields': ['username', 'first_name', 'last_name', 'email', 'password']}),
+        ("Organization", {'fields': ['employee', 'organization']}),
+        ("Permissions", {'fields': ['is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions']}),
+        ("Important dates", {'fields': ['last_login', 'date_joined']}),
+    ]
+    
+    readonly_fields = ['organization']
+    
+    def organization(self, obj):
+        return obj.employee.organization.name if obj.employee else None
+
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
 
@@ -103,6 +123,8 @@ class ShiftAdmin(admin.ModelAdmin):
 class EmployeeAdmin(admin.ModelAdmin):
     fields          = [
                 'name',
+                'initials',
+                'user',
                 'fte_14_day',
                 'fte', 
                 'department',
@@ -114,14 +136,13 @@ class EmployeeAdmin(admin.ModelAdmin):
                 'time_pref',
                 'pto_hrs'
             ]
-    list_display = ['name', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
+    list_display = ['name', 'initials', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
     
     shifts_available = forms.ModelMultipleChoiceField(
         queryset=Shift.objects.all(),
         required=False,
-        widget=FilteredSelectMultiple(
-            verbose_name='Shifts Available',
-            is_stacked=False
+        widget=forms.widgets.CheckboxSelectMultiple(
+            attrs={'class': 'grid-cols-3'}
         ))
     
 
@@ -129,24 +150,25 @@ class EmployeeAdmin(admin.ModelAdmin):
 
 @admin.register(Workday)
 class WorkdayAdmin(admin.ModelAdmin):
-    fields          = ['date', 'iweekday','iweek','iperiod','ppd_id','slug','shifts',]
+    fields          = [
+                        'date', 
+                        'iweekday',
+                        'iweek',
+                        'iperiod',
+                        'ppd_id',
+                        'slug',
+                        'shifts',
+                    ]
     readonly_fields = ['iweekday','iweek', 'iperiod','ppd_id','slug','shifts',]
     list_display    = ['date','iweekday','iweek','iperiod','ppd_id','slug',]
     
 @admin.register(Turnaround)
 class TurnaroundAdmin(admin.ModelAdmin):
-    fields          = ['schedule','employee','slots']
-    readonly_fields = ['am','pm','dates','slots']
-    list_display    = ['schedule','employee','am','pm','dates']
+    fields          = ['schedule','employee','early_slot', 'late_slot']
+    list_display    = ['schedule','employee','date']
     
-    def am(self, obj):
-        return obj.slots.filter(shift__phase__gte=3).first().shift
-    
-    def pm(self, obj):
-        return obj.slots.filter(shift__phase__lt=3).first().shift
-    
-    def dates(self, obj):
-        return obj.slots.first().workday.date.strftime('%Y/%m/%d') + ' - ' + obj.slots.last().workday.date.strftime('%m/%d')
+    def date(self, obj):
+        return obj.early_slot.workday.date
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):

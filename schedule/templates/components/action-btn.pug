@@ -5,6 +5,7 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
         style="z-index:100"
         class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
         data-fetch-url=fetchUrl
+        onclick="window.dialog.close()"
         _="install ActionButton")
             i(class="fas text-sm #{icon} w-3 mx-3 fa-fw")
             .flex.flex-col.pr-3
@@ -16,7 +17,7 @@ mixin button-group(btn_title)
         class="hover:bg-zinc-700" type='button' onclick="toggleMyDialog()")
             i.fa-duotone.fa-bolt.mr-3 
             span.text-zinc-200.text-xs.jbm #{btn_title}
-            i.fa-duotone.fa-chevron-down.px-1.text-2xs.ml-2
+            
 
 mixin button-clear()
     a.flex.flex-row.opacity-70.cursor-pointer(
@@ -42,6 +43,9 @@ style.
         background-color: #333333aa!important; 
         margin-top: 40px; 
         classList: "dropdown dropdown-menu z-20 absolute overflow-y-visible";
+    }
+    dialog::backdrop {
+        background-color: #333333aa!important;
     }
     
 
@@ -92,6 +96,7 @@ script(type="text/hyperscript").
         +button-option("fa-bolt"   "ALGORITHM B" "Solve using signal optimization coordinating the order to assign slots." "actions/solve-signal-opti/" "sky")
         +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")
         +button-option("fa-rocket" "ALGORITHM D" "Supplemental Script To Improve Required Hours Distribution" "actions/attempt-underhours-solve/" "teal")
+        +button-option("fa-flask-vial" "ALGORITHM E" "Experimental solving model" "actions/solve-beta/" "emerald")
         +button-clear
         +button-delete
 
@@ -102,11 +107,20 @@ script.
         if (dialog.hasAttribute('open')) {
             dialog.close();
         } else {
-            dialog.show();
-            
+            // query screen size
+            const width = window.innerWidth;
+            if (width < 600) {
+                dialog.showModal();
+                console.log('modal');
+            } else {
+                dialog.show();
+                console.log(width);
+            }
         }
     }
+
     const dialog = document.querySelector('#actionDialog');
+
     dialog.addEventListener("click", e => {
         const dialogDimensions = dialog.getBoundingClientRect()
         if (

@@ -40,6 +40,12 @@ div.weekB
                data-hours=wd.employee_hours
             ) PTO
 
+         if wd.employee_status == 'tdo'
+            div.border.bg-sky-900.text-indigo-300.font-bold.h-7.w-7.text.text-center.text-2xs.pt-1.rounded(
+               data-week=wd.week.number
+               data-hours=0
+            ) TDO
+
 
 
 

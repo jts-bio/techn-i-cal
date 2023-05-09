@@ -108,9 +108,9 @@ def wdDetailView (request, slug:str):
         slot.template_employee_on_pto = "True" if slot.template_employee in pto_list else "False"
     
     context = dict(
-            workday =    wd, 
-            slots =      slots,
-            employees =  wd.schedule.employees.all().annotate(
+            workday =   wd, 
+            slots =     slots,
+            employees = wd.schedule.employees.all().annotate(
                         shift =         F  ('slots__shift__name'),
                         dayHours =      Sum('slots__shift__hours', filter=Q(slots__workday=wd)),
                         weekHours =     Sum('slots__shift__hours', filter=Q(slots__workday__week=wd.week)), 

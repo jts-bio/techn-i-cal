@@ -8,13 +8,24 @@ def create_turnaround(sender, instance, **kwargs):
    if instance.employee != None:
       conflicting = instance._get_conflicting_slots().filter(employee=instance.employee).exclude(workday=instance.workday)
       if conflicting.exists():
-         turnaround = Turnaround.objects.create(employee=instance.employee, schedule=instance.schedule)
-         turnaround.slots.add(instance)
-         turnaround.slots.add(conflicting.first())
+         involved_slots = Slot.objects.filter(pk__in=[conflicting.first().pk, instance.pk])
+         turnaround = Turnaround.objects.create(
+                           employee=instance.employee, 
+                           schedule=instance.schedule,
+                           early_slot=involved_slots.first(),
+                           late_slot=involved_slots.last(),
+                           )
+         turnaround.save()
+         
          
 @receiver(post_save, sender=Slot)
 def delete_turnaround(sender, instance, **kwargs):
+   if instance.employee == None:
+      Turnaround.objects.filter(early_slot=instance).delete()
+      Turnaround.objects.filter(late_slot=instance).delete()
    if instance.employee != None:
       conflicting = instance._get_conflicting_slots().filter(employee=instance.employee).exclude(workday=instance.workday)
       if not conflicting.exists():
-         Turnaround.objects.filter(slots=instance).delete()
+         Turnaround.objects.filter(early_slot=instance).delete()
+         Turnaround.objects.filter(late_slot=instance).delete()
+   
