@@ -1003,13 +1003,6 @@ class Week (models.Model) :
         self.actions.update_hours(self)
         super().save(*args, **kwargs)
 
-    def ACTION__clearAllSlots (self):
-        slots = self.slots.filled()
-        slots.update(employee=None)
-
-    def URL__clearAllSlots (self):
-        return reverse('clearAllSlots', kwargs={'week': self.pk})
-
     def total_overtime (self):
         overtime = 0
         for employee in Employee.objects.all():
@@ -1084,6 +1077,7 @@ class Week (models.Model) :
     def nEmpty (self):
         return self.slots.filter(employee__isnull=True).count()
     def percent (self):
+        if self.slots.all().count() == 0: return 0
         return int((self.slots.filled().count() / self.slots.all().count()) * 100)
     @property
     def dates (self):

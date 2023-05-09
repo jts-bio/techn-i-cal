@@ -111,24 +111,77 @@ WSGI_APPLICATION = "techn_i_cal.wsgi.application"
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
 # DATABASES = {
-#     'default': {
-#         'ENGINE':   'django.db.backends.postgresql',
-#         'NAME':     'jsteinbecker/flowratex',
-#         'USER':     'jsteinbecker',
-#         'PASSWORD': 'v2_42mJQ_yCnLWhz8VHCH9BHragb8tCM',
-#         'HOST':     'db.bit.io',
-#         'PORT':     '5432',
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME": BASE_DIR / "db.sqlite3",
 #     }
 # }
+DATABASES = {
+    'default': {
+        'ENGINE':   'django.db.backends.postgresql',
+        'NAME':     'jsteinbecker/flowrate-dev',
+        'USER':     'jsteinbecker',
+        'PASSWORD': 'v2_42mJQ_yCnLWhz8VHCH9BHragb8tCM',
+        'HOST':     'db.bit.io',
+        'PORT':     '5432',
+    },
+    'sqlite3': {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    },
+    'redis' : {
+        "ENGINE": "django.db.backends.postgresql",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "HOST": "redis-12260.c266.us-east-1-3.ec2.cloud.redislabs.com",
+        "PORT": '12260',
+        "PASSWORD": "z9UEYQURmKQf5JhgHKYglL3vCOYCs2VI",
+        "USER": "default",
+    }
+}
 # DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+# CACHES = {
+#     "default": {
+#         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+#         "LOCATION": "my_cache_table",
+#         "ROUTER": "techn_i_cal.settings.CacheRouter",
+#     }
+# }
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "redis_cache"
+    }
+}
 
+class CacheRouter:
+    """A router to control all database cache operations"""
+
+    def db_for_read(self, model, **hints):
+        "All cache read operations go to the replica"
+        if model._meta.app_label == "django_cache":
+            return "sqlite3"
+        return None
+
+    def db_for_write(self, model, **hints):
+        "All cache write operations go to primary"
+        if model._meta.app_label == "django_cache":
+            return "default"
+        return None
+    
+    def db_both (self,model,**hints):
+        "All cache read and write operations go to primary"
+        return "redis"
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        "Only install the cache model on primary"
+        if app_label == "django_cache":
+            return db == "cache_primary"
+        return None
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
