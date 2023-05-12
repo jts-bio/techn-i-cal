@@ -6,6 +6,11 @@ from django.utils import timezone as tz
 
 
 def solve_schedule(schid):
+   """
+   Solves Schedule with:
+      ALGORITHYM E 
+      (Beta model of the solving algorithm)
+   """
    
    sch = Schedule.objects.get(slug=schid)
    

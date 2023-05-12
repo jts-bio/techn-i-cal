@@ -16,21 +16,8 @@
     "yaml.schemas": {
         "https://gitpod.io/schemas/gitpod-schema.json": "file:///workspace/techn-i-cal/.devcontainer/.gitpod.yml"
     },
-    "python.testing.unittestEnabled": true,
+    "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
-    "cSpell.words": [
-        "cpht",
-        "Empl",
-        "empls",
-        "emusr",
-        "grappelli",
-        "htmx",
-        "iperiod",
-        "ischedule",
-        "occurances",
-        "Perc",
-        "unfavorables"
-    ],
     "remote.SSH.remoteServerListenOnSocket": false,
     "githubPullRequests.ignoredPullRequestBranches": [
         "beforeSlow"
@@ -43,10 +30,11 @@
         "test*.py"
     ],
     "python.testing.pytestArgs": [
-        "-v",
-        "-s",
-        "-p"
+        "--exitfirst",
+        "--verbose",
+        "test/"
     ],
+    "python.testing.pytestPath": "pytest",
     "compile-hero.disable-compile-files-on-did-save-code": true,
     "search.useIgnoreFiles": false,
     "sqltools.connections": [
@@ -60,7 +48,7 @@
     "sqltools.useNodeRuntime": true,
     "svn.ignoreMissingSvnWarning": true,
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.defaultFormatter": "GitHub.copilot"
     },
-    "python.formatting.provider": "none",
+    "python.formatting.provider": "black",
 }
