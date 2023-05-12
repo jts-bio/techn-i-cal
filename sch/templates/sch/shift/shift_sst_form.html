@@ -1,27 +1,70 @@
 {% extends 'base.html' %}
+{% load tags %}
+
+
+
+{% block style %}
+
+        <style>
+
+            label {
+                @apply from-slate-300 to-slate-900 text-gradient-to-r text-xs !important;
+                font-weight: bold;
+                font-size: 0.8rem!important;
+            }
+
+        </style>
+    
+{% endblock style %}
+    
 
 
 {% block content %}
 
-<a href="{{ shift.url }}"> Go Back </a>
+        <a href="{% url 'sch:shift-detail' shift.cls shift.name %}" class="flex flex-row">
+            <div> {% backArrow %} </div>
+            <div class="ml-2">Back to Shifts</div>
+        </a>
 
-<h1>{{shift}}</h1>
-<h4>Shift Templating</h4>
+        <div class="text text-center">
+            <h1 class="text-2xl text-sky-200 text-extrabold text-shadow">{{shift}}</h1>
+            <h4 class="text-light text-sky-500">Shift Templating</h4>
+        </div>
 
-<form method="post"> {% csrf_token %}
-{{ formset.management_form }}
+        <form method="post"> {% csrf_token %}
+        {{ formset.management_form }}
 
-    <div class="panel">
-    <div class="grid grid-cols-7">
+        <div class="panel grid-7-by-2 w-full" onload="dimElementsOnLoad()">
+            {% for form in formset %}   {{ form.as_div }}    {% endfor %}
+          </div>
 
-        {% for form in formset %}
-            {{ form.as_div }}
-        {% endfor %}
-        
-    </div>
-    </div>
-    <input type="submit" value="Submit">
-</form>
+            <input 
+                class="btn btn-primary bg-slate-200 ring-slate-800 ring-offset-slate-200 text-green-900 w-2/3"
+                type="submit" 
+                value="Submit">
+        </form>
+
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for day in day_ids %}
+                <label>{{ day|add:1 }}
+                    <select name="empl-select-{{ day|add:1 }}" id="empl-select-{{ day|add:1 }}">
+                        {% if %}
+                    </select>
+                </label>
+            {% endfor %}
+        </form>
+
+
+
+        <script id="DIM-ELEMENTS-ON-LOAD">
+            function dimElementsOnLoad () {
+                if (this.children[1].value === '' {
+                    this.children[1].style.backgroundColor = '#444444';
+                  }    
+            }
+        </script>
 
 {% endblock content %}
 

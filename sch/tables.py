@@ -13,22 +13,24 @@ class EmployeeTable (tables.Table):
     Base Table for All Employees
     Displays basic details about each employee
     """
-    name = tables.columns.LinkColumn('sch:v2-employee-detail', args=[A('slug')])
+    name = tables.columns.LinkColumn(
+        'sch:v2-employee-detail', args=[A('slug')])
+    
     avg_shift_pref_score = tables.columns.Column(
-        verbose_name="Avg Shift Pref Score", 
-        accessor='avg_shift_pref_score')
-    streak_pref = tables.columns.Column(
-        verbose_name='Streak Preference', 
-        accessor='streak_pref',
-        attrs={'td':{'class':'text-center'}})
-    templated_days = tables.columns.Column(
-        verbose_name='Templated Days', 
-        accessor='templated_days',
-        attrs={'td':{'class':'text-center'}})
+        verbose_name     ="Avg Shift Pref Score",
+        accessor         ='avg_shift_pref_score')
+    streak_pref          = tables.columns.Column(
+        verbose_name     ='Streak Preference',
+        accessor         ='streak_pref',
+        attrs            ={'td': {'class': 'text-center'}})
+    templated_days  = tables.columns.Column(
+        verbose_name='Templated Days',
+        accessor    ='templated_days',
+        attrs       ={'td': {'class': 'text-center'}})
     templated_days_off = tables.columns.Column(
-        verbose_name='Templated Days Off', 
-        accessor='templated_days_off',
-        attrs={'td':{'class':'text-center'}})
+        verbose_name   ='Templated Days Off',
+        accessor       ='templated_days_off',
+        attrs          ={'td': {'class': 'text-center'}})
 
     class Meta:
         model           = Employee
@@ -73,9 +75,7 @@ class ShiftListTable (tables.Table) :
     """
     SHIFT LIST TABLE
         - Summary for ALL SHIFTS
-    
-    example 
-    ---------------------------------------------------
+        
     ```
     ---------------------------------
     name| hours   | IV?  | Group
@@ -87,25 +87,51 @@ class ShiftListTable (tables.Table) :
     """
     name  = tables.columns.LinkColumn    ("sch:shift-detail", args=[A("cls"),A("name")])
     hours = tables.columns.Column        (verbose_name="Hours", attrs={"td": {"class": "small text-xs"}})
-    is_iv = tables.columns.BooleanColumn (verbose_name="IV Room?", attrs={"td":{"class":"text-center text-blue-900"}})
-    on_days_display = tables.columns.Column(verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
-    group = tables.columns.Column        (verbose_name="Time-of-Day Group", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
+    percent_templated = tables.columns.Column (verbose_name="% Templated", attrs={"td": {"class": "small text-xs text-center"}})
+    occur_days = tables.columns.Column   (verbose_name="Scheduling Weekdays",attrs={"td":{"class":"text-center text-indigo-300"}})
+    group = tables.columns.Column        (verbose_name="Time-of-Day", attrs={"td": {"class": "text-center", "style":"font-family:'Helvetica Neue';"}})
+    prefs = tables.columns.Column        (verbose_name="Avg Explicit Preference", attrs={"td": {"class": "text-center"}})
+    sort_prefs = tables.columns.Column   (verbose_name="Avg Sorted Preference", attrs={"td": {"class": "text-center"}})
     
     class Meta:
         model           = Shift
-        fields          = ['name','start','hours', 'is_iv','on_days_display',]
-        template_name   = 'django_tables2/bootstrap.html'
-        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
-      
+        orderable       = True
+        fields          = ['name','hours','occur_days','group','prefs','sort_prefs', 'percent_templated']
+        attrs           = { 
+                "class" : "table table-compact table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700 m-4 lg:m-[50px]"
+                }
+    
+    def render_occur_days(self, value):
+        output = []
+        as_list = value.split(", ")
+        for day in as_list:
+            output += [day[:3]]
+        return " ".join(output)
+    
+    def render_prefs (self, value):
+        return round(((50 * value.avg_score())+100)/2, 2)
+    
+    def render_sort_prefs (self, value):
+        return round((value.avg_score()), 2)
+    
+    def render_percent_templated (self, value):
+        return f'{value}%'
+            
 class ShiftsWorkdayTable (tables.Table):
     """View from a WORKDAY
     display ALL SHIFTS for a given day
     """
-    del_slot = tables.columns.LinkColumn("slot-delete", args=[A("date"),A("pk")], verbose_name="Delete", attrs={"td": {"class": "small"}})
+    del_slot = tables.columns.LinkColumn(
+                    "slot-delete", 
+                    args=         [A("date"), A("pk")], 
+                    verbose_name= "Delete", 
+                    attrs=        {"td": {"class": "small"}} )
+    
     class Meta:
         model           = Shift
         fields          = ['name','start','employee','del_slot']
         template_name   = 'django_tables2/bootstrap.html'
+        orderable       = True
 
     def render_del_slot(self, record):
         return record.pk
@@ -117,13 +143,25 @@ class ShiftsWorkdaySmallTable (tables.Table):
         fields          = [ 'name', 'employee' ]
         template_name   = 'django_tables2/bootstrap.html'
         
-        attrs           = { "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"}
+        attrs           = { 
+                "class" : "table table-compact table-striped table-md min-w-full divide-y divide-gray-200 text-sm dark:divide-gray-700"
+            }
         
     def render_employee(self, value, record):
         if record.cls == "RPh":
-            return format_html("<span class='pharmer-gray {}'> {} <span class='xs'>{}</span></span>",record.employee.strip().replace(" ","-"), value, record.cls)
+            return format_html (
+                "<span class='pharmer-gray {}'> {} <span class='xs'>{}</span></span>",
+                record.employee.strip().replace(" ","-"), 
+                value, 
+                record.cls
+            )
         elif record.cls == "CPhT":
-            return format_html('<span class="tech-gray {}"> {} <span class="xs">{}</span></span>',record.employee.strip().replace(" ","-"), value, record.cls)
+            return format_html (
+                '<span class="tech-gray {}"> {} <span class="xs">{}</span></span>',
+                record.employee.strip().replace(" ","-"), 
+                value, 
+                record.cls
+            )
 
 class WorkdayListTable (tables.Table):
     """Summary for ALL WORKDAYS
@@ -183,14 +221,14 @@ class WeekListTable (tables.Table):
     def render_perc_filled (self,record):
         return f"{int(record['perc_filled']/104*100)}%"
 
-    
 class PtoListTable (tables.Table):
 
+    req = tables.columns.LinkColumn("pto-request-detail", args=[A("pk")])
     class Meta:
         model           = PtoRequest
-        fields          = ['workday', 'status', 'stands_respected' ]
-        template_name   = 'django_tables2/bootstrap.html'
-
+        fields          = ['req', 'workday', 'status', 'stands_respected' ]
+        template_name   = 'django_tables2/bootstrap-responsive.html'
+        
 class WeeklyHoursTable (tables.Table):
 
     name  = tables.columns.LinkColumn("employee-detail", args=[A("name")])

@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block style %}
+
+
+    
+{% endblock style %}
+    
+
+
+{% block content %}
+
+    <a href="{{employee.url}}">
+        <i class="fas">{% backArrow %}</i>
+        Back
+    </a>
+
+    <div class="text text-center">
+        <h1 class="text-3xl">{{ employee }}</h1>
+        <h2 class="text-xl"> Sort Shift Preferences</h2>
+    </div>
+
+
+
+    <form method="POST">
+    
+    {% csrf_token %}
+
+        <div class="slots-bin vstack">
+
+                {% for slot in workday.slots.all %}
+
+                    <div id="bin-{{ slot.shift }}" 
+                        class="bin-empty bin bg-sky-900 ring-sky-200 ring-2 h-12 w-12 rounded text-center p-4">
+                        
+                        {{ slot.shift }}
+                        
+                        <option
+                            draggable="true"
+                            ondragstart= "dragStart(event);"
+                            class="bg-zinc-900 rounded p-3" 
+                            name="bin-{{n}}" 
+                            >
+                            {% if slot.employee %}   slot.employee   {% else %}   ---  {% endif %} 
+                        </option>
+                    </div>
+
+                {% endfor %}
+        </div>
+
+        <div id="trash-bin" 
+            class="hidden bg-blue-700 border border-2 border-sky-300 rounded hover:bg-sky-400 Hover:text-sky-900 hover:scale-105 hover:fa-pulse">
+            
+            <i 
+              class="text-xl 
+                     fa-duotone 
+                     fa-trash">
+            </i>
+
+        </div>
+
+    
+   
+
+    <div id="unsorted-bin"
+        class="hstack bg-slate-600 rounded-lg ring-4 ring-zinc-200 p-8 w-fc m-4">
+
+        {% for employee in workday.on_deck %}
+
+            <input id= "shift-{{employee}}" 
+                class= "bg-indigo-500 h-6 w-6 rounded text-center p-1 text-xs
+                        hover:bg-indigo-400 hover:ring-indigo-300 hover:ring-2"
+                draggable= "true"
+                ondragstart= "dragStart(event);"
+                value= "{{employee.id}}">
+
+        {% endfor %}
+
+        <input id="sort-submit" 
+            type="submit" 
+            value="Submit" 
+            class="bg-transparent border border-3 
+                  border-yellow-400 
+                  rounded-lg px-4 py-1 m-2 
+                  transition text-yellow-400 
+                  hover:bg-yellow-400 
+                  hover:text-black 
+                  hover:scale-105 
+                  hover:fa-pulse"
+            hidden />
+
+    </div>
+
+    </form>
+
+    <script>
+        function dragStart(ev) {
+
+            console.log(`dragStart: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+        
+            // Add this element's id to the drag payload so the drop handler will
+            // know which element to add to its tree
+            ev.dataTransfer.setData("text", ev.target.id);
+            ev.dataTransfer.effectAllowed = "move";
+
+            document.querySelectorAll('.bin-empty').forEach(bin => {
+                bin.style.width = bin.outerWidth + 10;
+                bin.style.height = bin.outerHeight + 10;
+              }
+            );
+          }
+
+          function dragLeave(ev) {
+            ev.preventDefault();
+            ev.target.style.background = "";
+          }
+          
+          function dragOver(ev) {
+            console.log(`dragOver: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+            ev.preventDefault();
+            // make the target background lighter 
+            ev.target.style.background = "lightblue"; 
+            // Set the dropEffect to move
+            ev.dataTransfer.dropEffect = "move"
+          }
+
+          function drop(ev) {
+            console.log(`drop: dropEffect = ${ev.dataTransfer.dropEffect} ; effectAllowed = ${ev.dataTransfer.effectAllowed}`);
+            ev.preventDefault();
+            ev.target.style.background = "";
+          
+            // Get the id of the target and add the moved element to the target's DOM
+            const data = ev.dataTransfer.getData("text");
+          
+            // If the target already has a child element, and the child element is not input
+            // remove it and append it to the unsorted bin
+            if (ev.target.lastChild && ev.target.lastChild.nodeType !== 1 ) {
+              document.getElementById('unsorted-bin').appendChild(ev.target.lastChild);
+            }
+            ev.target.appendChild(document.getElementById(data)); {
+              // get the next input in the DOM and set its value to shift value 
+              const nextInput = ev.target.nextElementSibling;
+              nextInput.value = data;
+              // if all inputs have values, show the submit button
+              const allInputs = document.querySelectorAll('input[type="hidden"]');
+              const allInputsHaveValues = Array.from(allInputs).every(input => input.value);
+              if (allInputsHaveValues) {
+                document.getElementById('sort-submit').hidden = false;
+              }
+            }
+          }
+
+          function reloadPage() {
+            location.reload();
+          }
+        </script>
+ 
+
+
+
+{% endblock content %}
+    

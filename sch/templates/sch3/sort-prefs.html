@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+
+
+{% block style %}
+<style>
+    h1 {
+        font-size: 2rem;
+        color: #87ceeb;
+    }
+    h2 {
+        font-size: 2.2rem;
+        color: #87ceeb;
+        font-family: 'Nanum Gothic', sans-serif;
+    }
+    h3 {
+        font-size: 1.5rem;
+        color: #87ceeb;
+        font-family: 'Nanum Gothic', sans-serif;
+    }
+</style>
+{% endblock style %}
+
+    
+
+{% block content %}
+
+    <h1>{{ shift.name }}</h1>
+
+    <hr>
+
+    <h2 class="text-xl jbm text-indigo-600">Sorted Preferences</h2>
+    <h3 class="text-indigo-400 font-extrabold">Avg: {{ avg.rank__avg }} </h3>
+    <div class="w-[200px]">
+        {% for pref in sort_prefs %}
+            <div class="border rounded p-2 m-1">
+                {{ pref.percent }}%: 
+                <a href="{{pref.employee.url}}">{{ pref.employee.name }}</a>
+                <span class="text-2xs">RANKED {{ pref.rank }} of {{pref.employee.shift_sort_prefs.count}}</span>
+        
+            </div>
+        {% endfor %}
+    </div>
+    
+{% endblock content %}
+    

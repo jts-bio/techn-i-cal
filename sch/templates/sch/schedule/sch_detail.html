@@ -25,11 +25,13 @@
 
                     {% for workday in week.workdays.all %}
                             <a href="{{ workday.url }}"
-                            class="text-2xs bg-sky-800 rounded-lg p-1 text-white vstack">
+                            class="text-2xs bg-sky-800 rounded-lg p-1 font-bold text-white vstack">
                                 <div class="text-xs italic">
                                     {{ workday.slug }}
                                 </div>
-                                <div> {% showPercent workday.percFilled %} % </div>
+                                <div> {{ showPercent workday.percent }} 
+                                    <span class="opacity-60 "> % </span> 
+                                </div>
                             </a>
                     {% endfor %}
 

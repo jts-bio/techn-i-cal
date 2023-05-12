@@ -1,48 +1,66 @@
-### DJANGO SLIPPERS TEMPLALTES ###
+#### DJANGO SLIPPERS TEMPLALTES ####
+_AUTHOR_ : JOSH STEINBECKER
 
 components:
 
-    basic_popover       : 'sch/comp/popovers/basic.html'   # --title --subtitle --desc  *children
-    basic_popover_child : 'sch/comp/popovers/basic-child.html' # --title --icon --value
+    basic_popover       : 'sch/comp/popovers/basic.html'        
+        # --title --subtitle --desc  *children
+    basic_popover_child : 'sch/comp/popovers/basic-child.html'  
+        # --title --icon --value
 
-    accordion       : 'sch/doc/accordion.html'
-    toggle-section  : 'sch/comp/toggle-section.html'   # --content
+    popover             : 'wday/cmp/tooltip.html'               
+        # --title --subtitle *children 
 
-    div_carousel      : 'sch/comp/div-carousel.html'        # --children [div-carousel-elems]
-    div_carousel_elem : 'sch/comp/div-carousel-elem.html'   # --children
+    accordion           : 'sch/doc/accordion.html'
+    toggle-section      : 'sch/comp/toggle-section.html'        
+        # --content
+
+    div_carousel        : 'sch/comp/div-carousel.html'            
+        # --children [div-carousel-elems]
+    div_carousel_elem   : 'sch/comp/div-carousel-elem.html'       
+        # --children
 
     # ======================== TOASTS =========================
 
-    toast-wrapper : 'sch/comp/toast-container.html'
-    toast         : 'sch/comp/toast.html'
-    wire-toast    : 'sch/comp/wireToast.html'
-    bs-toast      : 'sch/comp/bs-toast.html'
+    toast-wrapper       : 'sch/comp/toast-container.html'
+    toast               : 'sch/comp/toast.html'
+    wire-toast          : 'sch/comp/wireToast.html' 
+        # --title --message
+    bs-toast            : 'sch/comp/bs-toast.html'
 
 
     # ======================== DROPDOWN  =========================
 
-    dropdown_button : 'sch/comp/dropdown-1/dd-button.html'  # --buttonTitle --children --emph_link --emph_name
-    dropdown_child  : 'sch/comp/dropdown-1/dd-child.html'   # --child.name --child_url 
-    dropdown_child_emph : 'sch/comp/dropdown-1/dd-child-emph.html' #--child_name --child_url
+    dropdown_button     : 'sch/comp/dropdown-1/dd-button.html'  
+        # --buttonTitle --children --emph_link --emph_name
+    dropdown_child      : 'sch/comp/dropdown-1/dd-child.html'   
+        # --child.name --child_url 
+    dropdown_child_emph : 'sch/comp/dropdown-1/dd-child-emph.html' 
+        #--child_name --child_url
 
     # ======================== ICONS =========================
 
-    icon-Date       : 'sch/icons/date.svg'
-    icon-User       : 'sch/icons/profile.svg'
-    icon-Shift      : 'sch/icons/shift.svg'
+    icon-Date           : 'sch/icons/date.svg'
+    icon-User           : 'sch/icons/profile.svg'
+    icon-Shift          : 'sch/icons/shift.svg'
 
-    avatar          : 'sch/comp/user/avatar.html' # --initials
+    avatar              : 'sch/comp/user/avatar.html' 
+        # --initials
+
+    spinner             : 'sch/comps/spinner.html' 
 
     # ======================== CARDS ========================
 
-    dense-card      : 'sch/comp/dense-card.html' # --link  --img  --title  --messages
+    dense-card          : 'sch/comp/dense-card.html'    # --link  --img  --title  --messages
 
-    warn_badge      : 'sch/comp/warn-badge.html'
-    alert_badge     : 'sch/comp/alert-badge.html'
-    circle_badge    : 'sch/comp/circle-badge.html'
+    warn_badge          : 'sch/comp/warn-badge.html'
+    alert_badge         : 'sch/comp/alert-badge.html'
+    circle_badge        : 'sch/comp/circle-badge.html'
+
+    card-mask           : 'comps/card-mask.html'   # *children
 
     # ======================== FORMS ========================
 
-    hstack-checkboxes       : 'sch/comp/forms/hstack-checkboxes.html'
-    radio-panel-wrapper     : 'sch/forms/radio-panel-wrapper.html' # --prompt  **children
-    radio-panel-item        : 'sch/forms/radio-panel-item.html' # --option  --note
+    hstack-checkboxes   : 'sch/comp/forms/hstack-checkboxes.html'
+    radio-panel-wrapper : 'sch/forms/radio-panel-wrapper.html'  # --prompt  **children
+    radio-panel-item    : 'sch/forms/radio-panel-item.html'     # --option  --note

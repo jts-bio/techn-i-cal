@@ -1,0 +1,19 @@
+behavior Background
+
+    init 
+        set $clickmode to 0 
+        end
+
+    on click 
+        call event.stopPropagation()
+        if .active exists 
+            send unfocus to .active
+        end
+        
+    end 
+
+
+
+--
+-- next behavior: Deck 
+-- goto:///workspaces/techn-i-cal/static/workday/behaviors/deck._hs

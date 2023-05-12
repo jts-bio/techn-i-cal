@@ -1,0 +1,45 @@
+
+extends 'base.html'
+
+
+block content
+
+   div.text.text-center
+      h1 Manual Schedule Input
+      h2= schedule.slug 
+      div.italic (Starting on #{schedule.start_date})
+   form(method='POST')
+      div.bg-zinc-900.bg-opacity-50.rounded.w-full.overflow-x-scroll.mx-3
+      table 
+         tr 
+            th 
+            each day in schedule.workdays.all
+               th.h-20
+                  div.transform.-rotate-45= day
+         each empl in schedule.employees.all
+            tr
+               th= empl.name
+               each day in schedule.workdays.all
+                  td 
+                     select.w-22.h-9.text-lg(data-employee=empl data-sdid=day.sd_id)
+                        option --
+                        each shift in empl.shifts_available.all
+                           option.text-black(value=shift.name)= shift
+                        option.pto(value="pto-request") PTO
+
+                           
+
+      button.btn.btn-primary(type='submit') Submit
+
+block style 
+
+   style.
+      select {
+         font-weight: bold!important;
+         color: black!important;
+      }
+      
+      select > option[value='pto-request'] {
+         color: indigo!important;
+         font-weight: bold!important;
+      }

@@ -1,0 +1,15 @@
+
+//- TEMPLATE: NAV BANNER 
+
+div.px-5.py-1.bg-black(class="w-[100%]")
+    if user.is_authenticated
+        //- USERNAME DISPLAY CHIP
+        a.flex.flex-row.opacity-70.bg-white.bg-opacity-10.rounded.px-3.w-fc(
+            href="{% url 'sch:user-detail' user.username %}"
+            class="hover:opacity-100")
+                i.fa-duotone.fa-user-astronaut.opacity-70.baseline.px-2
+                - var username = str(user).upper()
+                span.text-sm.jbm= username
+    else
+        //- LOGIN BUTTON
+        a Login

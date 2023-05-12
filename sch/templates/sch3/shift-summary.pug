@@ -1,0 +1,63 @@
+//- partial template
+//- SUMMARY TABLE | SHIFTS
+
+.rounded.p-2.w-fc.bg-zinc-900.bg-opacity-50
+    table 
+        thead
+            tr 
+                - var ftes      = sum_ / (40 * 6) 
+                - var rosterHrs = sum_ * (fte / ftes)
+                - var percent   = round (rosterHrs / sum_ * 100, 1)
+                
+                th   
+                th
+                    span.pct #{percent} %
+                th.head FTE Coverage
+        tbody
+            tr
+                th.head Per schedule
+                td 
+                    
+                    span.var #{ftes} 
+                    span FTE
+                td
+                    span.var #{sum_} 
+                    span hrs.
+            tr 
+                th.head In Roster
+                td 
+                    
+                    span.var #{fte} 
+                    span FTE
+                td
+                    span.var #{rosterHrs}
+                    span hrs.
+
+
+
+
+block style 
+    style.
+        .var { 
+            color: #cc6677bb; 
+            font-family: 'JetBrains Mono'; 
+            background-color: #acacac33; 
+            padding: 1px 3px; 
+            border-radius: 5px; 
+            border: 1px solid #acacac66;
+            margin-right: 5px;
+            }
+        .head {
+            font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif;
+            letter-spacing: -1px;
+        }
+        .pct {
+            color: #66cc77bb; 
+            font-family: 'JetBrains Mono'; 
+            background-color: #acacac33; 
+            padding: 1px 3px; 
+            border-radius: 5px; 
+            border: 1px solid #acacac66;
+            margin-right: 5px;
+        }
+        

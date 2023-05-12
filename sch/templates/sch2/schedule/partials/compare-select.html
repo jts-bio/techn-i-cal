@@ -1,0 +1,43 @@
+<div x-data="{ isOpen: true }" class="relative inline-block">
+  <!-- Dropdown toggle button -->
+  <button
+    _="on click toggle .hidden on next .dropdown-content end"
+    class="relative z-10 block mx-6 px-6 py-2 border border-transparent rounded-md text-white 
+    focus:border-blue-500 focus:ring-opacity-40 focus:ring-opacity-40 focus:ring-blue-400 focus:ring 
+    bg-gray-800 focus:outline-none"
+  >
+    <i class="text-sky-600 text-lg fa-duotone fa-code-compare"></i>
+    Select schedule...
+  </button>
+
+  <!-- Dropdown menu -->
+  <div
+    x-show="isOpen"
+    @click.away="isOpen = false"
+    x-transition:enter="transition ease-out duration-100"
+    x-transition:enter-start="opacity-0 scale-90"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-100"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-90"
+    class="dropdown-content hidden overflow-visible 
+        absolute right-0 z-20 w-[210px]
+        py-2 mt-2 origin-bottom-left rounded-md shadow-xl bg-gray-800
+        cursor-pointer"
+  >
+    {% for sch in other_schedules %}
+    <div
+      class="block px-4 py-3 text-sm capitalize transition-colors duration-300 transform text-gray-300 hover:bg-gray-700 hover:text-white"
+      hx-get="{% url 'sch:compare-schedules' schedule.slug sch.slug %}"
+      hx-trigger="click"
+      hx-target="#swap-panel"
+    >
+      {{ sch.year }}: Schedule {{ sch.number }} (Version {{ sch.version }})
+      
+      <i class="htmx-indicator fa-duotone fa-loader text-lg animate-spin fa-beat"></i>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div id="compare-block"></div>

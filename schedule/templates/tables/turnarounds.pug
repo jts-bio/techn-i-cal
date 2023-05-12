@@ -1,0 +1,21 @@
+// TURNAROUNDS TABLE TEMPLATE 
+
+mixin trashIcon(turnaround)
+  i.fa-duotone.fa-trash.text-zinc-200(class="hover:text-red-800 hover:scale-[125%]"
+    hx-post="/schedule/detail/#{turnaround.schedule.slug}/actions/clear-slot/#{turnaround.workday}/#{turnaround.shift}/")
+
+
+
+each turnaround in turnarounds
+
+  div.bg-zinc-300.bg-opacity-25.rounded.backdrop-blur.p-3
+    div.text-lg TURNAROUND 
+    each slot in turnaround.slots.all
+      if slot.shift.phase < 2
+        div.bg-zinc-900.rounded-full.border.border-amber-400.text-amber-100.w-8.h-8= slot.shift
+      else
+        div.bg-zinc-900.rounded-full.ring.ring-2.w-8.h-8= slot.shift
+      span.text-2xs= slot.workday
+
+
+        

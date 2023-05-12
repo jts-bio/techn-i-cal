@@ -1,0 +1,34 @@
+extends 'base.html'
+
+
+
+mixin card(title, link, bkgd_img)
+
+   div(class="w-full md:w-1/3 mt-4")
+      a(href=link)
+         div(class="relative border-orange-300 border overflow-hidden rounded")
+            img(class="object-cover rounded brightness-50 transition-all transform-gpu hover:scale-110 hover:brightness-90" 
+               src="#{bkgd_img}" 
+               alt=title)
+            div(class="absolute top-0 left-0 px-6 py-4")
+               h4(class="mb-3 text-3xl font-semibold tracking-tight text-white")= title
+            div(class="absolute bottom-0 left-0 px-6 py-4")
+               p(class="leading-normal mt-0 -translate-top-5 jbm text-zinc-300 text-shadow p-3") View and manage your #{title}
+
+block content
+
+   - var cardstack = "mx-2 flex flex-col gap-5 md:flex-row"
+   - var titlestack = "text text-center scale-125 my-4"
+   - var titleThin = "text-3xl text-white font-thin"
+   - var titleBold = "text-3xl text-red-400 font-bold -left-1"
+
+   div(class=titlestack)
+      span(class=titleThin) Flow
+      span(class=titleBold) Rate 
+      h3.text-xl.jbm  Pharmacy Scheduling
+
+   div(class=cardstack)
+      
+      +card('Schedules', '/schedule',          '/static/img/schedules-2.png')
+      +card('Employees', '/sch/employees/all', '/static/img/employees.png')
+      +card('Shifts',    '/sch/shifts/all/',   '/static/img/shifts-1.png')

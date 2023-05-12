@@ -1,0 +1,49 @@
+/*
+* ===FIELD LIGHTS=== *
+--- color palette ---
+
+_application_ = FlowRate
+_created_     = MAR 2023
+_author_      = JOSH T STEINBECKER
+*/
+
+:root {
+        --clay:        #212733;
+        --mirage:      #1a1f28;
+        --woodsmoke:   #0e1014;
+        --timberwolf:  #d9d7ce;
+        --tundra:      #c7c5b9;   
+        --limon:       #bae67d;
+        --grandis:     #ffd580;
+        --uranium:     #eeda04;
+        --viking:      #5ac8df;
+        --porsche:     #e8a054;
+        --contessa:    #946363;
+        --sienna:      #6a4242;
+        --alert:       #ff5c5c;
+        --amethyst:    #a074c4;
+        --indigo:      #5c5cff;
+
+
+        --bg-main:     var(--clay);
+        --bg-main-b:   var(--mirage);
+        --bg-dark:     var(--woodsmoke);
+        --bg-sec:      var(--timberwolf);
+        --bg-sec-b:    var(--tundra);
+    }
+
+    .bg-main {
+        background-color: var(--bg-main);
+    }
+    .bg-main-b {
+        background-color: var(--bg-main-b);
+    }
+    .bg-dark {
+        background-color: var(--bg-dark);
+    }
+    .bg-sec {
+        background-color: var(--bg-sec);
+    }
+    .bg-sec-b {
+        background-color: var(--bg-sec-b);
+    }

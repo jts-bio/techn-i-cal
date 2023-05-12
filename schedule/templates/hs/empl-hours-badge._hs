@@ -1,0 +1,22 @@
+
+behavior employeeHoursBadge
+
+   on load or check 
+      if @data-value <= 7 
+         set card to my.parentNode.parentNode.parentNode
+         then add .scale-0 to card 
+         then wait 500ms 
+         then add .opacity-0 to card 
+         then wait 200ms
+         then add .hidden to card
+      end
+
+   on subtract 
+      decrement @data-value by 10 
+
+      then put `${[@data-value]} hrs.` into me
+      
+      then trigger check
+   end
+
+end

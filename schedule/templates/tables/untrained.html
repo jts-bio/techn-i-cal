@@ -1,0 +1,178 @@
+<div class="boundbox">
+    <h2 class="text-2xl">Scheduled Slots with Missing Training</h2>
+
+    {% if data %}
+
+        <div class="bg-sky-900 transition cursor-pointer text-white hover:bg-blue-700 hover:border-sky-400 hover:scale-[110%] border-1 rounded w-fc px-3"
+            _="on click fetch /schedule/detail/{{data.0.schedule.slug}}/actions/clear-untrained/ 
+                    put result into closest .boundbox 
+                    trigger recheck on #n-untrained-check 
+                    trigger recheck on #n-empty-check end ">
+                <i class="fa-duotone fa-broom"></i> 
+                Clear All
+        </div>
+
+    <table>
+
+        <tr>    
+            <th class="text-amber-200" _="on click take .text-amber-200 from <th/> end">
+                Workday
+            </th>
+            <th>Shift</th>
+            <th _="on click take .text-amber-200 from <th/> end">
+                Employee
+            </th>
+            <th>Actions</th>
+        </tr>
+
+        {% for slot in data %}
+        <tr>
+            <td>{{ slot.workday }}</td>
+            <td>{{ slot.shift }}</td>
+            <td class="empl-cell">{{ slot.employee }}</td>
+            <td>
+                <div hx-post="actions/clear-slot/{{ slot.workday }}/{{ slot.shift }}/"
+                    hx-trigger="click"
+                    hx-swap="innerHTML"
+                    _="on click add .line-through to previous .empl-cell then
+                            send recheck to #n-unfav-check end">
+                    <i class="clear-icon fas text-zinc-300 rounded-full p-1 fa-trash hover:text-rose-400"></i>
+                    <i id="{{slot.workday}}-{{slot.shift}}-indicaator" class="fa-spinner fas fa-fade fa-spin htmx-indicator"></i>
+                </div>
+            </td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+    <script>
+        /* 
+        ADD WORKDAY LINK
+        ------------------------------------------------------
+        if a td in table is in the workday column (3nd column) 
+        of a <tr> then wrap with a <a> tag 
+        */
+        var table = document.getElementsByTagName('table')[0];
+        var rows = table.getElementsByTagName('tr');
+        var version = document.getElementById('scheduleVersionId').innerHTML.trim();
+        for (var i = 0; i < rows.length; i++) {
+            var cells = rows[i].getElementsByTagName('td');
+            for (var j = 0; j < cells.length; j++) {
+                if (j == 0) {
+                    var a = document.createElement('a');
+                    a.href = '/wday/' + cells[j].innerHTML + version + '/';
+                    a.innerHTML = cells[j].innerHTML;
+                    cells[j].innerHTML = '';
+                    cells[j].appendChild(a);
+                }
+            }
+        }
+
+        /* 
+        ORDER TABLE ON EMPLOYEE HEADER CLICK
+        ------------------------------------------------------
+        */
+        var table = document.getElementsByTagName('table')[0];
+        var header = table.getElementsByTagName('th')[2];
+        header.addEventListener('click', function() {
+            var rows = table.getElementsByTagName('tr');
+            var sorted = [];
+            for (var i = 1; i < rows.length; i++) {
+                sorted.push(rows[i]);
+            }
+            sorted.sort(function(a, b) {
+                var a = a.getElementsByTagName('td')[2].innerHTML;
+                var b = b.getElementsByTagName('td')[2].innerHTML;
+                if (a < b) {
+                    return -1;
+                } else if (a > b) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            for (var i = 0; i < sorted.length; i++) {
+                table.appendChild(sorted[i]);
+            }
+        });
+        /* 
+        REVERSE ON SECOND CLICK
+        ------------------------------------------------------
+        */
+        header.addEventListener('dblclick', function() {
+            var rows = table.getElementsByTagName('tr');
+            var sorted = [];
+            for (var i = 1; i < rows.length; i++) {
+                sorted.push(rows[i]);
+            }
+            sorted.sort(function(a, b) {
+                var a = a.getElementsByTagName('td')[2].innerHTML;
+                var b = b.getElementsByTagName('td')[2].innerHTML;
+                if (a < b) {
+                    return 1;
+                } else if (a > b) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+            for (var i = 0; i < sorted.length; i++) {
+                table.appendChild(sorted[i]);
+            }
+        });
+        /* 
+        ORDER TABLE ON WORKDAY HEADER CLICK
+        ------------------------------------------------------
+        */
+        var table = document.getElementsByTagName('table')[0];
+        var header = table.getElementsByTagName('th')[0];
+        header.addEventListener('click', function() {
+            var rows = table.getElementsByTagName('tr');
+            var sorted = [];
+            for (var i = 1; i < rows.length; i++) {
+                sorted.push(rows[i]);
+            }
+            sorted.sort(function(a, b) {
+                var a = a.getElementsByTagName('td')[0].innerHTML;
+                var b = b.getElementsByTagName('td')[0].innerHTML;
+                if (a < b) {
+                    return -1;
+                } else if (a > b) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            });
+            for (var i = 0; i < sorted.length; i++) {
+                table.appendChild(sorted[i]);
+            }
+        });
+        /*
+        REVERSE ON SECOND CLICK
+        ------------------------------------------------------
+        */
+        header.addEventListener('dblclick', function() {
+            var rows = table.getElementsByTagName('tr');
+            var sorted = [];
+            for (var i = 1; i < rows.length; i++) {
+                sorted.push(rows[i]);
+            }
+            sorted.sort(function(a, b) {
+                var a = a.getElementsByTagName('td')[0].innerHTML;
+                var b = b.getElementsByTagName('td')[0].innerHTML;
+                if (a < b) {
+                    return 1;
+                } else if (a > b) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+            for (var i = 0; i < sorted.length; i++) {
+                table.appendChild(sorted[i]);
+            }
+        });
+    </script>
+
+{% endif %}
+</div>

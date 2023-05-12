@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+<!--
+        SHIFT SST DETAILS VIEW
+
+        Main Component, 6x7 grid of Days which 
+        can specify the employee DOES NOT WORK
+        on that "day" of each schedule 
+
+
+-->
+
+
+{% block style %}
+
+    <style>
+        .helv {
+            font-family: 'Helvetica Neue', Arial, sans-serif!important;
+        }
+    </style>
+
+    
+{% endblock style %}
+
+
+
+{% block content %}
+
+    <a href="{{shift.url}}"><i class="fas">{% backArrow %}</i> Back </a>
+
+    <h1 class="text-3xl text-slate-300 font-bold leading-tight">
+        {{ shift }} Templating
+    </h1>
+    <form method="POST"> {% csrf_token %}
+
+        <div class="grid grid-cols-7 gap-1">
+            {% for i, day in days.items %}
+
+                <!------ * SLOT OR BLANK WORKDAY FOR SCHEDULES RANGE * ------>
+                <div class="day-container 
+                            bg-zinc-900 
+                            shadow 
+                            shadow-lg 
+                            rounded 
+                            m-1  px-2"
+                        _= "on highlightChange 
+                                add .bg-yellow-400 
+                                    .border 
+                                    .border-white 
+                                    .shadow 
+                                    .shadow-yellow-100 end
+                            on highlightChange 
+                                send highlightLabel 
+                                to <label/> in me end">
+
+                    <label 
+                        for= "{{i}}"  
+                        class="text-xs 
+                               text-zinc-300 
+                               helv 
+                               ls-1"
+                        script="on highlightLabel 
+                               add .text-amber-800
+                               .font-extrabold">
+
+                            Schedule Day {{ i | add:1 }}
+                    </label>
+                    <select id="{{i}}" name="{{i}}" 
+                            class="w-full text-xs text-blue-900 bg-zinc-400 font-bold uppercase" 
+                            {% if day.shift_on_sd_id == False %} disabled {% endif %}
+
+                            script="on change trigger highlightChange 
+                                            on the closest .day-container end">
+
+                        <option class="text-xs text-zinc-700" value=""> -- </option>
+                        {% for employee in day.available %}
+                            <option class="text-xs text-blue-900 font-bold uppercase" value="{{ employee.slug }}"
+                                {% if day.initial.employee == employee %} selected {% endif %}>
+                                    {{ employee }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endfor %}
+        </div>
+        <input type="submit" value="Submit" class="bg-blue-900 w-40 text-zinc-300 font-bold uppercase 
+                                                   text-xs px-2 py-1 mx- rounded m-1
+                                                   hover:transition hover:bg-sky-700 hover:text-white hover:scale-125">
+    </form>
+
+
+{% endblock content %}
+
+
+    

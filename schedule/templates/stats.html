@@ -1,0 +1,68 @@
+<div class="max-w-md p-2 bg-zinc-900 border-right-1 rounded-lg shadow sm:p-8 bg-opacity-60 backdrop-blur-md ">
+    <div class="flex flex-col center">
+        <div class="flex flex-row gap-1">
+            {% include 'components/week-bars.pug' %}
+            {% include 'components/action-btn.pug' %}
+        </div>
+        {% include 'components/sidebar-view-choice.pug' %}
+    </div>
+    <div class="flex items-center justify-between mb-4">
+        <h5 class="text-xl font-bold leading-none text-gray-900 dark:text-white cursor-pointer"
+            _="on click call alert(`{{schedule.data}}`) end">
+            Stats Summary
+        </h5>
+        <span hx-get="{% url 'schd:log' schedule.slug %}" 
+            hx-target="#swap-panel"
+            hx-trigger="click" 
+            class="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500 cursor-pointer">
+            View Log
+        </span>
+   </div>
+   <div class="flow-root">
+        <ul role="list" class="divide-y divide-gray-200 dark:divide-gray-700">
+            <!-- EMPTY SLOTS -->
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/n-empty.html' %}
+            </li>
+            <!-- EMUSR -->
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/emusr.html' %}
+            </li>
+            <!-- EMUSR STD DEV -->
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/turnarounds.html' %}
+            </li>
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/pto-rate.html' %}
+            </li>
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/tdo-conflicts.pug' %}
+            </li>
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/overtime.html' %}
+            </li>
+            <li class="py-0 sm:py-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/undertime.html' %}
+            </li>
+            <li class="py-0 sm:pt-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/unfavorables.html' %}
+            </li>
+            <li class="py-0 sm:pt-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/untrained.html' %}
+            </li>
+            <li class="pt-0 sm:pt-4 hover:bg-zinc-800"
+                _="on click call showWaitIndicator(event) then go to #swap-panel end">
+                {% include 'figures/mistemplated.html' %}
+            </li>
+        </ul>
+   </div>
+</div>

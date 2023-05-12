@@ -1,0 +1,39 @@
+{% load render_table from django_tables2 %}
+
+script(type='text/hyperscript').
+
+   behavior ResolveAll
+   
+      on click 
+         fetch actions/resolve-all-tdo/ 
+            with method:"POST" 
+         then put result into 
+            #resolve-all-response
+      end
+   end
+
+
+
+mixin HammerIcon()
+   i.fas.fa-hammer.px-1
+
+mixin ResolveButton()
+   div(class="bg-zinc-900 w-1/4 p-2 my-4 rounded hover:bg-zinc-700 hover:ring-zinc-400 hover:ring"
+      _="install ResolveAll"
+      )
+         +HammerIcon()
+         span Resolve All
+
+
+
+
+h2.text-2xl.font-bold.bg-amber-400.p-2.rounded.text-black
+   | TDO Conflicts
+
+div#resolve-all-response 
+
+   +ResolveButton()
+
+   div.bg-zinc-900.p-3.rounded.border
+      {% render_table table %}
+

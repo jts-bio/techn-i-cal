@@ -1,0 +1,49 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+<h1>{{ workday.date }}</h1>
+<span class="text-2xs">{{ workday.days_away }} days away</span>
+
+<div class="grid grid-cols-3 gap-3">
+    
+    {% for slot in workday.slots.all %}
+        <div class="slot flex flex-col">
+            <div class="flex flex-row">
+                <div>{{ slot.shift }}</div>
+                    {% if slot.employee %} <div class="empl">{{ slot.employee }} </div>
+                    {% else %} <div>N/A</div> 
+                    {% endif %}
+            </div>
+            <div class="dz h-[120px] bg-zinc-900 rounded"> 
+            </div>
+        </div>
+    {% endfor %}
+        
+</div>
+
+<div class="flex flex-row">
+    <div class="mx-2">
+        <h3>On Deck</h3>
+        <div id="onDeck">
+            {% for emp in workday.on_deck %} <div class="empl" draggable=true>{{ emp }}</div> {% endfor %}
+        </div>
+    </div>
+    <div class="mx-2">
+        <h3>On PTO</h3>
+        <div id="onPto">
+            {% for emp in workday.on_pto.all %} <div class="empl" draggable=true>{{ emp }}</div> {% endfor %}
+        </div>
+    </div>
+    <div class="mx-2">
+        <h3>On TDO</h3>
+        <div id="onTdo">
+            {% for emp in workday.on_tdo.all %} <div class="empl" draggable=true>{{ emp }}</div> {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+
+{% endblock content %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ workday.date }}</h1>
+    <p>{{ workday.wkd }}</p>
+
+    <h2>Slots</h2>
+
+    {% for slot in workday.slots.all %}
+
+        <div class="bg-zinc-900 px-5 py-2 rounded-lg shadow">
+            <span data-available='[{{slot.employee.shifts_available.all}}]'
+                 _="on click 
+                        put my@dataset.available 
+                        into #output 
+                    end">
+                {{ slot.employee }}
+            </span>
+        </div>
+    
+    {% endfor %}
+
+    <output id="output"></output>
+
+    <script type="text/hyperscript" src="{% static 'drag-race._hs' %}"></script>
+        
+    {% endblock %}
+

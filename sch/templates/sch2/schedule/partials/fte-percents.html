@@ -1,0 +1,46 @@
+{% load tags %}
+
+
+    <h2 class="text-2xl jbm">{{ schedule }} FTE Hours Ratios</h2>
+
+    <div class="panel mx-2 lg:mx-20">
+        
+            <table class="w-full text-sm text-left text-gray-500 table">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="py-3 px-6">Employee</th>
+                        <th scope="col" class="py-3 px-6">FTE</th>
+                        <th scope="col" class="py-3 px-6">Hours on <br/>Schedule</th>
+                        <th scope="col" class="py-3 px-6">Ratio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for empl in employees %}
+                        <tr>
+                            <td scope="col" 
+                                class="text-md uppercase font-extrabold 
+                                       {% cycle 'text-slate-200' 'text-zinc-400' %}"> 
+                                <a href="{% url 'sch:empl-schedule-detail' empl.slug sch.slug %}" class="bg-inherit">
+                                    {{ empl }}
+                                </a>
+                            </td>
+                            <td>{{ empl.fte }}</td>
+                            <td>{{ empl.total_hours }}</td>
+                            <td class="{% if empl.fte_percent > 100 %} text-red-300 font-bold {% endif %}">
+                                {{ empl.fte_percent| floatformat:1 }}
+                                {% if empl.fte %} 
+                                    % 
+                                {% else %} 
+                                    <span class='text-sm rounded bg-blue-900 px-2'>
+                                        N/A
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    

@@ -1,20 +1,3 @@
-"""pkpr URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
-
-
 from django.contrib import admin
 from django.urls import include, path, reverse
 from django.template import loader
@@ -34,12 +17,25 @@ from .forms import LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 
+import logging
+
+"""__________________________________________________________________
+
+    +=================================+
+    | ROOT URLS FOR 'FLOWRATE' WEBAPP |
+    +=================================+
+    
+    _________________________________________________________________
+"""
+
+__author__ = "JOSH STEINBECKER"
+
 
 
 
 @public
 def index(request):
-    template = loader.get_template('index.html')
+    template = loader.get_template('index.pug')
 
     if request.method == "POST":
         print("post")
@@ -47,30 +43,31 @@ def index(request):
             token_field = request.POST.get("token")
             print(token_field)
             return HttpResponseRedirect(reverse('index'))
-        
-    
-    context = {
-    }
+    context = {}
     return HttpResponse(template.render(context, request))
 
+@public
+def mail (request):
+    return render(request, 'mail.html', {'slots': Slot.objects.all()})
+    
 @public
 def loginView (request):
     template = loader.get_template('sch/login.html')
 
     if request.method == "POST":
-        print("post")
         if request.POST.get("username"): 
+            logging 
             username = request.POST.get("username")
             password = request.POST.get("password")
-
-            user = authenticate(request, username=username, password=password)
+            user     = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 return HttpResponseRedirect(reverse('index'))
             else:
                 return HttpResponseRedirect(reverse('login'))
 
-    form = LoginForm()
+    # make Login form with attr: autocapitalize="none" autocomplete="off"
+    form = LoginForm(auto_id=False)
     context = {
         'form': form
     }
@@ -85,16 +82,21 @@ def logoutView (request):
 
 
 urlpatterns = [
-    path('' ,           index,          name='index'),
-    path('login/',      loginView,      name='login-view'),
-    path('logout/',     logoutView,     name='logout-view'),
+    path('' ,           index,                    name='index'),
+    path('login/',      loginView,                name='login-view'),
+    path('logout/',     logoutView,               name='logout-view'),
     path('accounts/',   include('django.contrib.auth.urls')),
-    path('grappelli/',  include('grappelli.urls')), # grappelli URLS
+    path('grappelli/',  include('grappelli.urls')),
     path('admin/doc/',  include('django.contrib.admindocs.urls')),
-    path('admin/',      admin.site.urls,            name='admin'),
-    path('sch/',        include('sch.urls'),    name='sch'),
-    path('pds/',        include('pds.urls'),    name="pds"),
-    path('flow/',       include('flow.urls'),   name='flow'),
+    path('admin/',      admin.site.urls,          name='admin'),
+    path('empl/',       include('empl.urls'),     name='empl'),
+    path('sch/',        include('sch.urls'),      name='sch'),
+    path('schedule/',   include('schedule.urls'), name='schedule'),
+    path('wday/',       include('wday.urls'),     name='wday'),
+    path('prd/',        include('prd.urls'),      name="prd"),
+    path('pds/',        include('pds.urls'),      name="pds"),
+    path('api/',        include('flow.urls'),     name='flow'),
+    path('mail/',       mail,                     name='mail'),
 
-] + static( settings.STATIC_URL,  document_root=settings.STATIC_ROOT )
+] + static ( settings.STATIC_URL,  document_root = settings.STATIC_ROOT )
 

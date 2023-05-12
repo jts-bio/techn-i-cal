@@ -1,0 +1,31 @@
+{% load tags %}
+
+<div class="rounded backdrop-blur-md p-1 m-1 lg:p-3 lg:m-4">
+
+    <h3 class="text-lg bg-yellow-500 text-black rounded p-2 w-fc font-extrabold">Manage Requests by Employee</h3>
+    
+    <div class="flex flex-row flex-wrap">
+
+        {% for employee in schedule.employees.all %}
+
+            <span class="empl-selector cursor-pointer static uppercase text-xs md:text-sm bg-zinc-800 rounded py-1 px-3 hover:ring hover:ring-offset-2 hover:ring-amber-500 m-1"
+                hx-get="{% url 'schd:pto-grid' schedule.slug employee.slug %}" 
+                hx-trigger="click"
+                hx-target="#emp-pto"
+                _="on click
+                        remove .bg-amber-500 from .empl-selector then 
+                        add .bg-amber-500 to me
+                        end">
+
+                {{ employee }}
+                
+                <span class="pto-count rounded bg-gray-200 text-black"
+                    data-count="{% ptoCount employee schedule %}"></span>
+            </span>
+
+        {% endfor %}
+
+    </div>
+    <div id="emp-pto" class="pb-4"></div>
+
+</div>

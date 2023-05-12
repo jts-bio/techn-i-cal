@@ -27,7 +27,7 @@
     {% for day in days %}
     <div class="panel hstack {% if day.slot %}g-panel{% endif %} {% if day.ptoReq %}b-panel{% endif %}">
         <h5> 
-        <a href="{% url 'sch:v1-workday-detail' day.0 %}">{{day.date}} </a>
+            <a href="{{ day.url }}"> {{ day.date }} </a>
         </h5>
         {% if day.slot %}
             <div class="flex flex-col">
@@ -35,7 +35,7 @@
             <i style="font-size:8px;padding-top:0px;margin-top:0px;"> DAY{{day.slot.streak}} </i></div>
         {% endif %}
         {% if day.ptoReq %}
-            <h3 class="blue-glow">{% lockIcon %} </h3>
+            <i class="blue-glow text-lg fa-duotone fa-lock"></i> 
         {% endif %}
     </div>
     {% endfor %}

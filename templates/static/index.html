@@ -1,92 +1,136 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'base.html' %} {% load static %}
 
-{% block title %} {{ title }} {% endblock %}
+{% block title %} {{ title }} {% endblock %} 
+ 
+ 
+{% block style %}
 
-{% block style %} 
+<style>
+  body {
+    background-image: url('/static/img/obsidian-refractive.svg');
+  }
+   /* Add a spinner style */
+   .spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top-color: #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
 
-    <style>
-        body {
-            background-image: url("https://media.discordapp.net/attachments/1024277464945537044/1024477176168448123/jsteinbecker_Pharmacy_48df146c-98b9-467f-bf1b-c978e8d3e2bc.png?width=1392&height=1392");
-            background-repeat: repeat;
-            background-size: 30%;
-        }
-    </style>
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>
 
-{% endblock style %}
+{% endblock style %} 
 
-{% include 'header.html' %}
+{% include 'header.html' %} 
 
 {% block content %}
 
 <div class="flex-col">
+  <div class="flex flex-col text-center">
+    <div class="vstack">
+      <div
+        style="
+          font-size: 50px;
+          font-family: 'Helvetica Neue', monospace;
+          letter-spacing: 0px;
+          color: #fffa;
+          line-height: 120%;"
+      >
+        PHARMACY SCHEDULING
+      </div>
 
-        <div class="flex flex-col text-center">
-            
-            <div class="vstack">
-                <div style="font-size:50px;font-family:'JetBrains Mono';letter-spacing:2px;color:#fff6;font-style:italic;line-height:120%">
-                    PHARMACY SCHEDULING
-                </div>
+      <div
+        class="text-sm jbm text-orange-400 font-light bg-zinc-950 bg-opacity-50 rounded backdrop-blur-xl w-fc px-3 py-1"
+        style="font-style: italic"
+      >
+        {% now "j F Y H:i" %}
+      </div>
+    </div>
+  </div>
 
-                <div class="text-xs text-orange-400 font-light" style="font-style:italic;">
-                    {% now "j F Y H:i" %}
-                </div>
-            </div>
+  <div class="flex flex-row align-center"></div>
+
+  <div class="flex flex-col md:flex-row justify-center center align-content">
+    <div>
+      <a href="{% url 'schd:list' %}">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover w-full h-48 rounded brightness-50 transition-all transform-gpu hover:scale-110 hover:brightness-90" 
+              src="/static/img/sch-card-bkgd.svg" 
+              alt="Schedules" />
+          </div>
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Schedules</h4>
+          </div>
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-zinc-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage your schedule versions/drafts & publishing status.
+          </p>
         </div>
         
-        <div class='flex flex-row align-center'>
-      
+      </a>
+    </div>
+    <div>
+      <a href="/sch/shifts/all/">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover h-48 rounded brightness-90 transition-all transform-gpu hover:scale-110 hover:brightness-125" 
+              src="/static/img/isometric-drug-vial-1.png" 
+              alt="Shifts" />
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Shifts</h4>
+          </div>      
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage information about shifts and when they are scheduled.
+          </p>
         </div>
-    
-
-        <div class="flex m-30 mx-40 gap-10 flex-colw-70 sm:flex-col flex lg:flex-row lg:m-5 lg:space-x-20">
-
-            {% #dense-card title='Schedules'   img='/static/img/GoldBlackBackground.jpg'    link='/sch/v2/schedule/list' %}
-                <p class="text-2xs">
-                Workdays, weeks, pay periods, 
-                and schedules, as well as tools 
-                to build and edit schedule instances.
-                </p>
-            {%/dense-card%}
-
-            {% #dense-card title='Shifts'   img='/static/img/ChemistBackground.png'    link='/sch/shifts/all/' %}
-                
-                <p class="text-2xs">
-                Manage information about shifts 
-                and when they are scheduled.
-                </p>
-            {%/dense-card%}
-
-            {% #dense-card title='Employees'    img='/static/img/Orchestra.png'    link='/sch/employees/all/' %}
-                
-                <p class="text-2xs">
-                Manage employee information,
-                preferences, scheduling constraints, 
-                and more.
-                </p>
-            {%/dense-card%}
-           
+      </a>
+    </div>
+    <div>
+      <a href="/sch/employees/all/">
+        <div class="relative w-11/12 h-11/12 border-orange-300 border overflow-hidden rounded">
+          <img class="object-cover h-48 transition-all transform-gpu rounded brightness-90 hover:scale-110 hover:brightness-125" 
+              src="/static/img/employees.png"
+              alt="Employees"/>
+          <div class="absolute top-0 left-0 px-6 py-4">
+            <h4 class="mb-3 text-3xl font-semibold tracking-tight text-white">Employees</h4>
+          </div>      
+          <p class="leading-normal mt-0 -translate-top-5 jbm text-slate-300 text-shadow p-3 bg-zinc-900 bg-opacity-80">
+            Manage employee information, preferences, constraints, and more.
+          </p>
         </div>
-    
-        
-
-    {% #toggle-section title="View Messages" %} 
-
-       <div> 
-            THERE ARE EMPTY SLOTS COMING UP SOON. 
-            SEE THEM IN 
-            <a href="{% url 'sch:v2-current-schedule' %}">IN THE SCHEDULE VIEW</a>
-       </div> 
-
-    {%/toggle-section%}
-
-
-
-    
-    {% include 'sch/comp/display/carousel.html' %}
-
+      </a>
+    </div>
+  </div>
 </div>
-
+</div>
+<script>
+  // Get the submit button
+  const submitButton = document.getElementById('schedule-button');
+  // Add a click event listener to the button
+  submitButton.addEventListener('click', () => {
+    // Replace the button text with a spinner
+    submitButton.innerHTML = '<div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5"><img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png"  alt="Schedules"/> <div class="absolute top-0 left-0 px-6 py-4"> <h4 class="mb-3 text-xl font-semibold tracking-tight text-white"><div class="spinner"></div></h4></div>' ; 
+    // Send a request to the server
+    sendRequest().then(() => {
+      // When the request is complete, restore the original button text
+      submitButton.innerHTML = '<div class="relative max-w-xs overflow-hidden rounded-lg shadow-lg hover:ring hover:transition hover:scale-107 hover:-translate-y-5"><img class="object-cover w-full h-48 rounded" src="static/img/ScheduleImg.png"  alt="Schedules"/> <div class="absolute top-0 left-0 px-6 py-4"> <h4 class="mb-3 text-xl font-semibold tracking-tight text-white">Schedules</h4></div>' ; 
+    });
+  });
+  async function sendRequest() {
+    // This is where you would send the request to the server
+    // For the sake of this example, we will just simulate a delay using setTimeout()
+    await new Promise(resolve => setTimeout(resolve, 2000));
+  }
+</script>
 
 
 {% endblock %}

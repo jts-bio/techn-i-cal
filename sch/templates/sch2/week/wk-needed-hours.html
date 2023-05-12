@@ -1,0 +1,19 @@
+<div class="panel">
+    <h2 class="text-lg font-extrabold amber-300 shadow text-shadow">
+        EMPLOYEES WITH NEEDED HOURS
+    </h2>
+<div class="grid grid-cols-4">
+    {% for employee in employees %}
+        {% if employee.needed_hours > 10 %}
+            <a href="{% url 'sch:week-hrs-empl-form' week.pk employee.pk %}">
+                <div class="text uppercase">
+                    {{employee.name}}
+                    <span class="bg-amber-200 text-black text-2xs upper px-4 px-1 m-2 shadow shadow-amber-400 shadow-sm">
+                        {{ employee.needed_hours }} hrs
+                    </span>
+                </div>
+            </a>
+        {% endif %}
+    {% endfor %}
+</div>
+</div>

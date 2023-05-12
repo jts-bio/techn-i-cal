@@ -1,0 +1,33 @@
+script(type="text/javascript").
+
+   var hyperscript = `
+            on load or recheck 
+               fetch /api/schedule/{{schedule.slug}}/n-tdo-conflicts/ 
+               then set @n to result 
+               then put it into #tdo-conflicts
+               end 
+            on mutation of @n 
+               if @n == 0 
+                  add .bg-green-300 to #tdoBadge 
+               end`
+
+   $(document).ready(function() {$('#tdo-check').attr('_', hyperscript)})
+
+
+div.flex.items-center.space-x-4.cursor-pointer(
+    hx-get="tdo-conflicts/"
+    hx-trigger="click" 
+    hx-target="#swap-panel"
+    _="on click send recheck to #tdo-check end")
+
+   div.flex-shrink-0
+      div#tdoBadge.h-7.w-7.text.text-center.rounded-full.border.border-white.bg-amber-300
+         i.fa-duotone.text-black.fa-calendar-minus
+
+   div.flex-1.min-w-0
+      p.text-sm.font-medium.text-gray-100.truncate TDO Conflicts
+      p.text-2xs.font-light.italic.text-gray-500.truncate.dark Goal: n = 0
+
+   #tdo-check.inline-flex.items-center.text-base.font-semibold.text-gray-100
+      span#tdo-conflicts
+      span.opacity-70.text-2xs.font-light.italic.pl-2 conflicts

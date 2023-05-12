@@ -1,0 +1,8 @@
+tasks:
+  - init: pip install -r requirements.txt
+
+vscode:
+  extensions:
+    - svelte.svelte-vscode
+    - bradlc.vscode-tailwindcss
+    - microsoft.python

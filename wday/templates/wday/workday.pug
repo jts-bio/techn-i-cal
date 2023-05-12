@@ -1,0 +1,39 @@
+#bkgd-area(
+    _="on click send unfocus to .employee then send unhighlight to .slot then add .hidden to .trashbin end"
+    )
+    
+    include wday/partials/SPWD.html
+
+    .w-fc.flex.flex-col
+        .mx-auto
+            include wday/partials/week-dots.html
+        .container.w-full.mx-auto
+            .text.text-center.flex.flex-row
+                a(href=`${workday.prevWD.url}`, class="hover:scale-[110%]")
+                    i.fa-duotone.fa-circle-arrow-left
+                .flex.flex-col.center.text-center
+                    span.text-3xl.mt-2.font-semibold.text-orange-500 #{workday.date}
+                    span.text-sm.font-thin #{workday.wkd}
+                    span#wdId.hidden #{workday.slug}
+                a(href=`${workday.nextWD.url}`, class="hover:scale-[110%]")
+                    i.fa-duotone.fa-circle-arrow-right
+
+
+// _____ SECTION: SLOT GRID ______ 
+.all-shifts.grid.grid-cols-2(class="md:grid-cols-4", _="on click send unfocus to .emp-card then remove .active-emp-card from .emp-card then send unhighlight to .slot then add .hidden to .trashbin end")
+    each slot in workday.slots.all
+        // _____ OBJECT: SLOT ______ 
+        div
+            div.slot(class=`${slot.shift.group == "PM" ? "pm-slot" : (slot.shift.group == "XN" ? "pm-slot" : (slot.shift.group == "AM" ? "am-slot" : ""))} w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20 ${!slot.employee ? "bg-amber-800" : ""}`, id=`${slot.shift}`, available=`${slot.fillable_by.join(" ")}`, current=`${slot.employee}`, data-time-of-day=`${slot.shift.group}`, template-employee=`${slot.template_employee}`, a='0', b='0', _="install Slot")
+                .shift.px-1(class=`${!slot.employee ? "text-yellow-400" : ""}`, _="on click wait 200ms then go to url(`/sch/v2/workday-detail/${slot.workday.slug}/${slot.shift}/`) on dblclick go to url(`/sch/shift/${slot.shift.name}/`)") #{slot.shift}
+                span#indicator.htmx-indicator
+                    i.fa-duotone.fa-circle-notch.fa-spin.fa-fade
+                .inner-slot.inner-slot(_="on addcard put $emp into me end")
+                    if slot.employee
+                        - var employee = slot.employee
+                        include wday/partials/employeeChip.html
+                    else
+                        i(data-slot=`${slot.shift.name}`, data-group=`${slot.shift.group}`, class="fa-duotone text-zinc-100 fa-circle-ellipsis mt-2", _="on mouseover or mouseenter add .fa-beat .bg-green-300 to .allowed-to-fill-#{slot.shift.name} end on mouseleave remove .fa-beat .bg-green-300 from .allowed-to-fill-#{slot.shift.name} end")
+                        if slot.template_employee
+                            if slot.template_employee not in workday.pto.all
+                                div.bg-rose-900.text-white.text

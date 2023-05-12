@@ -3,20 +3,70 @@
 
 
 {% block style %}
+
     <style>
+        
         .local-button { }
+    
+        .calendar-page {
+            display: flex;
+            flex-direction: column;
+            width: 100px;
+            height: 85px;
+            padding: 10px;
+            margin: 5px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        
+        .calendar-page:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .calendar-header {
+            background-color: #9c9c9c;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: bold;
+            padding: 3px;
+            border-radius: 3px;
+        }
+        
+        .calendar-name {
+            width: 100%;
+            color: #87ceeb;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
     </style>
+    
 {% endblock style %}
     
 
 {% block content %}
 
-        <div class="flex flex-row space-between center center-content">
+        <div class="flex flex-col md:flex-row space-between center center-content">
             <div class="hstack">
                 <a href="{{ shift.prevUrl }}"> 
                     {% backArrow %} </a>
-                <div class="vstack">
-                    <h1 class="text-3xl">{{shift}}</h1>
+                <div class="vstack place-items-center  mx-5 my-2 p-2 rounded-lg">
+                    <div class="hstack">
+                         <!--SHIFT IMAGE -->
+                        <img src="{{ shift.image_url }}" 
+                            alt="{{ shift.name }}" 
+                            class="w-20 h-20 rounded-full ring-2 ring-zinc-900 
+                                    ring-offset-2 cursor-pointer
+                                    hover:scale-[175%] hover:ring-sky-200 
+                                    transition"
+                            hx-prompt="Set Shift image via URL:"
+                            hx-trigger="click"
+                            hx-post="/api/shift/{{shift.name}}/actions/set-img/" />
+                        <h1 class="text-3xl font-bold">{{shift}}</h1>
+                    </div>
                     <h3 class="text-md">{{shift.cls}} Shift</h3>
                 </div>
                 <a href="{{ shift.nextUrl }}"> 
@@ -26,30 +76,38 @@
 
 
         <div class="panel">
-            <h2 class="text-lg">Summary</h2>
-        <table class="table">
-            <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
-            <tr><th>Duration</th>  <td>{{shift.duration}}</td></tr>
-            <tr><th>Occurs on</th> <td>{{ days }}</td></tr>
-            <tr></tr>
-            <tfoot>
-            <tr>
-                <td><span class="text-xs italic">
-                                            {{shift.trained.all.count}} Trained Employees
-                    </span>
-                </td>
-                <td><span><a 
-                    href="{% url 'sch:shift-training-update' shift.cls shift.name %}" 
-                    class="bg-gray-400 border-2 border-gray-400 text-gray-800 
-                           hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 
-                           hover:border-amber-400 hover:ring-amber-600">
-                    Manage
-                    </a></span>
-                </td>
-            </tr>
-            </tfoot>
-        </table>
-
+        <div class="flex flex-col md:flex-row">
+            <div class="flex flex-col">  
+                <h2 class="text-lg">Summary</h2>
+                <table class="table">
+                    <tr><th>Start Time</th><td>{{shift.start}}</td></tr>
+                    <tr><th>Duration </th> <td>{{shift.duration}}</td></tr>
+                    <tr><th>Occurs on</th> <td>{{ days }}</td></tr>
+                    <tr><th>Percent Templated</th><td>{{ shift.percent_templated }}%</td></tr>
+                    <tr></tr>
+                    <tfoot>
+                    <tr>
+                        <td>
+                            <span class="text-xs italic">
+                                {{shift.trained.all.count}} Trained Employees
+                            </span>
+                        </td>
+                        <td>
+                            <span>
+                                <a href="{% url 'sch:shift-training-update' shift.cls shift.name %}" 
+                                class="bg-gray-400 border-2 border-gray-400 text-gray-800 
+                                    hover:bg-gray-600 px-9 rounded-md hover:text-amber-200 hover:border-2 
+                                    hover:border-amber-400 hover:ring-amber-600">
+                                Manage
+                                </a>
+                            </span>
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>  
+            {% include 'sch2/shift/detail/upcoming-panel.html' %}
+        </div>
         <div class="panel">
                 <h3 class="text-lg">
                     {{shift.trained.all.count}} Trained Employees: 
@@ -63,13 +121,19 @@
         
         </div>
 
-        <div class="panel">
+        <div class="panel flex flex-row flex-wrap">
             <a class="bg-indigo-800 border-indigo-700 ring-2 ring-indigo-600 rounded px-3 py-1 m-2
-                    hover:rounded hover:bg-indigo-300 hover:text-indigo-800 hover:ring-3 hover:ring-500"
-                href="{{ shift.url__template }}"> MANAGE TEMPLATING </a>
-            <a class="bg-indigo-800 border-indigo-700 ring-2 ring-indigo-600 rounded px-3 py-1 m-2
+                    hover:rounded hover:bg-indigo-300 hover:text-indigo-800 hover:ring-3 hover:ring-indigo-500"
+                href="{% url 'sch:shift-sst-form' shift.name %}"> MANAGE TEMPLATING </a>
+            <a class="bg-indigo-600 border-indigo-700 ring-2 ring-indigo-300 rounded px-3 py-1 m-2
                     hover:rounded hover:bg-indigo-300 hover:text-indigo-800 hover:ring-3 hover:ring-500"
                 href="{{ shift.url__tallies }}"> VIEW TALLIES </a>
+            <a class="bg-blue-800 border-blue-700 ring-2 ring-blue-600 rounded px-3 py-1 m-2
+                    hover:rounded hover:bg-blue-300 hover:text-blue-800 hover:ring-3 hover:ring-blue-500"
+                href="{% url 'sch:shift-pref-scores' shift.name %}"> SHIFT PREFERENCE SCORES </a>
+            <a class="bg-purple-800 border-purple-700 ring-2 ring-purple-600 rounded px-3 py-1 m-2
+                                hover:rounded hover:bg-purple-300 hover:text-purple-800 hover:ring-3 hover:ring-indigo-500"
+                href="{% url 'sch:shift-sort-scores' shift.name %}"> SHIFT SORT SCORES </a>
         </div>
 
 

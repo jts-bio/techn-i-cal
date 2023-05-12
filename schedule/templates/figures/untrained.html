@@ -1,0 +1,67 @@
+{% load static %}
+
+
+<div class="flex items-center space-x-4 cursor-pointer"
+    hx-get="{% url 'schd:untrained' schedule.slug %}"
+    hx-trigger="click"
+    hx-target="#swap-panel">
+    <div class="flex-shrink-0">
+        <div id="nUntrainedBadge"
+            class="h-7 w-7 pl-[1px] pt-[.5px] rounded-full border border-white  bg-amber-300">
+            <i class="fa-duotone text-black fa-graduation-cap"></i>
+        </div>
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-gray-900 truncate dark:text-white">
+            Training Issues
+        </p>
+        <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">
+            Goal: n = 0
+        </p>
+    </div>
+    <div class="inline-flex items-center text-base font-semibold text-gray-900 dark:text-white"
+        id="n-untrained-check"
+        _="on load or recheck fetch /api/schedule/{{schedule.slug}}/n-untrained/ 
+                put result into #n-untrained then set @n to result end
+            on mutation of @n if @n == 0 add .bg-green-300 to #nUntrainedBadge end">
+        <span id="n-untrained"></span>
+        <span class="opacity-70 text-2xs font-light italic pl-1"> instances</span>
+    </div>
+</div>
+
+
+
+<script>
+
+    function getNUntrained() {
+        var empty = document.getElementById("n-untrained").innerHTML;
+        var nEmpty = parseInt(empty);
+        console.log(nEmpty);
+        if (nEmpty <= 28) {
+            document.getElementById("nUntrainedBadge").classList.remove("bg-amber-300");
+            document.getElementById("nUntrainedBadge").classList.add("bg-green-300");
+        } else if (nEmpty <= 50) {
+            document.getElementById("nUntrainedBadge").classList.remove("bg-amber-300");
+            document.getElementById("nUntrainedBadge").classList.add("bg-amber-300");
+        } else {
+            document.getElementById("nUntrainedBadge").classList.remove("bg-amber-300");
+            document.getElementById("nUntrainedBadge").classList.add("bg-red-300");
+        }
+    }
+
+    // listen for mutation of #percent
+    var targetNode = document.getElementById('n-untrained');
+    var config = { attributes: true, childList: true, subtree: true };
+    var callback = function(mutationsList, observer) {
+        for(var mutation of mutationsList) {
+            if (mutation.type == 'childList') {
+                getNEmpty();
+            }
+        }
+    };
+    var observer = new MutationObserver(callback);
+    observer.observe(targetNode, config);
+    
+    
+
+</script>

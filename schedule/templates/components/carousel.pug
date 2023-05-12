@@ -1,0 +1,75 @@
+.carousel
+  .carousel-inner
+    each item in carouselItems
+      .carousel-item
+        img(src=item.image, alt=item.caption)
+        .carousel-caption
+          h5=item.caption
+          p=item.description
+  a.carousel-control-prev(href="#carousel", role="button", data-slide="prev")
+    span.carousel-control-prev-icon(aria-hidden="true")
+    span.sr-only Previous
+  a.carousel-control-next(href="#carousel", role="button", data-slide="next")
+    span.carousel-control-next-icon(aria-hidden="true")
+    span.sr-only Next
+
+
+style(type="text/stylus").
+    .carousel
+        height: 400px
+
+    .carousel-item
+        display: flex
+        align-items: center
+        justify-content: center
+
+    .carousel-caption
+        background-color: rgba(0, 0, 0, 0.5)
+        color: #fff
+        padding: 20px
+        position: absolute
+        bottom: 0
+        left: 0
+        width: 100%
+
+        h5
+        font-size: 1.5rem
+        font-weight: bold
+        margin-bottom: 10px
+
+        p
+        font-size: 1rem
+
+    .carousel-control-prev,
+    .carousel-control-next
+        width: 5%
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon
+        background-color: #000
+        height: 30px
+        width: 30px
+
+        &:before
+        content: ""
+        display: inline-block
+        border-top: 8px solid transparent
+        border-bottom: 8px solid transparent
+        border-right: 8px solid #fff
+        position: absolute
+        top: 50%
+        transform: translateY(-50%)
+
+    .carousel-control-prev-icon
+        left: 0
+
+        &:before
+        left: 50%
+        transform: translate(-50%, -50%) rotate(180deg)
+
+    .carousel-control-next-icon
+        right: 0
+
+        &:before
+        right: 50%
+        transform: translate(50%, -50%)

@@ -2,52 +2,67 @@
 {% load tags %}
 
 
-<nav class="bg-gray-900 border-gray-200 px-2 sm:px-4 py-2.5 rounded dark:bg-gray-900">
-  <div class="container flex flex-wrap justify-between items-center mx-auto">
+<nav class="bg-slate-900 px-2 sm:px-4 py-2.5">
+  <div class="flex flex-wrap justify-between items-center mx-auto">
+
     <a href="/" class="flex items-center">
-        {% include 'FlowRate.svg' %}
-        <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white font-thin">Flow</span><span class="text-2xl text-orange-900 font-bold">Rate</span>
+        <img 
+          src="{% static 'img/flowrate-logo-v0.4.svg' %}" 
+          class="w-[160px] h-[160px] pl-5" />
+
+        <span class="text-2xl text-sky-100 font-thin letter-spacing-1">
+          Flow</span>
+        <span class="text-2xl text-red-400 font-extrabold">
+          Rate</span>
     </a>
+    
     <button 
       data-collapse-toggle="navbar-default" 
-      type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" 
+      type="button" class="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden" 
       aria-controls="navbar-default" 
-      aria-expanded="false">
+      aria-expanded="false"
+      script="on click toggle .hidden on #navbar-default end">
       <span class="sr-only">Open main menu</span>
       <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path></svg>
     </button>
+    
     <div class="hidden w-full md:block md:w-auto" id="navbar-default">
-      <ul class="flex flex-col p-4 mt-4 bg-gray-50 rounded-lg border border-gray-100 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+      <ul class="flex flex-col p-4 mt-4 rounded-lg md:flex-row md:space-x-8 md:mt-0 md:text-sm">
         <li>
           <div class="vstack">
-            <a href="{% url 'sch:v2-workday-list' %}" 
-            class="block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-              Workdays</a>
-            <div class="md:block sm:hidden">{% icon-Date %}</div>
+            <a href="{% url 'schd:list' %}" 
+            class="block text-2xs text-orange-300 md:text-md uppercase md:capitalize py-2 pr-4 pl-3 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0">
+             <i class="fa-duotone text-lg text-orange-300 fa-calendar-week"></i>
+             SCHEDULES</a>
           </div>
         </li>
         <li><div class="vstack">
-          <a href="/sch/shifts/all/" class="block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-            Shifts</a>
-            <div class="md:block sm:hidden">{% icon-Shift %}</div>
+          <a href="/sch/shifts/all/" class="block text-indigo300 text-2xs md:text-md uppercase md:capitalize py-2 pr-4 pl-3 text-gray-400 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0">
+            <i class="fa-duotone text-lg text-indigo-300 fa-syringe"></i>
+            SHIFTS</a>
           </div>
         </li>
         <li><div class="vstack">
-          <a href="/sch/employees/all/" class="block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
-            Employees</a>
-            <div class="md:block sm:hidden">{% icon-User %}</div>
+          <a href="/sch/employees/all/" class="block text-2xs text-sky-300 md:text-md uppercase md:capitalize py-2 pr-4 pl-3 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:p-0 ">
+            <i class="fa-duotone text-lg text-sky-300 fa-user-astronaut"></i>
+            EMPLOYEES</a>
           </div>
         </li>
           <li>
-            <div class="vstack">
+            <div class="vstack ">
 
               <a href="{% url 'sch:v2-current-week' %}"
-                class="font-extrabold block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
+                class="font-light block py-1 pr-4 pl-3 text-gray-400 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
               Current Week </a>
               
               <a href="{% url 'sch:v2-current-schedule' %}"
-                class="font-extrabold block py-2 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent">
+                class="font-extrabold block py-1 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
               Current Schedule </a>
+
+              <a href="{% url 'prd:preline-table' %}"
+                class="font-extrabold block py-1 pr-4 pl-3 text-gray-700 rounded hover:bg-gray-100 md:hover:bg-transparent md:border-0 md:hover:text-blue-700 md:p-0 dark:text-gray-400 md:dark:hover:text-white">
+                PLT
+              </a>
               
             </div>
           </li>
@@ -60,81 +75,3 @@
     </div>
   </div>
 </nav>
-
-
-
-
-
-
-{% comment %}
-  
-
-<header aria-label="Site Header" class="bg-white dark:bg-gray-900">
-  <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-    <div class="flex h-24 items-center justify-between">
-      <div class="flex-1 md:flex md:items-center md:gap-12">
-        <a class="block text-teal-600 dark:text-teal-300" href="/">
-
-         
-
-        </a>
-      </div>
-
-      <div class="md:flex md:items-center md:gap-12">
-        <nav aria-label="Site Nav" class="hidden md:block">
-          <ul class="flex items-center gap-6 text-sm">
-            <li>
-              <a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href="/sch/day/all">
-                <div class="vstack aic">
-                  <div>{% include 'Date.svg' %}</div>
-                  <div> WORKDAYS </div>
-                </div>
-              </a>
-            </li>
-
-            <li>
-              <a class="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href="/sch/shifts/all">
-                <div class="vstack aic">
-                  <div>{% include 'Shift.svg' %}</div>
-                  <div> SHIFTS</div>
-                </div>
-              </a>
-            </li>
-
-            <li>
-              <a href="/sch/employees/all" class="header-link">
-                <div class="vstack aic">
-                  <div>{% include 'Profile.svg' %}</div>
-                  <div> EMPLOYEES</div>
-                </div>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
-        <div class="flex items-center gap-4">
-          <div class="hstack">
-            {% goToThisWeek %}
-            <div>
-              <a href="/sch/schedule/{% todayYear %}/{% todaySch %}/" class="btn btn-compact">
-                VIEW SCHEDULE GRID
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-    </div>
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-      <div class="flex h-12 items-center justify-between bg-black rounded-md">
-        <div class="flex-1 md:flex md:items-center md:gap-12 lg:items-center">
-
-          {% toast message="Go Fuck Yourself" %}
-
-        </div>
-      </div>
-    </div>
-  </div>
-</header>{% endcomment %}

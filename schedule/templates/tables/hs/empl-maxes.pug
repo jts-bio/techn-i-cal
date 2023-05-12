@@ -1,0 +1,21 @@
+
+
+script(type="text/hyperscript").
+    behavior maxManager 
+        init 
+            if @data-count is null 
+            call alert('Max Scheduling Data is not input for this schedule. Input Now Please.')
+
+
+
+table(_="install maxManager")
+    thead
+        th Employee 
+        th Max Hours
+        th Standard Value 
+    tbody
+        each emp in prn_employees
+            tr
+                td(emp.name)
+                td
+                td(emp.maxes)- setup has not yet been done

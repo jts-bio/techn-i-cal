@@ -15,51 +15,131 @@
     
 
 {% block content %}
+
+    <script src="https://d3js.org/d3.v6.js"></script>
+
+
     <a href="{{ employee.url }}"> {% backArrow %} </a>
     <h1 class="text-3xl text-center"> {{ employee }} </h1>
 
-<div class="hstack">
-    <div class="panel">
-    <table>
-        {% for shift in shifts %}
-        <tr>
-            <th>
-                {{ shift.name }}
-            </th>
-            <td style="width:45px;">
-                {{ shift.slot_count }}
-            </td>
-        </tr>
-        {% endfor %}
+    <div class="hstack">
+        <div class="panel">
+        <table>
+            {% for shift in shifts %}
+            <tr>
+                <th>
+                    {{ shift.name }}
+                </th>
+                <td style="width:45px;">
+                    {{ shift.slot_count }}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div id="my_dataviz"></div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Strongly Dislike</th>
+                <th>Dislike</th>
+                <th>Neutral</th>
+                <th>Like</th>
+                <th>Strongly Like</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{%for i in stronglyDislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+                <td>{%for i in dislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+                <td>{%for i in neutral%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+                <td>{%for i in like%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+                <td>{%for i in stronglyLike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
+            </tr>
+            <tr>
+                <td>{{stronglyDislikeCount}}</td>
+                <td>{{dislikeCount}}</td>
+                <td>{{neutralCount}}</td>
+                <td>{{likeCount}}</td>
+                <td>{{stronglyLikeCount}}</td>
+            </tr>
+        </tbody>
     </table>
     </div>
-  <table class="table">
-    <thead>
-        <tr>
-            <th>Strongly Dislike</th>
-            <th>Dislike</th>
-            <th>Neutral</th>
-            <th>Like</th>
-            <th>Strongly Like</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>{%for i in stronglyDislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
-            <td>{%for i in dislike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
-            <td>{%for i in neutral%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
-            <td>{%for i in like%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
-            <td>{%for i in stronglyLike%} <span class="badge">{{i.name}}</span>{%endfor%}</td>
-        </tr>
-        <tr>
-            <td>{{stronglyDislikeCount}}</td>
-            <td>{{dislikeCount}}</td>
-            <td>{{neutralCount}}</td>
-            <td>{{likeCount}}</td>
-            <td>{{stronglyLikeCount}}</td>
-        </tr>
-    </tbody>
-  </table>
-</div>
+
+
+
+    <script>
+            // set the dimensions and margins of the graph
+            var margin = {top: 30, right: 30, bottom: 30, left: 50},
+                width = 460 - margin.left - margin.right,
+                height = 400 - margin.top - margin.bottom;
+            
+            // append the svg object to the body of the page
+            var svg = d3.select("#my_dataviz")
+              .append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+              .append("g")
+                .attr("transform",
+                      "translate(" + margin.left + "," + margin.top + ")");
+            
+            
+            // get the data
+            d3.json("data", function(data) {
+            
+              // add the x Axis
+              var x = d3.scaleLinear()
+                        .domain([0, 1000])
+                        .range([0, width]);
+              svg.append("g")
+                  .attr("transform", "translate(0," + height + ")")
+                  .call(d3.axisBottom(x));
+            
+              // add the y Axis
+              var y = d3.scaleLinear()
+                        .range([height, 0])
+                        .domain([0, 0.01]);
+              svg.append("g")
+                  .call(d3.axisLeft(y));
+            
+              // Compute kernel density estimation
+              var kde = kernelDensityEstimator(kernelEpanechnikov(7), x.ticks(40))
+              var density =  kde( data.map(function(d){  return d.score; }) )
+            
+              // Plot the area
+              svg.append("path")
+                  .attr("class", "mypath")
+                  .datum(density)
+                  .attr("fill", "#69b3a2")
+                  .attr("opacity", ".8")
+                  .attr("stroke", "#000")
+                  .attr("stroke-width", 1)
+                  .attr("stroke-linejoin", "round")
+                  .attr("d",  d3.line()
+                    .curve(d3.curveBasis)
+                      .x(function(d) { return x(d[0]); })
+                      .y(function(d) { return y(d[1]); })
+                  );
+            
+            });
+            
+            
+            // Function to compute density
+            function kernelDensityEstimator(kernel, X) {
+              return function(V) {
+                return X.map(function(x) {
+                  return [x, d3.mean(V, function(v) { return kernel(x - v); })];
+                });
+              };
+            }
+            function kernelEpanechnikov(k) {
+              return function(v) {
+                return Math.abs(v /= k) <= 1 ? 0.75 * (1 - v * v) / k : 0;
+              };
+            }
+    </script>
 
 {% endblock content %}

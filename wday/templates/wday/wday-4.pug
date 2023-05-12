@@ -1,0 +1,186 @@
+extends 'base.html'
+//- view : goto:///workspaces/techn-i-cal/wday/views.py@WorkdayView
+
+// HELPER MIXINS -----------------------------
+
+block mixins
+
+    mixin nextWd(workday)
+        if workday.sd_id != 41
+            a(href=workday.nextWD().url())
+                i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+
+    mixin prevWd(workday)
+        if workday.sd_id != 0
+            a(href=workday.prevWD().url())
+                i.fas.fa-chevron-left.opacity-40.text-xs.px-2
+
+    mixin day-breadcrumbs(workday)
+        #breadcrumbs
+            a(href=workday.schedule.url())
+                | SCHD #{workday.schedule.slug} 
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            a(href=workday.period.url()) 
+                | PRD #{workday.period.number}
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            a(href=workday.week.url())
+                | WEEK #{workday.week.number}
+            i.fas.fa-chevron-right.opacity-40.text-xs.px-2
+            span#wdid(data-value=workday.n()) DAY #{workday.n}
+
+    mixin time-icon(daytime)
+        if daytime == 'AM'
+            i.fa-sun.fas.fa-sun.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
+        if daytime == 'PM'
+            i.fas.fa-moon.opacity-10.px-2.text-3xl.-left-5.-top-2.relative
+        if daytime == 'XN'
+            i.fas.fa-tombstone.opacity-10.px-2.text-3xl.-left-6.-top-2.relative
+
+    mixin hiddenPtoList(wd)
+        div#pto-list.hidden(
+            data-employees=' '.join(list(wd.pto_list())))
+
+    mixin hiddenTdoList(wd)
+        div#tdo-list.hidden(
+            data-employees=' '.join(list(wd.tdo_list())))
+
+    mixin template-empl-btn(slot)
+        if slot.template_employee != slot.employee
+            if slot.template_employee_on_pto == "False"
+                i.template-btn.fa-solid.fa-street-view.opacity-30(
+                    _="install TemplateEmployeeBtn", 
+                    class="hover:text-amber-400 hover:opacity-50",
+                    data-employee=slot.employee,
+                    data-shift=slot.shift.name,
+                    data-template=slot.template_employee
+                    )
+
+    mixin empl-context-arrows(empl, workday)
+        span.absolute.bottom-0.right-0.mr-2.mb-3
+            i.prev-arrow.e-right.fa-solid.fa-play.text-white.opacity-10.rotate-180
+            i.next-arrow.e-left.fa-solid.fa-play.text-white.opacity-10.px-1
+
+    mixin swap-in-button(slot)
+        .swap-in-btn.hidden.z-10.bg-emerald-400.pointer-cursor.drop-shadow.float-right.rounded-full.px-3.fa-beat.truncate(
+            _="install SwapButton"
+            )
+                i.fa-solid.fa-arrow-down-to-bracket.text-emerald-700.text-xl
+
+// MAIN MIXINS --------------------------------
+
+mixin Employee(empl, workday)
+    div.employee.relative.flex-none.bg-slate-700.rounded.border-white.border.h-20.w-34.m-1(
+        draggable='true'
+        data-employee-id=empl.slug
+        data-available=' '.join(list(empl.shifts_available.values_list('name',flat=True)))
+        data-week-hours= empl.details_on_day(workday.slug)['wk_hours']
+        data-period-hours= empl.details_on_day(workday.slug)['pd_hours']
+        data-day-hours= empl.details_on_day(workday.slug)['day_hours']
+        data-prev-day= empl.check_prev_day(workday.slug)
+        data-next-day= empl.check_next_day(workday.slug)
+        data-in-daytime= empl.check_daytime(workday.slug)
+        data-in-slot= empl.check_slot(workday.slug)
+        _='install Employee')
+                img.e-img(src=empl.image_url draggable="false").w-10.h-10.rounded-full.border.saturate-0
+                div.e-name.font-thin.text-md.truncate.pb-1= empl.name.upper
+                div.e-hours.hours-display.truncate.pt-1
+                +empl-context-arrows(empl, workday)
+                span.e-btm.text-2xs
+
+mixin Slot(slot)
+    div.slot.h-42.w-52.bg-zinc-900.bg-opacity-60.backdrop-blur.rounded.p-3(
+        data-shift= slot.shift.name
+        data-template= slot.template_employee
+        data-template-pto = slot.template_employee_on_pto
+        data-employee= slot.employee
+        data-time-of-day= slot.shift.group
+        data-hours= slot.shift.hours
+        data-slug= slot.slug
+        _= 'install Slot')
+            div.flex.flex-row
+                a.slot-link(
+                    href=slot.url()
+                    _="init if my.parentNode.parentNode@data-employee == null remove @href"
+                    )
+                    span.shift-name.font-light.text-2xl.opacity-70= slot.shift.name
+                    +time-icon(slot.shift.group)
+
+                if slot.template_employee != null 
+                    +template-empl-btn(slot)
+
+                +swap-in-button(slot)
+
+            if slot.employee != null
+                +Employee(slot.employee, slot.workday)
+
+block style 
+
+    style.
+        .h1              {font-size: 32px; font-family: 'JetBrains Mono';}
+        .h4              {font-size: 20px; border-radius: 6px; color: #000044!important; background-color: white; font-weight: bold; padding: 5px 2px 5px 2px;}
+        #SlotGrid        {display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 1rem; overflow-x:scroll;}
+        #ScrollingDeck   {margin:12px; padding: 12px; box-shadow: 0 0 10px #ffffff55;background-color: #000000;gap:20px; overflow-x: scroll;border-radius: 10px;}
+        .active          {background-color: #ccffdd55!important; drop-shadow: 0 0 10px #ccffdd55;}
+        .dragged-over-prohibited {background-color: #ff003333!important; drop-shadow: 0 0 10px #ff003377;}
+        .dragged-over-discouraged {background-color: #ffcccc55!important; drop-shadow: 0 0 10px #ffcccc55;}
+        .dragged-over    {background-color: #ccffcc33!important;}
+        .swap-in-btn > i {font-size: 20px; color: #003311ff; cursor: pointer;}
+        .hours-display   {font-size: 10px; font-family: 'JetBrains Mono'; opacity: 0.5; text-overflow: ellipsis;}
+        .pto-flag        {background-color: #ff006655!important; color: #dddddd!important;}
+        .tdo-flag        {background-color: #dd447755!important; color: #dddddd!important}
+        .badge-red       {width:32px; height:32px; position: absolute; bottom: -7px; left: -7px; border: 2px solid white; border-radius: 100%;font-size: 11px; background-color: #ff1100aa; color: white; padding-top: 6px; alignment: center;padding-left: 3px;}
+        .employee        {display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(4, 1fr); grid-column-gap: 0px;grid-row-gap: 0px; width: 170px!important;height:62px!important}
+            .e-img          { grid-area: 1 / 1 / 4 / 4; } 
+            .e-name         { grid-area: 1 / 4 / 3 / 11; padding-left: 1px; padding-top: 1px; } 
+            .e-hours        { grid-area: 2 / 4 / 3 / 11; padding-left: 3px; } 
+            .e-left         { grid-area: 3 / 4 / 5 / 6; } 
+            .e-ctr          { grid-area: 3 / 6 / 5 / 9; } 
+            .e-right        { grid-area: 3 / 9 / 5 / 11; } 
+            .e-btm          { grid-area: 5 / 1 / 5 / 4; text-size: 8px; }
+        .turnaround      {background-color: #99667766!important; drop-shadow: 0 0 10px #99225544;}
+//------------------ CONTENT ------------------//
+
+block content 
+    script(type='text/coffeescript', src='/static/wday-pug.coffee') 
+    script(type='text/coffeescript', src='/static/workday/employee.coffee')
+    script(type="text/coffeescript"  src='/static/base-cxt-menu.coffee')
+
+    script(type='text/hyperscript',  src='/static/workday/behaviors/deck._hs')
+
+    script(type='text/hyperscript',  src='/static/workday/behaviors/employee._hs')
+    script(type='text/hyperscript',  src='/static/workday/behaviors/empl-template-btn._hs')
+    script(type='text/hyperscript',  src='/static/workday/behaviors/empl-swap-in-btn._hs')
+
+    script(type='text/hyperscript',  src='/static/workday/behaviors/slot._hs')
+    script(type='text/hyperscript',  src='/static/workday/behaviors/backdrop._hs')
+    
+
+
+    +day-breadcrumbs( workday )
+
+    .flex.flex-row 
+        +prevWd( workday )
+        .text-center
+            h1.h1= workday.date
+            h4.h4= workday.weekday
+        +nextWd( workday )
+
+    #background(_="install Background")
+
+        #SlotGrid
+            for slot in slots
+                +Slot( slot )
+
+        #ScrollingDeck.flex.flex-row(_="install Deck")
+
+            for empl in workday.on_deck.all
+                +Employee(empl, workday)
+
+        div(hx-get="partial/speed-dial/"
+            hx-trigger="load"
+            )
+
+        
+    +hiddenPtoList( workday )
+    +hiddenTdoList( workday )
+            

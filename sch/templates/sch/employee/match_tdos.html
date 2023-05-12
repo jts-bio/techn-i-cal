@@ -5,18 +5,95 @@
 {% block content %}
 
 <a href="/sch/employee/{{employee}}/template-days-off/">
-    <div class="hstack">
-        <div> {% backArrow %} </div>
-        <div> Back </div>
+    <div>
+        <i class="fas">{% backArrow %}</i> Back
     </div>
 </a>
 
 <div class="panel">
-    <form method="post"> {% csrf_token %}
-        {{form.as_table}}
-        <td><input type="submit" value="Submit and Match"></td>
+    <h2>Match Template Days Off</h2>
+    <h1 class="text-3xl font-bold">{{employee}}</h1>
+    <form method="post"
+    > {% csrf_token %}
+        <input type="hidden" name="employee" value="{{ employee.pk }}" />
+
+        <label for="employee-to-match">Select employee to match:</label>
+        <select name="employeeToMatch" id="employee-to-match" onchange="onChange(event);">
+                <option value="" selected>Select employee...</option>
+                {% for empl in other_employees %}
+                    <option data-object-link="/sch/api/match-tdo/{{empl.pk}}/preview/" value="{{ empl.pk }}">
+                        {{ empl }}
+                        </option>
+                {% endfor %}
+        </select>
+
+        <input type="submit" value="Submit & Match" class="transition hover:bg-yellow-500 hover:scale-110 hover:text-black" />
     </form>
 </div>
+
+
+<div id="indicator" class="hidden">
+    <i class="fa-duotone fa-loader fa-spin fa-fade"></i>
+    <span class="fa-fade">Loading...</span>   
+</div>
+
+<div class="flex flex-row gap-2 w-full">
+    <div id="current-pane" class="opacity-60"
+        hx-get="/sch/api/match-tdo/{{employee.slug}}/preview/"
+        hx-trigger="load"
+        hx-target="#current-pane"
+        hx-swap="innerHTML">
+    </div>
+    <div id="transition-arrow" class="hidden">
+        <i class="fas fa-arrow-right text-3xl"></i>
+    </div>
+    <div id="preview-pane"> </div>
+</div>
+
+<script>
+
+    function onChange (t) {
+        const select = t.target;
+        const option = select.options[select.selectedIndex];
+        const link = option.dataset.objectLink;
+        const previewPane = document.getElementById('preview-pane');
+        const indicator = document.getElementById('indicator');
+        indicator.classList.remove('hidden');
+        previewPane.innerHTML = '';
+        fetch(link)
+            .then(response => response.text())
+            .then(html => {
+                indicator.classList.add('hidden');
+                previewPane.innerHTML = html;
+                previewPane.querySelector('#preview-title').innerHTML = 'PREVIEW RESULT';
+                document.getElementById('transition-arrow').classList.remove('hidden');
+            })
+            .catch(error => {
+                indicator.classList.add('hidden');
+                previewPane.innerHTML = `<div class="error">Error: ${error}</div>`;
+            });
+    }
+    function onLoadforCurrentPane (event) {
+        console.log('onLoadforCurrentPane');
+        const empl = "{{ employee.slug }}"
+        const link = `/sch/api/match-tdo/${empl}/preview/`
+        const currentPane = document.getElementById('current-pane');
+        const indicator = document.getElementById('indicator');
+        indicator.classList.remove('hidden');
+        currentPane.innerHTML = '';
+        fetch(link)
+            .then(response => response.text())
+            .then(html => {
+                indicator.classList.add('hidden');
+                currentPane.innerHTML = html;
+            })
+            .catch(error => {
+                indicator.classList.add('hidden');
+                currentPane.innerHTML = `<div class="error">Error: ${error}</div>`;
+            });
+    }
+
     
+</script>
 {% endblock content %}
     

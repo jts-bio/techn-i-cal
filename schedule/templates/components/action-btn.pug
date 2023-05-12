@@ -1,0 +1,134 @@
+
+
+mixin button-option(icon, title, subtitle, fetchUrl, color)
+    a.flex.flex-row.opacity-70.cursor-pointer.bg-opacity-20(
+        style="z-index:100"
+        class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
+        data-fetch-url=fetchUrl
+        onclick="window.dialog.close()"
+        _="install ActionButton")
+            i(class="fas text-sm #{icon} w-3 mx-3 fa-fw")
+            .flex.flex-col.pr-3
+                span.jbm= title
+                span.text-2xs= subtitle
+
+mixin button-group(btn_title)
+    button.text-zinc-300.bg-zinc-950.ml-2.px-3.py-2.jbm.rounded.mt-3.relative(
+        class="hover:bg-zinc-700" type='button' onclick="toggleMyDialog()")
+            i.fa-duotone.fa-bolt.mr-3 
+            span.text-zinc-200.text-xs.jbm #{btn_title}
+            
+
+mixin button-clear()
+    a.flex.flex-row.opacity-70.cursor-pointer(
+        class="hover:opacity-100 hover:bg-red-500 hover:bg-opacity-20"
+        _="install ClearButton")
+            i(class="fas text-sm fa-eraser w-3 mx-3 fa-fw")
+            .flex.flex-col.pr-3
+                span.jbm CLEAR & RESET
+                span.text-2xs Clear All Slots within this schedule, while persisting the schedule instance.
+
+mixin button-delete()
+    a.flex.flex-row.opacity-70.cursor-pointer(
+        class="hover:opacity-100 hover:bg-red-500 hover:bg-opacity-20"
+        _="install DeleteButton")
+            i(class="fas text-sm fa-trash w-3 mx-3 fa-fw")
+            .flex.flex-col.pr-3
+                span.jbm DELETE
+
+    
+
+style. 
+    ul { 
+        background-color: #333333aa!important; 
+        margin-top: 40px; 
+        classList: "dropdown dropdown-menu z-20 absolute overflow-y-visible";
+    }
+    dialog::backdrop {
+        background-color: #333333aa!important;
+    }
+    
+
+script(type="text/hyperscript").
+        behavior DeleteButton 
+            on click 
+                    call confirm ('Delete this schedule? This action cannot be undone.')
+                    if result is true 
+                        then fetch `delete/` with method:'DELETE' 
+                        then go to url `/schedule/` 
+                        end
+                    end
+                end
+
+        behavior ActionButton 
+            on click
+                    add .active to me 
+                    call showWaitIndicator(event) 
+                    then send recheck to me then 
+                    fetch `${[@data-fetch-url]}`
+                    then put result into #swap-panel then wait 1s then 
+                    log `swapping...` then 
+                    call window.location.reload() 
+                    end 
+            on recheck 
+                    repeat while #favorable-finished matches .active
+                        trigger recheck on #n-empty-check 
+                        call window.location.reload()
+                        end
+   
+
+        behavior ClearButton 
+            on click 
+                call confirm ('Clear ALL slot assignments? This action cannot be undone.')
+                if result is true 
+                    call showWaitIndicator(event) 
+                    then fetch actions/clear-all/ with method:'POST'  
+                    then wait 200ms then call window.location.reload() end
+
+
+//- Content
+
+
+.button-group.relative
+    +button-group("Actions")
+    dialog#actionDialog.bg-zinc-900.rounded-lg.absolute.z-50(class="lg:w-[350px]")
+        +button-option("fa-robot"  "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
+        +button-option("fa-bolt"   "ALGORITHM B" "Solve using signal optimization coordinating the order to assign slots." "actions/solve-signal-opti/" "sky")
+        +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")
+        +button-option("fa-rocket" "ALGORITHM D" "Supplemental Script To Improve Required Hours Distribution" "actions/attempt-underhours-solve/" "teal")
+        +button-option("fa-flask-vial" "ALGORITHM E" "Experimental solving model" "actions/solve-beta/" "emerald")
+        +button-clear
+        +button-delete
+
+
+script.
+    function toggleMyDialog () {
+        const dialog = document.querySelector('#actionDialog');
+        if (dialog.hasAttribute('open')) {
+            dialog.close();
+        } else {
+            // query screen size
+            const width = window.innerWidth;
+            if (width < 600) {
+                dialog.showModal();
+                console.log('modal');
+            } else {
+                dialog.show();
+                console.log(width);
+            }
+        }
+    }
+
+    const dialog = document.querySelector('#actionDialog');
+
+    dialog.addEventListener("click", e => {
+        const dialogDimensions = dialog.getBoundingClientRect()
+        if (
+            e.clientX < dialogDimensions.left ||
+            e.clientX > dialogDimensions.right ||
+            e.clientY < dialogDimensions.top ||
+            e.clientY > dialogDimensions.bottom
+        ) {
+            dialog.close()
+        }
+    })

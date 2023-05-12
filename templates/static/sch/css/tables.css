@@ -1,0 +1,13 @@
+
+.tr-hover:hover {
+    background-color    : moccasin;
+    color               : cornflowerblue;
+    font-family         : "Nanum Gothic Coding","JetBrains Mono","monospace";
+}
+
+.table-hover {
+    border-collapse     : collapse;
+    width               : fit-content;
+    margin-left         : 30px;
+    margin-right        : 30px;
+}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% load tags %}
+
+
+{% block content %}
+
+    <div>
+        <a href="{{sch.url}}"
+        class="text-2xl font-bold text-shadow shadow">
+            Schedule {{ sch.number }} 
+            <span>({{ sch.year }})</span>
+        </a>
+    </div>
+
+<a class="text-indigo-600 italic" href="{{employee.url}}">Back to Employee</a>
+
+<h2  class="text-3xl font-extrabold text-indigo-300">
+    View of {{ employee}}'s Schedule
+</h2> 
+
+<a href="{{previousUrl}}" {% if not previousUrl %} disabled {% endif %}>
+    <i class="fa-duotone fa-arrow-circle-left"></i>
+</a>
+<a href="{{nextUrl}}" {% if not nextUrl %} disabled {% endif %}>
+    <i class="fa-duotone fa-arrow-circle-right"></i>
+</a>
+
+<div class="bg-zinc-900 shadow shadow-lg shadow-indigo-400 ring ring-indigo-300 p-7 rounded-lg w-fc">
+    {# ALTERNATING TABLE VIEW FOR SCHEDULE #}
+    <table>
+        {% for period in sch.periods.all %}
+            <tr>
+                <th rowspan="6">
+                    <a href="{{period.url}}">
+                        <br> 
+                        <span class="text-xs text-slate 400">%
+                    </a>
+                </span>
+            </th>
+            {# WEEK ROW SPANS 7 COLUMNS PAST THE PERIOD #}
+            {% for week in period.weeks.all %}
+                <th colspan="8" class="center center-text text-indigo-300 font-light">
+                    <a href="{{week.url}}">
+                        {{ week }} 
+                        <span class="text-xs text-indigo 600">
+                        </span>
+                    </a>
+                </th>
+            </tr>
+            <tr>
+                <td>
+                </td>
+                {# DAY HEADER CONTAINS THE DATE #}
+                {% for day in week.workdays.all %}
+                    <td class="w-21">
+                        <a href="{{day.url}}" class="bg-inherit">
+                            {{ day.date.month }}/{{ day.date.day }}
+                        </a>
+                    </td>
+                {% endfor %}
+            </tr>
+            <tr>
+                <td>
+                </td>
+                {# DAY BODY CONTAINS THE PERCENT #}
+                {% for workday in week.workdays.all %}
+                    <td class="h-16 w-26">
+                            <div class="text-2xs text-gray-400 flex flex-col">
+                                {% for st in workday.slots.all %} 
+                                        {% if st.employee == employee %} 
+                                        <span class="text-xl font-light p-2
+                                                    bg-sky-500   bg-opacity-30   rounded 
+                                                    shadow    shadow-sky-100
+                                                    {% if employee in workday.on_pto %} bg-red-500 {% endif %}">
+                                            {{ st.shift }}
+                                        </span>
+                                        {% else %}
+                                    {% endif %} 
+                                {% endfor %}
+                            
+                                {% if employee in workday.on_pto %}
+                                <span class="text-xs font-light 
+                                                bg-opacity-30 bg-red-900   rounded-full
+                                                shadow   w-9 p-1  shadow-red-100">
+                                    PTO
+                                </span>
+                                {% endif %}
+                                {% if employee in workday.on_tdo %}
+                                <span class="text-xs  font-light 
+                                            bg-opacity-30 bg-indigo-900   rounded-full
+                                            shadow  w-9 p-1 shadow-indigo-100">
+                                    TDO
+                                </span>
+                                {% endif %}
+                            </div>
+                    </td>
+                {% endfor %}
+
+                </tr>
+                {% endfor %}
+
+            </tr>
+        {% endfor %}
+        </table>
+</div>
+
+    
+{% endblock content %}
+    

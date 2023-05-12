@@ -1,0 +1,20 @@
+<div class="flex items-center space-x-4 cursor-pointer"
+    hx-get="{% url 'schd:pto-conflicts' schedule.slug %}"
+    hx-trigger="click" hx-target="#swap-panel"
+    _="on click send recheck to #pto-check end" >
+        <div class="flex-shrink-0">
+            <div id="ptoBadge" class="h-7 w-7 pl-[3px] pt-[.5px] rounded-full border border-white bg-amber-300"><i class="fa-duotone text-black fa-island-tropical"></i></div>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-900 truncate dark:text-white">PTO Conflicts</p>
+            <p class="text-2xs font-light italic text-gray-500 truncate dark:text-gray-400">Goal: n = 0</p>
+        </div>
+        <div class="inline-flex items-center text-base font-semibold text-gray-100" id="pto-check"
+        _="on load or recheck fetch /api/schedule/{{schedule.slug}}/n-pto-conflicts/
+                then set @n to result then put it into #pto-rt end 
+                on mutation of @n if @n == 0 add .bg-green-300 to #ptoBadge 
+            end" >
+            <span id="pto-rt"></span>
+            <span class="opacity-70 text-2xs font-light italic pl-2"> conflicts</span>
+        </div>
+</div>

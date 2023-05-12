@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load tags %}
 
-{% block body %}
+{% block content %}
 
 
-    <a href="/sch/employee/{{emp1}}/" class="hstack">
+    <a href="/sch/employee/{{emp1.slug}}/" class="hstack">
         <div>{% backArrow %}</div>
         <div>{{emp1}}</div>
     </a>
@@ -13,14 +13,18 @@
 <div class="vstack">
 
     <div class="text-center"><h1 class="text-3xl">{{emp1}}/ {{emp2}} Days Together</h1></div>
-
     <div class="hstack" style="justify-content:center;width:100%">
-        <table class="min-width-full divide-y table-auto">
+        <div class="bg-slate-400 text-zinc-900 jbm px-2 rounded text-xs italic text-center w-[350px] px-4">
+            Historically, {{emp1}} has worked with {{emp2}} in <span class="font-extrabold">{{percent}}% </span>of their shifts.
+        </div>
+    </div>
+    <div class="hstack" style="justify-content:center;width:100%">
+        <table class="table-striped bg-main rounded-lg">
         <thead>
             <tr>
-                <td></td>
-                <td>{{emp1}}</td>
-                <td>{{emp2}}</td>
+                <th class="rounded-tl-lg"></td>
+                <th class="">{{emp1}}</td>
+                <th class="rounded-tr-lg">{{emp2}}</td>
             </tr>
         </thead>
         {% for day in days %}
@@ -34,6 +38,6 @@
     
     </div>
 </div>
-    
-{% endblock body %}
+      
+{% endblock content %}
     

@@ -1,0 +1,13 @@
+<div class="flex flex-row">
+    {% for day in workday.week.workdays.all %}
+        {% if day != workday %}
+            {% if day.percent == 100 %}
+                <a href="{{ day.url }}" class="text-2xs px-1 fa-solid fa-exclamation-circle text-orange-200 opacity-30 hover:opacity-90"></a>
+            {% else %}
+                <a href="{{ day.url }}" class="text-2xs px-1 fa-solid fa-circle opacity-30 hover:opacity-90"></a>
+            {% endif %}
+        {% else %}      
+            <i class="fa-solid text-2xs px-1 fa-circle"></i>
+        {% endif %}
+    {% endfor %}
+</div>

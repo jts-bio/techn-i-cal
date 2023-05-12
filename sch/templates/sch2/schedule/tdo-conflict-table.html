@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load django_tables2 %}
+{% load tags %}
+
+
+{% block content %}
+
+<a href="{{ schedule.url }}" class="hstack">
+    <div>{% backArrow %}</div>
+    <div>Back</div>
+</a>
+
+<div class="bg-red-900 rounded">
+
+    {% render_table tdoConflicts %}
+
+</div>
+
+<div class="panel">
+    <form action="" method="POST">
+    {% csrf_token %}
+    <input 
+        type="submit" 
+        value="Clear All TDO Conflicts" 
+        class="btn btn-primary"/>
+    </form>
+</div>
+    
+{% endblock content %}
+    

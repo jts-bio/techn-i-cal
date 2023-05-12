@@ -1,0 +1,55 @@
+//- view: schUndertimeList
+
+
+script(type='text/hyperscript').
+   {% include 'hs/empl-assigner-button._hs' %}
+
+script(type='text/hyperscript').
+   {% include 'hs/empl-hours-badge._hs' %}
+
+
+
+- var weeknums = ["0","1","2","3","4","5"]
+
+
+div.container.overflow-x-auto
+
+   .px-6.flex.flex-col.overflow-auto.bg-zinc-900.bg-opacity-75.rounded.p-3(class="w-[600px] lg:w-[950px] lg:flex-row")
+
+      each empl in triplets
+
+            .employee.bg-zinc-100.bg-opacity-40.rounded.p-2.mx-3
+
+
+               img(src=empl.image_url, class="w-12 h-12 rounded-full mx-auto")
+               h2.text-xl.text-center.font-bold= empl 
+
+               - var triplet = triplets[empl]
+
+               - var tripletsum = triplet[0] + triplet[1] + triplet[2]
+               if tripletsum == 0
+                  div(_='on load tell closest .employee remove you end')
+
+               - var i = 0
+
+               each t in triplet
+                  if t == 0
+                     .flex.flex-col.items-center
+                        .text-center.text-sm.text-gray-500.rounded-full.px-2.py-1
+                           i.fas.fa-check
+                  else
+                     .flex.flex-col.items-center
+                        .text-center.text-sm.bg-red-200.rounded-full.px-2.py-1
+                           span.text-red-900(
+                              class="hover:underline cursor-pointer"
+                              hx-get="get-ut-data/#{empl.slug}/#{i}/"
+                              hx-trigger="click"
+                              hx-target="#under-hours-swap-area"
+                              ) #{t} hr.
+
+                  - var i = i + 1
+         
+div(id="under-hours-swap-area")    
+
+   
+

@@ -24,33 +24,22 @@ class WorkdayActions:
         Shift-Slot-Templates.
 
         Checks:
-        1. No existing slot 
-        2. Template exists for the day
-        3. Employee Templated is not on PTO.
-        4. Dont fill an employee into a turnaround 
-        #TODO Dont fill if employee is working a different shift that day
+        1.  No existing slot 
+        2.  Template exists for the day
+        3.  Employee Templated is not on PTO.
+        4.  Dont fill an employee into a turnaround 
+        5.  Dont fill if employee is working a different shift that day
         """
         templs = ShiftTemplate.objects.filter(sd_id=workday.sd_id)
         slots  = workday.slots.all()
         for slot in slots:
             slot.set_sst()
-        # for slot in slots.empty():
-        #     if templs.filter(sd_id=slot.sd_id).exists():
-        #         # check if employee is on PTO? 
-        #         empl = templs.get(shift=slot.shift,sd_id=slot.sd_id).employee
-        #         if PtoRequest.objects.filter(employee=empl, date=workday.date).exists()==False:
-        #             slot.employee = empl
-        #             slot.save()
-
-                
-                        # insert employee + shift into slot
             
 
     def identifySwaps (workday) :
         """
         Identifies Trades that are tenable AND increase satisfaction for 1 or both employees,
         AND doesn't decrease satisfaction for either.
-        
         ONLY trades WITHIN a workday
         """
         
@@ -102,7 +91,7 @@ class WeekActions:
         slots = Slot.objects.filter(workday__in=workdays)
         slots = slots.belowAvg_sftPrefScore()
         for slot in slots:
-            slot.delete()
+            slot.employee = None
         
 class PayPeriodActions:
     
@@ -273,14 +262,15 @@ class ScheduleBot:
         wdB  = slotB.workday
         sftB = slotB.shift
         
-        slotA.delete()
-        slotB.delete()
+        slotA.employee = None 
+        slotB.employee = None
         
-        newSlotA = Slot.objects.create(workday=wdB,employee=empB,shift=sftB)
-        newSlotA.save()
-        newSlotB = Slot.objects.create(workday=wdA,employee=empA,shift=sftA)
-        newSlotB.save()
+        slotA.save() ; slotB.save()
         
+        slotA.employee = empB
+        slotB.employee = empA
+        
+        slotA.save() ; slotB.save()
         print("swapped %s,%s for %s,%s" %(slotA.shift,slotA.employee,slotB.shift,slotB.employee))
         
     def swaps_for_week (year, week):
@@ -297,7 +287,7 @@ class ScheduleBot:
     def del_turnarounds (year, sch): 
         slots = Slot.objects.filter(workday__year=year,workday__ischedule=sch, is_turnaround=True)
         for slot in slots:
-            if slot.employee.evening_pref == False: 
+            if slot.employee.time_pref == 'AM': 
                 wd = slot.workday.prevWD()
                 Slot.objects.get(workday=wd, employee=slot.employee).delete()
             else:
@@ -358,19 +348,22 @@ class ScheduleBot:
         # fill the emptySSTs left behind by pto requests
         empties = ScheduleActions.emptyUsuallyTemplatedSlots(0,yr,sch)
         
-        for empty in empties:
-            wd = sched.workdays.get(sd_id= empty.sd_id)
-            employees = Employee.objects.can_fill_shift_on_day(shift=empty.shift ,cls=empty.shift.cls,workday=wd)
+        for empty_slot in empties:
+            wd = sched.workdays.get(sd_id= empty_slot.sd_id)
+            employees = Employee.objects.can_fill_shift_on_day(shift=empty_slot.shift ,cls=empty_slot.shift.cls,workday=wd)
             
             employee_lowest_fte_percent = [emp.ftePercForWeek(wd.date.year,wd.iweek) for emp in employees]
-            onday = wd.slots.all().values('employee').distinct()
-            employees = employees.exclude(pk__in=onday)
+            on_day = wd.slots.all().values('employee').distinct()
+            employees = employees.exclude(pk__in=on_day)
         
-            if len(employees) != 0:
+            if len(employees) > 0:
                # select lowest fte
                 index     = employee_lowest_fte_percent.index(min(employee_lowest_fte_percent))
+                if index >= len (employees):
+                    index = len(employees) - 1
                 empl      = employees[index]
-                Slot.objects.filter(workday__sd_id=empty.sd_id,shift=empty.shift).update(employee=empl)
+                Slot.objects.filter(workday__sd_id=empty_slot.sd_id, employee=empl, schedule=sched).update(employee=None)
+                Slot.objects.filter(workday__sd_id=empty_slot.sd_id, shift=empty_slot.shift, schedule=sched).update(employee=empl)
                 
             
         
@@ -409,7 +402,10 @@ class ScheduleBot:
             allinWeek       = Slot.objects.filter(workday__date__year=slot.workday.date.year,workday__iweek=slot.workday.iweek)
             daysWorked      = allinWeek.filter(employee=slot.employee).values('workday')
             dropDaysWork    = allinWeek.exclude(workday__in=daysWorked)
-            dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+            if slot.employee != None:
+                dropUntrained   = dropDaysWork.filter(shift__in=slot.employee.shifts_trained.all())
+            else:
+                dropUntrained   = dropDaysWork
             empAslots       = allinWeek.filter(employee=slot.employee).values('workday')
             dropOnDaysWorked = dropUntrained.exclude(workday__in=empAslots)
             #conflicting are Slots that create turnaround interference with the potential trade
@@ -423,18 +419,19 @@ class ScheduleBot:
             
             for possibleSlot in possible:
                 # check to make sure employeeB is trained for the shift they would be swapping into
-                if possibleSlot.employee.shifts_trained.contains(slot.shift):
-                    # dont include in possiblities if employeeB would be traded into a turnaround
-                    if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
-                        pass
-                    else:
-                        if possibleSlot.workday.iweekday in [1,2,3,4,5]:
-                            pos.append(possibleSlot)
+                if possibleSlot.employee != None:
+                    if possibleSlot.employee.shifts_trained.all().contains(slot.shift):
+                        # dont include in possiblities if employeeB would be traded into a turnaround
+                        if Slot.objects.incompatible_slots(workday=slot.workday,shift=slot.shift).filter(employee=possibleSlot.employee).exists():
+                            pass
+                        else:
+                            if possibleSlot.workday.iweekday in [1,2,3,4,5]:
+                                pos.append(possibleSlot)
                         
                         
             possibilities = []    
             for p in pos:
-                if not ShiftTemplate.objects.filter(shift=p.shift,ppd_id=p.workday.ppd_id).exists():
+                if not ShiftTemplate.objects.filter(shift=p.shift,sd_id=p.workday.sd_id).exists():
                     if not Slot.objects.incompatible_slots(workday=p.workday,shift=p.shift).filter(employee=slot.employee).exists():
                         if not Slot.objects.filter(workday=slot.workday, employee=p.employee).exists():
                             possibilities.append(p)
@@ -456,16 +453,16 @@ class ScheduleBot:
             slotBWD    = slot_b.workday
             slotBShift = slot_b.shift
             
-            slot_a.delete()
-            slot_b.delete()
+            slot_a.employee = None ; slot_a.save()
+            slot_b.employee = None ; slot_b.save()
             
-            Slot.objects.create(employee=slotBEmpl, workday=slotAWD, shift=slotAShift)
-            Slot.objects.create(employee=slotAEmpl, workday=slotBWD, shift=slotBShift)
+            slot_a.employee = slotBEmpl ; slot_a.save()
+            slot_b.employee = slotAEmpl ; slot_b.save()
             
             
             turnarounds  = Slot.objects.filter(workday__date__year=yr,workday__ischedule=sch, is_turnaround=True)
             for ta in turnarounds:
-                if ta.employee.evening_pref == False: 
+                if ta.employee.time_pref == 'AM': 
                     if Slot.objects.filter(workday__date=ta.workday.prevWD().date, employee=slot.employee,shift__start__hour__gt=10).exists():
                         Slot.objects.get(workday__date=ta.workday.prevWD().date, employee=slot.employee, shift__start__hour__gt=10).delete()
                     else:
@@ -640,10 +637,10 @@ class ResolveBot:
     
     def resolveTurnaroundWithinDay (turnaroundSlot):
         emp = turnaroundSlot.employee
-        if emp.evening_pref:
+        if emp.time_pref != 'AM':
             wd = turnaroundSlot.workday
             sfta = turnaroundSlot.shift
-        elif emp.evening_pref == False:
+        elif emp.time_pref == 'AM':
             wd = turnaroundSlot.workday.prevWD()
             sfta = wd.shift
         
@@ -669,3 +666,11 @@ class ScheduleActions:
             if slots.filter(workday__sd_id=t.sd_id).exists() == False:
                 empty += [t]
         return empty
+    
+    def solveEveningsOnly (self, schId):
+        sch = Schedule.objects.get(slug=schId)
+        slots_to_solve = sch.slots.empty().filter(shift__start__hour__gte=10)
+        init_count = slots_to_solve.count()
+        for slot in slots_to_solve:
+            slot.fill_with_template()
+            # TODO : finish this method

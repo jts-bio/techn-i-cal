@@ -1,7 +1,3 @@
-
-
-
-
 {% extends 'base.html' %}
 
 
@@ -12,13 +8,14 @@
             <h2>{{employee}}</h2>
             <h3>{{days.first.date.year}}</h3>
             
-            <div class="panel"
-                _="on load if <input:checkbox/> in me has @checked:true
-                then add .bg-green-300 to me 
-                end">
+            <div class="panel">
                     {% for day in days %}
                         <label for="id_{{day}}">{{day}} ({{day}})</label>
-                        <input class="checkbox text-3xl" type="checkbox" name="id_{{day}}" id="id_{{day}}">
+                        <input class="checkbox text-3xl" 
+                                type="checkbox"
+                                name="id_{{day}}" 
+                                id="id_{{day}}"
+                                _="on load if I@checked:true then add .bg-green-300 to my parent <div/> end">
                     {% endfor %}
             </div>
         </div>

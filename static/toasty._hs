@@ -1,0 +1,35 @@
+
+behavior Toast
+    on startTrigger
+        add @data-time-remaining to me then 
+        set @data-time-remaining to 5
+        transition *opacity 
+            to 1
+            over 1s
+        repeat while I match .toast 
+            decrement @data-time-remaining
+            wait 1s
+            if @data-time-remaining == 0 then
+                trigger destroy 
+                end
+            end
+        end
+
+    on mouseover 
+        set @data-time-remaining to 3
+        end
+
+    on destroy 
+        set newY to *y - 30
+        then transition *y 
+            to newY
+            over 500ms
+        transition *opacity
+            to 0
+            over 500ms
+        then wait 500ms 
+        then remove me 
+        end
+
+    end
+    

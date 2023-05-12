@@ -1,0 +1,47 @@
+behavior Deck 
+
+    on recieve
+        log 'recieved!'
+        tell .employee in me 
+            set @data-in-daytime to 'None'
+            then set @data-day-hours to 0
+            then put `${@data-week-hours}/${@data-period-hours} hrs` into .hours-display in you
+            then trigger checkFlags on first .employee in me
+            if @data-pto is 'true'
+                log `$you@data-employee-id has PTO pto flag`
+                set @data-pto to false then 
+                remove .pto-flag from you 
+                then transition you.style.opacity to 0% over 2s 
+                then wait 2s
+                then remove you 
+                end            
+            end
+        end
+    end
+
+    on dragover 
+        call event.preventDefault() 
+        end
+
+    on drop 
+        call event.stopImmediatePropagation()
+        call event.dataTransfer.getData("text")
+        then set employeeId to result
+        then trigger checkAndTake
+        end
+
+    on checkAndTake
+            set incomingEmployee to first .active then
+            set sft to incomingEmployee@data-in-slot then
+            if sft is not 'None' 
+                put incomingEmployee at the end of me
+                then set incomingEmployee@data-in-slot to 'None' 
+                then remove .active from (.employee in me)
+                then fetch `${sft}/clear/` 
+                then add .bg-green-300 
+                        .bg-opacity-50 
+                then wait 1s 
+                then remove .bg-green-300 
+                        .bg-opacity-50 
+            end
+    end

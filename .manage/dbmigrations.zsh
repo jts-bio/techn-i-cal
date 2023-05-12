@@ -1,9 +1,8 @@
-#*=*=*=*= DB Migrations =*=*=*=*#
-
-python manage.py makemigrations pds
+#* ______ DB Migrations ______ *#
+# make migrations 
 python manage.py makemigrations sch
-python manage.py makemigrations flow
+# perform migration
+python manage.py migrate 
 
-python3 manage.py migrate 
 
-#*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*#
+

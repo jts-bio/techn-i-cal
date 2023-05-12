@@ -1,18 +1,22 @@
 {
-  "onCreateCommand": "pip install -r requirements.txt",
-"postCreateCommand": "",
-"customizations": {
-	"vscode": {
-		"extensions": [
-			"GitHub.copilot",
-			"ms-python.python",
-			"GitHub.copilot-nightly",
-			"GitHub.copilot-labs",
-			"christian-kohler.path-intellisense",
-			"mgesbert.python-path",
-			"moalamri.inline-fold",
-			"jack89ita.open-file-from-path"
-		]
+	"onCreateCommand": "pip install -r requirements.txt",
+	"postCreateCommand": "",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"GitHub.copilot",
+				"ms-python.python",
+				"GitHub.copilot-nightly",
+				"GitHub.copilot-labs",
+				"christian-kohler.path-intellisense",
+				"mgesbert.python-path",
+				"moalamri.inline-fold",
+				"jack89ita.open-file-from-path",
+				"dz4k.vscode-hyperscript-org",
+				"drumworkteam.link",
+				"sveggiani.vscode-field-lights",
+				"oleg-shilo.codemap"
+			]
+		}
 	}
-}
 }

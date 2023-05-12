@@ -1,0 +1,19 @@
+
+<div class="panel">
+
+    <h3 class="text-lg text-amber-200 font-extrabold upper">
+        EMPLOYEES TEMPLATED OFF FOR WORKDAY
+    </h3> {{ workday }}
+
+    <div class="grid grid-rows-3">
+    {% for employee in workday.tdo %}
+    <div class="hstack">
+        <div class="bg-amber-800 text-amber-400 text-xs jbm px-2 py-1 m-1 rounded">
+            TDO</div>
+        <div class="text-amber-100 jbm">
+            {{ employee.employee }}</div>
+    </div>
+    {% endfor %}
+    </div>
+
+</div>

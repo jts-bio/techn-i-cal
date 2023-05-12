@@ -1,0 +1,70 @@
+<head>
+    <style>
+        * {
+            font-family: 'Gill Sans'; 
+        }
+        .bin {
+            background-color: #ccc;
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    
+
+    <!-- HTML for the list of objects -->
+<div id="object-list">
+    <div class="object" draggable="true">Object 1</div>
+    <div class="object" draggable="true">Object 2</div>
+    <div class="object" draggable="true">Object 3</div>
+    <!-- More objects can be added here -->
+  </div>
+  
+  <!-- HTML for the bin where objects can be dragged to -->
+  <div id="bin" class="bin" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+  
+  <!-- JavaScript for handling the dragging and dropping of objects -->
+  <script>
+    // Get the list of objects and the bin
+    const objectList = document.getElementById('object-list');
+    const bin = document.getElementById('bin');
+  
+    // Loop through all objects in the list and add event listeners for dragging
+    for (const object of objectList.children) {
+      object.addEventListener('dragstart', drag);
+    }
+  
+    // Function to handle the dragging of an object
+    function drag(event) {
+      event.dataTransfer.setData('text/plain', event.target.id);
+    }
+  
+    // Function to handle the dropping of an object into the bin
+    function drop(event) {
+      event.preventDefault();
+      const data = event.dataTransfer.getData('text/plain');
+      console.log(data);
+      // Get a reference to the dragged object
+      const draggedObject = document.getElementById(data);
+      console.log(draggedObject);
+      // Make sure the dragged object is a valid node before appending it to the bin
+      
+      
+        bin.appendChild(draggedObject);
+        // Remove the object from the list
+        objectList.removeChild(draggedObject);
+      
+    }
+  
+    // Function to allow dropping into the bin
+    function allowDrop(event) {
+      event.preventDefault();
+    }
+  </script>
+  
+
+
+</body>

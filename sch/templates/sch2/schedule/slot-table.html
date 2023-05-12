@@ -1,0 +1,74 @@
+{% extends 'base.html' %} {% load tags %} {% load django_tables2 %}
+
+<!-- STYLE -->
+{% block style %}
+
+<style>
+  ul.pagination {
+    display: flex;
+    justify-content: center;
+    list-style: none;
+    padding: 10px;
+    flex-direction: row;
+    gap: 30px;
+  }
+</style>
+
+{% endblock style %}
+
+<!--- --------- CONTENT ------------ -->
+{% block content %}
+
+    <a href="{{ schedule.url }}" class="hstack">
+      <div>{% backArrow %}</div>
+      <div>Back</div>
+    </a>
+
+    <div class="w-full text text-center">
+      <h1 class="text-2xl text-amber-400"> Schedule {{ schedule.number }} ({{ schedule.year }})</h1>
+    </div>
+
+    <div
+      class="bg-slate-900 rounded-lg center center-text overflow-x-auto my-7 mx-20"
+    >
+      <table>
+        <thead>
+          <tr>
+            <th>Workday</th>
+            <th>Shift</th>
+            <th>Employee</th>
+            <th>Template Employee</th>
+          </tr>
+        </thead>
+        
+      {% for slot in schedule.slots.all %}
+      
+        <tr _="on mouseover transition my *size to '22px' then settle end
+               on mouseleave transition my *size to '16px' then settle end">
+        
+          <td>
+            <a href="{{ slot.workday.url }}" >
+              {{ slot.workday.date }} 
+            </a>
+          </td>
+          <td>{{ slot.shift }}</td>
+          <td>{{ slot.employee | default:"NONE" }}</td>
+          <td>
+              {% if slot.employee == slot.template_employee %}
+                <span class="text-2xs text-slate-600">
+                  <i class="fa-duotone fa-user-check text-xl m-2"></i>
+                </span>
+              {% else %}
+                <span class="text-pink-300 text-2xs">
+                  <i class="fa-duotone fa-shuffle text-xl m-2"></i>
+                  {{ slot.template_employee | default:""  }}
+                </span>
+              {% endif %}
+            </span>
+          </td> 
+        </tr>
+      {% endfor %}
+    </table>
+    </div>
+
+{% endblock content %}

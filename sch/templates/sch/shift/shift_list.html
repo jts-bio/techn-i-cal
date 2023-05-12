@@ -1,41 +1,69 @@
-{% extends 'base.html' %}
-{% load render_table from django_tables2 %}
-{% load tags %}
+{% extends 'base.html' %} {% load render_table from django_tables2 %} 
+{% load tags %} {% block style %}
+<style>
+  html {
+    background-image: url("https://media.discordapp.net/attachments/1022445219704225842/1027965543262724196/jsteinbecker_HD_Fish_scales_transleucent_rainbow_bright_and_shi_83998ed5-48e6-4be7-a230-ddbcb4ef5262.png?width=1392&height=1392");
+    background-repeat: repeat;
+    background-size: 30%;
+  }
+</style>
+{% endblock style %} {% block content %}
 
-{% block style %}
-    <style>
-        html {
-            background-image: url("https://media.discordapp.net/attachments/1022445219704225842/1027965543262724196/jsteinbecker_HD_Fish_scales_transleucent_rainbow_bright_and_shi_83998ed5-48e6-4be7-a230-ddbcb4ef5262.png?width=1392&height=1392");
-            background-repeat: repeat;
-            background-size: 30%;
-        }
-    </style>
-{% endblock style %}
+<div class="flex flex-row">
+  <div>
+    <a
+      href="/sch/sst-by-day/"
+      class="bg-sky-200 text-sky-900 px-3 transition border-3 border-blue-500 rounded hover:bg-white hover:border-sky-300 hover:scale-110"
+    >
+      Day Templating
+    </a>
 
-{% block content %}
+    <div hx-trigger="load" hx-get="partial/summary/"></div>
 
-    <a href="/sch/sst-by-day/" class="btn btn-xs btn-info">Day Templating</a>
+    <h1 class="text-center" style="font-size: 32px">MANAGE SHIFTS</h1>
 
-    <h1 class="text-center" style="font-size:32px;">MANAGE SHIFTS</h1>
-    
     <div class="lg:hstack center sm:vstack">
-    <div class="w-fc">
+      <div class="bg-zinc-900 bg-opacity-60 rounded p-3 pr-6 mb-3 w-full">
+        <a
+          href="/sch/shifts/new/"
+          class="bg-blue-900 border px-4 m-2 hover:bg-blue-700 border-blue-300 rounded hidden md:block md:float-right"
+        >
+          <div class="hstack">
+            <div>{% plusIcon %}</div>
+            <div>NEW</div>
+          </div>
+        </a>
 
-            <a href="/sch/shifts/new/" 
-               class="bg-blue-900 border px-4 m-2 hover:bg-blue-700 
-                      border-blue-300 rounded float-right"> 
-                <div class="hstack">
-                    <div> {% plusIcon %} </div>
-                    <div> NEW </div>
-                </div>
-                </a>
-    
-        <div class="panel">
-            <div>{% render_table shiftTable %}</div>
+        <div class="hidden md:block">
+          <div>{% render_table shiftTable %}</div>
         </div>
 
+        <div class="grid grid-cols-3 gap-3 bg-zinc-900 p-2 rounded md:hidden">
+          {% for shift in shifts %}
+          <a
+            href="{{shift.url}}"
+            class="bg-zinc-800 rounded py-2 w-24 center text-center hover:bg-zinc-700"
+          >
+            <div class="text-2xl font-light 
+                    {% if shift.group == 'AM' %} text-amber-400 
+                    {% elif shift.group == 'PM' %} text-sky-700 
+                    {% else %} text-indigo-600 
+                    {% endif %}"
+            >
+              {{ shift.name }} {% if shift.group == 'AM' %}
+              <i class="fas text-amber-400 fa-sun opacity-40 text-sm"></i> 
+              {% elif shift.group == 'PM' %}
+              <i class="fas text-sky-700 fa-moon opacity-40 text-sm"></i> {% else %}
+              <i class="fas text-indigo-600 fa-tombstone opacity-40 text-sm"></i> 
+              {% endif %}
+            </div>
+          </a>
+          {% endfor %}
+        </div>
+        
+      </div>
+      
     </div>
-
+  </div>
 </div>
 {% endblock content %}
-    

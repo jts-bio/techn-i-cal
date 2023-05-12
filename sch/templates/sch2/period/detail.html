@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load tags %}
+
+{% block content %}
+
+
+    <a href="{% url 'schd:detail' period.schedule.slug %}">
+        <div class="hstack">{% backArrow %} Schedule {{ period.schedule.slug }}</div>
+    </a>
+
+    <div class="panel">
+        <h1 class="text-3xl h1">{{ period }}</h1>
+        {% include 'sch2/comps/stat-bar.html' %}
+    </div>
+    
+    <div class="bg-zinc-900 rounded p-3 my-2 w-fc drop-shadow shadow">
+       {% for empl, hours in period.hours.items %} 
+            <div class="hstack">
+                <div class="w-2/3 px-2">{{ empl }}</div>
+                <div class="w-1/3 text-2xs">{{ hours }} hrs</div>
+            </div>
+       {% endfor %}
+    </div>
+
+{% endblock content %}
+    

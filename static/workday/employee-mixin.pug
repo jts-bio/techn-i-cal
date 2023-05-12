@@ -1,0 +1,11 @@
+
+mixin Employee(employee)
+    .employee.cursor-move.snap-always.relative.w-24.h-14(
+        draggable=true 
+        data-id=employee.slug 
+        data-week-hrs=employee.week_hours(wd)
+        data-pd-hrs=employee.pd_hours(wd)
+        data-day-hrs=employee.day_hours(wd)
+        _="install Employee"
+        )
+

@@ -1,0 +1,35 @@
+mixin weekBar(percent)
+
+  div.flex.flex-col.flex-nowrap.justify-end.w-4.h-28.rounded-full.overflow-hidden.bg-zinc-950.bg-opacity-50
+
+    if percent != 100 
+
+      div.bg-blue-500.overflow-hidden(
+        role="progressbar"
+        style="height: #{percent}%"
+        aria-valuenow="#{percent}"
+        aria-valuemin="0"
+        aria-valuemax="100")
+          span.text-2xs(class="pl-[2px]")= percent 
+
+    else
+    
+      div.bg-emerald-500.overflow-hidden(
+        role="progressbar"
+        style="height: #{percent}%"
+        aria-valuenow="#{percent}"
+        aria-valuemin="0"
+        aria-valuemax="100")
+          i.text-2xs.fas.fa-check(class="pl-[2px]")
+
+//- WEEK DISPLAY BARS PANEL
+div.bg-zinc-900.bg-opacity-70.p-3.rounded.border-gray-300.center-self.mb-3
+
+  h3.text-center.text-white.text-sm COMPLETION BY WEEK
+
+  .flex.flex-row(class="gap-[11px]")
+
+    each week in schedule.weeks.all
+      //- SINGLE BAR FOR 1 WEEK
+      +weekBar(week.percent)
+      

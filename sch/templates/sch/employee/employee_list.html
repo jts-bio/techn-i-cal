@@ -22,30 +22,42 @@
 
     <div class="vstack">
         <div class="hstack align-content-start">
-            <a href="/sch/employees/all/" class="rounded-md px-3 py-1 hover:bg-amber-900  {{allActive}}" >All</a>
-            <a href="/sch/employees/cpht/" class="rounded-md px-3 py-1 hover:bg-amber-900 {{cphtActive}}" >Technicians</a>
-            <a href="/sch/employees/rph/" class="rounded-md px-3 py-1 hover:bg-amber-900  {{rphActive}}" >Pharmacists</a>
-            <div class="panel flex flex-grow">
-                <a href="/sch/evening-fractions" class="btn btn-xs btn-warn">Evening Ratios</a>
-            </div>
+            <a href="/sch/employees/all/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{allActive}}">All</a>
+            <a href="/sch/employees/cpht/" class="rounded-md px-3 py-1 hover:bg-amber-900 {{cphtActive}}">Technicians</a>
+            <a href="/sch/employees/rph/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{rphActive}}">Pharmacists</a>
         </div>
 
 
-        <div class="panel w-fc">
+        <div class="panel w-full">
             <div class="hstack" 
                 style="justify-content:space-between;">
 
-                {% if rphActive %} <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
+                {% if rphActive %}    <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
                 {% elif cphtActive %} <a href="{% url 'sch:create-cpht' %}"> {% newEmployee %} </a>
                 {% endif %}
                 
                 <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
                     {{ employees|length }} Active 
                 </div>
+
+                <input type="text" name="search-empls" id="search-empls" placeholder="Search..."
+                    _="on keyup 
+                            show <a/> in #empl-grid 
+                            when it's @value.toLowerCase() 
+                                contains my value.toLowerCase()"> 
+
             </div>
 
-            {% render_table employeeTable %}
+            {% include 'comps/card-grid.html' %}
 
         </div>
     </div>
 {% endblock %}
+
+<div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+
+    {% for employee in employees %}
+        {% include 'sch2/employee/empl-as-card-ele.html' %}
+    {% endfor %}
+
+</div>

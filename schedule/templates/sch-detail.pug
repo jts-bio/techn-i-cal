@@ -1,0 +1,241 @@
+extends base.html
+{% load static %}
+
+
+
+block content
+
+  style
+    {% include 'sch/css/loader-a.css' %}
+    {% include 'sch/css/loader-b.css' %}
+
+  script(type="text/javascript").
+    // Analyze whether current version is best:
+    fetch("/api/schedule/#{schedule.slug}/is-best-version/")
+      .then(response=>response.text())
+      .then(data=>{
+        console.log(data)
+        if(data == "True")
+      {
+      // If yes, display star indicator:
+      document.querySelector('#is-best-indic').classList.remove('hidden');
+
+      document.querySelector('#is-best-indic').addEventListener('mouseenter',function(event){
+        let element = event.target;
+        let left = element.getBoundingClientRect().left - (40-25);
+        let top =  element.getBoundingClientRect().bottom + (15+5-10);
+        document.querySelector('#best-message').classList.remove('hidden');
+        document.querySelector('#best-message').classList.add('text-2xs');
+        document.querySelector('#best-message').classList.add('opacity-70');
+        document.querySelector('#best-message').style.display = "absolute";
+        document.querySelector('#best-message').style.zIndex = 500;
+        document.querySelector('#best-message').style.size = "10px";
+        document.querySelector('#best-message').style.left = left+"px";
+        document.querySelector('#best-message').style.top = top+"px";})
+
+      document.querySelector('#is-best-indic').addEventListener('mouseleave',function(event){
+        document.querySelector('#best-message').classList.add('hidden');
+          })
+        }
+      });
+
+    // Shuffle background image  
+    let bgImageUrl = "#{BACKGROUND_PATH}";
+    document.querySelector('.bg-main').style.backgroundImage = 'url(' + bgImageUrl + ')';
+    // set background to repeat
+    document.querySelector('.bg-main').style.backgroundRepeat = "repeat";
+    document.querySelector('.bg-main').style.backgroundPosition = 'center';
+    document.querySelector('.bg-main').style.backgroundSize = "40%";
+    // scale backgroundSize to 90% if the screen is less than 1000px wide
+    let width = window.innerWidth;
+    if(width < 1000)
+      {document.querySelector('.bg-main').style.backgroundSize = "90%";}
+
+
+    document.querySelector(".content").classList.add('bg-slate-900');
+    document.querySelector(".content").classList.add('bg-opacity-70');
+    document.querySelector(".content").classList.add('backdrop-blur-sm');
+
+
+  //- DASHBOARD
+  .flex.flex-col.h-full(class="md:flex-row md:h-screen justify-between")
+    //- NAVBAR
+    .column(class="w-4/4 md:w-1/4")
+      include components/sch-header.pug
+      include stats.html
+      include components/data-entry-btns.pug
+
+    //- DASHBOARD BODY
+    section(class="w-full flex-1 p-1 md:p-6")
+
+      #swap-panel.h-fc.px-1.rounded.overflow-x-contain(
+        _="on mutation of anything call hideWaitIndicator(event) end"
+        class="md:px-4 md:m-4" 
+        )
+
+
+  //- VERSION CONTROL CONTEXT MENU
+  #contextMenu.rounded.bg-black.text-white.p-3(
+    style="display:none;" 
+    class="z-20 absolute bg-opacity-[30%]"
+    )
+    //- Build Alternate Draft
+    div
+      a(href="build-alt-draft/" class="hover:underline cursor-pointer")
+        i.fas.fa-hammer.opacity-80.pr-2 
+        span Build Alternate Draft Version
+    //- Publish this Schedule
+    div
+      div(
+        class="hover:underline cursor-pointer"
+        _="on click if #{schedule.is_best_version()} == #{True} fetch actions/publish/ then call window.location.reload() else call confirm('There is a better version available, publish anyway?') if result == true fetch actions/publish/ then call window.location.reload() end")
+          i.fas.fa-network-wired.opacity-80.pr-2.cursor-pointer
+          span Publish this Version (Version #{schedule.version})
+    //- Alternates
+    if alternates
+      div
+        div.text-2xs.opacity-80.bg-zinc-300.text-black.font-bold.mt-5.px-3.rounded.cursor-pointer(
+          class="hover:opacity-100"
+          _="on click fetch version-compare/ then put result into #swap-panel then tell #contextMenu set *display to 'none'"
+          ) ALTERNATE VERSIONS
+
+        each alt in alternates
+          div
+            a.text-xs.opacity-70(class="hover:opacity-100 cursor-pointer" href=alt.url()) Version #{alt.version} 
+              |
+              if alt.difference > 0
+                span.text-emerald-300 
+                  | (+#{alt.difference}% more complete)
+              if alt.difference < 0
+                - var pct = alt.difference * -1
+                span.text-red-300 
+                  | (#{pct}% less complete)
+              if alt.difference == 0
+                span.text-zinc-300 
+                  | (Same level of completion)
+
+  if random_wait_indicator == 1
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.ring.ring-zinc-400.py-4.rounded.bg-zinc-300.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      .w-40.bg-opacity-60.rounded.bg-black.py-5.bg-opacity-75
+        
+          .text.text-center.text-black.text-3xl
+            i.fas.fa-user-robot.text-slate-200.fa-shake.px-3.scale-125
+          .text.text-white.text-center.text-2xs.jbm.opacity-70.pt-2 
+            | PLEASE WAIT...
+  if random_wait_indicator == 2
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-a.text-white
+  if random_wait_indicator == 3
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-b.text-white
+  if random_wait_indicator == 4
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-c.text-white
+  if random_wait_indicator == 5
+    #wait-indicator.fixed.inset-0.flex.items-center.justify-center.z-50.hidden.py-4.rounded.bg-transparent.text-800.bg-opacity-5.rounded-lg.shadow-lg.click-through
+      div.loader-d.text-white
+
+
+
+  #best-message.hidden.fixed.click-through.bg-black.rounded.p-2.text-lg
+    span This has been determined to be the <br/> 
+    span best available version of the schedule.
+
+block outside
+
+  script(type="text/javascript").
+    /* 
+      Function name	          Description	
+      --------------            ------------  
+      showContextMenu (e)	      Displays a context menu when the user right-clicks on an element	Event object e, Context menu element
+      hideContextMenu (ev)	  Hides the context menu that was previously displayed	Event object ev, Context menu element
+      showWaitIndicator (ev)	  Displays a loading indicator to indicate that the page is busy or processing data	Event object ev, Wait indicator element
+      showVersionEllipsis ()	  Displays an ellipsis icon to indicate that there is more content available for a particular item	Version ellipsis element
+      hideVersionEllipsis ()	  Hides the ellipsis icon that was previously displayed	Version ellipsis element
+      showScheduleVersionId ()  Displays a version ID for a particular schedule	Schedule version ID element
+      hideScheduleVersionId ()  Hides the version ID that was previously displayed	Schedule version ID element
+      showSwapPanel ()	      Displays a panel that allows the user to swap elements or items	Swap panel element
+      hideSwapPanel ()	      Hides the swap panel that was previously displayed	Swap panel element
+      showSwapPanelIndic ()	  Displays an indicator that there is a swap panel available for the user	Swap panel indicator element
+      hideSwapPanelIndic ()	  Hides the swap panel indicator that was previously displayed	Swap panel indicator element        
+    */
+
+    function showContextMenu(e) {
+      console.log('CtxtMenu Called');
+      e.preventDefault();
+
+      var contextMenu = document.getElementById("contextMenu");
+      contextMenu.style.display = "block";
+      contextMenu.style.left    = e.pageX + "px";
+      contextMenu.style.top     = e.pageY + "px";
+      //- remove previous event listener if exists
+      document.removeEventListener('mousedown', hideContextMenu);
+      //- then add event listener to close menus when user clicks outside
+      document.addEventListener('mousedown', hideContextMenu);
+    }
+
+    function hideContextMenu(ev) {
+      // if click is not in context menu
+      if (!document.getElementById("contextMenu").contains(ev.target)) {
+        var contextMenu = document.getElementById("contextMenu");
+        contextMenu.style.display = "none";
+      }
+    }
+
+    function showWaitIndicator(ev) {
+      console.log('SHOWING indicator');
+
+      var indicator = document.getElementById("wait-indicator");
+      indicator.style.left = document.body.scrollLeft;
+      indicator.style.top = document.body.scrollTop;
+      indicator.classList.remove("hidden");
+    }
+
+    function hideWaitIndicator(ev) {
+      var indicator = document.getElementById("wait-indicator");
+      indicator.classList.add("hidden");
+    }
+
+    function showVersionEllipsis() {
+      var versionEllipsis = document.getElementById("versionEllipsis");
+      versionEllipsis.style.display = "inline";
+    }
+
+    function hideVersionEllipsis() {
+      var versionEllipsis = document.getElementById("versionEllipsis");
+      versionEllipsis.style.display = "none";
+    }
+
+    function showScheduleVersionId() {
+      var scheduleVersionId = document.getElementById("scheduleVersionId");
+      scheduleVersionId.style.display = "inline";
+    }
+
+    function hideScheduleVersionId() {
+      var scheduleVersionId = document.getElementById("scheduleVersionId");
+      scheduleVersionId.style.display = "none";
+    }
+
+    function showSwapPanel() {
+      var swapPanel = document.getElementById("swap-panel");
+      swapPanel.style.display = "block";
+    }
+
+    function hideSwapPanel() {
+      var swapPanel = document.getElementById("swap-panel");
+      swapPanel.style.display = "none";
+    }
+
+    function showSwapPanelIndic() {
+      var swapPanelIndic = document.getElementById("wait-indicator");
+      swapPanelIndic.style.display = "inline";
+    }
+
+    function hideSwapPanelIndic() {
+      var swapPanelIndic = document.getElementById("wait-indicator");
+      swapPanelIndic.style.display = "none";
+    }
+
+
+
+

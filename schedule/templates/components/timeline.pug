@@ -1,0 +1,16 @@
+ol.relative.border-l.border-gray-200.pl-5.ml-5.pt-6
+    each log in logs
+        li.mb-10.ml-6
+            span.absolute.flex.items-center.justify-center.w-6.h-6.bg-blue-100.rounded-full.-left-3.ring-8.ring-white
+            h3.flex.items-center.mb-1.text-lg.font-semibold.text-white
+                | #{log.event_type}
+                span.bg-blue-100.text-blue-800.text-sm.font-medium.mr-2.px-2.5.py-0.5.rounded.dark
+            time.block.mb-2.text-sm.font-normal.leading-none.text-gray-500
+                | #{log.updated_ago} 
+            .mb-4.text-base
+                each k, v in log.data.items
+                    div
+                        span.text-xs.bg-white.bg-opacity-10.px-2.rounded.jbm
+                            | #{k}
+                        span.text-xs.opacity-70.jbm
+                            | #{v}

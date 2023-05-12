@@ -1,0 +1,19 @@
+// EMUSR Schedule Page
+// schedule.views.Sections.schEmusrPage
+
+h2.text-xl.font-bold.mb-4 EMUSR 
+
+table.table-striped(class="border w-7/8 md:w-1/4 m-2")
+  tr 
+    th.text-center.rounded-tl Employee
+    th.text-center.rounded-tr Evening Slots
+
+  each emp in emusr_employees
+
+    tr.cursor-pointer(_="on click fetch emusr-page/#{emp}/ then put result into #employee-emusr-tgt")
+
+      td.text-center #{emp.name}
+      td.text-center.opacity-80  #{emp.uf_count} shifts    
+        
+div#employee-emusr-tgt
+  

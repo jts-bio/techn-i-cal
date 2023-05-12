@@ -1,0 +1,196 @@
+<script type="text/hyperscript">
+    behavior activateSort 
+        on click
+            take .text-amber-200 from <th/>
+            end 
+        end
+</script>
+
+{% with '<i class="fa-regular fa-circle-sort"></i>' as sortIcon %}
+
+<div id="unfav-body">
+
+    <h1 class="text-amber-200">Unfavorables</h1>
+
+    <div class="bg-zinc-300 text-black rounded px=2 hover:bg-sky-500 w-fc px-2 mb-2" _="on click fetch actions/clear-all-unfavorables/ then put it into #unfav-body
+                        then send recheck to #n-unfav then send recheck to #n-empty end"> 
+        <i class="fa-duotone fa-broom text-black"></i>    
+        Clear All
+    </div>
+
+
+    <table>
+        <tr>
+            <th class="text-amber-200" _="install activateSort">Workday {{ sortIcon }}</th>
+            <th>Shift</th>
+            <th _="install activateSort">Employee {{ sortIcon }}</th>
+            <th>Actions</th>
+        </tr>
+
+        {% for slot in data %}
+            <tr>
+                <td>{{ slot.workday }}</td>
+                <td>{{ slot.shift }}</td>
+                <td>{{ slot.employee }}</td>
+                <td>
+                    <i id="del-{{slot.slug}}" hx-post="{{ slot.clear_url }}" hx-swap="outerHTML" class="fas m-1 fa-trash hover:text-red-300"></i>
+                </td>
+            </tr>
+        {% endfor %}
+
+    </table>
+
+{% endwith %}
+
+</div>
+
+<script>
+  /* 
+    ADD WORKDAY LINK
+    ------------------------------------------------------
+    if a td in table is in the workday column (3nd column) 
+    of a <tr> then wrap with a <a> tag 
+    */
+    var table = document.getElementsByTagName('table')[0];
+    var rows = table.getElementsByTagName('tr');
+    var version = document.getElementById('scheduleVersionId').innerHTML.trim();
+    for (var i = 0; i < rows.length; i++) {
+        var cells = rows[i].getElementsByTagName('td');
+        for (var j = 0; j < cells.length; j++) {
+            if (j == 0) {
+                var a = document.createElement('a');
+                a.href = '/wday/' + cells[j].innerHTML + version + '/';
+                a.innerHTML = cells[j].innerHTML;
+                cells[j].innerHTML = '';
+                cells[j].appendChild(a);
+            }
+        }
+        for (var j = 0; j < cells.length; j++) {
+            if (j == 3) {
+                var trash = cells[j].getElementsByTagName('i')[0];
+                trash.addEventListener('click', function() {
+                    var row = this.parentNode.parentNode;
+                    console.log(row);
+                    var cells = row.getElementsByTagName('td');
+                    for (var i = 0; i < cells.length; i++) {
+                        if (i == 2) {
+                            cells[i].style.textDecoration = 'line-through';
+                        }
+                    }
+                    var unfav = document.getElementById('n-unfav');
+                    var empty = document.getElementById('n-empty');
+                    unfav.dispatchEvent(new Event('recheck'));
+                    empty.dispatchEvent(new Event('recheck'));
+                        });
+                    }
+                }
+            }
+
+   
+
+    /* 
+    ORDER TABLE ON EMPLOYEE HEADER CLICK
+    ------------------------------------------------------
+    */
+    var table = document.getElementsByTagName('table')[0];
+    var header = table.getElementsByTagName('th')[2];
+    header.addEventListener('click', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[2].innerHTML;
+            var b = b.getElementsByTagName('td')[2].innerHTML;
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /* 
+    REVERSE ON SECOND CLICK
+    ------------------------------------------------------
+    */
+    header.addEventListener('dblclick', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[2].innerHTML;
+            var b = b.getElementsByTagName('td')[2].innerHTML;
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /* 
+    ORDER TABLE ON WORKDAY HEADER CLICK
+    ------------------------------------------------------
+    */
+    var table = document.getElementsByTagName('table')[0];
+    var header = table.getElementsByTagName('th')[0];
+    header.addEventListener('click', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[0].innerHTML;
+            var b = b.getElementsByTagName('td')[0].innerHTML;
+            if (a < b) {
+                return -1;
+            } else if (a > b) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+    /*
+    REVERSE ON SECOND CLICK
+    ------------------------------------------------------
+    */
+    header.addEventListener('dblclick', function() {
+        var rows = table.getElementsByTagName('tr');
+        var sorted = [];
+        for (var i = 1; i < rows.length; i++) {
+            sorted.push(rows[i]);
+        }
+        sorted.sort(function(a, b) {
+            var a = a.getElementsByTagName('td')[0].innerHTML;
+            var b = b.getElementsByTagName('td')[0].innerHTML;
+            if (a < b) {
+                return 1;
+            } else if (a > b) {
+                return -1;
+            } else {
+                return 0;
+            }
+        });
+        for (var i = 0; i < sorted.length; i++) {
+            table.appendChild(sorted[i]);
+        }
+    });
+
+</script>

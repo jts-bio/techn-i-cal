@@ -1,0 +1,38 @@
+<script type="text/hyperscript"> 
+    {% include 'tables/hs/pto-switch._hs' %}
+</script>
+
+<div class="bg-zinc-900 rounded-lg">
+    <div class="text-blue-100 font-bold text-2xl py-1 px-4 h-20">
+        {{ employee.name }} PTO Requests 
+    </div>
+
+    <!-- PTO 7x6 GRID -->
+    <div class="grid grid-cols-7">
+
+        {% for day in days %}
+            <div class="day-button border rounded p-1 w-9 h-9 md:w-full lg:p-4 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300 text-center"
+                id="{{day.date|date:'Y-m-d'}}"
+                data-has-pto="{{day.is_pto}}" 
+                data-has-shift="{{day.is_shift}}"
+                data-delete-url="/api/ptoreq/{{day.date|date:'Y-m-d'}}/{{employee.slug}}/actions/delete/"
+                data-create-url="/api/ptoreq/{{day.date|date:'Y-m-d'}}/{{employee.slug}}/actions/create/"
+                _="install PtoSwitch">
+
+                <div class="flex flex-row hidden md:block">
+                    <h3 class="text-xs hidden md:block md:text-md">
+                        {{day.date.month}}/{{day.date.day}}
+                    </h3>
+                    
+                    <i class="fa-duotone fa-circle-check hidden px-2 text-xs text-blue-500"></i>
+                </div>
+                <p class="text-[9px] truncate hidden md:block">
+                    {{day.weekday}}
+                </p>
+                <h3 class="text-xl block md:hidden font-extrabold">{{day.date.day}}</h3>
+            </div>
+        {% endfor %}
+
+    </div>
+    <!--...end pto grid -->
+</div> 

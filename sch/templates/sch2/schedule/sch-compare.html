@@ -1,0 +1,45 @@
+{% load tags %}
+    <div>
+        <h1>Schedule Compare View</h1>
+
+
+        <div class="flex flex-row">
+            <div class="text-xl center text-center text-blue-800 bg-blue-500 rounded w-16 py-1 flex flex-col">
+                <div>{{ sch1.percent }}%</div>
+                <div class="text-2xs">{{ sch1 }}</div>
+            </div>
+            <div class="text-xs text-gray-400 mx-3"><sub>vs</sub></div>
+            <div class="text-xl center text-center text-purple-600 bg-purple-500 rounded w-16 py-1 flex flex-col">
+                <div>{{ sch2.percent }}%</div>
+                <div class="text-2xs">{{ sch2 }}</div>
+            </div>
+        </div>
+        
+    <div class="hstack">
+        <div class="vstack"><h3 class="text-xl jbm">COMPARISON OF ASSIGNMENT DIFFERENCES</h3>
+      <div class="text-xs text-gray-400">Similarity: {{ percentSimilarity }} / 100</div>
+    </div>
+      
+        <div class="border rounded-lg border-slate-700 p-4 px-10 m-2 w-fc center center-text">
+            <div class="text-2xs text-gray-400">KEY</div>
+            <div class="truncate bg-zinc-700 text zinc-100 rounded h-6 rounded-full px-3 w-fc">Same Assignment in Both</div>
+            <div class="truncate bg-amber-300 text-amber-900 rounded h-6 rounded-full px-3 w-fc">Divergence</div>
+        </div>
+    </div>
+        <div class="block grid grid-cols-7 gap-1 md:gap-5">
+            {% for workday in workdays %}
+            <div class="bg-zinc-900 rounded p-1 border border-white shadow shadow-md center text-center">
+                <div class="grid grid-cols-3">
+                {% for slot in workday %}
+                   
+                        {% if slot.equal == True %}
+                            <span class="shrink bg-zinc-700 text-xs text-zinc-100 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                        {% else %}
+                            <span class="shrink bg-amber-300 text-xs text-amber-900 border border-amber-600 w-6 h-6 rounded-full mx-2">{{ slot.sch1.shift }}</span>
+                        {% endif %}
+                {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    

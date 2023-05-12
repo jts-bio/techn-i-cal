@@ -1,0 +1,23 @@
+-- versionControl Script
+behavior BestVersion
+    on load 
+        fetch #{isBestVersionLink} 
+        set best to result 
+        
+        then log `best: $best` 
+        then if best is 'True'
+            remove .hidden from me
+        end
+        
+    on mouseover 
+        if best is 'True' 
+            call event.screenX set x to result 
+            then call event.screenY set y to result
+            then make a <div/> 
+            then mydiv to result 
+            then put 'This is the most complete version of the schedule drafts.' into mydiv 
+            then set mydiv.style.top to y + 'px'
+            then set mydiv.style.left to x + 'px' 
+            then set mydiv.style.animation to 'appear forwards'
+
+    

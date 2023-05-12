@@ -1,0 +1,125 @@
+if page == 1
+
+    script(type="text/hyperscript").
+        behavior LastRow 
+            on click 
+                remove .hidden from .fa-spinner in me
+                fetch /schedule/partials/#{schId}/empty-list/?page=#{pageNext} 
+                then put result at the end of the closest .tbody 
+                then add .hidden to the closest .last-row 
+                end
+            end
+        
+        behavior Reloader 
+            on click 
+                add .animate-spin to me
+                then fetch actions/update-fills-with/ 
+                then put result into #reload-response 
+                then wait 1s 
+                then call window.loaction.reload() 
+                end
+
+    i#reloader.fas.fa-arrows-spin.text-lg(
+        class="hover:text-sky-300"
+        _="install Reloader"
+        title="Update Employee Availability"
+        )
+    span.about.hidden.text-2xs Update Employee Availability Data (This can take a while...)
+
+    h1.text-3xl.font-light Schedule #{schId}
+    h3.text-xl Empty Slots 
+
+    div#reload-response
+
+    table.bg-main.rounded-lg
+        tr
+            th.rounded-tl-lg Slot
+            th Options
+            th.rounded-tr-lg Notes
+        tbody.tbody 
+            each slot in empty_slots
+                tr.swap-tgt.duration-500.basis-1
+                    td
+                        div.flex.flex-row
+                            div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9.header-tile= slot.shift
+                            div.flex.flex-col.px-1.text-sm
+                                a(href=slot['workday_url'])= slot.workday
+                                div.text-2xs= slot.weekday
+                    td
+                        include ./empty-dropdown.html
+                    td
+                        if slot.template_employee
+                            span TEMPLATE: #{slot.template_employee}
+            if page < totalPages
+                tr.last-row
+                    td
+                    td
+                        div(class="border border-yellow-500 rounded hover:bg-yellow-800 h-9 m-2 p-2", _="install LastRow") 
+                            span Load more...
+                            i.hidden.fa-duotone.fa-spinner.fa-spin 
+                    td
+
+if page > 1
+    each slot in empty_slots
+        tr.swap-tgt
+            td
+                div.flex.flex-row
+                    div.bg-zinc-50.text-black.text-lg.font-bold.rounded.pt-1.pl-2.w-9.h-9= slot.shift
+                    div.flex.flex-col.px-1.text-sm
+                        a(href=slot['workday_url'])= slot.workday
+                        div.text-2xs= slot.weekday
+            td
+                include ./empty-dropdown.html
+            td
+                if slot.template_employee
+                    span TEMPLATE: #{slot.template_employee}
+    if page < totalPages
+        tr.last-row
+            td
+            td
+                div(class="border border-yellow-500 rounded hover:bg-yellow-800 h-9 m-2 p-2", _="install LastRow")
+                    span Load more...
+                    i.hidden.fa-duotone.fa-spinner.fa-spin 
+            td
+
+script.
+    function showDropdownOptions (event) {
+
+        const dropdown   = event.target.closest('.dd-button');
+        const options    = dropdown.closest('.relative').querySelector('.dd-options');
+        const headerTile = dropdown.closest('tr').querySelector('.header-tile');
+
+        options.classList.remove('hidden');
+        dropdown.classList.add('ring-3');
+        dropdown.classList.add('ring-blue-600');
+        dropdown.classList.add('border');
+        dropdown.classList.add('border-blue-200');
+
+
+        headerTile.classList.add('bg-sky-300');
+        headerTile.classList.add('ring');
+        headerTile.classList.add('ring-sky-700');
+        // add event listener to add .hidden when click is outside of the dropdown
+        document.addEventListener('click', 
+
+            function hideDropdownOptions (event) {
+                if (!dropdown.contains(event.target)) {
+                    options.classList.add('hidden');
+                    dropdown.classList.remove('bg-sky-300');
+                    dropdown.classList.remove('ring-3');
+                    dropdown.classList.remove('ring-blue-600');
+                    dropdown.classList.remove('border');
+
+                    headerTile.classList.remove('bg-sky-300');
+                    headerTile.classList.remove('ring');
+                    headerTile.classList.remove('ring-sky-700');
+
+                    document.removeEventListener('click', hideDropdownOptions);
+                    }
+                });
+                // send fsignal to fetcher elements
+                const fetchers = options.querySelectorAll('.fetcher');
+                fetchers.forEach(fetcher => {
+                fetcher.dispatchEvent(new CustomEvent('fsignal'));
+                });
+            }

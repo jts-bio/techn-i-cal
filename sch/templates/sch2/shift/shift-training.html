@@ -15,25 +15,28 @@
             {% csrf_token %}
                 <table>
                 {% for empl in empls %}
-                <tr>
-                        <td><label for="{{empl}}-trained">
-                                {{empl}}
-                            </label>
-                        </td>
+                <tr>    {# ---------DISPLAY NAME--------- #}
+                        <td><label class="cursor-pointer" _="on click add @checked to #{{empl}}-trained #{{empl}}-available"
+                                for="{{empl}}-trained">{{ empl }}</label></td>
                         
+                        {# -------IS EMPLOYEE TRAINED--------- #}
                         {% with empl.shifts_trained.filter as trained %}
-                        <td><input type="checkbox" name="{{empl.slug}}-trained"
+                        <td><input type="checkbox" name="{{empl.slug}}-trained" id="{{empl.slug}}-trained"
                                         {% if trained %}   checked   {% endif %}/></td> 
                         {% endwith %}
 
+                        {# -------IS EMPLOYEE AVAILABLE------- #}
                         {% with empl.shifts_available.filter as available %}
-                        <td><input type="checkbox" name="{{empl.slug}}-available" 
+                        <td><input type="checkbox" name="{{empl.slug}}-available" id="{{empl.slug}}-available"
                                         {% if available %}  checked   {% endif %}/></td> 
                         {% endwith %}
                 </tr>
                 {% endfor %}
                 </table>
-                <input type="submit" value="Update Training Information"/>
+                {# ----- SUBMIT BUTTON ------ #}
+                <input  type="submit" 
+                        class="text-indigo-400 rounded ring ring-indigo-300 hover:text-indigo-200 hover:ring-white hover:ring-2"
+                        value="Update Training Information"/>
             </form>
         </div>
 

@@ -11,16 +11,25 @@
 
     <div class="panel">
         <div class="grid-7-by-2">
-        {% for day in days %} 
-        <div class="vstack panel w-140">
-            <div class="text-xs" style="letter-spacing:11px;">DAY {{day.0.ppd_id}}</div>
-            {% for d in day %}
-            <div class="hstack">
-                <a href="/sch/shift/{{d.shift}}/" class="jbm">{{ d.shift }}</a>
-                <div class="text-2xs font-italic text-gray-200">{{ d.employee }}</div>
-            </div>
+            {% for day in days %} 
+                <div class="vstack panel w-1/7">
+                    <div class="text-2xs">DAY {{day.0.sd_id |add:1 }}: 
+                        <span class="bg-slate-200 text-zinc-900 rounded-sm px-1">{{ day.count }}</span></div>
+                </div>
             {% endfor %}
+            </div>
         </div>
+        <div class="grid-7-by-2">
+        {% for day in days %} 
+            <div class="vstack panel w-140">
+                <div class="text-xs" style="letter-spacing:11px;">DAY {{day.0.sd_id |add:1 }}</div>
+                {% for d in day %}
+                <div class="hstack">
+                    <a href="/sch/shift/{{d.shift}}/" class="jbm">{{ d.shift }}</a>
+                    <div class="text-2xs font-italic text-gray-200">{{ d.employee }}</div>
+                </div>
+                {% endfor %}
+            </div>
         {% endfor %}
         </div>
     </div>

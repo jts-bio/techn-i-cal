@@ -1,0 +1,47 @@
+extends base.html
+
+block style 
+    style.
+        .Slot {position: relative;width:120px;height:80px;border-top:1px solid #e2e8f0;}
+        .FlexRow {display: flex;lex-direction: row;justify-content: center;align-items: center;margin:40px;}
+        .h3 {size: 22pt; padding-left:16px ;font-weight: bold; color: cornflowerblue;}
+        .Badge {position:absolute;left:-12px;top:-12px;height:25px;width:25px;border-radius:100%;background-color:#e2e8f0;color:#1a202c;}
+        .week-break {border-right: 2px dashed #dddddd66;margin-right:12px;}
+
+mixin icon(iconName)
+    i(class="fa-#{iconName} fa-duotone text-black px-[5.5px] py-[2px]")
+
+mixin timeline(slots)
+    
+    each slot in slots
+        if slot == mainSlot
+            .Slot
+                .bg-zinc-400.rounded.bg-opacity-30.p-2.m-3(_="init if @wkd == 6 add .week-break end")
+                    .Badge
+                        +icon('calendar')
+                    h3.h3= slot.shift 
+                    a(href='#{slot.workday.url()}') 
+                        .text-2xs= slot.workday.weekday 
+                        .text-sm= slot.workday
+        else
+            .Slot(_="init if @wkd == 6 add .week-break end")
+                .p-2.m-3
+                    .Badge
+                        +icon('calendar')
+                    h3.h3.opacity-60= slot.shift 
+                    a.opacity-60(href='#{slot.workday.url()}') 
+                        .text-2xs= slot.workday.weekday 
+                        .text-sm= slot.workday
+                
+
+
+block content 
+
+    h2.text-3xl.text-center #{streak.count}-day Streak
+    div.text-center
+        span.text-xl Assigned to 
+        span.text-xl.bg-zinc-700.rounded.p-1.bg-opacity-70.text-sky-400 #{streak.0.employee}
+
+    .FlexRow.bg-zinc-900.rounded.border.py-4.overflow-x-scroll
+        +timeline(streak)
+        

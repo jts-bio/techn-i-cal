@@ -1,13 +1,19 @@
 
 {# --- TOGGLE DISPLAY BUTTON --- #}
-<button 
-_= "on click 
-      toggle .hidden on #toggle-btn-content
-    end" 
-class="p-3 rounded bg-zinc-800 ring-2 ring-indigo-700 text-indigo-500 
-      hover:bg-gray-500  hover:text-indigo-900  hover:ring-indigo-200">
-{{ title }}
-</button>
+<div class="place-content-center my-10">
+      <button 
+      _= "on click 
+            toggle .hidden on #toggle-btn-content then 
+            toggle .hidden on #show-span then
+            toggle .hidden on #hide-span
+          end"
+      class="p-3 rounded bg-zinc-800 
+            ring-2 ring-indigo-700 text-indigo-500 
+            hover:bg-gray-500  hover:text-indigo-900  
+            hover:ring-indigo-200">
+            <span id="show-span" class="text-indigo-500">Show</span>
+            <span id="hide-span" class="text-indigo-500 hidden">Hide</span>
+            {{ title }} </button>
 
 
 {# --- CONTENt BIN --- #}
@@ -16,4 +22,5 @@ id="toggle-btn-content"
 class="hidden">
 
 {{ children }} 
+</div>
 </div>

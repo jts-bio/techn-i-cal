@@ -1,11 +1,11 @@
 <!--
 SCHEDULE DETAIL VIEW 
-``view.scheduleDetail``
+::view::sch.views2.schDetailView
 
 -->
 
 {% extends 'base.html' %}
-{% load slippers %}
+{% load slippers %} {% load django_tables2 %} {% load tags %}
 
 
 {% block style %}
@@ -201,39 +201,41 @@ SCHEDULE DETAIL VIEW
 
 {% block content %}
 
-    <div class="panel text text-center">
-        <h1 class="text-3xl text-amber-600 text-bold">
 
-                {{schedule.year}}-Schedule {{schedule.number}}
-                    
-        </h1> 
-        <h3 class="text-lg text-amber-300 text-light">
+
+
+    <a href="{% url 'schd:list' %}"> <i class="fa-duotone fa-arrow-cirlce-left"></i>  Back to List</a>
+    
+
         
-                    VERSION {{schedule.version}}
-                    
-        </h3>
+        <div class="panel text text-center">
+            <div>
+                <a class="transition hover:scale-105" href="{{ schedule.previous.url }}">
+                    <i class="fa-arrow-circle-left fa-duotone transition hover:scale-105"></i>
+                </a>
+                <a class="transition hover:scale-105"  href="{{ schedule.next.url }}">
+                    <i class="fa-arrow-circle-right fa-duotone"></i>
+                </a>
+            </div>
+            <h1 class="text-3xl text-zinc-400 text-bold">
+                {{schedule.year}}-Schedule {{schedule.number}} 
+            </h1> 
+            <h3 class="text-lg text-zinc-100 text-light">
+                VERSION {{schedule.version}}   
+            </h3>
 
-        <div class="text-xs text-gray-300 italic">
+            {% include 'sch2/schedule/partials/action-btn.pug' %}
+      
 
-        <output id="weather" 
-                name="weather"
-                _="on load 
-                    remove @hidden from #WarnLowCount when my value 
-                    is < 200"
-                    value="{{ schedule.slots.filled.count }}">
-            {{ schedule.slots.filled.count }} 
-            / {{ schedule.slots.all.count }} 
-            SLOTS ASSIGNED 
-        </output>
+            <div class="text-xs text-zinc-300 italic">
 
-        <div 
-            id="WarnLowCount" 
-            hidden>
-        WARNING! 
-        LOW COVERAGE!
-        </div> 
+            <span>
+                {{ schedule.slots.filled.count }} 
+                / {{ schedule.slots.all.count }} 
+                SLOTS ASSIGNED 
+            </span>
 
-    </div>
+            {% if schedule.percent < 70 %} 
 
     <div><a href="{% url 'sch:v1-schedule-detail' schedule.pk %}">ALTERNATE VIEW</a></div>
     
@@ -283,17 +285,46 @@ SCHEDULE DETAIL VIEW
                 </div>
             {% endfor week %}
 
+            {% endif %}
         </div>
-    {% endfor period %}
-    </div>
+        
+    
 
-    <form method="POST"> {% csrf_token %}
-        <h2>Access Employee PTO Management for this schedule</h2>
-            
-            {{ form }}
+    {# --- STATS BAR ---#}
+        <section id="stat-bar">
 
-        <button type="submit">SUBMIT</button>
-    </form>
+            {% include 'sch2/schedule/partials/stat-bar.html' %}
+
+        </section>
+
+    {# ---MAIN ICON TAB BAR ---#}
+        <section id="tab-bar">
+
+                {% include 'sch2/schedule/partials/sch-tabBar.html' %}
+
+        </section>
+
+    <!-- LOADING INDICATOR -->
+        <div id="grid-indicator" class="htmx-indicator my-1">
+            <i class="fa-duotone fa-spinner fa-spin"></i>
+            <span class="fa-fade mx-2">Loading...</span> 
+        </div>
+
+    <!-- SWAPPING PANE -->
+        <div id="swap-pane">
+            <div class="opacity-60 text-2xs font-light italic">
+                Choose an option above to view additional content about this schedule...
+            </div>
+        </div>
+    
+        <hr class="bg-slate-300 mx-12 mb-4"/>
+
+</div>
+
+ 
+</div>
+
+
 
     
 {% endblock content %} 

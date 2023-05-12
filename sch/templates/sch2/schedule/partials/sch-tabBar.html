@@ -1,0 +1,77 @@
+
+<div id="MAIN-TAB-BAR" 
+    class="overflow-y-visible overflow-x-scroll overscroll-x-auto">
+        <div id="TAB-BAR-BORDER" 
+            class="border-b border-gray-200 dark:border-gray-700">
+            <ul id="TAB-FLEX-LIST"
+                class="flex flex-row -mb-px text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+                <li class="mr-2">
+                    <div hx-get="/sch/schedule-partials/{{schedule.slug}}/view-select/" 
+                        hx-target="#swap-panel"
+                        class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
+                        aria-current="page"
+                        _="on click remove .border-blue-600 .border-b-2 .active from .main-tab 
+                                add .border-blue-600 .border-b-2 .active to me
+                                toggle .text-sky-200 on me
+                            end">
+
+                        <i class="fa-duotone fa-eye mx-1"></i>
+                        Views
+                    </div>
+                </li>
+                <li class="mr-2">
+                    <div hx-get="/sch/schedule-partials/{{schedule.slug}}/complex-table/" 
+                         hx-target="#swap-panel" 
+                         class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
+                        aria-current="page"
+                        _="on click remove .border-blue-600 .border-b-2 .active from .main-tab
+                                add .border-blue-600 .border-b-2 .active to me 
+                                toggle .text-sky-200 on me
+                            end">
+
+                        <i class="fa-duotone fa-briefcase-medical pr-1"></i>
+                        Grid Overview
+                    </div>
+                </li>
+                <li class="mr-2">
+                    <div hx-get="/sch/schedule-partials/{{schedule.slug}}/compare-and-select/" 
+                         hx-target="#swap-panel"
+                         class="main-tab inline-flex p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 group pointer"
+                         aria-current="page"
+                         _="on click 
+                                remove .border-blue-600 .border-b-2 .active 
+                                    from .main-tab 
+                                add .border-blue-600 .border-b-2 .active 
+                                    to me
+                                toggle .text-sky-200 
+                                    on me 
+                                end">
+
+                        <i class="fa-duotone fa-shield-check pr-1"></i>
+                        Compare & Select
+                    </div>
+                </li>
+               
+                <li>
+                    <a id="DELETE-SCHEDULE-BUTTON"
+                        class="inline-block p-4 text-gray-400 rounded-t-lg cursor-not-allowed"
+                        _="on click 
+                                call confirm('Verify you want to delete this schedule.') then 
+                                if result == true 
+                                    fetch delete/ then 
+                                    go to url `/schedule/` 
+                                    end
+                                end">
+                        
+                        <i class="fa-duotone fa-trash-can"></i>
+                        Delete
+
+                    </a>
+                </li>
+                <li>
+                    <div id="actionMarker"></div>
+                </li>
+            </ul>
+        </div>
+   
+</div>

@@ -1,0 +1,18 @@
+mixin button-link(imgPath, getPath, name)
+    .m-2.rounded.text-xs.uppercase.text-center.py-7.brightness-75.transition.transform-gpu(
+            style="background-image:url('#{imgPath}');background-size:220px;"
+            class="h-[70px] cursor-pointer hover:ring-2 hover:ring-blue-300 hover:brightness-110"
+            hx-get=getPath
+            hx-target="#swap-panel"
+            )
+                div.w-full.h-full.text.text-center.transform-gpu.transition(class="hover:scale-125")= name
+
+
+.grid.grid-cols-2
+
+    +button-link('/static/img/aquamarine-gold-tile.png', 'set-sch-maxes/', "Set Max Hours")
+    +button-link('/static/img/amethyst-tile.png', 'pto-requests/', "Set PTO Requests")
+
+.grid.grid-cols-1
+
+    +button-link('/static/img/neon-vial-workbench.png', 'employees/', "Employee Summary")

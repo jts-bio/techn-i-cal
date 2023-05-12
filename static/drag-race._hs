@@ -1,0 +1,32 @@
+behavior Modal
+    init
+        set my focusRing to (<a, button, input:not([type=hidden]), textarea, select, details/> in me) as Array
+        end
+    on open
+        remove .hide
+        add { overflow: 'hidden' } to the <body/>
+        transition <[data-backdrop], [data-content]/> in me opacity from 0 to 1 over 0.3s
+        focus() the first <input/> in me
+        end
+    on close or keyup[key is 'Escape'] from <body/>
+        transition <[data-backdrop], [data-content]/> in me opacity from 1 to 0 over 0.2s
+        add { overflow: 'visible' } to the <body/>
+        add .hide
+        end
+    on keydown(shiftKey)[key is 'Tab']
+        halt the event
+        if shiftKey call focusPrevious()
+        else call focusNext()
+        end
+    on click from <[data-close]/> in me
+        trigger close
+        end
+    def focusNext()
+        set nextIndex to me.focusRing.indexOf(activeElement of the document) + 1
+        set next to me.focusRing[nextIndex] or first in me.focusRing 
+        end
+    def focusPrevious()
+        set previousIndex to me.focusRing.indexOf(activeElement of the document) - 1
+        set previous to me.focusRing[previousIndex] or last in me.focusRing 
+        end
+end

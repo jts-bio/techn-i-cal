@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+
+{% load tags %}
+{% load wtags %}
+{% load static %}
+
+
+
+
+
+{% block content %}
+
+<script type="text/hyperscript" src="/static/workday-slot._hs"></script>
+
+<div id="bkgd-area"
+    _="install Background">
+
+    {% include 'wday/partials/SPWD.html' %}
+
+    <div class="w-fc flex flex-col">
+
+        <div class="mx-auto">{% include 'wday/partials/week-dots.html' %}</div>
+        
+        <div class="container w-full mx-auto">
+            <div class="text text-center flex flex-row">
+
+                <a href="{{ workday.prevWD.url }}" class="hover:scale-[110%]">
+                    <i class="fa-duotone fa-circle-arrow-left"></i>
+                </a>
+
+                <div class="flex flex-col center text-center">
+                    <span class="text-3xl mt-2 font-semibold text-orange-500">{{ workday.date }}</span>
+                    <span class="text-sm font-thin">{{ workday.wkd }}</span>
+                    <span id="wdId" class="hidden">{{ workday.slug }}</span>
+                </div>
+
+                <a href="{{ workday.nextWD.url }}" class="hover:scale-[110%]">
+                    <i class="fa-duotone fa-circle-arrow-right"></i>
+                </a>
+                
+            </div>
+        </div>
+
+   </div>
+
+
+
+    {# _____ SECTION: SLOT GRID ______ #}
+    <div class="all-shifts  grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6"
+         _="init set $clickmode to 0 end
+            install Background">
+
+        {% for slot in workday.slots.all %}
+        <div>
+            
+            {# _____ OBJECT: SLOT ______ #}
+            <div class="slot {% if slot.shift.group == 'PM' %} pm-slot {% elif slot.shift.group == 'XN' %} pm-slot
+                        {% elif slot.shift.group == 'AM' %} am-slot {% endif %}
+                        w-11/12 bg-zinc-600 bg-opacity-30 bg-blur flex flex-row h-20
+                        {% if slot.employee == None %} bg-amber-800 {% endif %}"
+                 id="{{ slot.shift }}" 
+                 wdid="{{ workday.slug }}"
+                 available="{% for e in slot.fillable_by %}{{ e }} {% endfor %}"
+                 current="{{ slot.employee }}"
+                 data-time-of-day="{{ slot.shift.group }}"
+                 template-employee="{{ slot.template_employee }}"
+                 _="install Slot">
+
+                <div class="shift px-1 hover:underline {% if slot.employee == None %} text-yellow-400 {%endif%}"
+                    _="on click wait 200ms then go to url `/sch/v2/workday-detail/{{slot.workday.slug}}/{{slot.shift}}/` 
+                        on dblclick go to url `/sch/shift/{{slot.shift.name}}/`"> 
+                    {{ slot.shift }} 
+                </div>
+
+                <span id="indicator-{{slot.id}}" class="htmx-indicator"> 
+                    <i class="fa-duotone fa-circle-notch fa-spin fa-fade"></i>
+                </span>
+                
+                <div id="inner-slot-{{ slot.shift}}" class="inner-slot" wdid="{{ workday.slug }}"
+                    _="install InnerSlot">
+                        {% if slot.employee %} 
+                            {% with slot.employee as employee %}
+                                {% include 'wday/partials/employeeChip.html' %}
+                            {% endwith %}
+                        {% else %}
+                                <i data-slot="{{slot.shift.name}}"
+                                    data-group="{{slot.shift.group}}"
+                                    class="helper fa-duotone text-zinc-100 fa-circle-ellipsis mt-2"
+                                _="install HintEllipsis">
+                                </i>
+                                {% if slot.template_employee %}
+                                    {% if not slot.template_employee in workday.on_pto.all %}
+                                        {# ===== FILL TEMPLATE HELPER BUTTON ====== #}
+                                        <div
+                                            _="on click fetch {{slot.shift}}/fill-template/ 
+                                                    put result into me.parentNode then
+                                                    call window.location.reload() 
+                                                end 
+                                                on hidehelper add .hidden to me"
+                                            class="helper-btn helper bg-sky-900 text-white text-2xs uppercase rounded-full px-2 cursor-pointer">
+                                            FILL TEMPLATE EMPLOYEE
+                                        </div>
+                                    {% else %}
+                                        <div class="helper text-xs italic opacity-60 helper">{{ slot.template_employee }} has active PTO Request</div>
+                                    {% endif %}
+                                {% endif %}
+                        {% endif %}
+                </div>
+                
+            </div>
+        </div>
+        {% endfor %}
+
+        {# _____ OBJECT: TRASHCAN ______ #}
+        <div class="trashbin hidden .fa-fade .fa-beat border text-center bg-red-700 fa-beat rounded-lg"
+             wdid="{{ workday.slug }}"
+             _="install TrashBin">
+                <i class="fa-duotone fa-trash-can text-2xl"></i>
+                <div id="trash-message" class="text-2xs italic fa-beat fa-fade"> Drop here to remove...</div>
+        </div>
+
+    </div>
+
+    <hr class="text-white my-3"/>
+    
+    <div class="px-8">
+        <span class="jbm text-xs text-zinc-200 px-2">ON DECK: {{ workday.on_deck.count }}</span>
+        <span class="jbm text-xs text-zinc-400 px-2">ON PTO: {{ workday.pto.count }}</span>
+        <span class="jbm text-xs text-zinc-200 px-2">TEMPLATED OFF: {{ workday.tdo.count }}</span>
+    </div>
+    {# _____ SECTION: ON DECK ______ #}
+    <div class="container deck flex flex-rows-1 gap-[50px] bg-zinc-900 snap-mandatory scroll-px-1 
+                shadow-inner border border-white shadow-xl overflow-x-scroll overscroll-x-auto h-50 snap-x"
+        
+        _="on getmovingaway tell movingaway remove you then call me.prependChild(movingaway) end">
+
+            <!---- Employees: ON DECK ----->
+            {% for employee in workday.on_deck.all %}
+                <div class="shrink-0 snap-start snap-always my-6">
+                    {% include 'wday/partials/employeeChip.html' %}
+                </div>
+            {% endfor %}
+
+            <!---- Employees: PTO ----->
+            {% for empl in workday.pto.all %}
+                {% with empl.employee as employee %} 
+                {% with 'PTO' as desig %}
+                    <div class="shrink-0 snap-start snap-always my-6">
+                        {% include 'wday/partials/employeeChip.html' %}
+                    </div>
+                {% endwith %} 
+                {% endwith %}
+            {% endfor %}
+            
+            <!---- Employees: TDO ----->
+            {% for empl in workday.tdo.all %}
+                {% with empl.employee as employee %}
+                {% with 'TDO' as desig %}
+                    <div class="shrink-0 snap-start snap-always my-6">
+                        {% include 'wday/partials/employeeChip.html' %}
+                    </div>
+                {% endwith %}
+                {% endwith %}
+            {% endfor %}
+        
+        </div>
+    
+</div>
+    <script type="text/javascript">
+        function dragDrop(me) {
+            const employee = document.querySelector('.dragging');
+            me.appendChild(employee);
+            employee.classList.remove('dragging');
+          }
+    </script>
+
+
+{% endblock %}
+
+
+{% block style %}
+
+    <style>
+        .all-shifts {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            margin-top: 50px;
+        }
+        .slot {
+            width: 175px;
+            height: 50px;
+            border: 1px solid white;
+            border-radius: 10px;
+            margin: 10px;
+            padding-left: 10px;
+            padding-top: 2px;
+        }
+        .employee {
+            color: #aacc99;
+            font-style: bold;
+            margin-right: 10px;
+        }
+        .shift {
+            font-style: italic;
+            font-size: 22px;
+            color: #ffffff;
+            
+        }
+        .hold {
+            opacity: 0.5;
+        }
+        .allowed-drop {
+            background-color: #33ffaa;
+            border: 1px dashed #00cc66aa;
+        }
+        .over-allowed-drop {
+            background-color: #77ffcc;
+            border: 2px solid #00cc66aa;
+        }
+        .over-prohibited-drop {
+            background-color: #ffaa77;
+            border: 2px solid #cc6600aa;
+        }
+        .dragging {
+            opacity: 0.5;
+        }
+    </style>
+
+{% endblock %}
