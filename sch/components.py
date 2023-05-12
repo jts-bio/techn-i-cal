@@ -4,14 +4,12 @@ from django.template.loader import render_to_string
 import re
 
 
-
-
 class BasicSpeedDial:
     
     def __init__(self):
         self.options = []
         
-    def addOption(
+    def add_option(
             self, 
             name, 
             url, 
@@ -23,7 +21,7 @@ class BasicSpeedDial:
             icon = 'fa-' + icon
         if not color.startswith('bg-'):
             color = 'bg-' + color
-        if re.findall(r'-\d\d\d', color) == []:
+        if not re.findall(r'-\d\d\d', color):
             color = color + '-500'
         self.options.append( {
             'name': name, 
@@ -37,9 +35,10 @@ class BasicSpeedDial:
         return render_to_string('sch3/speedDial.html', {'options': self.options} )
 
 
-workday_speed_dial_menu = BasicSpeedDial().addOption(
+workday_speed_dial_menu = BasicSpeedDial()
+workday_speed_dial_menu.add_option(
             name="Solve",
             url="solve/",
             icon="robot-user",
             color="zinc-300"
-)
+            )

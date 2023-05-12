@@ -94,7 +94,7 @@ def wdDetailView (request, slug:str):
     logger.info (f'     weekHours : {[(empl.slug, empl.weekHours(wd)) for empl in wd.on_deck().all()]}')
 
     dial = components.BasicSpeedDial()
-    dial.addOption(
+    dial.add_option(
         name="Show PTO Employees", 
         url="include-pto/", 
         icon="arrows-expand", 

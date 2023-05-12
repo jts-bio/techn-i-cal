@@ -11,13 +11,15 @@ def update_schedule_percent_complete(sender, instance, **kwargs):
     schedule.update_percent()
     schedule.save()
 
+
 # SLOT SIGNALS 
 @receiver(post_save, sender=Slot)
 def update_other_slots(sender, instance, **kwargs):
     print("Updating other slots")
     workday = instance.workday
     workday.slots.filter(employee=instance.employee).exclude(pk=instance.pk).update(employee=None)
-    
+
+
 @receiver(post_init, sender=Schedule)
 def update_slots_fills_with (sender, instance, **kwargs):
     print("Updating slots fills with")
@@ -26,8 +28,4 @@ def update_slots_fills_with (sender, instance, **kwargs):
             slot.fills_with.add(employee=empl)
         
 
-@receiver(post_init, sender=Slot)
-def calc_slot_hours(sender, instance, **kwargs):
-    if instance.hours == None:
-        instance.hours = instance._set_hours()
     

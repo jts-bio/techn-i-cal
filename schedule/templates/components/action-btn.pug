@@ -12,10 +12,10 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
                 span.jbm= title
                 span.text-2xs= subtitle
 
-mixin button-group(btn_title)
+mixin action-button(btn_title, icon)
     button.text-zinc-300.bg-zinc-950.ml-2.px-3.py-2.jbm.rounded.mt-3.relative(
         class="hover:bg-zinc-700" type='button' onclick="toggleMyDialog()")
-            i.fa-duotone.fa-bolt.mr-3 
+            i.fas.mr-3(class="fa-#{icon}")
             span.text-zinc-200.text-xs.jbm #{btn_title}
             
 
@@ -90,8 +90,8 @@ script(type="text/hyperscript").
 
 
 .button-group.relative
-    +button-group("Actions")
-    dialog#actionDialog.bg-zinc-900.rounded-lg.absolute.z-50(class="lg:w-[350px]")
+    +action-button("Actions" "bolt")
+    dialog#actionDialog.bg-zinc-900.rounded-lg.absolute(class="lg:w-[350px] z-[999]")
         +button-option("fa-robot"  "ALGORITHM A" "Solve via maximizing predicted satisfaction" "actions/fill-with-favorables/" "indigo")
         +button-option("fa-bolt"   "ALGORITHM B" "Solve using signal optimization coordinating the order to assign slots." "actions/solve-signal-opti/" "sky")
         +button-option("fa-folder" "ALGORITHM C" "Apply only the training skeleton adapted to this schedule" "actions/set-templates/" "yellow")

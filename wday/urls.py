@@ -14,10 +14,10 @@ urlpatterns = [
     path('<wd>/solve/', views.WdActions.wdSolveView, name='slot-solve'),
     path('<slug>/'+'slot/'+'<shiftId>/'+'update/',  views.SlotActions.slotUpdateView, name='slot-update'),
 
-    # Components ~~~~~~~~~~~~~~~~~~~~~
+    # Components
     path('<wd>/partial/speed-dial/', views.Partials.speed_dial, name='speed-dial'),
     
-    # API paths ~~~~~~~~~~~~~~~~~~~~~~
+    # API paths
     path('<wdSlug>/api-context/', api.workday_context, name='workday-api-context'),
     
     path('testing/<wdSlug>/', views.testing, name='testing'),

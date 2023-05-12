@@ -24,7 +24,7 @@ from django.db.models.functions import Cast
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.views.decorators.vary import vary_on_headers
-
+from sch.models import Schedule, Department
 
 
 class ApiViews:
@@ -248,6 +248,7 @@ class ApiViews:
                 i += 1
         return JsonResponse(empl_dict, safe=False) # type: Dict[str, Dict[str, Any]]
 
+    @staticmethod
     def schedule__get_undertime_hours_sum(request, schId):
         from schedule.utils import get_sum_sch_undertime
         
@@ -302,8 +303,8 @@ class ApiActionViews:
     ignoreMistemplateFlag
     ```
     """
-
-    def build_schedule(request, year, num, version, start_date, testing=False):
+    @staticmethod
+    def build_schedule(request, year, num, version, dept_id, start_date, testing=False):
         """Build Schedule
         ---
         ```
@@ -322,6 +323,7 @@ class ApiActionViews:
             year=year,
             number=num,
             version=version,
+            department=Department.objects.get(slug=dept_id),
             start_date=start_date,
             slug=f"{year}-S{num}{version}",
         )
@@ -396,7 +398,7 @@ class ApiActionViews:
         for wd in wdlist:
             wd.save()
             slotlist = []
-            for sft in Shift.objects.filter(occur_days__contains=wd.iweekday):
+            for sft in Shift.objects.filter(occur_days__contains=wd.iweekday, department=schedule.department):
                 period = wd.period
                 week = wd.week
                 shift = sft
@@ -414,6 +416,8 @@ class ApiActionViews:
                 ]
 
             Slot.objects.bulk_create(slotlist)
+
+            schedule.employees.set(Employee.objects.filter(department=schedule.department))
 
             print (f"slots made for wd {wd}")
 
