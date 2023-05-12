@@ -138,9 +138,7 @@ class ApiViews:
     @vary_on_headers("X-Requested-With")
     def schedule__get_empty_list(request, schId):
         sch = Schedule.objects.get(slug=schId)
-        return JsonResponse(
-            SlotSerializer(sch.slots.empty(), many=True).data, safe=False
-        )
+        return JsonResponse(SlotSerializer(sch.slots.empty(), many=True).data, safe=False)
 
     def schedule__employee_excess_week_hours(request, schId, empId, wk):
         sch = Schedule.objects.get(slug=schId)

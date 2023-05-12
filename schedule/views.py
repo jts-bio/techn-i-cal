@@ -1150,13 +1150,18 @@ class Actions:
         Fills slots with employees who are able to fill them.
         Using 'Algorithm D'
         """
+        from sch.models import LogEvent
+        
         sch = Schedule.objects.get(slug=schId)
         from .utils import get_all_undertime_triplets
+        
         triplets = get_all_undertime_triplets(schId)
         n = 0
         t_init = tz.now()
+        
         for employee in triplets:
             i = 0
+            
             for period_needed_hours in triplets[employee]:
                 if period_needed_hours != 0:
                     period_slots = sch.periods.all()[i].slots.empty().filter(fills_with=employee)
@@ -1171,6 +1176,7 @@ class Actions:
                                         slot.save()
                                         n += 1
                                         period_needed_hours -= slot.shift.hours
+                                        
                     if period_needed_hours > 0:
                         period_slots = sch.periods.all()[i].slots.filled_by_prn().filter(fills_with=employee)
                         if period_slots.count() > 0:
@@ -1183,15 +1189,16 @@ class Actions:
                                             n += 1
                                             period_needed_hours -= slot.shift.hours
                 i += 1
+                
         t_final = tz.now()
         t_delta = t_final - t_init
-        sch.routine_log.events.add(
-            LogEvent(
-                "ALGORITHM-D",
-                "Fill Algorithm prioritizing the distribution of slots by degree of scheduled hours under the deserved amount",
-                {'n': n, 't_delta': t_delta.total_seconds(), 'user': request.user.username}
+        LogEvent.objects.create(
+                log=         sch.routine_log,
+                event_type=  "ALGORITHM-D",
+                description= "Fill Algorithm prioritizing the distribution of slots by degree of scheduled hours under the deserved amount",
+                data=        {'n': n, 't_delta': t_delta.total_seconds(), 'user': request.user.username}
             )
-        )
+        
         return HttpResponse(f"Filled {n} slots in {t_delta.total_seconds()} seconds")
       
     

@@ -12,13 +12,13 @@ def solve_schedule(schid):
    t_init = tz.now()
    
    init_data = dict(
-      empty= sch.slots.empty().count(),
-      mistemplated= sch.slots.mistemplated().count(),
-      untrained= sch.slots.untrained().count(),
-      pto_conflicts= sch.slots.pto_violations().count(),
-      tdo_conflicts= sch.slots.tdo_violations().count(),
-   )
-   
+            empty= sch.slots.empty().count(),
+            mistemplated= sch.slots.mistemplated().count(),
+            untrained= sch.slots.untrained().count(),
+            pto_conflicts= sch.slots.pto_violations().count(),
+            tdo_conflicts= sch.slots.tdo_violations().count(),
+         )
+      
    sch.slots.untrained().update(employee=None)
    sch.slots.mistemplated().update(employee=None)
    sch.slots.pto_violations().update(employee=None)
@@ -65,19 +65,19 @@ def solve_schedule(schid):
    empty_slots = sch.slots.filter(
             template_employee__isnull=False,
             employee=None
-         ).annotate(
+               ).annotate(
             has_ptorequest=Exists(ptorequest_subquery)
-         ).annotate(
+               ).annotate(
             weekhours=Subquery(weekhours_subquery, 
                               output_field=FloatField())
-         ).annotate(
+               ).annotate(
             periodhours=Subquery(periodhours_subquery, 
                               output_field=FloatField())
-         ).exclude(
+               ).exclude(
             pk__in=Subquery(prev_evening_subquery ).bitor(
                    Subquery(next_morning_subquery)).bitor(
                    Subquery(on_workday_subquery))
-         ).exclude(
+               ).exclude(
             Case(
                When(
                   has_ptorequest=True, 
@@ -89,34 +89,37 @@ def solve_schedule(schid):
          )
             
    for slot in sch.slots.filter(
-            template_employee__isnull=False,
-            employee=None
-            ):
+               template_employee__isnull=False,
+               employee=None
+                  ):
+         
       who_can_fill = slot.shift.available.annotate(
-            has_ptorequest=Exists(ptorequest_subquery)
-         ).annotate(
-            weekhours=Subquery(weekhours_subquery, 
-                              output_field=FloatField())
-         ).annotate(
-            periodhours=Subquery(periodhours_subquery, 
-                              output_field=FloatField())
-         ).exclude(
-            pk__in=Subquery(prev_evening_subquery ).bitor(
-                   Subquery(next_morning_subquery)).bitor(
-                   Subquery(on_workday_subquery)) 
-         ).exclude(
-            Case(
-               When(
-                  has_ptorequest=True, 
-                  then=True
-                  ),
-               default=False,
-               output_field=BooleanField()
+               has_ptorequest=Exists(ptorequest_subquery)
+            ).annotate(
+               weekhours=Subquery(weekhours_subquery, 
+                                 output_field=FloatField())
+            ).annotate(
+               periodhours=Subquery(periodhours_subquery, 
+                                 output_field=FloatField())
+            ).exclude(
+               pk__in=Subquery(prev_evening_subquery ).bitor(
+                     Subquery(next_morning_subquery)).bitor(
+                     Subquery(on_workday_subquery)) 
+            ).exclude(
+               Case(
+                  When(
+                     has_ptorequest=True, 
+                     then=True
+                     ),
+                  default=False,
+                  output_field=BooleanField()
+               )
             )
-         )
-   
+      
       if who_can_fill.exists():
-         slot.employee = who_can_fill[0].employee
+         
+            slot.employee = who_can_fill[0].employee
+            
             
    t_final = tz.now()
    t = t_final - t_init

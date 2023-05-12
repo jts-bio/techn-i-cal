@@ -2,10 +2,21 @@
 
 from taggit.serializers import (TagListSerializerField,
                                 TaggitSerializer)
+
 from rest_framework import serializers
-from .models import (Employee, Workday, Shift, Slot, ShiftTemplate, 
-                     TemplatedDayOff, Workday, Week, Period, 
-                     Schedule, ShiftSortPreference, PtoRequest, RoutineLog,
+from .models import (Employee, 
+                     Workday, 
+                     Shift, 
+                     Slot, 
+                     ShiftTemplate, 
+                     TemplatedDayOff, 
+                     Workday, 
+                     Week, 
+                     Period, 
+                     Schedule, 
+                     ShiftSortPreference, 
+                     PtoRequest, 
+                     RoutineLog,
                      LogEvent )
 
 
@@ -95,7 +106,7 @@ class ShiftTemplateSerializer(serializers.ModelSerializer):
 class TemplatedDayOffSerializer (serializers.ModelSerializer):
     class Meta:
         model = TemplatedDayOff
-        fields = ('employee','sd_id')
+        fields = ('__all__')
         
 class PtoRequestSerializer(serializers.ModelSerializer):
     class Meta:

@@ -3,7 +3,14 @@ from django.db.models.signals import post_save, pre_save, m2m_changed, post_init
 from django.dispatch import receiver, Signal
 from django.db.models import Sum
 
-from .subsignals.turnarounds import create_turnaround, delete_turnaround
+from .subsignals.turnaround_signals import (
+   create_turnaround, 
+   delete_turnaround
+)
+
+from .subsignals.week_signals import (
+   assign_version 
+)
 
 
 @receiver(post_save, sender=Slot)
@@ -45,4 +52,6 @@ def set_i_values(sender, instance, **kwargs):
       instance.ppd_id = (instance.schedule.start_date - instance.date).days + 1 % 14
    if instance.sd_id == -1:
       instance.sd_id = (instance.schedule.end_date - instance.date).days + 1
+      
+
    
