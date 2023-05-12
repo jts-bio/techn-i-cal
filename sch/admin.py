@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import User
+from django.db import models
+
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from .models import (
-                Organization, Department,
+                Organization, Department, CustomUser,
                 Shift, Employee, TemplatedDayOff, Workday, Slot, 
                 ShiftTemplate, PtoRequest, Week, Period, Schedule,
-                RoutineLog, LogEvent, WorkdayViewPreference, Turnaround )
+                RoutineLog, LogEvent, Turnaround )
 
 from .forms import ShiftAvailableEmployeesForm
 from django import forms
@@ -42,7 +43,7 @@ class EmployeesTrained(admin.TabularInline):
 class DeptEmployees(admin.TabularInline):
     model = Employee
     fields = ['name', 'fte', 'fte_14_day', 'cls', 'time_pref', 'streak_pref']
-    readonly_fields = ['name', 'fte', 'fte_14_day', 'cls', 'time_pref', 'streak_pref']
+    readonly_fields = []
     extra = 0
     can_delete = False
     show_change_link = True
@@ -50,42 +51,64 @@ class DeptEmployees(admin.TabularInline):
 
 class OrganizationDepartments(admin.TabularInline):
     model = Department
-    fields = ['name', 'slug']
-    readonly_fields = ['name', 'slug']
+    fields = ['name', 'slug', 'n_employees']
+    readonly_fields = ['n_employees']
     extra = 0
     can_delete = True
-    show_change_link = False
+    show_change_link = True
     ordering = ['name']
+    
+    def n_employees(self, obj):
+        return obj.employees.count()
 
 class ShiftsAvailable(admin.TabularInline):
     model = Employee.shifts_available.through
-    fields = ['shift', 'employee']
+    fields = ['shift', 'employee', ]
     readonly_fields = ['shift', 'employee']
     extra = 0
     can_delete = False
     show_change_link = True
     ordering = ['shift__start']
     
+class WorkdaysInline (admin.TabularInline):
+    model = Workday
+    fields = ['date', 'weekday', 'n_empty']
+    read_only_fields = ['date', 'weekday', 'n_empty']
+    can_delete = False
+    can_create = False
+    ordering = ['date']
+    show_change_link = True
+    
 
 
-
-# Unregister the provided model admin
-admin.site.unregister(User)
 
 # Register out own model admin, based on the default UserAdmin
-@admin.register(User)
+@admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     fieldsets = [
-        ("Personal info", {'fields': ['username', 'first_name', 'last_name', 'email', 'password']}),
-    
-        ("Permissions", {'fields': ['is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions']}),
-        ("Important dates", {'fields': ['last_login', 'date_joined']}),
+        ("Personal info", { 'classes': ['collapse','narrow'],
+                            'fields': 
+                                ['username', 
+                                 'first_name', 
+                                 'last_name', 
+                                 'email', 
+                                 'password']}),
+        ("Organization", {'fields': 
+                                ['organization']}),
+        ("Permissions", {'fields': 
+                                ['is_active', 
+                                 'is_staff', 
+                                 'is_superuser', 
+                                 'groups', 
+                                 'user_permissions']}),
+        
+        ("Important dates", {'fields': 
+                                ['last_login', 'date_joined']}),
     ]
     
-    readonly_fields = ['organization']
+    readonly_fields = ['date_joined','last_login']
     
-    def organization(self, obj):
-        return obj.employee.organization.name if obj.employee else None
+
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
@@ -128,6 +151,8 @@ class ShiftAdmin(admin.ModelAdmin):
     
     inlines = [EmployeesAvailable,]
     
+    
+    
 
 
 @admin.register(Employee)
@@ -144,12 +169,20 @@ class EmployeeAdmin(admin.ModelAdmin):
                 'time_pref',
                 'pto_hrs'
             ]
-    list_display = ['name', 'initials', 'fte','fte_14_day', 'streak_pref', 'cls', 'time_pref']
+    list_display = [
+                'name', 
+                'initials', 
+                'fte',
+                'fte_14_day', 
+                'streak_pref', 
+                'cls', 
+                'time_pref'
+            ]
     
     inlines = [ShiftsAvailable, EmployeesTrained]
+
     
-    
-    
+
 
     
 
@@ -247,7 +280,3 @@ class LogEventAdmin (admin.ModelAdmin):
     fields          = ('log', 'event_type', 'description')
     list_display    = ('log', 'event_type', 'description')
     
-@admin.register(WorkdayViewPreference)
-class WorkdayViewPreferenceAdmin (admin.ModelAdmin):
-    fields          = ('user', 'view')
-    list_display    = ('user', 'view')

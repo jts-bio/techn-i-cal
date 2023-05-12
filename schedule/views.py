@@ -6,7 +6,7 @@ from sch.models import generate_schedule
 import datetime as dt
 from django.utils import timezone as tz
 from django.urls import reverse
-from sch.forms import GenerateNewScheduleForm
+from .forms import GenerateNewScheduleForm
 from django.db.models import (
     OuterRef,
     Subquery,
@@ -76,6 +76,8 @@ def schListView(request):
 
     if request.method == "POST":
         sd = request.POST.get("start_date")
+        dept = request.POST.get("department")
+        
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
         idate = start_date
         year = start_date.year
@@ -89,9 +91,8 @@ def schListView(request):
         return HttpResponseRedirect(sch.url())
 
     context = {
-        "schedules": schedules.order_by("-start_date").exclude(
-            status=2
-        ),  # status 2 = discarded
+        "schedules": schedules.order_by("-start_date").exclude(status=2),  
+                                                        # status 2 = discarded
         "new_schedule_form": GenerateNewScheduleForm(),
     }
     return render(request, "sch-list.html", context)

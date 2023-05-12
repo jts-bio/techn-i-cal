@@ -73,6 +73,7 @@ MIDDLEWARE = [
 
 LOGIN_URL = "login-view"
 LOGOUT_REDIRECT_URL = "sch:index"
+AUTH_USER_MODEL = "sch.CustomUser"
 
 REQUIRE_LOGIN_PUBLIC_NAMED_URLS = (LOGIN_URL, LOGOUT_REDIRECT_URL)
 
@@ -216,7 +217,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    BASE_DIR / 'svelte/static',
     ]
 STATIC_ROOT = STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"

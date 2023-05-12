@@ -9,7 +9,7 @@ from django.db.models import (
 from django.shortcuts import reverse, render
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 
-from sch.models import Schedule, Workday, Employee, Slot, Shift, WorkdayViewPreference, WD_VIEW_PREF_CHOICES
+from sch.models import Schedule, Workday, Employee, Slot, Shift, WD_VIEW_PREF_CHOICES
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from sch import components

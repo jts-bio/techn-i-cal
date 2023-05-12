@@ -548,13 +548,6 @@ class EmployeeCoworkerSelectForm (forms.Form):
     
 START_DATE_SET = [(Schedule.START_DATES[2023][i], Schedule.START_DATES[2023][i]) for i in range(0, len(Schedule.START_DATES[2023]))]
 
-class GenerateNewScheduleForm (forms.Form):
-    
-    start_date = forms.ChoiceField(
-                                choices=START_DATE_SET, 
-                                label="Start Date"
-                            )
-    department = forms.ModelChoiceField(queryset=Department.objects.all(), widget=forms.Select())
     
     
     

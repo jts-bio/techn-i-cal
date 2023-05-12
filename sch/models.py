@@ -4,6 +4,7 @@ from re import sub
 import random
 from computedfields.models import ComputedFieldsModel, computed
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 from django.db.models import (Avg, Count, Deferrable, DurationField, ExpressionWrapper, F,
                               FloatField, Max, Min, OuterRef, Q, QuerySet,
@@ -50,6 +51,9 @@ Models:
     - ShiftPreference
 """
 
+class CustomUser(AbstractUser):
+    department = models.ForeignKey('Department', on_delete=models.CASCADE, null=True)
+    
 
 #*--------------------------------*#
 #* --- ---    MANAGERS    --- --- *#
@@ -483,6 +487,8 @@ class Department (models.Model):
     name = models.CharField (max_length=100)
     slug = models.SlugField (max_length=100, unique=True, primary_key=True)
     org  = models.ForeignKey (Organization, on_delete=models.CASCADE, related_name='departments')
+    schedule_week_count = models.IntegerField(default=6)
+    
     
     def __str__ (self): return self.name
 
@@ -582,7 +588,7 @@ class Employee (models.Model) :
     streak_pref     = models.IntegerField (default=3)
     trade_one_offs  = models.BooleanField (default=True)
     cls             = models.CharField (choices=(('CPhT','CPhT'),('RPh','RPh')),default='CPhT',blank=True, null=True,max_length=20)
-    department      = models.ForeignKey (Department, on_delete=models.CASCADE, null=True)
+    department      = models.ForeignKey (Department, on_delete=models.CASCADE, null=True, related_name='employees')
     time_pref       = models.CharField(max_length=10, choices=(('AM','Morning'),('PM','Evening'),('XN','Overnight')))
     slug            = models.CharField (primary_key=True ,max_length=25,blank=True)
     hire_date       = models.DateField (default=dt.date(2018,4,11))
@@ -963,21 +969,6 @@ class Workday (models.Model) :
 
 
     objects = WorkdayManager.as_manager()
-
-
-WD_VIEW_PREF_CHOICES = (
-        (0,'wday/wd-detail-2.html'),
-        (1,'wday/wd-detail.html'),
-        (2,'wday/wd-detail-old.html'),
-        (3,'wday/wd-3.html'),
-        (4,'wday/partials/hs_wday.html'),
-        (5,'wday/wday-4.pug'),
-    )
-class WorkdayViewPreference (models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wd_view_pref')
-    view = models.CharField(max_length=10, choices=WD_VIEW_PREF_CHOICES, default=0)
-    def __str__ (self):
-        return f'{self.user.username} Pref:{WD_VIEW_PREF_CHOICES[self.view]}'
 
 
 class Week (models.Model) :
@@ -2765,19 +2756,20 @@ class ScheduleEmusr (models.Model):
 
 
     class Actions:
+        
         def update_n_unfav(self):
             self.n_unfav = self.schedule.slots.unfavorables().count()
+            
         def update_n_var(self):
             qs = ScheduleEmusr.objects.values('n_unfav')
             avg = qs.aggregate(Avg('n_unfav'))['n_unfav__avg']
             self.n_var = int(self.n_unfav - avg)
+            
     actions = Actions()
 
-    def __str__ (self):
-        return f"{self.schedule} ({self.n_unfav})"
-    def save(self):
-        self.actions.update_n_unfav()
-        super().save()
+    def __str__ (self): return f"{self.schedule} ({self.n_unfav})"
+
+    def save(self): self.actions.update_n_unfav(); super().save()
 
 
 
