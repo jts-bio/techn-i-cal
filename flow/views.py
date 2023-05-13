@@ -441,14 +441,15 @@ class ApiActionViews:
 
         return HttpResponseRedirect(schedule.url())
 
-
+    @staticmethod
     def build_alternate_draft(request, schId):
         
         sch = Schedule.objects.get(slug=schId)
         c = Schedule.objects.filter(year=sch.year, number=sch.number).count()
+        dept_id = sch.department.pk
         version = "ABCDEFGHIJ"[c]
         return ApiActionViews.build_schedule(
-            request, sch.year, sch.number, version, sch.start_date
+            request, sch.year, sch.number, version, dept_id, sch.start_date
         )
 
     @csrf_exempt

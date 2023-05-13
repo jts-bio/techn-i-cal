@@ -1,47 +1,31 @@
-from django.shortcuts import render
-from django.template.loader import render_to_string
-from django.http import HttpRequest, HttpResponse, JsonResponse, HttpResponseRedirect
-from django.views.generic.base import TemplateView, RedirectView, View
-from sch.models import generate_schedule
 import datetime as dt
-from django.utils import timezone as tz
-from django.urls import reverse
-from .forms import GenerateNewScheduleForm
+import json
+import random
+
+from django.contrib import messages
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import F
 from django.db.models import (
     OuterRef,
     Subquery,
     Count,
     Q,
-    F,
-    CharField,
-    Avg,
-    Sum,
-    Case,
-    When,
-    BooleanField,
-    Value,
 )
-from django.db.models.functions import Coalesce, Concat
-from flow.views import ApiViews
+from django.db.models import Sum
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpRequest
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone as tz
 from django.views.decorators.csrf import csrf_exempt
-from flow import views as flow_views
-from django.db.models import ExpressionWrapper, F, DurationField
-
-from django.db import models
-from django.contrib import messages
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
-from sch.models import Schedule, Week, Slot, Employee, Shift, PtoRequest, RoutineLog, Turnaround, TemplatedDayOff
-from .tables import MistemplatedFlagIgnoreTable, TdoConflictsTable
-import json
-from django.db.models import Case, When, Sum, IntegerField
-from django.contrib.postgres.aggregates import ArrayAgg
-from django.contrib.postgres.fields import ArrayField
-import random
-from sch.data import Images
-from django.views.decorators.cache import cache_control
-
 from django.views.decorators.vary import vary_on_headers
+
+from flow import views as flow_views
+from flow.views import ApiViews
+from sch.data import Images
+from sch.models import Schedule, Week, Slot, Employee, PtoRequest, RoutineLog, Turnaround, TemplatedDayOff
+from .forms import GenerateNewScheduleForm
+from .tables import TdoConflictsTable
 
 
 def schListView(request):
@@ -298,7 +282,8 @@ class Sections:
         data = json.loads(data)
         return render(request, "tables/emusr.html", {"data": data})
 
-    def schEmptyList(request, schId):
+    @staticmethod
+    def schEmptyList(request:HttpRequest, schId):
         version = schId[-1]
 
         data = ApiViews.schedule__get_empty_list(request, schId)
@@ -337,7 +322,6 @@ class Sections:
         )
 
     def schEmusrPage(request, schId):
-        from django.db.models.functions import Coalesce
 
         sch = Schedule.objects.get(slug=schId)
 
@@ -418,8 +402,6 @@ class Sections:
         return render(request, "tables/overtime.pug", {"sch": sch, "wk": wk})
 
     def schUndertimeList(request, schId):
-        from django.db.models import JSONField
-        from django.db.models.functions import Cast
         from .utils import get_all_undertime_triplets
 
         sch = Schedule.objects.get(slug=schId)
@@ -427,7 +409,8 @@ class Sections:
 
         return render(request, "tables/undertime.pug", {"sch": schId, "triplets": tplts})
 
-    def sch_prn_empl_maxes(request, schId):
+    @staticmethod
+    def sch_prn_empl_maxes(request:HttpRequest, schId):
         template = "tables/fte-maxes.pug"
         schedule = Schedule.objects.get(slug=schId)
 
@@ -447,7 +430,8 @@ class Sections:
             {"schedule": schedule, "maxes": schedule.data["maxes"].items()},
         )
 
-    def sch_manual_data_entry(request, schId):
+    @staticmethod
+    def sch_manual_data_entry(request:HttpRequest, schId):
         template = "tables/manual-sch-input.pug"
         schedule = Schedule.objects.get(slug=schId)
 
@@ -467,6 +451,7 @@ class Sections:
             {"schedule": schedule, "maxes": schedule.data["maxes"].items()},
         )
 
+    @staticmethod
     def version_compare(request, schId):
         from .tables import ScheduleComparisonTable
         sch = Schedule.objects.get(slug=schId)
@@ -479,26 +464,26 @@ class Sections:
                 s.updated_ago = f"{round(s.updated_ago)} hours ago"
             else:
                 s.updated_ago = f"{round(s.updated_ago / 24)} days ago"
-        schtable = ScheduleComparisonTable(schs)
+        sch_table = ScheduleComparisonTable(schs)
         return render(request, "tables/version-compare.pug",
                       {
                           "schedules": schs,
                           "now": tz.now(),
-                          "sch_table": schtable,
+                          "sch_table": sch_table,
                           "sch": sch
                       })
 
+    @staticmethod
     def sch_undertime_list(request, schId):
         from .utils import get_all_undertime_triplets
         tplts = get_all_undertime_triplets(schId)
         return HttpResponse(tplts)
 
+    @staticmethod
     def empl_prd_undertime_table(request, schId, prd, empl):
 
         schedule = Schedule.objects.get(slug=schId)
-
         employee = Employee.objects.get(slug=empl)
-
         period = schedule.periods.all()[int(prd)]
 
         prd_list = []
@@ -549,12 +534,14 @@ class Actions:
         @ retemplateAll
     """
 
+    @staticmethod
     def publish_view(request, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.publish(sch)
         return HttpResponseRedirect(sch.url())
 
-    def unpublish_view(request, schId):
+    @staticmethod
+    def unpublish_view(request:HttpRequest, schId):
         sch = Schedule.objects.get(slug=schId)
         sch.actions.unpublish(sch)
         sch.routine_log.events.create(
@@ -688,7 +675,7 @@ class Actions:
 
     @staticmethod
     def fill_with_favorables(request, schId):
-        from django.db.models import FloatField, Case, When, IntegerField
+        from django.db.models import FloatField, Case, When
 
         tmpl_response = Actions.set_templates(request, schId)
         ptoclear_response = Actions.clear_all_pto_conflicts(request, schId)
@@ -862,8 +849,9 @@ class Actions:
                 </div>"""
         )
 
+    @staticmethod
     @csrf_exempt
-    def solve_with_tca(request, schId):
+    def solve_with_tca(request:HttpRequest, schId):
         sch = Schedule.objects.get(slug=schId)
         if request.method == "POST":
             sch.actions.sch_solve_with_lookbehind(sch)
@@ -884,7 +872,8 @@ class Actions:
             },
         )
 
-    def solve_by_updating_most_needed_hours(request, schId):
+    @staticmethod
+    def solve_by_updating_most_needed_hours(request:HttpRequest, schId):
         sch = Schedule.objects.get(slug=schId)
         n = 0
         for slot in sch.slots.empty():
@@ -893,6 +882,7 @@ class Actions:
                 n += 1
         return n
 
+    @staticmethod
     @csrf_exempt
     def clear_all_pto_conflicts(request, schId):
         sch = Schedule.objects.get(slug=schId)
@@ -917,8 +907,9 @@ class Actions:
             f"<div class='text-lg text-emerald-400'><i class='fas fa-check'></i>{n} slots cleared</div>"
         )
 
+    @staticmethod
     @csrf_exempt
-    def clear_all(request, schId):
+    def clear_all(request: HttpRequest, schId):
         sch = Schedule.objects.get(slug=schId)
 
         if request.method == "POST":
@@ -936,6 +927,7 @@ class Actions:
         context = {"result": "error", "message": "Invalid request method"}
         return render(request, "data-responses/clearAll.html", context)
 
+    @staticmethod
     @csrf_exempt
     def clear_slot(request, schId, wd, sft):
         sch = Schedule.objects.get(slug=schId)
@@ -944,9 +936,9 @@ class Actions:
         )  # type: Slot
         if request.method == "POST":
             res = slot.actions.clear_employee(slot)
-            CHECKMARK = "<i class='fas fa-check'></i>"
+            checkmark = "<i class='fas fa-check'></i>"
             return HttpResponse(
-                f"<div class='text-amber-300 text-2xs font-thin py-1'> {CHECKMARK} {res} </div>"
+                f"<div class='text-amber-300 text-2xs font-thin py-1'> {checkmark} {res} </div>"
             )
         return HttpResponse(
             "<div class='text-red-300 text-2xs font-thin py-1'> ERROR (REQUEST METHOD) </div>"
@@ -1030,22 +1022,23 @@ class Actions:
                         .exclude(shift=slot.shift)
                         .exists()
         ):
-            otherSlot = (
+            other_slot = (
                 slot.workday.slots.all()
                 .filter(employee=employee)
                 .exclude(shift=slot.shift)
                 .first()
             )
-            otherSlot.employee = None
-            otherSlot.save()
+            other_slot.employee = None
+            other_slot.save()
         slot.employee = employee
         slot.save()
-        CHECKMARK = "<i class='fas fa-check'></i>"
+        checkmark = "<i class='fas fa-check'></i>"
         return HttpResponse(
-            f"<div class='text-green-300 font-light'>{CHECKMARK} Updated to {employee}</div>"
+            f"<div class='text-green-300 font-light'>{checkmark} Updated to {employee}</div>"
         )
 
     class EmusrBalancer:
+        @staticmethod
         def select_max_min_employees(request, schId):
             emusr_data = flow_views.ApiViews.schedule__get_emusr_list(request, schId)
 
@@ -1238,5 +1231,6 @@ class Actions:
 
     def beta_solving_model(request, schId):
         from .solvers import solve_schedule
-        solve_schedule(schId)
-        return HttpResponseRedirect(Schedule.objects.get(slug=schId).url())
+        response = solve_schedule(schId)
+        return response
+        # return HttpResponseRedirect(Schedule.objects.get(slug=schId).url())

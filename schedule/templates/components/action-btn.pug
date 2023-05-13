@@ -5,7 +5,7 @@ mixin button-option(icon, title, subtitle, fetchUrl, color)
         style="z-index:100"
         class="hover:opacity-100 hover:bg-#{color}-400 hover:bg-opacity-20"
         data-fetch-url=fetchUrl
-        onclick="window.dialog.close()"
+        onclick="toggleMyDialog();"
         _="install ActionButton")
             i(class="fas text-sm #{icon} w-3 mx-3 fa-fw")
             .flex.flex-col.pr-3

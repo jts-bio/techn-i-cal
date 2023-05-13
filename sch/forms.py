@@ -488,7 +488,7 @@ class SlotPriorityFormSet(BaseFormSet):
 
 class PtoResolveForm(forms.Form):
     slot = forms.ModelChoiceField(queryset=Slot.objects.all(), widget=forms.HiddenInput())
-    ptoreq = forms.ModelChoiceField(queryset=PtoRequest.objects.all(), widget=forms.HiddenInput())
+    pto_req = forms.ModelChoiceField(queryset=PtoRequest.objects.all(), widget=forms.HiddenInput())
     action = forms.ChoiceField(choices=[
         ('es', 'Empty Slot'), ('rp', 'Reject PTO Request')
     ], widget=forms.RadioSelect())
@@ -496,13 +496,13 @@ class PtoResolveForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(PtoResolveForm, self).__init__(*args, **kwargs)
         self.fields['slot'].initial = self.initial.get('slot')
-        self.fields['ptoreq'].initial = self.initial.get('ptoreq')
+        self.fields['pto_req'].initial = self.initial.get('pto_req')
         self.fields['action'].initial = 'rp'
 
     def clean(self):
         cleaned_data = super(PtoResolveForm, self).clean()
         slot = cleaned_data.get('slot')
-        ptoreq = cleaned_data.get('ptoreq')
+        pto_req = cleaned_data.get('ptoreq')
 
 
 PREF_SCORES = (
