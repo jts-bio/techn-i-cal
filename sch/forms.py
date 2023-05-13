@@ -152,9 +152,9 @@ class EmployeeEditForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(EmployeeEditForm, self).__init__(*args, **kwargs)
-        empClass = self.instance.cls
-        self.fields['shifts_trained'].queryset = Shift.objects.filter(cls=empClass)
-        self.fields['shifts_available'].queryset = Shift.objects.filter(cls=empClass)
+        dept = self.instance.department
+        self.fields['shifts_trained'].queryset = Shift.objects.filter(department=dept)
+        self.fields['shifts_available'].queryset = Shift.objects.filter(department=dept)
 
     class Meta:
         model = Employee

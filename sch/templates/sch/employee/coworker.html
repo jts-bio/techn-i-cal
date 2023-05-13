@@ -12,29 +12,43 @@
 
 <div class="vstack">
 
-    <div class="text-center"><h1 class="text-3xl">{{emp1}}/ {{emp2}} Days Together</h1></div>
-    <div class="hstack" style="justify-content:center;width:100%">
-        <div class="bg-slate-400 text-zinc-900 jbm px-2 rounded text-xs italic text-center w-[350px] px-4">
-            Historically, {{emp1}} has worked with {{emp2}} in <span class="font-extrabold">{{percent}}% </span>of their shifts.
+    <div class="text-center mt-3 md:mt-6">
+        <h1 class="text-3xl">
+            {{emp1}}/ {{emp2}} Days Together
+        </h1>
+    </div>
+    <div class="hstack pt-2 md:pt-5"
+         style="justify-content:center">
+
+        <div class="bg-slate-400 text-zinc-900 jbm px-2 rounded text-md italic text-center w-[90%] md:w-[70%] px-4">
+            Historically, {{emp1}} has worked with {{emp2}} in
+            <span class="font-extrabold text-amber-900">{{percent}}% </span>
+            of their shifts.
         </div>
+
     </div>
     <div class="hstack" style="justify-content:center;width:100%">
+
         <table class="table-striped bg-main rounded-lg">
         <thead>
             <tr>
-                <th class="rounded-tl-lg"></td>
-                <th class="">{{emp1}}</td>
-                <th class="rounded-tr-lg">{{emp2}}</td>
+                <th class="rounded-tl-lg"></th>
+                <th class="">{{emp1}}</th>
+                <th class="rounded-tr-lg">{{emp2}}</th>
             </tr>
         </thead>
-        {% for day in days %}
-        <tr>
-            <td><a href="{{day.url}}">{{day.date}}</a></td>
-            <td>{{day.sft1}}</td>
-            <td>{{day.sft2}}</td>
-        </tr>
-        {% endfor %}
-    </table>
+            <tbody>
+                {% for day in days %}
+                    <tr class="h-14 md:h-8">
+                        <td class="text-lg md:text-md">
+                            <a href="{{day.url}}">{{day.date}}</a>
+                        </td>
+                        <td class="text-lg md:text-md">{{day.sft1}}</td>
+                        <td class="text-lg md:text-md">{{day.sft2}}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     
     </div>
 </div>

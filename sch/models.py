@@ -272,8 +272,11 @@ class EmployeeManager(models.QuerySet):
     def random_choice(self):
         return random.choice(self.all())
 
-    def low_option_emps(self):
-        return self.filter(fte__gt=0, n_trained__lte=3)
+    def low_option_employees(self):
+        return self.annotate(available_count=Count('shifts_available')
+                  ).annotate(available_avg=Avg('available_count')).filter(
+            available_count__lt=F('available_avg')
+                )
 
     def prn_employees(self):
         return self.filter(fte=0.0)
@@ -327,6 +330,15 @@ class EmployeeManager(models.QuerySet):
             *  They are not PRN employees
         """
         return self.template_ratio().exclude(template_ratio=1).exclude(time_pref='PM')
+
+    def fill_time_employees(self):
+        return self.filter(fte__gte=0.8)
+
+    def part_time_employees(self):
+        return self.filter(fte__lt=0.8, fte__gt=0.0)
+
+    def prn_employees(self):
+        return self.filter(fte=0.0)
 
     def in_slot(self, shift, workday):
         return self.filter(slot__shift__name=shift, slot__workday=workday)
@@ -499,7 +511,7 @@ class Shift(models.Model):
 
     name = models.CharField(max_length=100)
     cls = models.CharField(max_length=20, choices=(('CPhT', 'CPhT'), ('RPh', 'RPh')), null=True)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, related_name='shifts')
     start = models.TimeField(default=dt.time(7))
     duration = models.DurationField(default=dt.timedelta(hours=10, minutes=30))
     hours = models.FloatField(default=10)
@@ -592,6 +604,8 @@ class Employee(models.Model):
     std_wk_max = models.IntegerField(default=40)
     pto_hrs = models.IntegerField(default=10)
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='employee')
+
+
 
     class Meta:
         ordering = ['cls', 'name']
@@ -851,7 +865,9 @@ class Workday(models.Model):
     percent = models.IntegerField(default=0)
 
     class Actions:
-        def solve(self, instance):
+
+        @staticmethod
+        def solve(instance):
             empties = instance.slots.filter(employee=None)  # type: SlotManager
             for slot in empties:
                 slot  # type: Slot
@@ -863,10 +879,10 @@ class Workday(models.Model):
     def pto(self):
         return PtoRequest.objects.filter(workday=self.date)
 
-    def on_pto(self) -> EmployeeManager:
+    def on_pto(self) -> QuerySet[Employee]:
         return Employee.objects.filter(pk__in=self.pto().values('employee__pk'))
 
-    def on_tdo(self) -> EmployeeManager:
+    def on_tdo(self) -> QuerySet[Employee]:
         return Employee.objects.filter(pk__in=self.tdo().values('employee__pk'))
 
     def show_prev_am(self):
@@ -1026,16 +1042,13 @@ class Workday(models.Model):
             not_on_deck += [pk for pk in self.pto().values_list('employee__pk', flat=True)]
         if self.tdo().exists():
             not_on_deck += [pk for pk in self.tdo().values_list('employee__pk', flat=True)]
-        onDay = list(self.slots.values_list('employee', flat=True))
-        not_on_deck += onDay
+        on_day = list(self.slots.values_list('employee', flat=True))
+        not_on_deck += on_day
         print(not_on_deck)
         return Employee.objects.all().exclude(pk__in=not_on_deck)
 
     def url(self):
         return reverse('wday:detail', args=[self.slug])
-
-    def url_tooltip(self):
-        return f'/sch/{self.slug}/get-tooltip/'
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -1068,9 +1081,6 @@ class WorkdayViewPreference(models.Model):
 
 
 class Week(models.Model):
-    __all__ = [
-        'year', 'iweek', 'prevWeek', 'nextWeek',
-    ]
 
     iweek = models.IntegerField(null=True, blank=True)
     year = models.IntegerField(null=True, blank=True)
@@ -1144,7 +1154,8 @@ class Week(models.Model):
 
     def needed_hours(self):
         """
-        >>> {<Josh> : 10, <Sabrina> : 5 }
+        example output:
+        { <Josh> : 10, <Sabrina> : 5 }
         """
         empls = Employee.objects.filter(fte__gt=0)
         output = {}
@@ -1968,12 +1979,11 @@ class Schedule(models.Model, ScheduleBaseActions):
 class RoutineLog(models.Model):
     schedule = models.OneToOneField("Schedule", on_delete=models.CASCADE, related_name='routine_log')
 
-    def __str__(self):
-        return f'{self.schedule.slug} [LOG]'
+    def __str__(self): return f'{self.schedule.slug} [LOG]'
 
     def add(self, event_type: str, description: str, data: dict):
         """Add New Log Event:
-        >>> event_type(str): ~CREATE ~ACTION ~PUBLISHING ~DELETE"""
+        event_type(str): ~CREATE ~ACTION ~PUBLISHING ~DELETE"""
         le = LogEvent.objects.create(
             log=self,
             event_type=event_type,
@@ -2081,30 +2091,32 @@ class Slot(models.Model):
                 excluding = Employee.objects.none()
 
             sch = instance.workday.schedule
-            sdid = instance.workday.sd_id
-            wkid = sdid // 7
-            pdid = sdid // 14
+            sd_id = instance.workday.sd_id
+            wk_id = sd_id // 7
+            pd_id = sd_id // 14
 
-            weekhours = Slot.objects.filter(
+            week_hours = Slot.objects.filter(
                 workday__schedule=sch,
                 workday__week=instance.workday.week,
                 employee=OuterRef('pk')
-            ).values('employee').annotate(
-                weekhours=Sum('shift__hours')
-            ).values('weekhours')[:1]
+                    ).values('employee').annotate(
+                week_hours=Sum('shift__hours')
+                    ).values('week_hours')[:1]
 
-            pdhours = Slot.objects.filter(
+            pd_hours = Slot.objects.filter(
                 workday__schedule=sch,
                 workday__week__period=instance.workday.week.period,
                 employee=OuterRef('pk')
-            ).values('employee').annotate(
-                pdhours=Sum('shift__hours')
-            ).values('pdhours')[:1]
+                    ).values('employee').annotate(
+                pd_hours=Sum('shift__hours')
+                    ).values('pd_hours')[:1]
 
             return instance.shift.available.exclude(pk__in=excluding).annotate(
-                weekhours=Coalesce(weekhours, 0.0),
-                pdhours=Coalesce(pdhours, 0.0),
-            ).filter(weekhours__lt=F('std_wk_max')).order_by('-weekhours', 'pdhours')
+                week_hours=Coalesce(week_hours, 0.0),
+                pd_hours=Coalesce(pd_hours, 0.0),
+                    ).filter(
+                week_hours__lt=F('std_wk_max')
+                    ).order_by('-week_hours', 'pd_hours')
 
         @staticmethod
         def set_template_employee(instance, force=True):
@@ -2115,6 +2127,7 @@ class Slot(models.Model):
                         slot_to_clear = instance.siblings_day.get(employee=instance.template_employee)
                         slot_to_clear.employee = None
                         slot_to_clear.save()
+
                     elif not force:
                         print(
                             "NO ACTION TAKEN",

@@ -119,7 +119,7 @@ block style
         .h1              {font-size: 32px; font-family: 'JetBrains Mono';}
         .h4              {font-size: 20px; border-radius: 6px; color: #000044!important; background-color: white; font-weight: bold; padding: 5px 2px 5px 2px;}
         #SlotGrid        {display: grid; grid-template-columns: repeat(5, 1fr); grid-gap: 1rem; overflow-x:scroll;}
-        #ScrollingDeck   {margin:12px; padding: 12px; box-shadow: 0 0 10px #ffffff55;background-color: #000000;gap:20px; overflow-x: scroll;border-radius: 10px;}
+        #ScrollingDeck   {margin:12px; padding: 28px 12px; box-shadow: 0 0 10px #ffffff55;background-color: #000000;gap:20px; overflow-x: scroll;border-radius: 10px;}
         .active          {background-color: #ccffdd55!important; drop-shadow: 0 0 10px #ccffdd55;}
         .dragged-over-prohibited {background-color: #ff003333!important; drop-shadow: 0 0 10px #ff003377;}
         .dragged-over-discouraged {background-color: #ffcccc55!important; drop-shadow: 0 0 10px #ffcccc55;}
@@ -177,8 +177,7 @@ block content
                 +Employee(empl, workday)
 
         div(hx-get="partial/speed-dial/"
-            hx-trigger="load"
-            )
+            hx-trigger="load")
 
         
     +hiddenPtoList( workday )

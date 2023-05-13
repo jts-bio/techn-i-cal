@@ -525,13 +525,7 @@ class Actions:
     """
     SCHEDULE : ACTION PERFORMING VIEWS
     ====================================
-        ```
-        Updaters
-            @ update_fills_with
-        @ clearUntrained
-        @ clearUnfavorables
-        @ setTemplates
-        @ retemplateAll
+
     """
 
     @staticmethod
@@ -545,7 +539,8 @@ class Actions:
         sch = Schedule.objects.get(slug=schId)
         sch.actions.unpublish(sch)
         sch.routine_log.events.create(
-            event_type="UNPUBLISH", data={"user": request.user.username}
+            event_type="UNPUBLISH",
+            data={"user": request.user.username}
         )
         return HttpResponse()
 
@@ -632,13 +627,15 @@ class Actions:
         )
 
     @staticmethod
-    def solve_with_signal_optimization(request, schId):
+    def solve_with_signal_optimization(request, schId:str):
+
         t_init = tz.now()
-        schedule = Schedule.objects.get(slug=schId)
+        schedule = Schedule.objects.get(slug=schId) # type: Schedule
         n = 0
+
         for slot in schedule.slots.empty():
             if slot.template_employee:
-                slot.actions.set_template_employee(slot, force=False)
+                slot.actions.set_template_employee(slot, force=True)
 
         empties = schedule.slots.empty().order_by('?')
         for slot in empties:
@@ -657,18 +654,30 @@ class Actions:
                     under_hours=F('weekly_hours') - F('std_wk_max')
                 )
 
-                slot.employee = fills_with.order_by('under_hours', '-fte', '?').first()
+                print(f"{slot.slug} FILLS WITH:")
+                print("\t", list(fills_with.values_list('initials',flat=True)))
+
+                slot.employee = fills_with.order_by('-under_hours', '-fte', '?').first()
                 slot.save()
                 n += 1
+            else:
+                print(f"None available for fill on slot {slot.slug}")
 
         t_final = tz.now()
+        ut_tuples = Sections.sch_undertime_list(request, schId)
+        print(ut_tuples)
+        ut_sum = sum(*ut_tuples)
+
+
+
         schedule.routine_log.add("SIGNAL-OPTIMIZATION",
                                  description="Solving function",
                                  data={
                                      "t": (t_final - t_init).total_seconds(),
                                      "n": n,
                                      "remaining": schedule.slots.empty().count(),
-                                     "user": request.user.username
+                                     "user": request.user.username,
+                                     "undertime_sum": ut_sum
                                  })
 
         return HttpResponse(f"Filled {n} slots")
@@ -773,8 +782,8 @@ class Actions:
                         )
                     )
                 )
-                for sibslot in slots.filter(pk__in=slot.siblings_day):
-                    sibslot.fills_with.remove(emp)
+                for sib_slot in slots.filter(pk__in=slot.siblings_day):
+                    sib_slot.fills_with.remove(emp)
                 if week.hours[emp.slug] > emp.fte * 40 - 5:
                     for s in slot.week.slots.filter(fills_with=emp):
                         s.fills_with.remove(emp)

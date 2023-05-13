@@ -975,17 +975,27 @@ class EMPLOYEE:
         template_name = 'sch/employee/employee_form.html'
         form_class = EmployeeForm
         fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls']
-        success_url = '/sch/employees/all/'
 
-        def form_valid(self, form):
-            form.save()  # type: ignore
-            return super().form_valid(form)
 
     class TechnicianCreateView(EmployeeCreateView):
         form_class = TechnicianForm
 
+        def post(self, request):
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                form.save()
+                obj = Employee.objects.get(name=form.cleaned_data['name'])
+                return HttpResponseRedirect(reverse('sch:employee-update', args=[obj.name]))
+
     class PharmacistCreateView(EmployeeCreateView):
         form_class = PharmacistForm
+
+        def post(self, request):
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                form.save()
+                obj = Employee.objects.get(name=form.cleaned_data['name'])
+                return HttpResponseRedirect(reverse('sch:employee-update', args=[obj.name]))
 
     class EmployeePtoFormView(View):
         template_name = 'sch/employee/pto_form.html'

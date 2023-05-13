@@ -29,8 +29,8 @@ class WorkdayActions:
         1.  No existing slot 
         2.  Template exists for the day
         3.  Employee Templated is not on PTO.
-        4.  Dont fill an employee into a turnaround 
-        5.  Dont fill if employee is working a different shift that day
+        4.  Don't fill an employee into a turnaround
+        5.  Don't fill if employee is working a different shift that day
         """
         templs = ShiftTemplate.objects.filter(sd_id=workday.sd_id)
         slots = workday.slots.all()

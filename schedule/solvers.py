@@ -25,26 +25,33 @@ def solve_schedule(schid):
         tdo_conflicts=sch.slots.tdo_violations().count(),
     )
 
-    sch.slots.untrained().update(employee=None)
-    sch.slots.mistemplated().update(employee=None)
-    sch.slots.pto_violations().update(employee=None)
-    sch.slots.tdo_violations().update(employee=None)
+    untrained = sch.slots.untrained()
+    untrained.update(employee=None)
+
+    mistemplated = sch.slots.mistemplated()
+    mistemplated.update(employee=None)
+
+    pto_violations = sch.slots.pto_violations()
+    pto_violations.update(employee=None)
+
+    tdo_violations = sch.slots.tdo_violations()
+    tdo_violations.update(employee=None)
 
     on_workday_subquery = Slot.objects.filter(
         workday=F('workday__date')
-    ).values('employee')[:1]
+        ).values('employee')[:1]
 
     prev_evening_subquery = Slot.objects.filter(
         schedule=sch,
         workday__date=F('workday__date') - dt.timedelta(days=1),
         shift__phase__gte=2
-    ).values('employee')[:1]
+        ).values('employee')[:1]
 
     next_morning_subquery = Slot.objects.filter(
         schedule=sch,
         workday__date=F('workday__date') + dt.timedelta(days=1),
         shift__phase__gte=2
-    ).values('employee')[:1]
+        ).values('employee')[:1]
 
     week_hours_subquery = Slot.objects.filter(
         schedule=sch,
@@ -92,9 +99,10 @@ def solve_schedule(schid):
                 )
             ).values('employee')
 
-    print(
-        "N Empty Slots: "
-        f"{empty_slots.count()}"
+    print(empty_slots)
+
+    print("N Empty Slots: "
+          f"{empty_slots.count()}"
         )
     for slot in empty_slots.order_by('?'):
 

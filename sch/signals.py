@@ -36,12 +36,13 @@ def remove_employee_from_assignments_on_same_workday(sender, instance, **kwargs)
 
 @receiver(post_save, sender=Slot)
 def remove_fills_with_on_overtime(sender, instance, **kwargs):
-    if instance.week.slots.filter(
-            employee=instance.employee) \
-            .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= 40:
+    if instance.employee:
+        if instance.week.slots.filter(
+                employee=instance.employee) \
+                .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= 40:
 
-        for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
-            s.fills_with.remove(instance.employee)
+            for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
+                s.fills_with.remove(instance.employee)
 
 
 @receiver(post_save, sender=Workday)
@@ -56,4 +57,44 @@ def set_i_values(sender, instance, **kwargs):
         instance.sd_id = (instance.schedule.end_date - instance.date).days + 1
 
 
+@receiver(post_save, sender=Workday)
+def remove_fills_with_on_fte_met(sender, instance, **kwargs):
+    """
+    Remove employee from all slots.fills_with
+    in a pay period once they have met their FTE
+    """
+    if instance.employee:
+        if instance.week.slots.filter(
+                employee=instance.employee) \
+                .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= instance.employee.fte * 40:
+
+            for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
+                s.fills_with.remove(instance.employee)
+
+@receiver(m2m_changed, sender=Slot.fills_with.through)
+def annotate_if_fill_with_is_preferable(sender, instance, **kwargs):
+    """
+    Annotate each employee in fills_with with if
+    filling the slot with them would be preferable
+    for the employee than their current assignment.
+    """
+    for emp_id in kwargs['pk_set']:
+        employee = Employee.objects.get(pk=emp_id)
+        shift_pref = employee.shift_prefs.filter(shift=instance.shift)
+
+        if shift_pref.exists():
+            shift_pref = shift_pref.first() # type: ShiftPreference
+
+            if shift_pref.priority in ['P','SP']:
+                objs = instance.fills_with.through.objects.filter(
+                    slot=instance,
+                    employee=employee)
+                for obj in objs:
+                    obj.preferable=True
+            else:
+                objs = instance.fills_with.through.objects.filter(
+                    slot=instance,
+                    employee=employee)
+                for obj in objs:
+                    obj.preferable=False
 
