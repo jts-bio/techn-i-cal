@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="dataSourceStorageLocal" created-in="PY-231.8770.66">
+    <data-source name="db.sqlite3" uuid="30106cef-7202-47d4-b549-42be45106d3e">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="db" uuid="5ad77d5b-f686-4946-b157-1b1b60c80d49">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="Django default" uuid="3db0f0d9-c170-49ab-b2af-53dfc87b6cef">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="SQLITE" exact-version="0" />
+      <schema-mapping />
+    </data-source>
+    <data-source name="Django bitio" uuid="7e625690-2f5c-44f9-aba6-dca266de96f3">
+      <database-info product="" version="" jdbc-version="" driver-name="" driver-version="" dbms="POSTGRES" exact-version="0" />
+      <schema-mapping />
+    </data-source>
+  </component>
+</project>

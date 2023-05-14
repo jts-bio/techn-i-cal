@@ -1,0 +1,59 @@
+extends base.html
+
+
+block content
+
+   a(href="../../../") Back to Schedules
+
+   h1.text-3xl #{schedule}
+   h2.text-2xl #{schedule.department.organization} #{schedule.department}
+
+   if schedule.published == False
+
+      form(method="POST")
+         | {% csrf_token %}
+         input(type="hidden" name="schedule" value="#{schedule.pk}")
+         input(type="submit" value="New Version")
+   
+   if schedule.versions.count == 0
+      p No versions have been created for this schedule.
+   
+   else
+      p.italic.text-xs #{schedule.versions.count} versions
+      table
+         tr
+            th Schedule Version
+            th Status
+            th Percent Complete
+            th Slots
+            th Created
+            th Created By
+         each ver in schedule.versions.all
+            tr
+               td
+                  a(href="#{ver.url}") v#{ver.name}
+               td #{ver.status}
+               td #{ver.percent}%
+               td #{ver.slot_count} slots
+               if ver.created_ago < 1
+                  td less that 1 day ago
+               else
+                  td #{ver.created_ago}
+               td #{ver.created_by}
+
+   .accordion-bg.bg-zinc-900.bg-opacity-20.rounded.px-3.mt-3 
+      .accordion-banner.flex.flex-row.space-around.space-between
+         h2 Manage Schedule Employees 
+         .accordion-btn.fas.fa-chevron-down.duration-500.transition.transform-gpu.w-8.h-8.rounded-full.pt-2.text.text-center(class="hover:bg-amber-300 hover:bg-opacity-10 cursor-pointer"
+            _="on click toggle .rotate-180 toggle .hidden on next .acc-section end")
+
+      .acc-section.hidden 
+         div.flex.flex-row.flex-wrap
+
+            each empl in schedule.employees.all
+               
+               div.border.rounded-full.px-3.flex.flex-row.align-content.mx-2.my-1
+                  - var inits = empl.initials.upper()
+                  div.h-10.w-10.justify-center.place-center.rounded-full.bg-zinc-500.bg-opacity-80.-translate-x-4
+                     .text-sm.text-slate-800.text-center.text.pt-2= inits
+                  span.text-2xs.pl-4= empl

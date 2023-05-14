@@ -1,0 +1,78 @@
+extends base.html
+
+mixin column(color, name, pref, num)
+   .grow.pref-column.bg-opacity-20.rounded(class="bg-#{color}-500" _="install Column" pref=pref) 
+            h3 #{name} 
+            - var n = 0
+            while n < num
+               - var n = n + 1
+               .pref-slot.h-8.h-8.border-dashed.opacity-75.rounded(
+                  _="install Slot" pref=0) n
+
+block content
+
+   script(type="text/hyperscript").
+
+      behavior Shift 
+         on dragstart 
+            add .dragging to me
+         end
+
+      
+         
+   script(type="text/hyperscript").
+   
+      behavior Column
+         on dragover 
+            halt the event 
+            end
+
+   script(type="text/hyperscript").
+
+      behavior Rank
+         on dragover 
+            halt the event 
+            end
+         on drop
+   
+   h1 #{employee}
+   
+   .flex.flex-row.flex-wrap
+   
+      each shift in employee.shifts_available.all
+         if shift in employee.shift_prefs
+            div.bg-gray-200.w-fc.text-black.rounded-sm.px-2.py-1.m-1(
+               draggable="true"
+               rank=shift.rank 
+               pref=shift.pref
+               id=shift.pk
+               _="install Shift") 
+               | #{shift}
+               input.input(type="hidden" name="shifts" value=shift.pk)
+               input.rank(type="hidden" name="rank" value=shift.rank)
+               input.pref(type="hidden" name="pref" value=shift.pref)
+         else
+            div.bg-gray-200.w-fc.text-black.rounded-sm.px-2.py-1.m-1(
+               draggable="true"
+               shift=shift.pk
+               rank=0
+               pref=0
+               _="install Shift")
+               | #{shift}
+               input.input(type="hidden" name="shifts" value=shift.pk)
+               input.rank(type="hidden" name="rank" value=0)
+               input.pref(type="hidden" name="pref" value=0)
+
+   form(method="POST")
+      | {% csrf_token %}
+      input(type="hidden" name="employee" value=employee.pk)
+      div.flex.flex-row.gap-2.w-50(class='h-[270px]')
+         - var num = employee.shifts_available.count
+         +column('red', 'SD', 0, num)
+         +column('orange', 'D', 1, num)
+         +column('yellow', 'N', 2, num)
+         +column('green', 'P', 3, num)
+         +column('blue', 'SP', 4, num)
+         input(type="submit" value="Save")
+      
+

@@ -1,0 +1,22 @@
+extends base.html
+
+block style 
+   style.
+      .button {
+         color: white;
+         background-color: #1a202c;
+         padding: 0.5rem 1rem;
+         border-radius: 0.25rem;
+      }
+      .button:hover {
+         background-color: #2d3748;
+         transform: scale(1.05);
+         transition: all 0.4s ease-in;
+      }
+
+block content
+
+   h1.text-2xl Welcome, #{user} 
+   h2.text-xl #{organization} Admin
+   
+   a.button(href="schedules/") Manage Schedules

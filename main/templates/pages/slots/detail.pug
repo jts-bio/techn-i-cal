@@ -1,0 +1,31 @@
+
+
+
+
+h1.text-3xl 
+   |Schedule #{slot.workday.version.schedule.number} v#{slot.workday.version.name}
+   
+
+
+h2.text-2xl
+   span.font-bold #{slot.workday.date} 
+   span.italic #{slot.workday.weekday}
+
+h2.text-2xl.bg-zinc-300.text-zinc-900.font-extrabold.rounded.px-2.w-fc
+   | #{slot.shift}
+   if slot.employee
+      span.bg-zinc-900.text-zinc-200.font-thin.rounded-xl.px-4 #{slot.employee}
+
+form(hx-post="#{slot.url}" method="POST" hx-target="#result")
+   | {% csrf_token %}
+   select(
+      name="employee"
+      _="on change remove .hidden from #main-btn"
+      )
+         option(value="") Select Employee (#{slot.fills_with.count} options)
+         if slot.fills_with != None
+            each empl in slot.fills_with.all
+               option(value=empl.pk) #{empl} #{empl.weekhours}/ #{empl.pdhours}hrs.
+   input#main-btn.hidden(type="submit" value="Assign"
+      _="on click fetch #{slot.url} then put result into #result")
+   #result

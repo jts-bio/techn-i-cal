@@ -1,0 +1,19 @@
+
+nav.nav.flex.flex-row.justify-between.items-center.bg-zinc-950.bg-opacity-30.px-4.py-2
+   a.flex.flex-row.gap-5(href='/')
+      img(src='/static/img/logo.png' alt='logo' class='w-20')
+      .flex-col.flex
+         .flex.flex-row.gap-0
+            span.text-2xl.pt-2.font-light Flow
+            span.text-2xl.pt-2.font-extrabold.text-red-400 Rate
+         .flex.flex-row
+            if user.is_authenticated
+               div
+                  i.fa-user.fas.text-red-300.fa-sm
+                  span.text-xstext-gray-400.pt-1.px-1 #{user}
+            else
+               span.text-md.text-gray-400.pt-1.px-1 Welcome, Guest
+            
+
+   a(href='/main/schedules/') Schedules
+   a(href='/main/employee/') Employees
