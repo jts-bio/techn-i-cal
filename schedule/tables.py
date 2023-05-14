@@ -14,10 +14,6 @@ from sch.models import (
         PtoRequest, Schedule
     )
 
-
-
-
-
 class MistemplatedFlagIgnoreTable (tables.Table):
 
     slot =     tables.columns.Column(accessor='slug', orderable=False, verbose_name='UNDEFINED OR NO NAME')

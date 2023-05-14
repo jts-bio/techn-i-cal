@@ -507,9 +507,9 @@ class Sections:
                 workday.employee_status = 'tdo'
                 workday.employee_hours = 0
             else:
-                prd_list.append(('options', workday.slots.filter(fills_with=employee).exclude(employee=employee).all()))
+                prd_list.append(('options', workday.slots.filter(fill_candidates=employee).exclude(employee=employee).all()))
                 workday.employee_status = 'options'
-                workday.employee_can_fill = workday.slots.filter(fills_with=employee).filter(
+                workday.employee_can_fill = workday.slots.filter(fill_candidates=employee).filter(
                     Q(employee__fte=0) | Q(employee__isnull=True))
                 workday.employee_hours = 0
 
@@ -643,11 +643,11 @@ class Actions:
 
         empties = schedule.slots.empty().order_by('?')
         for slot in empties:
-            slot.fills_with.set(slot.actions.fills_with(slot))
+            slot.fill_candidates.set(slot.actions.fills_with(slot))
 
-            if slot.fills_with.exists():
-                fills_with = slot.fills_with.all()
-                fills_with = fills_with.annotate(
+            if slot.fill_candidates.exists():
+                fill_candidates = slot.fill_candidates.all()
+                fill_candidates = fill_candidates.annotate(
                     weekly_hours=Sum(Subquery(
                         schedule.slots.filter(
                             employee=OuterRef('pk'),
@@ -659,9 +659,9 @@ class Actions:
                 )
 
                 print(f"{slot.slug} FILLS WITH:")
-                print("\t", list(fills_with.values_list('initials',flat=True)))
+                print("\t", list(fill_candidates.values_list('initials',flat=True)))
 
-                slot.employee = fills_with.order_by('-under_hours', '-fte', '?').first()
+                slot.employee = fill_candidates.order_by('-under_hours', '-fte', '?').first()
                 slot.save()
                 n += 1
             else:
@@ -789,7 +789,7 @@ class Actions:
                 for sib_slot in slots.filter(pk__in=slot.siblings_day):
                     sib_slot.fill_candidates.remove(emp)
                 if week.hours[emp.slug] > emp.fte * 40 - 5:
-                    for s in slot.week.slots.filter(fills_with=emp):
+                    for s in slot.week.slots.filter(fill_candidates=emp):
                         s.fill_candidates.remove(emp)
                 n += 1
 
@@ -981,9 +981,9 @@ class Actions:
                         )
                 ) > int(empl_max_hours):
                     slot = (week.slots.filter(employee=empl).annotate(
-                        fills_with_count=Count("fills_with")
+                        fill_candidates_count=Count("fill_candidates")
                     )
-                            .order_by("-fills_with_count")
+                            .order_by("-fill_candidates_count")
                             .first()
                             )
                     slots.append(slot)
@@ -1070,7 +1070,7 @@ class Actions:
             for slot in Slot.objects.filter(
                     schedule__slug=schId, employee=empls["max"], is_unfavorable=True
             ):
-                if empls["min"] in slot.fills_with.all():
+                if empls["min"] in slot.fill_candidates.all():
                     tradables += [slot]
             return Slot.objects.filter(pk__in=[s.pk for s in tradables]).order_by(
                 "empl_sentiment"
@@ -1086,7 +1086,7 @@ class Actions:
                 if week.hours[empl.slug] > 40:
                     print(f"{empl} has overtime")
                     emplSlots = week.slots.filter(employee=empl).annotate(
-                        n_fillableBy=Count(F("fills_with"))
+                        n_fillableBy=Count(F("fill_candidates"))
                     )
                     print([(s.n_fillableBy, s.shift.name) for s in emplSlots])
                     while week.hours[empl.slug] > 40:
@@ -1148,8 +1148,8 @@ class Actions:
             emp = Employee.objects.get(slug=empId)
             sch.employees.remove(emp)
             sch.slots.filter(employee=emp).update(employee=None)
-            for slot in sch.slots.filter(fills_with=emp):
-                slot.fills_with.remove(emp)
+            for slot in sch.slots.filter(fill_candidates=emp):
+                slot.fill_candidates.remove(emp)
             sch.save()
 
             sch.routine_log.events.create(
@@ -1179,7 +1179,7 @@ class Actions:
             for slot in tdo_conflicts:
                 empl = slot.employee
                 slot.employee = None
-                slot.fills_with.remove(empl)
+                slot.fill_candidates.remove(empl)
                 slot.save()
 
             return HttpResponse(f"Resolved {n} TDO Conflicts for {sch}")
@@ -1205,7 +1205,7 @@ class Actions:
 
             for period_needed_hours in triplets[employee]:
                 if period_needed_hours != 0:
-                    period_slots = sch.periods.all()[i].slots.empty().filter(fills_with=employee)
+                    period_slots = sch.periods.all()[i].slots.empty().filter(fill_candidates=employee)
                     for slot in period_slots:
                         slot.actions.fills_with(slot)
                     if period_slots.count() > 0:
@@ -1219,7 +1219,7 @@ class Actions:
                                         period_needed_hours -= slot.shift.hours
 
                     if period_needed_hours > 0:
-                        period_slots = sch.periods.all()[i].slots.filled_by_prn().filter(fills_with=employee)
+                        period_slots = sch.periods.all()[i].slots.filled_by_prn().filter(fill_candidates=employee)
                         if period_slots.count() > 0:
                             for slot in period_slots:
                                 if period_needed_hours > 0:

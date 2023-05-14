@@ -25,21 +25,21 @@ from .subsignals.regulator_signals import (
 def clear_fills_with_on_conflicting_slot(sender, instance: Slot, **kwargs):
     if instance.employee is not None:
         for slot in instance.actions.conflicting_slots(instance):
-            slot.fills_with.remove(instance.employee)
+            slot.fill_candidates.remove(instance.employee)
 
 
 @receiver(post_save, sender=Slot)
 def remove_employee_from_same_workday_fills(sender, instance, **kwargs):
     if instance.employee is not None:
-        for slot in instance.workday.slots.exclude(pk=instance.pk).filter(fills_with=instance.employee):
-            slot.fills_with.remove(instance.employee)
+        for slot in instance.workday.slots.exclude(pk=instance.pk).filter(fill_candidates=instance.employee):
+            slot.fill_candidates.remove(instance.employee)
 
 
-@receiver(pre_save, sender=Slot)
+@receiver(post_save, sender=Slot)
 def remove_employee_from_assignments_on_same_workday(sender, instance, **kwargs):
     if instance.employee is not None:
         for assignment in instance.workday.slots.filter(employee=instance.employee).exclude(pk=instance.pk):
-            assignment.employee = None
+            assignment.fill_candidates.remove(instance.employee)
 
 
 @receiver(post_save, sender=Slot)
@@ -49,8 +49,8 @@ def remove_fills_with_on_overtime(sender, instance, **kwargs):
                 employee=instance.employee) \
                 .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= 40:
 
-            for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
-                s.fills_with.remove(instance.employee)
+            for s in instance.week.slots.filter(fill_candidates=instance.employee).exclude(employee=instance.employee):
+                s.fill_candidates.remove(instance.employee)
 
 
 @receiver(post_save, sender=Workday)
@@ -68,7 +68,7 @@ def set_i_values(sender, instance, **kwargs):
 @receiver(post_save, sender=Slot)
 def remove_fills_with_on_fte_met(sender, instance, **kwargs):
     """
-    Remove employee from all slots.fills_with
+    Remove employee from all slots.fill_candidates
     in a pay period once they have met their FTE
     """
     if instance.employee:
@@ -76,13 +76,13 @@ def remove_fills_with_on_fte_met(sender, instance, **kwargs):
                 .filter(employee=instance.employee) \
                 .aggregate(Sum('shift__hours'))['shift__hours__sum'] >= instance.employee.fte * 40:
 
-            for s in instance.week.slots.filter(fills_with=instance.employee).exclude(employee=instance.employee):
-                s.fills_with.remove(instance.employee)
+            for s in instance.week.slots.filter(fill_candidates=instance.employee).exclude(employee=instance.employee):
+                s.fill_candidates.remove(instance.employee)
 
 @receiver(m2m_changed, sender=Slot.fill_candidates.through)
 def annotate_if_fill_with_is_preferable(sender, instance, pk_set, **kwargs):
     """
-    Annotate each employee in fills_with with if
+    Annotate each employee in fill_candidates with if
     filling the slot with them would be preferable
     for the employee than their current assignment.
     """
@@ -96,13 +96,13 @@ def annotate_if_fill_with_is_preferable(sender, instance, pk_set, **kwargs):
                 shift_pref = shift_pref.first() # type: ShiftPreference
 
                 if shift_pref.priority in ['P','SP']:
-                    objs = instance.fills_with.through.objects.filter(
+                    objs = instance.fill_candidates.through.objects.filter(
                         slot=instance,
                         employee=employee)
                     for obj in objs:
                         obj.preferable=True
                 else:
-                    objs = instance.fills_with.through.objects.filter(
+                    objs = instance.fill_candidates.through.objects.filter(
                         slot=instance,
                         employee=employee)
                     for obj in objs:

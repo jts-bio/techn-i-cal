@@ -2,7 +2,7 @@ import datetime as dt
 import random
 
 import yaml
-from computedfields.models import ComputedFieldsModel, computed
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import (Avg, Count, ExpressionWrapper, F,
@@ -1602,7 +1602,7 @@ class ScheduleBaseActions:
             slots = instance.slots.all()  # type: SlotManager
             for slot in slots:
                 slot.employee = None
-                slot.fills_with.set(slot.shift.available.all())
+                slot.fill_candidates.set(slot.shift.available.all())
             slots.bulk_update(slots, ['employee'])
             print('All Slots Wiped on Schedule {instance.slug}')
 
@@ -2807,7 +2807,7 @@ class TemplatedDayOff(models.Model):
         unique_together = ['employee', 'sd_id']
 
 
-class PtoRequest(ComputedFieldsModel):
+class PtoRequest(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='pto_requests')
     workday = models.DateField(null=True, blank=True)
     dateCreated = models.DateTimeField(auto_now_add=True)
@@ -2816,7 +2816,7 @@ class PtoRequest(ComputedFieldsModel):
     sd_id = models.IntegerField(default=-1)
     schedules = models.ManyToManyField(Schedule, related_name='pto_requests')
 
-    @computed(models.BooleanField(), depends=[('self', ['status'])])
+
     def stands_respected(self) -> bool:
         if Slot.objects.filter(workday__date=self.workday, employee=self.employee).count() > 0:
             return False
@@ -2862,7 +2862,7 @@ class SlotPriority(models.Model):
         unique_together = ['iweekday', 'shift']
 
 
-class ShiftPreference(ComputedFieldsModel):
+class ShiftPreference(models.Model):
     """ SHIFT PREFERENCE [model]
     >>> employee <fkey>
     >>> shift    <fkey>
@@ -2873,7 +2873,7 @@ class ShiftPreference(ComputedFieldsModel):
     shift = models.ForeignKey(Shift, on_delete=models.CASCADE, related_name='prefs')
     priority = models.CharField(max_length=2, choices=PREF_SCORES, default='N')
 
-    @computed(models.IntegerField(), depends=[('self', ['priority'])])
+
     def score(self):
         scoremap = {'SP': 2, 'P': 1, 'N': 0, 'D': -1, 'SD': -2}
         return scoremap[self.priority]
@@ -2894,7 +2894,7 @@ class ShiftPreference(ComputedFieldsModel):
 
     class Meta:
         unique_together = ['employee', 'shift']
-        ordering = ['shift', '-score']
+        ordering = ['shift', '-priority']
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)

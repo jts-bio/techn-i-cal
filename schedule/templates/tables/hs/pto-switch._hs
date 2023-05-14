@@ -2,12 +2,12 @@ behavior PtoSwitch
     init
         if @data-has-pto == "True"
             add .border-amber-200 .shadow .shadow-blue-100 .bg-yellow-600 .bg-opacity-90 .text-zinc-800 to me
-            then remove .hidden from (.fa-circle-check in me)
+            then remove .hidden from (.i-check-circle in me)
             then add .text-blue-400 .font-bold to (.text-md in me)
         end
     on click
         toggle .border-amber-200 .shadow .shadow-blue-100 .bg-yellow-600 .bg-opacity-90 .text-zinc-800 on me
-        then toggle .hidden on (.fa-circle-check in me)
+        then toggle .hidden on (.i-check-circle in me)
         then toggle .text-blue-400 .font-bold on (.text-md in me)
         then send recheck to #pto-check 
         end

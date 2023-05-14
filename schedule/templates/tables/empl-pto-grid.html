@@ -1,4 +1,18 @@
-<script type="text/hyperscript"> 
+<style>
+    .i-check-circle {
+              --un-icon: url("data:image/svg+xml;utf8,%3Csvg viewBox='0 0 256 256' width='1.2em' height='1.2em' xmlns='http://www.w3.org/2000/svg' %3E%3Cg fill='currentColor'%3E%3Cpath d='M224 128a96 96 0 1 1-96-96a96 96 0 0 1 96 96Z' opacity='.2'/%3E%3Cpath d='M173.66 98.34a8 8 0 0 1 0 11.32l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 0ZM232 128A104 104 0 1 1 128 24a104.11 104.11 0 0 1 104 104Zm-16 0a88 88 0 1 0-88 88a88.1 88.1 0 0 0 88-88Z'/%3E%3C/g%3E%3C/svg%3E");
+              -webkit-mask: var(--un-icon) no-repeat;
+              mask: var(--un-icon) no-repeat;
+              -webkit-mask-size: 100% 100%;
+              mask-size: 100% 100%;
+              background-color: currentColor;
+              color: inherit;
+              width: 1.2em;
+              height: 1.2em;
+    }
+</style>
+
+<script type="text/hyperscript">
     {% include 'tables/hs/pto-switch._hs' %}
 </script>
 
@@ -11,7 +25,7 @@
     <div class="grid grid-cols-7">
 
         {% for day in days %}
-            <div class="day-button border rounded p-1 w-9 h-9 md:w-full lg:p-4 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300 text-center"
+            <div class="day-button border rounded p-1 w-9 h-9 md:w-full lg:p-4 lg:h-20 gap-1 m-1 cursor-pointer hover:ring hover:ring-blue-300 text-center"
                 id="{{day.date|date:'Y-m-d'}}"
                 data-has-pto="{{day.is_pto}}" 
                 data-has-shift="{{day.is_shift}}"
@@ -20,13 +34,13 @@
                 _="install PtoSwitch">
 
                 <div class="flex flex-row hidden md:block">
-                    <h3 class="text-xs hidden md:block md:text-md">
+                    <h3 class="text-sm hidden md:block md:text-lg">
                         {{day.date.month}}/{{day.date.day}}
                     </h3>
                     
-                    <i class="fa-duotone fa-circle-check hidden px-2 text-xs text-blue-500"></i>
+                    <i class="i-check-circle hidden px-2 text-xs text-blue-500"></i>
                 </div>
-                <p class="text-[9px] truncate hidden md:block">
+                <p class="text-[9px] truncate hidden md:block lg:text-[13px]">
                     {{day.weekday}}
                 </p>
                 <h3 class="text-xl block md:hidden font-extrabold">{{day.date.day}}</h3>

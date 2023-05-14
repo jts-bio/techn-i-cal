@@ -6,3 +6,5 @@ packages:
 - path: pds
 - path: schedule
 - path: wday
+- path: dept
+- path: empl

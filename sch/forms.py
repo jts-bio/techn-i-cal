@@ -78,11 +78,18 @@ class EmployeeForm(forms.ModelForm):
             'shifts_trained': forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
             'time_pref': forms.Select(),
-            'std_wk_max': InputGroup(
-                fieldId='std-wk-max',
-                label='Std/Wk Max',
-                icon='time')
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['shifts_trained'].queryset = Shift.objects.all()
+        self.fields['shifts_available'].queryset = Shift.objects.all()
+        self.fields['std_wk_max'].initial = 40
+
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        return cleaned_data
 
 
 class TechnicianForm(EmployeeForm):
@@ -210,17 +217,17 @@ class SstEmployeeForm(forms.Form):
         else:
             sd_id_proxy = int(sd_id_proxy) % 7
         if employee:
-            shiftList = employee.shifts_trained.exclude(id__in=occupied_ssts).filter(occur_days__contains=sd_id_proxy)
+            shiftList = employee.shifts_trained.exclude(pk__in=occupied_ssts).filter(occur_days__contains=sd_id_proxy)
         else:
             shiftList = Shift.objects.none()
         if TemplatedDayOff.objects.filter(sd_id=self.initial.get('ppd_id'), employee=employee).exists():
             shiftList = Shift.objects.none()
 
-        self.fields['shift'].choices = list(shiftList.values_list('id', 'name')) + [("", "-")]  # type: ignore
+        self.fields['shift'].choices = list(shiftList.values_list('slug', 'name')) + [("", "-")]  # type: ignore
 
         if ShiftTemplate.objects.filter(employee=employee, sd_id=self.initial.get('sd_id')).exists():
             self.fields['shift'].initial = ShiftTemplate.objects.get(employee=employee,
-                                                                     sd_id=self.initial.get('sd_id')).shift.id
+                                                                     sd_id=self.initial.get('sd_id')).shift.pk
             # add css class to self.fields['shift'] object
 
         if TemplatedDayOff.objects.filter(employee=employee, sd_id=sd_id).exists():

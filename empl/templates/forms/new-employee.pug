@@ -2,7 +2,10 @@ extends 'base.html'
 
 block content
   h1 New Employee
-  form(method='POST' action='/employees')
+  form(method='POST')
     input(type="hidden"  name="csrfmiddlewaretoken" value="#{csrf_token}")
-    | #{form.as_table}
-    button(type='submit') Submit
+    table
+      tbody
+        | #{form.as_table}
+    button.submit(type='submit') Submit
+

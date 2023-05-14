@@ -52,7 +52,7 @@
                 role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1"
           _="on signal send fsignal to .fetcher in me">
       <div class="py-1" role="none">
-        {% for empl in slot.fills_with %}
+        {% for empl in slot.fill_candidates %}
             <div data-workday="{{slot.workday}}"
                  data-slot="{{slot.workday}}-{{slot.shift}}"
                  data-employee="{{empl}}"

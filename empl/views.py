@@ -19,6 +19,8 @@ def empl_new (request):
         if form.is_valid():
             form.save()
             return redirect('empl:list')
+        else:
+            print(form.errors)
     else:
         form = EmployeeForm()
     return render(request, 'forms/new-employee.pug', {'form': form})
