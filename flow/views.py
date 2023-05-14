@@ -424,7 +424,7 @@ class ApiActionViews:
         slots = Slot.objects.filter(schedule=schedule)
 
         for slot in slots:
-            slot.fills_with.set(
+            slot.fill_candidates.set(
                 Employee.objects.filter(shifts_available=slot.shift)
                 .exclude(pk__in=slot.workday.on_pto())
                 .exclude(pk__in=slot.workday.on_tdo())
@@ -434,6 +434,7 @@ class ApiActionViews:
             )
             if template.exists():
                 slot.template_employee = template.first().employee
+
         slots.bulk_update(slots, ["slug", "template_employee"])
 
         if testing:

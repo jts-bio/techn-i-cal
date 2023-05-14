@@ -102,6 +102,12 @@
     {% endif %}
 
     {% endfor %}
+
+    {{ slot.fill_candidates.count }}
+
+        {% if slot.fill_candidates.count > 0 %}
+            {{ slot.fill_candidates.all }}
+        {% endif %}
   
 </ol>
 

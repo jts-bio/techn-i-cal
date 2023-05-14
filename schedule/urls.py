@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import Sections, schDetailView, schListView, Actions, groupedScheduleListView
+from .views import Sections, schedule_detail, schedule_list, Actions, grouped_schedule_list
 from sch.views2 import schDetailAllEmptySlots
 from flow.views import ApiViews, ApiActionViews
 from sch.viewsets import EmpViews
@@ -17,9 +17,9 @@ app_name = 'schd'
 
 urlpatterns = [
     
-    path('', schListView, name="list"),
-    path('grouped/', groupedScheduleListView, name="list-grouped"),
-    path('detail/<schId>/', schDetailView, name="detail"),
+    path('', schedule_list, name="list"),
+    path('grouped/', grouped_schedule_list, name="list-grouped"),
+    path('detail/<schId>/', schedule_detail, name="detail"),
     path('detail/<schId>/wd/<wd>/', Actions.wd_redirect, name="wd-redirect"),
     path('detail/<schId>/modal/', Sections.modal, name='modal'),
     path('partials/<schId>/stats/', Sections.schStats, name="stats"),

@@ -1,7 +1,8 @@
 {% load tags %}
 
     <a href="{{employee.url}}"
-       class="rounded-lg shadow drop-shadow-sm px-3 py-1 m-3 border border-slate-600 bg-slate-800 
+       data-dept="{{employee.department.slug}}"
+       class="employee rounded-lg shadow drop-shadow-sm px-3 py-1 m-3 border border-slate-600 bg-slate-800
        hover:bg-slate-700 hover:ring-2 hover:ring-slate-300 hover-scale-125 hover:translate-y-7 hover:transition">
         <span class="shrink text-3xl font-semibold text-amber-500 text-shadow
                     {% if employee.time_pref == 'Evening' %} 

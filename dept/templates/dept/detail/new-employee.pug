@@ -1,0 +1,47 @@
+
+//- New Employee Row Inline Form
+style.
+    .form-group {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        width: fit-content;
+    }
+
+
+.bg-zinc-800.bg-opacity-70.rounded
+    .text-lg.font-bold New Employee
+        form
+            input(type='hidden' name='csrfmiddlewaretoken' value=csrf_token)
+            input(type='hidden' name='dept' value=dept_id)
+            input(type='hidden' name='org' value=org_id)
+            .flex.flex-row.gap-2
+                .form-group
+                    label(for='name') Name
+                    input#name.form-control.w-16(type='text' name='name' placeholder='Enter name' class="w-[150px]")
+                .form-group(class="w-1/12")
+                    label(for='initials') Initials
+                    input#initials.form-control.w-16(type='text' name='initials' placeholder='Enter initials')
+                .form-group(class="w-1/12")
+                    label(for='fte') FTE
+                    .flex.flex-column
+                        .bg-white.text-black.rounded-full.w-12.h-6.text-center(
+                            class="fas fa-plus cursor-pointer"
+                            _="on click set v to @value of next <input/> then set output to v + 0.125 if output < 1 set #fte@value to output")
+                                i.fas.fa-plus.text-black
+
+                        input#fte.form-control(type='number' min="0" max="1" name='fte' value='1.0')
+
+                        .bg-white.text-black.rounded-full.w-12.h-6.text-center(
+                            class="hover:bg-gray-200 cursor-pointer"
+                            _="on click set v to @value of next <input/> then set output to v + 0.125 if output < 1 set #fte@value to output")
+                                i.fas.fa-minus.text-black
+                .form-group
+                    each shift in department.shifts.all
+                        .bg-zinc-600.rounded-xl.p-2.m-1
+                            label.font-thin.text-xs.tracking-wide(for=shift.name)= shift.name
+                            select(name=shift.name)
+                                option(value="") N/A
+                                option(value="T") Trained
+                                option(value="A") Available

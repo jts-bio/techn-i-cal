@@ -8,10 +8,14 @@ class TestPublishView(TestCase):
 
     def setup(self) -> None:
         SD = dt.date(2022, 12, 25)
+
+        Organization.objects.create(name='TestOrg').save()
+        Department.objects.create(name='TestDept').save()
+        DPT = Department.objects.get(name='TestDept')
         # create 3 instances of a schedule year 2023 number 1 versions A,B,C
-        Schedule.objects.create(year=2023, number=1, version='A', start_date=SD).save()
-        Schedule.objects.create(year=2023, number=1, version='B', start_date=SD).save()
-        Schedule.objects.create(year=2023, number=1, version='C', start_date=SD).save()
+        Schedule.objects.create(year=2023, number=1, version='A', start_date=SD, department=DPT).save()
+        Schedule.objects.create(year=2023, number=1, version='B', start_date=SD, department=DPT).save()
+        Schedule.objects.create(year=2023, number=1, version='C', start_date=SD, department=DPT).save()
 
         print(Schedule.objects.all())
 

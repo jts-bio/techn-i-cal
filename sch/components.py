@@ -37,8 +37,8 @@ class BasicSpeedDial:
 
 workday_speed_dial_menu = BasicSpeedDial()
 workday_speed_dial_menu.add_option(
-            name="Solve",
-            url="solve/",
-            icon="robot-user",
+            name= "Solve",
+            url=  "solve/",
+            icon= "robot-user",
             color="zinc-300"
             )

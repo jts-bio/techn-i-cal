@@ -102,7 +102,7 @@ class PayPeriodActions:
         slots = Slot.objects.filter(workday__date__year=year, workday__iperiod=pp)
         for emp in employees:
             emp.period_fte_percent = int(
-                (sum(list(slots.filter(employee=emp).values_list('shift__hours', flat=True))) / emp.fte_14_day) * 100)
+                (sum(list(slots.filter(employee=emp).values_list('shift__hours', flat=True))) / emp.fte * 80) * 100)
 
         return employees
 
@@ -146,7 +146,7 @@ class ScheduleBot:
 
             # pull out employees with no guaranteed hours
             prn_empls = Employee.objects.filter(fte=0)
-            empl = Employee.objects.can_fill_shift_on_day(shift=shift, cls=shift.cls, workday=day).annotate(
+            empl = Employee.objects.can_fill_shift_on_day(shift=shift, department=shift.department, workday=day).annotate(
                 n_slots=Count('slot')).order_by('n_slots')
             incompat_empl = Slot.objects.incompatible_slots(workday=day, shift=shift).values('employee')
 
@@ -159,11 +159,11 @@ class ScheduleBot:
                 empl = empl.exclude(pk__in=opp_weekend)
 
             # exclude pt employees who would cross their fte 
-            wk_hours_pt = Employee.objects.filter(fte_14_day__lt=70).exclude(pk__in=prn_empls)
+            wk_hours_pt = Employee.objects.filter(fte__lt=0.875).exclude(pk__in=prn_empls)
             for pt_emp in wk_hours_pt:
                 weekly_hours = pt_emp.weekly_hours(day.date.year, day.iweek)
                 if weekly_hours:
-                    if weekly_hours >= pt_emp.fte_14_day / 2:
+                    if weekly_hours >= pt_emp.fte * 40:
                         empl = empl.exclude(pk=pt_emp.pk)
 
             empl = empl.exclude(pk__in=incompat_empl)
@@ -193,7 +193,7 @@ class ScheduleBot:
         """
         Returns a list of employees who can fill a shift on a workday.
         """
-        return Employee.objects.can_fill_shift_on_day(shift=shift, cls=shift.cls, workday=workday)
+        return Employee.objects.can_fill_shift_on_day(shift=shift, department=shift.department, workday=workday)
 
     def getMinSolutionsSlot(year, week=0, period=0):
         """
@@ -357,7 +357,7 @@ class ScheduleBot:
 
         for empty_slot in empties:
             wd = sched.workdays.get(sd_id=empty_slot.sd_id)
-            employees = Employee.objects.can_fill_shift_on_day(shift=empty_slot.shift, cls=empty_slot.shift.cls,
+            employees = Employee.objects.can_fill_shift_on_day(shift=empty_slot.shift, department=empty_slot.shift.department,
                                                                workday=wd)
 
             employee_lowest_fte_percent = [emp.ftePercForWeek(wd.date.year, wd.iweek) for emp in employees]
@@ -383,7 +383,7 @@ class ScheduleBot:
         #     day.slots     = Slot.objects.filter(workday=day)
 
         # # put the list into a list of occurences in the form (workday, shift, number of employees who could fill this slot)
-        # unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, cls=shift.cls, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
+        # unfilledSlots = [(day, shift, Employee.objects.can_fill_shift_on_day(shift=shift, department=shift.department, workday=day).values('pk').count()) for day in wds for shift in day.getshifts]
         nCanFill = []
         unfilledSlots = sched.slots.empty()
         for s in unfilledSlots:
@@ -391,7 +391,7 @@ class ScheduleBot:
             nCanFill.append((s, n))
 
         for slot, n_count in nCanFill:
-            employees = Employee.objects.can_fill_shift_on_day(shift=slot.shift, cls=slot.shift.cls,
+            employees = Employee.objects.can_fill_shift_on_day(shift=slot.shift, department=slot.shift.department,
                                                                workday=slot.workday)
 
             employee_lowest_fte_percent = [emp.ftePercForWeek(slot.workday.date.year, slot.week.number) for emp in

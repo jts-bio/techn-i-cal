@@ -1,0 +1,21 @@
+
+extends 'base.html'
+
+block content
+
+    .flex.flex-wrap.gap-4
+
+        each image in images
+
+            .bg-zinc-200.bg-opacity-20.rounded.p-3.m-1.backdrop-blur-md(class="hover:background-opacity-50 transition-all duration-800 ease-in-out")
+
+                form(method="POST")
+                    | {% csrf_token %}
+                    input(type="hidden" name="img_input" value=image)
+                    button(type="submit"
+                        name="img_submit"
+                        value="img_submit"
+                        class="hover:scale-125 transition-all duration-200 ease-in-out")
+                        img.rounded-full.w-24.h-24.border(src=image)
+
+

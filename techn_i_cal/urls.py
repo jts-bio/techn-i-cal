@@ -94,7 +94,7 @@ urlpatterns = [
     path('schedule/',   include('schedule.urls'), name='schedule'),
     path('wday/',       include('wday.urls'),     name='wday'),
     path('prd/',        include('prd.urls'),      name="prd"),
-    path('pds/',        include('pds.urls'),      name="pds"),
+    path('dept/',       include('dept.urls'),     name='dept'),
     path('api/',        include('flow.urls'),     name='flow'),
     path('mail/',       mail,                     name='mail'),
 

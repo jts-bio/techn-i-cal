@@ -1,0 +1,8 @@
+extends 'base.html'
+
+block content
+  h1 New Employee
+  form(method='POST' action='/employees')
+    input(type="hidden"  name="csrfmiddlewaretoken" value="#{csrf_token}")
+    | #{form.as_table}
+    button(type='submit') Submit

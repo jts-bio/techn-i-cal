@@ -1,0 +1,76 @@
+
+
+extends 'base.html'
+
+
+block content
+
+    style.
+        td {
+            color: white;
+            font-size: 14px;
+
+        }
+        .b {
+            font-weight: bold;
+        }
+        .btn {
+            color: #251c01;
+        }
+        .btn:hover {
+            color: white;
+            border: 2px solid #fbc02d;
+        }
+        h1 {
+            color: #7895ef;
+            font-size: 36px;
+        }
+
+
+
+
+    h1 Employee List
+
+    button.btn.bg-yellow-400.my-5(
+        type='button'
+        _="on click fetch new-employee/ then append it to closest .tbody")
+        i.fas.fa-plus.m-2.text-amber-700
+        | Add Employee
+
+    table
+        thead
+            tr
+                th Name
+                th Initials
+                th Department
+                th FTE
+                th Time Preference
+                th Shifts Trained
+                th Shifts Available
+                th Actions
+        tbody.tbody
+            if employees
+                each employee in employees
+                    tr
+                        td.b= employee.name
+                        td= employee.initials
+                        td
+                            a(href='/dept/#{employee.department.org.slug}/#{employee.department.slug}')
+                                | #{employee.department.org.name} - #{employee.department.name}
+                        td.b= employee.fte
+                        td= employee.time_preference
+                        td
+                            .grid.grid-4-row
+                                each sft in employee.shifts_trained.all
+                                    div.w-5.h-5.rounded-full.border.text-amber-600.text-center= sft
+                        td
+                            .grid.grid-4-row
+                                each sft in employee.shifts_available.all
+                                    div.w-5.h-5.rounded-full.border.text-amber-600.text-center= sft
+
+                        td
+                            a.btn.btn-primary(href='/employee/edit/' + employee.id) Edit
+                            a.btn.btn-danger(href='/employee/delete/' + employee.id) Delete
+            else
+                tr.empty-row
+                    td.text-white(colspan='8') No employees in Department: #{dept}

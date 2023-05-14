@@ -28,7 +28,7 @@ from .forms import GenerateNewScheduleForm
 from .tables import TdoConflictsTable
 
 
-def schListView(request):
+def schedule_list(request):
     """
     SCHEDULE LIST VIEW
     ==================
@@ -59,15 +59,19 @@ def schListView(request):
         sd = request.POST.get("start_date")
         dept = request.POST.get("department")
         start_date = dt.date(int(sd[:4]), int(sd[5:7]), int(sd[8:]))
-        idate = start_date
+
         year = start_date.year
         i = Schedule.START_DATES[year].index(start_date) + 1
         s = Schedule.objects.filter(year=year, number=i).count()
         version = "ABCDEFGH"[s]
 
         flow_views.ApiActionViews.build_schedule(request, year, i, version, dept, start_date)
+
         sch = Schedule.objects.get(year=year, number=i, version=version)
-        sch.employees.set(Employee.objects.filter(department=dept))
+        sch.employees.set(Employee.objects \
+                          .filter(department=dept,
+                                  hire_date__lte=start_date,
+                                  active=True))
 
         return HttpResponseRedirect(sch.url())
 
@@ -82,7 +86,7 @@ def schListView(request):
     return render(request, "sch-list.html", context)
 
 
-def groupedScheduleListView(request):
+def grouped_schedule_list(request):
     yn_pairs = []
     for sch in Schedule.objects.all():
         yn_pairs.append((sch.year, sch.number))
@@ -97,7 +101,7 @@ def groupedScheduleListView(request):
 
 
 @vary_on_headers("Cookie")
-def schDetailView(request, schId):
+def schedule_detail(request, schId):
     sch = Schedule.objects.get(slug=schId)
     background_src = Images.randomSeamlessChoice()
 
@@ -289,7 +293,7 @@ class Sections:
         data = ApiViews.schedule__get_empty_list(request, schId)
         data = json.loads(data.content)
         for d in data:
-            d["n_options"] = len(d["fills_with"])
+            d["n_options"] = len(d["fill_candidates"])
             d["workday"] = d["workday"][0:10]
             wd_slug = f"{d['workday']}{version}"
             d["workday_url"] = reverse("wday:detail", args=[wd_slug])
@@ -740,7 +744,7 @@ class Actions:
         )
 
         for slot in slots:
-            empls = slot.fills_with.all().annotate(
+            empls = slot.fill_candidates.all().annotate(
                 hours=Sum(slot.week.slots.filter(employee=F("pk")).aggregate(
                     week_hours=Sum(F('shift__hours'))
                 )['week_hours'], output_field=FloatField())
@@ -783,10 +787,10 @@ class Actions:
                     )
                 )
                 for sib_slot in slots.filter(pk__in=slot.siblings_day):
-                    sib_slot.fills_with.remove(emp)
+                    sib_slot.fill_candidates.remove(emp)
                 if week.hours[emp.slug] > emp.fte * 40 - 5:
                     for s in slot.week.slots.filter(fills_with=emp):
-                        s.fills_with.remove(emp)
+                        s.fill_candidates.remove(emp)
                 n += 1
 
         schedule.slots.bulk_update(results, fields=["employee"])

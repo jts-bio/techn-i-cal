@@ -252,10 +252,10 @@ def workdayDetail(request, slug):
     return render(request, html_template_alt, context)
 
 
-def shiftDetailView(request, cls, name):
+def shiftDetailView(request, dept, name):
     html_template = "sch2/shift/shift-detail.html"
 
-    shift = Shift.objects.get(cls=cls, name=name)
+    shift = Shift.objects.get(department_id=dept, name=name)
     _ = [int(sft) for sft in shift.occur_days]
     days = ",".join(["SMTWRFS"[d] for d in _])
 
@@ -274,9 +274,9 @@ def shiftDetailView(request, cls, name):
     return render(request, html_template, context)
 
 
-def shiftTrainingFormView(request, cls, sft):
+def shiftTrainingFormView(request, dept, sft):
 
-    shift = Shift.objects.get(cls=cls, pk=sft)
+    shift = Shift.objects.get(department_id=dept, pk=sft)
     if request.method == "POST":
         # if there is a dict key in the form of 'employee-trained' and it to the list trained:
         trained = []
@@ -307,7 +307,7 @@ def shiftTrainingFormView(request, cls, sft):
         return HttpResponseRedirect(shift.url())
 
     html_template = "sch2/shift/shift-training.html"
-    empls = Employee.objects.filter(cls=shift.cls).order_by("name")
+    empls = Employee.objects.filter(department=shift.department).order_by("name")
     context = {
         "shift": shift,
         "empls": empls,

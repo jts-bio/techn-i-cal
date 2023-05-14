@@ -32,8 +32,8 @@ INSTALLED_APPS = [
     "empl.apps.EmplConfig",
     "flow.apps.FlowConfig",
     "wday.apps.WdayConfig",
-    "pds.apps.PdsConfig",
     "sch.apps.SchConfig",
+    "dept.apps.DeptConfig",
 
     "sch.templatetags.tags",
     "wday.templatetags.wtags",

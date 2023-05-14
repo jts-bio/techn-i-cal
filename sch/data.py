@@ -2,9 +2,9 @@ import datetime as dt
 from pprint import pprint
 import os, pathlib
 import random
+from typing import Tuple, List, Dict
 
-
-DAYCHOICES = (
+DAY_CHOICES: tuple[tuple[int, str], tuple[int, str], tuple[int, str], tuple[int, str], tuple[int, str], tuple[int, str], tuple[int, str]] = (
         (0, 'Sun'),
         (1, 'Mon'),
         (2, 'Tue'),
@@ -16,7 +16,7 @@ DAYCHOICES = (
 
 WEEKABCHOICES  =   ((0, 'A'),(1, 'B'))
 
-TODAY                   = dt.date.today ()
+TODAY                   = dt.date.today()
 TEMPLATESCH_STARTDATE   = dt.date (2020,1,12)
 
 SCH_STARTDATE_SET       = [(TEMPLATESCH_STARTDATE + dt.timedelta(days=42*i)) for i in range (50)]
@@ -39,19 +39,13 @@ PREF_SCORES  = (
 PTO_STATUS_CHOICES  = (
                     ('Pending',  'Pending'),
                     ('Approved', 'Approved'),
-                    ('Denide',   'Denied'),
+                    ('Denied',   'Denied'),
                 )
 
 
-def group_dates_by_year(dates):
+def group_dates_by_year(dates: List[dt.date]) -> Dict[int, List[dt.date] ]:
     """
     Groups a list of dates by the year into a dictionary.
-
-    Parameters:
-        dates (list): A list of date strings in the format '%Y-%m-%d'.
-
-    Returns:
-        dict: A dictionary with the year as the key and a list of dates as the value.
     """
     grouped_dates = {}
     for date in dates:
@@ -68,7 +62,9 @@ def group_dates_by_year(dates):
 class Images:
     
     SEAMLESS_OPTIONS = ["/static/img/" + x for x in os.listdir('static/img/') if 'tile' in x.lower() ]
-    
+    PROFILE_OPTIONS =  ["/static/img/" + x for x in os.listdir('static/img/') if 'profile' in x.lower() ]
+
+
     def randomSeamlessChoice () -> str:
         return random.choice(Images.SEAMLESS_OPTIONS)
 
@@ -77,6 +73,8 @@ class Images:
         CUTE_ROBOT_2    = '/static/img/CuteRobot-02.png'
         TECHNO_BIRD     = '/static/img/bird-profile-techno.png'
         YODA_ORIGAMI    = '/static/img/yoda-origami.png'
+
+
     
     
     

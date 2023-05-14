@@ -22,20 +22,34 @@
 
     <div class="vstack">
         <div class="hstack align-content-start">
-            <a href="/sch/employees/all/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{allActive}}">All</a>
-            <a href="/sch/employees/cpht/" class="rounded-md px-3 py-1 hover:bg-amber-900 {{cphtActive}}">Technicians</a>
-            <a href="/sch/employees/rph/"  class="rounded-md px-3 py-1 hover:bg-amber-900  {{rphActive}}">Pharmacists</a>
+            <div href="/sch/employees/all/"
+                class="choices rounded-md px-3 py-1 hover:bg-amber-900 bg-amber-700"
+                _="on click
+                    take .bg-amber-700 from .choices
+                    then remove .hidden from  .employee end">
+                All
+            </div>
+            {% for dept in user.employee.department.org.departments.all %}
+                <div
+                    class="choices rounded-md px-3 py-1 hover:bg-amber-900"
+                    _="on click
+                        take .bg-amber-700 from .choices
+                        then add .hidden to .employee
+                        then remove .hidden from
+                            <.employee[data-dept='{{dept.slug}}']/>
+                        end"
+                        >{{ dept.name }}
+                </div>
+            {% endfor %}
         </div>
 
 
         <div class="panel w-full">
             <div class="hstack" 
                 style="justify-content:space-between;">
-
-                {% if rphActive %}    <a href="{% url 'sch:create-rph' %}"> {% newEmployee %} </a>
-                {% elif cphtActive %} <a href="{% url 'sch:create-cpht' %}"> {% newEmployee %} </a>
-                {% endif %}
-                
+                    <a href="{% url 'empl:new' %}" class="opacity-75 hover:opacity-100">
+                        <i class="text-2xl fa-solid fa-person-circle-plus"></i>
+                    </a>
                 <div style="font-style:italic;color:orange;font-weight:100;font-family:'JetBrains Mono';"> 
                     {{ employees|length }} Active 
                 </div>

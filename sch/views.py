@@ -934,8 +934,9 @@ class SHIFT:
 
 class EMPLOYEE:
     class ANNO:
-        nShiftsTrained = Employee.objects.annotate(n_shifts_trained=Count('shifts_trained')).order_by(
-            'n_shifts_trained').values_list('name', 'n_shifts_trained')
+        nShiftsTrained = Employee.objects.annotate(n_shifts_trained=Count('shifts_trained')
+            ).order_by(
+                'n_shifts_trained').values_list('name', 'n_shifts_trained')
 
     class EmployeeListView(ListView):
         model = Employee
@@ -943,31 +944,9 @@ class EMPLOYEE:
 
         def get_context_data(self, **kwargs):
             context = super().get_context_data(**kwargs)
-            context['employees'] = Employee.objects.all()
+            context['employees']     = Employee.objects.all()
             context['employeeTable'] = EmployeeTable(Employee.objects.all().order_by('name'))
-            context['allActive'] = "bg-yellow-700"
-            return context
-
-    class EmployeeListViewCpht(ListView):
-        model = Employee
-        template_name = 'sch/employee/employee_list.html'
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['employees'] = Employee.objects.filter(cls='CPhT')
-            context['employeeTable'] = EmployeeTable(Employee.objects.filter(cls='CPhT').order_by('name'))
-            context['cphtActive'] = "bg-yellow-700"
-            return context
-
-    class EmployeeListViewRph(ListView):
-        model = Employee
-        template_name = 'sch/employee/employee_list.html'
-
-        def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['employees'] = Employee.objects.filter(cls='RPh')
-            context['employeeTable'] = EmployeeTable(Employee.objects.filter(cls='RPh').order_by('name'))
-            context['rphActive'] = "bg-yellow-700"
+            context['allActive']     = "bg-yellow-700"
             return context
 
     ### CREATE
@@ -976,26 +955,6 @@ class EMPLOYEE:
         form_class = EmployeeForm
         fields = ['name', 'fte_14_day', 'shifts_trained', 'shifts_available', 'streak_pref', 'cls']
 
-
-    class TechnicianCreateView(EmployeeCreateView):
-        form_class = TechnicianForm
-
-        def post(self, request):
-            form = self.form_class(request.POST)
-            if form.is_valid():
-                form.save()
-                obj = Employee.objects.get(name=form.cleaned_data['name'])
-                return HttpResponseRedirect(reverse('sch:employee-update', args=[obj.name]))
-
-    class PharmacistCreateView(EmployeeCreateView):
-        form_class = PharmacistForm
-
-        def post(self, request):
-            form = self.form_class(request.POST)
-            if form.is_valid():
-                form.save()
-                obj = Employee.objects.get(name=form.cleaned_data['name'])
-                return HttpResponseRedirect(reverse('sch:employee-update', args=[obj.name]))
 
     class EmployeePtoFormView(View):
         template_name = 'sch/employee/pto_form.html'
@@ -1083,20 +1042,25 @@ class EMPLOYEE:
 
         def post(self, request, empId):
             form = EmployeeEditForm(request.POST)
+            print(request.POST)
             print("ERRORS: ", form.errors)
 
             e = Employee.objects.get(pk=empId)
 
             print(request.POST)
 
+            shifts_trained_ids = request.POST.getlist('shifts_trained')
+            shifts_trained = Shift.objects.filter(pk__in=shifts_trained_ids)
+            shifts_available_ids = request.POST.getlist('shifts_available')
+            shifts_available = Shift.objects.filter(pk__in=shifts_available_ids)
+
             e.name = form.cleaned_data['name']
-            e.cls = form.cleaned_data['cls']
             e.streak_pref = form.cleaned_data['streak_pref']
             e.fte = form.cleaned_data['fte']
             e.fte_14_day = int(e.fte * 80)
             e.time_pref = form.cleaned_data['time_pref']
-            e.shifts_trained.set(form.cleaned_data['shifts_trained'])
-            e.shifts_available.set(form.cleaned_data['shifts_available'])
+            e.shifts_trained.set(shifts_trained)
+            e.shifts_available.set(shifts_available)
             e.std_wk_max = form.cleaned_data['std_wk_max']
             e.image_url = form.cleaned_data['image_url']
 

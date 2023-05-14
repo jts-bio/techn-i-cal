@@ -80,9 +80,9 @@ shift_patterns = [
     # ? ==== Shifts ==== ?#
     path("shifts/all/", views.SHIFT.ShiftListView.as_view(), name="shift-list"),
     path("shifts/all/overview/", views.SHIFT.shiftOverview, name="shift-overview"),
-    path("v2/shift/<str:cls>/<str:name>/", views2.shiftDetailView, name="shift-detail"),
+    path("v2/shift/<str:slug>/", views2.shiftDetailView, name="shift-detail"),
     path("shift/<str:name>/update/", views.SHIFT.ShiftUpdateView.as_view(), name="shift-update"),
-    path("v2/shift/<str:cls>/<str:sft>/trained/update/", views.SHIFT.trainedShiftView, name="shift-training-update"),
+    path("v2/shift/<str:dept>/<str:sft>/trained/update/", views.SHIFT.trainedShiftView, name="shift-training-update"),
     path("shifts/new/", views.SHIFT.ShiftCreateView.as_view(), name="shift-new"),
     path("shift/<str:shift>/upcoming/",views.SHIFT.shiftComingUpView,name="shift-coming-up",),
     path("shift-tallies/<str:shiftpk>/tallies/",views.SHIFT.shiftTalliesView,name="shift-tallies-view",),
@@ -117,10 +117,6 @@ slot_patterns = [
 employee_patterns = [
     # ? ==== Employees ==== ?#
     path("employees/all/",  views.EMPLOYEE.EmployeeListView.as_view(), name="employee-list"),
-    path("employees/cpht/",  views.EMPLOYEE.EmployeeListViewCpht.as_view(), name="cpht-list"),
-    path("employees/rph/",  views.EMPLOYEE.EmployeeListViewRph.as_view(), name="rph-list"),
-    path("employees/new-pharmacist/",  views.EMPLOYEE.PharmacistCreateView.as_view(), name="create-rph"),
-    path("employees/new-technician/",  views.EMPLOYEE.TechnicianCreateView.as_view(), name="create-cpht"),
     path("employee/<empId>/",  views.EMPLOYEE.EmployeeDetailView.as_view(), name="empl"),
     path("employee/<empId>/set-image/",  views.EMPLOYEE.setEmployeeImage, name="set-employee-image"),
     path("employee/<empId>/shift-tallies/",  views.EMPLOYEE.EmployeeShiftTallyView.as_view(), name="employee-shift-tallies"),

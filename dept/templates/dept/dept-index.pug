@@ -1,0 +1,55 @@
+
+
+extends 'base.html'
+
+
+block content
+
+    .text-header
+        h1 #{dept} (#{dept.slug})
+        h2= dept.org.name
+
+    #employee-grid
+        if dept.employees
+            each employee in dept.employees.all
+                .grid-item
+                    a(href=employee.url)
+                        .grid-item-content
+                            h3= employee.name
+                            p= employee.title
+        else
+            .grid-item
+                .grid-item-content
+                    p No employees in this department
+    .grid-item-button
+        .btn(_="on click fetch new-employee/ then append it to #employee-grid")
+            | Add new employee
+
+
+block style
+    style.
+        .grid {
+            width: 100%;
+            margin: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 20px;
+        }
+        .grid-item {
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+        .grid-item-content {
+            text-align: center;
+        }
+        .grid-item-button {
+            grid-column: 1 / span 3;
+            backdrop-filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
+            background-image: -o-radial-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .grid-rows-7 {
+            grid-template-rows: repeat(7, 1fr);
+        }

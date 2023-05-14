@@ -18,14 +18,13 @@ class CreateUserForm(UserCreationForm):
 class ShiftForm(forms.ModelForm):
     class Meta:
         model = Shift
-        fields = ['name', 'start', 'duration', 'occur_days', 'cls', 'group']
+        fields = ['name', 'start', 'duration', 'occur_days', 'group']
         labels = {
             'name': 'Shift name',
             'start': 'Start time',
             'duration': 'Duration',
             'occur_days': 'Days of the week',
             'employee_class': "Shift for",
-            'cls': 'Shift Class',
             'group': 'Group',
         }
         widgets = {
@@ -33,7 +32,6 @@ class ShiftForm(forms.ModelForm):
             'start': forms.TimeInput(attrs={'class': 'form-control'}),
             'duration': forms.TimeInput(attrs={'class': 'form-control'}),
             'occur_days': forms.CheckboxSelectMultiple(attrs={"class": "grid-cols-3"}),
-            'cls': forms.Select(attrs={"class": "form-control"}),
             'group': forms.Select(attrs={"class": "form-control"})
         }
 
@@ -63,13 +61,12 @@ class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
         fields = [
-            'name', 'fte', 'shifts_trained',
+            'name', 'fte', 'department', 'shifts_trained',
             'shifts_available', 'streak_pref',
-            'cls', 'time_pref', 'std_wk_max'
+            'time_pref', 'std_wk_max'
         ]
         labels = {
             'fte': 'FTE',
-            'cls': 'Employee Class',
             'time_pref': 'Shift Time Preference',
             'std_wk_max': 'Standard Weekly Max Hours',
         }
@@ -81,7 +78,6 @@ class EmployeeForm(forms.ModelForm):
             'shifts_trained': forms.CheckboxSelectMultiple(),
             'shifts_available': forms.CheckboxSelectMultiple(),
             'time_pref': forms.Select(),
-            'cls': forms.RadioSelect(),
             'std_wk_max': InputGroup(
                 fieldId='std-wk-max',
                 label='Std/Wk Max',
@@ -94,20 +90,13 @@ class TechnicianForm(EmployeeForm):
         model = Employee
         fields = [
             'name',
-            'initials',
-            'fte_14_day',
-            'cls',
-            'time_pref'
+            'department'
         ]
         widgets = {
-            'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['fte_14_day'].label = "hours / 14 days"
-        self.fields['cls'].initial = 'CPhT'
 
 
 class PharmacistForm(EmployeeForm):
@@ -115,19 +104,15 @@ class PharmacistForm(EmployeeForm):
         model = Employee
         fields = [
             'name',
-            'fte_14_day',
-            'cls',
-            'time_pref'
+            'fte',
+            'initials',
+            'time_pref',
         ]
         widgets = {
-            'fte_14_day': forms.NumberInput(attrs={'class': 'form-control'}),
-            'cls': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['fte_14_day'].label = "hrs / 14 days"
-        self.fields['cls'].initial = 'RPh'
 
 
 class EmployeeSelectForm(forms.Form):
@@ -163,13 +148,12 @@ class EmployeeEditForm(forms.ModelForm):
             'initials',
             'fte',
             'streak_pref', 'shifts_trained',
-            'shifts_available', 'cls',
+            'shifts_available',
             'time_pref', 'hire_date',
             'std_wk_max', 'image_url'
         ]
         labels = {
             'fte': 'FTE',
-            'cls': 'Employee Class',
             'time_pref': "Time Preference",
             'std_wk_max': 'Standard Weekly Max Hours',
             'image_url': 'Profile Image',
@@ -186,12 +170,11 @@ class EmployeeEditForm(forms.ModelForm):
             'fte': forms.NumberInput(attrs={'class': 'w-28 form-control'}),
             'shifts_available': forms.CheckboxSelectMultiple(attrs={'class': 'grid-cols-3'}),
             'streak_pref': forms.NumberInput(attrs={'class': 'w-28 form-control'}),
-            'cls': forms.Select(attrs={'class': 'form-control h-10'}),
             'time_pref': forms.Select(attrs={'class': 'form-control h-10'}),
             'std_wk_max': forms.NumberInput(attrs={'class': 'w-28 form-control'}),
             'image_url': forms.TextInput(attrs={
                 'script': IMAGE_LOOKUP_HYPERSCRIPT,
-                'class': 'text-xs w-48 text-indigo-300 jbm'
+                'class': 'text-xs w-[350px] text-indigo-300 jbm'
             })
         }
 
